@@ -83,7 +83,7 @@ function getSettings(schema) {
 const globalSignalHandler = new Lang.Class({
     Name: 'workspacesToDock.globalSignalHandler',
 
-    _init: function(){
+    _init: function() {
         this._signals = new Object();
     },
 
@@ -92,7 +92,7 @@ const globalSignalHandler = new Lang.Class({
     },
 
     disconnect: function() {
-        for( let label in this._signals ) {
+        for (let label in this._signals) {
             this.disconnectWithLabel(label);
         }
     },
@@ -107,10 +107,10 @@ const globalSignalHandler = new Lang.Class({
     },
 
     _addSignals: function(label, elements) {
-        if(this._signals[label] == undefined) {
+        if (this._signals[label] == undefined) {
             this._signals[label] = new Array();
         }
-        for (let i = 0; i < elements.length; i++ ) { 
+        for (let i = 0; i < elements.length; i++) { 
             let object = elements[i][0];
             let event = elements[i][1];
             let id = object.connect(event, elements[i][2]);
@@ -119,8 +119,8 @@ const globalSignalHandler = new Lang.Class({
     },
 
     disconnectWithLabel: function(label) {
-        if(this._signals[label]) {
-            for( let i = 0; i < this._signals[label].length; i++ ) {
+        if (this._signals[label]) {
+            for (let i = 0; i < this._signals[label].length; i++) {
                 this._signals[label][i][0].disconnect(this._signals[label][i][1]);
             }
             delete this._signals[label];

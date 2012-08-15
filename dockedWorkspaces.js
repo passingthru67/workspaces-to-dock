@@ -58,9 +58,8 @@ dockedWorkspaces.prototype = {
 
         // Create a new thumbnailsbox object
         this._thumbnailsBox = new MyThumbnailsBox.myThumbnailsBox();
-		this._thumbnailsBox.show();
+        this._thumbnailsBox.show();
 		
-
         // Create the main container, turn on track hover, add hoverChange signal
         this.actor = new St.BoxLayout({
             name: 'workspacestodockContainer',
@@ -68,7 +67,6 @@ dockedWorkspaces.prototype = {
             track_hover: true
         });
         this.actor.connect("notify::hover", Lang.bind(this, this._hoverChanged));
-        //this.actor.set_track_hover(true);
 
         // Create the background box and set opacity
         this._backgroundBox = new St.Bin({
@@ -119,20 +117,20 @@ dockedWorkspaces.prototype = {
                 Lang.bind(this, this._workspacesRestacked)
             ],
             [
-				global.screen,
-				'workspace-added',
-				Lang.bind(this, this._workspacesAdded)
-			],
+                global.screen,
+                'workspace-added',
+                Lang.bind(this, this._workspacesAdded)
+            ],
             [
-				global.screen,
-				'workspace-removed',
-				Lang.bind(this, this._workspacesRemoved)
-			],
+                global.screen,
+                'workspace-removed',
+                Lang.bind(this, this._workspacesRemoved)
+            ],
             [
-				global.screen,
-				'workspace-switched',
-				Lang.bind(this, this._workspacesRestacked)
-			]
+                global.screen,
+                'workspace-switched',
+                Lang.bind(this, this._workspacesRestacked)
+            ]
         );
 
         //Hide the dock whilst setting positions
@@ -144,7 +142,7 @@ dockedWorkspaces.prototype = {
         this.actor.add_actor(this._thumbnailsBox.actor);
         Main.layoutManager.addChrome(this.actor, {
             affectsStruts: this._settings.get_boolean('dock-fixed')
-		});
+        });
 
         // Start main loop and bind initialize function
         Mainloop.idle_add(Lang.bind(this, this._initialize));
@@ -164,8 +162,7 @@ dockedWorkspaces.prototype = {
         this.actor.x = this._monitor.x + this._monitor.width - 1;
 
         // Show 
-        //this._updateHeight();
-        this.actor.set_opacity(255); //this.actor.show();
+        this.actor.set_opacity(255);
         this._redisplay();
     },
 
@@ -207,7 +204,7 @@ dockedWorkspaces.prototype = {
 
         if (NumGlobalWorkspaces > NumMyWorkspaces) {
             this._thumbnailsBox.addThumbnails(NumMyWorkspaces, NumGlobalWorkspaces - NumMyWorkspaces);
-		}
+        }
         this._redisplay();
     },
 
@@ -222,7 +219,7 @@ dockedWorkspaces.prototype = {
         if (NumGlobalWorkspaces < NumMyWorkspaces) {
             this._thumbnailsBox.removeThumbmails(0, NumMyWorkspaces);
             this._thumbnailsBox.addThumbnails(0, NumGlobalWorkspaces);
-		}
+        }
         this._redisplay();
     },
 
@@ -305,11 +302,10 @@ dockedWorkspaces.prototype = {
             // amount of time is passeed to trigger the dock showing) remove it.
             if (anim.showing()) {
                 if (anim.running) {
-                    //if a show already started, let it finish; queue hide without removing the show.
+                    // If a show already started, let it finish; queue hide without removing the show.
                     // to obtain this I increase the delay to avoid the overlap and interference 
                     // between the animations
                     delay = this._settings.get_double('hide-delay') + 2 * this._settings.get_double('animation-time') + this._settings.get_double('show-delay');
-
                 } else {
                     this._removeAnimations();
                     delay = 0;
@@ -346,7 +342,7 @@ dockedWorkspaces.prototype = {
                 onComplete: Lang.bind(this, function() {
                     this._animStatus.end();
                 })
-			});
+            });
         }
     },
 
@@ -370,7 +366,7 @@ dockedWorkspaces.prototype = {
                 onComplete: Lang.bind(this, function() {
                     this._animStatus.end();
                 })
-			});
+            });
         }
     },
 
@@ -463,11 +459,11 @@ dockedWorkspaces.prototype = {
 
     _updateStaticBox: function() {
         this.staticBox.init_rect(
-			this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - 1,
-			this._monitor.y + Main.overview._viewSelector.actor.y + Main.overview._viewSelector._pageArea.y,
-			this._thumbnailsBox.actor.width + 1, //thumbnailsBox.actor.width is used to set staticBox.width
-			Main.overview._viewSelector._pageArea.height
-		);
+            this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - 1,
+            this._monitor.y + Main.overview._viewSelector.actor.y + Main.overview._viewSelector._pageArea.y,
+            this._thumbnailsBox.actor.width + 1, //thumbnailsBox.actor.width is used to set staticBox.width
+            Main.overview._viewSelector._pageArea.height
+        );
         this.emit('box-changed');
     },
 
@@ -477,7 +473,7 @@ dockedWorkspaces.prototype = {
         this._updateStaticBox();
 
         this._thumbnailsBox.actor.set_position(1, 0);
-		this._thumbnailsBox.actor.height = this.staticBox.y2 - this.staticBox.y1;
+        this._thumbnailsBox.actor.height = this.staticBox.y2 - this.staticBox.y1;
 
         this.actor.set_position(this.staticBox.x1, this.staticBox.y1);
         this.actor.set_size(this.staticBox.x2 - this.staticBox.x1, this.staticBox.y2 - this.staticBox.y1);
@@ -500,7 +496,7 @@ dockedWorkspaces.prototype = {
                 this.actor.sync_hover();
             }
             return true; // to make the loop continue;
-		}));
+        }));
     },
 
     // Disable autohide effect, thus show workspaces
@@ -532,7 +528,7 @@ dockedWorkspaces.prototype = {
 
             if (this.actor.hover == true) {
                 this.actor.sync_hover();
-			}
+            }
 
             if (!this.actor.hover || !this._settings.get_boolean('autohide')) {
                 this._animateOut(this._settings.get_double('animation-time'), 0);
@@ -547,7 +543,7 @@ dockedWorkspaces.prototype = {
 
             if (this._settings.get_boolean('opaque-background') && !this._settings.get_boolean('opaque-background-always')) {
                 this._fadeInBackground(this._settings.get_double('animation-time'), delay);
-			}
+            }
         }
     }
 
@@ -587,7 +583,7 @@ animationStatus.prototype = {
     end: function() {
         if (this.nextStatus.length == 1) {
             this.queued = false; // in the case end is called and start was not
-		}
+        }
         this.running = false;
         this.status = this.nextStatus.shift();
     },

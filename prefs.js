@@ -302,7 +302,7 @@ const WorkspaceSettingsWidget = new GObject.Class({
 
 function init() {
     // Convenience.initTranslations();
-    }
+}
 
 function buildPrefsWidget() {
     let widget = new WorkspaceSettingsWidget({
