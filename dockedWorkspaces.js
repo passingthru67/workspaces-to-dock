@@ -53,6 +53,16 @@ dockedWorkspaces.prototype = {
         // initialize animation status object
         this._animStatus = new animationStatus(true);
 
+        // Force normal workspaces to be always zoomed
+        // TODO: need to find another way of doing this.  The present approach
+        // overrides the WorkspacesDisplay updateAlwaysZoom function
+        let p = WorkspacesView.WorkspacesDisplay.prototype;
+        this.saved_updateAlwaysZoom = p._updateAlwaysZoom;
+        p._updateAlwaysZoom = function() {
+            this._alwaysZoomOut = true;
+        };
+        Main.overview._workspacesDisplay._alwaysZoomOut = true;
+
         // Hide the normal workspaces thumbnailsBox
         Main.overview._workspacesDisplay._thumbnailsBox.actor.hide();
 
@@ -179,6 +189,12 @@ dockedWorkspaces.prototype = {
         // If the actor is inside a container, the actor will be removed.
         // When you destroy a container, its children will be destroyed as well. 
         this.actor.destroy();
+
+        // Restore normal workspaces to previous zoom setting
+        let p = WorkspacesView.WorkspacesDisplay.prototype;
+        p._updateAlwaysZoom = this.saved_updateAlwaysZoom;
+        Main.overview._workspacesDisplay._alwaysZoomOut = false;
+        Main.overview._workspacesDisplay._updateAlwaysZoom();
 
         // Reshow normal workspaces thumbnailsBox previously hidden
         Main.overview._workspacesDisplay._thumbnailsBox.actor.show();
