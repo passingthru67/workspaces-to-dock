@@ -77,6 +77,12 @@ dockedWorkspaces.prototype = {
             track_hover: true
         });
         this.actor.connect("notify::hover", Lang.bind(this, this._hoverChanged));
+        this.actor.connect("scroll-event", Lang.bind(this, this._onScrollEvent));
+
+        // Sometimes Main.wm._workspaceSwitcherPopup is null when first loading the 
+        // extension causing scroll-event problems
+        if (Main.wm._workspaceSwitcherPopup == null)
+            Main.wm._workspaceSwitcherPopup = new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup();
 
         // Create the background box and set opacity
         this._backgroundBox = new St.Bin({
@@ -282,6 +288,20 @@ dockedWorkspaces.prototype = {
                 this._hide();
             }
         }
+    },
+
+    // Switch workspace by scrolling over the dock
+    // This comes from desktop-scroller@obsidien.github.com
+    _onScrollEvent: function(actor, event) {
+        switch (event.get_scroll_direction()) {
+            case Clutter.ScrollDirection.UP:
+                Main.wm.actionMoveWorkspaceUp();
+                break;
+            case Clutter.ScrollDirection.DOWN:
+                Main.wm.actionMoveWorkspaceDown();
+                break;
+        }
+        return true;
     },
 
     _show: function() {
