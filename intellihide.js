@@ -23,8 +23,11 @@ const handledWindowTypes = [
     Meta.WindowType.MODAL_DIALOG,
     Meta.WindowType.TOOLBAR,
     Meta.WindowType.MENU,
+    Meta.WindowType.POPUP_MENU,
+    Meta.WindowType.DROPDOWN_MENU,
     Meta.WindowType.UTILITY,
-    Meta.WindowType.SPLASHSCREEN
+    Meta.WindowType.SPLASHSCREEN,
+    Meta.WindowType.TOOLTIP
 ];
 
 const IntellihideMode = {
@@ -135,10 +138,22 @@ intellihide.prototype = {
                 global.screen,
                 'monitors-changed',
                 Lang.bind(this, this._updateDockVisibility)
+            ],
+            // TODO: need to detect if the messageTray is actually in its normal position ?
+            // we are assuming the messageTray is located at its normal position at the right bottom corner
+            [
+                Main.messageTray._focusGrabber,
+                'focus-grabbed',
+                Lang.bind(this, this._onTrayFocusGrabbed)
+            ],
+            [
+                Main.messageTray._focusGrabber,
+                'focus-ungrabbed',
+                Lang.bind(this, this._onTrayFocusUngrabbed)
             ]
         );
 
-        // PT67 modified to detect viewSelector Tab signals
+        // Detect viewSelector Tab signals in overview mode
         for (let i = 0; i < Main.overview._viewSelector._tabs.length; i++) {
             this._signalHandler.push([Main.overview._viewSelector._tabs[i], 'activated', Lang.bind(this, this._overviewChanged)]);
         }
@@ -148,8 +163,20 @@ intellihide.prototype = {
 
         // update visibility
         this._updateDockVisibility();
+        
+        // Start main loop and bind initialize function
+        Mainloop.idle_add(Lang.bind(this, this._initialize));
+
     },
 
+    _initialize: function() {
+        // Detect gnome panel popup menus.  Reason for detection being here instead of during init
+        // is because it needs to be done after all the panel extensions have loaded
+        for (let i = 0; i < Main.panel._menus._menus.length; i++) {
+            this._signalHandler.push([Main.panel._menus._menus[i].menu, 'open-state-changed', Lang.bind(this, this._onPanelMenuStateChange)]);
+        }
+    },
+    
     destroy: function() {
         // Disconnect global signals
         this._signalHandler.disconnect();
@@ -209,13 +236,44 @@ intellihide.prototype = {
         }
     },
 
-    // PT67 - This function was added to handle changes in overview mode
+    // This function was added to handle changes in overview mode
     // for example, when Applications tab is clicked the workspaces dock is hidden
     _overviewChanged: function() {
         if (Main.overview._viewSelector._activeTab.id == "windows") {
             this._show();
         } else {
             this._hide();
+        }
+    },
+
+    _onTrayFocusGrabbed: function(actor, event) {
+        this._disableIntellihide = true;
+        this._hide();
+    },
+
+    _onTrayFocusUngrabbed: function(actor, event) {
+        this._disableIntellihide = false;
+        if (this._inOverview) {
+            this._show();
+        } else {
+            this._updateDockVisibility();
+        }
+    },
+
+    _onPanelMenuStateChange: function(menu, open) {
+        if (open) {
+            let [rx, ry] = menu.actor.get_transformed_position();
+            let [rwidth, rheight] = menu.actor.get_size();
+            let test = (rx < this._target.staticBox.x2) && (rx + rwidth > this._target.staticBox.x1) && (ry < this._target.staticBox.y2) && (ry + rheight > this._target.staticBox.y1);
+            if (test) {
+                this._hide();
+            }
+        } else {
+            if (this._inOverview) {
+                this._show();
+            } else {
+                this._updateDockVisibility();
+            }
         }
     },
 
@@ -277,7 +335,7 @@ intellihide.prototype = {
                         }
                     }
                 }
-
+                
                 if (overlaps) {
                     this._hide();
                 } else {
