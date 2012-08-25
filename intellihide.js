@@ -23,10 +23,13 @@ const handledWindowTypes = [
     Meta.WindowType.MODAL_DIALOG,
     Meta.WindowType.TOOLBAR,
     Meta.WindowType.MENU,
+    Meta.WindowType.UTILITY,
+    Meta.WindowType.SPLASHSCREEN
+];
+
+const handledWindowTypes2 = [
     Meta.WindowType.POPUP_MENU,
     Meta.WindowType.DROPDOWN_MENU,
-    Meta.WindowType.UTILITY,
-    Meta.WindowType.SPLASHSCREEN,
     Meta.WindowType.TOOLTIP
 ];
 
@@ -206,14 +209,24 @@ intellihide.prototype = {
     _show: function(force) {
         if (this.status == false || force) {
             this.status = true;
-            this.showFunction();
+            if (this._settings.get_boolean('dock-fixed')) {
+                this._target.fadeInDock(this._settings.get_double('animation-time'), 0);
+            } else {
+                //this.showFunction();
+                this._target.disableAutoHide();
+            }
         }
     },
 
     _hide: function(force) {
         if (this.status == true || force) {
             this.status = false;
-            this.hideFunction();
+            if (this._settings.get_boolean('dock-fixed')) {
+                this._target.fadeOutDock(this._settings.get_double('animation-time'), 0);
+            } else {
+                //this.hideFunction();
+                this._target.enableAutoHide();
+            }
         }
     },
 
@@ -247,16 +260,24 @@ intellihide.prototype = {
     },
 
     _onTrayFocusGrabbed: function(actor, event) {
-        this._disableIntellihide = true;
-        this._hide();
+        if (this._settings.get_boolean('dock-fixed')) {
+            this._target.fadeOutDock(this._settings.get_double('animation-time'), 0);
+        } else {
+            this._disableIntellihide = true;
+            this._hide();
+        }
     },
 
     _onTrayFocusUngrabbed: function(actor, event) {
-        this._disableIntellihide = false;
-        if (this._inOverview) {
-            this._show();
+        if (this._settings.get_boolean('dock-fixed')) {
+            this._target.fadeInDock(this._settings.get_double('animation-time'), 0);
         } else {
-            this._updateDockVisibility();
+            this._disableIntellihide = false;
+            if (this._inOverview) {
+                this._show();
+            } else {
+                this._updateDockVisibility();
+            }
         }
     },
 
@@ -266,13 +287,21 @@ intellihide.prototype = {
             let [rwidth, rheight] = menu.actor.get_size();
             let test = (rx < this._target.staticBox.x2) && (rx + rwidth > this._target.staticBox.x1) && (ry < this._target.staticBox.y2) && (ry + rheight > this._target.staticBox.y1);
             if (test) {
-                this._hide();
+                if (this._settings.get_boolean('dock-fixed')) {
+                    this._target.fadeOutDock(this._settings.get_double('animation-time'), 0);
+                } else {
+                    this._hide();
+                }
             }
         } else {
-            if (this._inOverview) {
-                this._show();
+            if (this._settings.get_boolean('dock-fixed')) {
+                this._target.fadeInDock(this._settings.get_double('animation-time'), 0);
             } else {
-                this._updateDockVisibility();
+                if (this._inOverview) {
+                    this._show();
+                } else {
+                    this._updateDockVisibility();
+                }
             }
         }
     },
@@ -320,31 +349,32 @@ intellihide.prototype = {
         }
 
         //else in normal mode:
-        else if (!this._settings.get_boolean('dock-fixed')) {
-            if (this._settings.get_boolean('intellihide')) {
-                let overlaps = false;
-                let windows = global.get_window_actors().filter(this._intellihideFilterInteresting, this);
-                for (let i = 0; i < windows.length; i++) {
-                    let win = windows[i].get_meta_window();
-                    if (win) {
-                        let rect = win.get_outer_rect();
-                        let test = (rect.x < this._target.staticBox.x2) && (rect.x + rect.width > this._target.staticBox.x1) && (rect.y < this._target.staticBox.y2) && (rect.y + rect.height > this._target.staticBox.y1);
-                        if (test) {
-                            overlaps = true;
-                            break;
+        else {
+            //if (!this._settings.get_boolean('dock-fixed')) {
+                if (this._settings.get_boolean('intellihide')) {
+                    let overlaps = false;
+                    let windows = global.get_window_actors().filter(this._intellihideFilterInteresting, this);
+                    for (let i = 0; i < windows.length; i++) {
+                        let win = windows[i].get_meta_window();
+                        if (win) {
+                            let rect = win.get_outer_rect();
+                            let test = (rect.x < this._target.staticBox.x2) && (rect.x + rect.width > this._target.staticBox.x1) && (rect.y < this._target.staticBox.y2) && (rect.y + rect.height > this._target.staticBox.y1);
+                            if (test) {
+                                overlaps = true;
+                                break;
+                            }
                         }
                     }
-                }
-                
-                if (overlaps) {
-                    this._hide();
+                    if (overlaps) {
+                        this._hide();
+                    } else {
+                        this._show();
+                    }
                 } else {
-                    this._show();
+                    this._hide();
                 }
-            } else {
-                this._hide();
-            }
         }
+
     },
 
     // Filter interesting windows to be considered for intellihide.
@@ -373,14 +403,23 @@ intellihide.prototype = {
     // inspired by Opacify@gnome-shell.localdomain.pl
     _handledWindowType: function(metaWindow) {
         var wtype = metaWindow.get_window_type();
-        for (var i = 0; i < handledWindowTypes.length; i++) {
-            var hwtype = handledWindowTypes[i];
-            if (hwtype == wtype) {
-                return true;
-            } else if (hwtype > wtype) {
-                return false;
+        if (!this._settings.get_boolean('dock-fixed')) {
+            // Test primary window types .. only if dock is not fixed
+            for (var i = 0; i < handledWindowTypes.length; i++) {
+                var hwtype = handledWindowTypes[i];
+                if (hwtype == wtype) {
+                    return true;
+                }
             }
         }
+        // Test secondary window types .. even if dock is fixed
+        for (var i = 0; i < handledWindowTypes2.length; i++) {
+            var hwtype = handledWindowTypes2[i];
+            if (hwtype == wtype) {
+                return true;
+            }
+        }
+        
         return false;
     }
 

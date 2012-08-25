@@ -456,6 +456,38 @@ dockedWorkspaces.prototype = {
         });
     },
 
+    // This function handles hiding the dock when dock is fixed but overlapped
+    // by gnome panel menus
+    fadeOutDock: function(time, delay) {
+        Tweener.removeTweens(this.actor);
+        Tweener.addTween(this.actor, {
+            opacity: 0,
+            time: time,
+            delay: delay,
+            transition: 'easeOutQuad',
+            onComplete: Lang.bind(this, function() {
+                this.actor.lower_bottom();
+                //this.actor.set_reactive(false);
+            })
+        });
+    },
+
+    // This function handles showing the dock when dock is fixed but overlapped
+    // by gnome panel menus
+    fadeInDock: function(time, delay) {
+        Tweener.removeTweens(this.actor);
+        Tweener.addTween(this.actor, {
+            opacity: 255,
+            time: time,
+            delay: delay,
+            transition: 'easeOutQuad',
+            onComplete: Lang.bind(this, function() {
+                this.actor.raise_top();
+                //this.actor.set_reactive(true);
+            })
+        });
+    },
+
     _updateBackgroundOpacity: function() {
         if (this._settings.get_boolean('opaque-background') && (this._autohideStatus || this._settings.get_boolean('opaque-background-always'))) {
             this._backgroundBox.show();
