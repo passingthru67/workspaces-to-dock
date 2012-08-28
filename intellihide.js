@@ -142,8 +142,6 @@ intellihide.prototype = {
                 'monitors-changed',
                 Lang.bind(this, this._updateDockVisibility)
             ],
-            // TODO: need to detect if the messageTray is actually in its normal position ?
-            // we are assuming the messageTray is located at its normal position at the right bottom corner
             [
                 Main.messageTray._focusGrabber,
                 'focus-grabbed',
@@ -197,7 +195,7 @@ intellihide.prototype = {
             if (this._settings.get_boolean('dock-fixed')) {
                 this.status = true; // Since the dock is now shown
             } else {
-                // Wait that windows rearragne after struts change
+                // Wait that windows rearrange after struts change
                 Mainloop.idle_add(Lang.bind(this, function() {
                     this._updateDockVisibility();
                     return false;
@@ -212,7 +210,6 @@ intellihide.prototype = {
             if (this._settings.get_boolean('dock-fixed')) {
                 this._target.fadeInDock(this._settings.get_double('animation-time'), 0);
             } else {
-                //this.showFunction();
                 this._target.disableAutoHide();
             }
         }
@@ -224,7 +221,6 @@ intellihide.prototype = {
             if (this._settings.get_boolean('dock-fixed')) {
                 this._target.fadeOutDock(this._settings.get_double('animation-time'), 0);
             } else {
-                //this.hideFunction();
                 this._target.enableAutoHide();
             }
         }
@@ -260,11 +256,17 @@ intellihide.prototype = {
     },
 
     _onTrayFocusGrabbed: function(actor, event) {
-        if (this._settings.get_boolean('dock-fixed')) {
-            this._target.fadeOutDock(this._settings.get_double('animation-time'), 0);
-        } else {
-            this._disableIntellihide = true;
-            this._hide();
+        let focusedActor = actor.actor;
+        let [rx, ry] = focusedActor.get_transformed_position();
+        let [rwidth, rheight] = focusedActor.get_size();
+        let test = (rx < this._target.staticBox.x2) && (rx + rwidth > this._target.staticBox.x1) && (ry - rheight < this._target.staticBox.y2) && (ry > this._target.staticBox.y1);
+        if (test) {
+            if (this._settings.get_boolean('dock-fixed')) {
+                this._target.fadeOutDock(this._settings.get_double('animation-time'), 0);
+            } else {
+                this._disableIntellihide = true;
+                this._hide();
+            }
         }
     },
 
@@ -274,7 +276,9 @@ intellihide.prototype = {
         } else {
             this._disableIntellihide = false;
             if (this._inOverview) {
-                this._show();
+                if (Main.overview._viewSelector._activeTab.id == "windows") {
+                    this._show();
+                }
             } else {
                 this._updateDockVisibility();
             }
@@ -298,7 +302,9 @@ intellihide.prototype = {
                 this._target.fadeInDock(this._settings.get_double('animation-time'), 0);
             } else {
                 if (this._inOverview) {
-                    this._show();
+                    if (Main.overview._viewSelector._activeTab.id == "windows") {
+                        this._show();
+                    }
                 } else {
                     this._updateDockVisibility();
                 }
@@ -350,29 +356,28 @@ intellihide.prototype = {
 
         //else in normal mode:
         else {
-            //if (!this._settings.get_boolean('dock-fixed')) {
-                if (this._settings.get_boolean('intellihide')) {
-                    let overlaps = false;
-                    let windows = global.get_window_actors().filter(this._intellihideFilterInteresting, this);
-                    for (let i = 0; i < windows.length; i++) {
-                        let win = windows[i].get_meta_window();
-                        if (win) {
-                            let rect = win.get_outer_rect();
-                            let test = (rect.x < this._target.staticBox.x2) && (rect.x + rect.width > this._target.staticBox.x1) && (rect.y < this._target.staticBox.y2) && (rect.y + rect.height > this._target.staticBox.y1);
-                            if (test) {
-                                overlaps = true;
-                                break;
-                            }
+            if (this._settings.get_boolean('intellihide')) {
+                let overlaps = false;
+                let windows = global.get_window_actors().filter(this._intellihideFilterInteresting, this);
+                for (let i = 0; i < windows.length; i++) {
+                    let win = windows[i].get_meta_window();
+                    if (win) {
+                        let rect = win.get_outer_rect();
+                        let test = (rect.x < this._target.staticBox.x2) && (rect.x + rect.width > this._target.staticBox.x1) && (rect.y < this._target.staticBox.y2) && (rect.y + rect.height > this._target.staticBox.y1);
+                        if (test) {
+                            overlaps = true;
+                            break;
                         }
                     }
-                    if (overlaps) {
-                        this._hide();
-                    } else {
-                        this._show();
-                    }
-                } else {
-                    this._hide();
                 }
+                if (overlaps) {
+                    this._hide();
+                } else {
+                    this._show();
+                }
+            } else {
+                this._hide();
+            }
         }
 
     },
