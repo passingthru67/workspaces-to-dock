@@ -58,7 +58,7 @@ let intellihide = function(show, hide, target, settings) {
 
 intellihide.prototype = {
 
-    _init: function(show, hide, target, settings) {
+    _init: function(target, settings) {
 
         // Load settings
         this._settings = settings;
@@ -70,9 +70,6 @@ intellihide.prototype = {
         this.status;
         // manually temporary disable intellihide update
         this._disableIntellihide = false;
-        // Set base functions
-        this.showFunction = show;
-        this.hideFunction = hide;
         // Target object
         this._target = target;
         // Keep track of the current overview mode (I mean if it is on/off)

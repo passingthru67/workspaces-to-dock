@@ -18,18 +18,10 @@ let dock;
 function init() {
 }
 
-function show() {
-    dock.disableAutoHide();
-}
-
-function hide() {
-    dock.enableAutoHide();
-}
-
 function enable() {
     settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
     dock = new DockedWorkspaces.dockedWorkspaces(settings);
-    intellihide = new Intellihide.intellihide(show, hide, dock, settings);
+    intellihide = new Intellihide.intellihide(dock, settings);
 }
 
 function disable() {
