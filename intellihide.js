@@ -52,8 +52,8 @@ const OVERVIEW_MODE = IntellihideMode.SHOW;
  * 
 */
 
-let intellihide = function(show, hide, target, settings) {
-    this._init(show, hide, target, settings);
+let intellihide = function(target, settings) {
+    this._init(target, settings);
 }
 
 intellihide.prototype = {
@@ -156,6 +156,10 @@ intellihide.prototype = {
             this._signalHandler.push([Main.overview._viewSelector._tabs[i], 'activated', Lang.bind(this, this._overviewChanged)]);
         }
 
+        // Detect Search started and cancelled
+        this._signalHandler.push([Main.overview._viewSelector._searchTab, 'activated', Lang.bind(this, this._searchStarted)]);
+        this._signalHandler.push([Main.overview._viewSelector._searchTab, 'search-cancelled', Lang.bind(this, this._searchCancelled)]);
+
         // initialize: call show forcing to initialize status variable
         this._show(true);
 
@@ -250,6 +254,14 @@ intellihide.prototype = {
         } else {
             this._hide();
         }
+    },
+
+    _searchStarted: function() {
+      this._hide();
+    },
+
+    _searchCancelled: function() {
+      this._show();
     },
 
     _onTrayFocusGrabbed: function(actor, event) {

@@ -40,7 +40,6 @@ const myThumbnailsBox = new Lang.Class({
         this.parent();
     },
     
-    // Override original addThumbnails function
     addThumbnails: function(start, count) {
         for (let k = start; k < start + count; k++) {
             let metaWorkspace = global.screen.get_workspace_by_index(k);
@@ -49,18 +48,13 @@ const myThumbnailsBox = new Lang.Class({
             this._thumbnails.push(thumbnail);
             this.actor.add_actor(thumbnail.actor);
 
-            // PT67 START MODS =================================
-            //if (start > 0) { // not the initial fill
-                //thumbnail.state = ThumbnailState.NEW;
-                //thumbnail.slidePosition = 1; // start slid out
-                //this._haveNewThumbnails = true;
-            //} else {
-                //thumbnail.state = ThumbnailState.NORMAL;
-            //}
-            thumbnail.state = ThumbnailState.NEW;
-            thumbnail.slidePosition = 1; // always start slid out
-            this._haveNewThumbnails = true;
-            // PT67 END MODS ===================================
+            if (start > 0) { // not the initial fill
+                thumbnail.state = ThumbnailState.NEW;
+                thumbnail.slidePosition = 1; // start slid out
+                this._haveNewThumbnails = true;
+            } else {
+                thumbnail.state = ThumbnailState.NORMAL;
+            }
             
             this._stateCounts[thumbnail.state]++;
         }
@@ -69,6 +63,51 @@ const myThumbnailsBox = new Lang.Class({
 
         // The thumbnails indicator actually needs to be on top of the thumbnails
         this._indicator.raise_top();
+    },
+
+    removeThumbmails: function(start, count) {
+        let currentPos = 0;
+        for (let k = 0; k < this._thumbnails.length; k++) {
+            let thumbnail = this._thumbnails[k];
+
+            if (thumbnail.state > ThumbnailState.NORMAL)
+                continue;
+
+            if (currentPos >= start && currentPos < start + count) {
+                thumbnail.workspaceRemoved();
+                this._setThumbnailState(thumbnail, ThumbnailState.REMOVING);
+            }
+
+            currentPos++;
+        }
+
+        this._queueUpdateStates();
+    },
+
+    _activeWorkspaceChanged: function(wm, from, to, direction) {
+        let thumbnail;
+        let activeWorkspace = global.screen.get_active_workspace();
+        for (let i = 0; i < this._thumbnails.length; i++) {
+            if (this._thumbnails[i].metaWorkspace == activeWorkspace) {
+                thumbnail = this._thumbnails[i];
+                break;
+            }
+        }
+
+        if (thumbnail) {
+            this._animatingIndicator = true;
+            this.indicatorY = this._indicator.allocation.y1;
+            Tweener.addTween(this,
+                             { indicatorY: thumbnail.actor.allocation.y1,
+                               time: WorkspacesView.WORKSPACE_SWITCH_TIME,
+                               transition: 'easeOutQuad',
+                               onComplete: function() {
+                                   this._animatingIndicator = false;
+                                   this._queueUpdateStates();
+                               },
+                               onCompleteScope: this
+                             });
+        }
     }
 
 });

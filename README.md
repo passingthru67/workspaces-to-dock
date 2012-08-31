@@ -7,9 +7,10 @@ A Gnome Shell extension that transforms the workspaces of the overview mode into
 Installation
 ------------
 The easiest way to install Workspaces-to-Dock is from https://extensions.gnome.org/extension/427/workspaces-to-dock/
+
 Otherwise, you may download the .zip file from the Downloads page (https://github.com/passingthru67/workspaces-to-dock/downloads) or checkout the code from the master branch.
 
-If you have the .zip file, go to Gnome tweak tools --> Shell Extensions --> Install from zip file --> choose the zip file.
+If you have the .zip file, go to Gnome Tweak tools --> Shell Extensions --> Install from zip file --> choose the zip file.
 
 If you have the source code, copy the folder to the appropriate place:
 
@@ -20,20 +21,25 @@ Configure using `gnome-shell-extension-prefs`. No shell restarts required.
 
 Changelog:
 ----------
+v3
+
+- Reworked the code for adding/removing workspaces. Not only fixed the firefox issue, but also made displaying workspaces smoother and more consistant with Gnome Shell behavior.
+- Intellihide enhancement added to dodge resulting icons from Gnome Shell search panel.
+
 v2
 
-- Scrolling over dock now switches workspaces.
+- Scrolling the mouse wheel over the dock now switches workspaces.
 - Intellihide enhancements added to dodge Gnome Shell panel and messsagetray popup menus.
 
 v1
 
-- Initial extension based on the dash-to-dock v10 code.
+- Initial extension based on the dash-to-dock v10 code (https://github.com/micheleg/dash-to-dock).
 
 
 
 Features Planned:
 -----------------
-- Option to select which monitor to place dock on
+- Preferences option to choose which monitor to place workspaces dock onto
 - RTL support
 
 

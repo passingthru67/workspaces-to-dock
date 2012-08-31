@@ -53,9 +53,8 @@ dockedWorkspaces.prototype = {
         // initialize animation status object
         this._animStatus = new animationStatus(true);
 
+        // Override the WorkspacesDisplay updateAlwaysZoom function
         // Force normal workspaces to be always zoomed
-        // TODO: need to find another way of doing this.  The present approach
-        // overrides the WorkspacesDisplay updateAlwaysZoom function
         let p = WorkspacesView.WorkspacesDisplay.prototype;
         this.saved_updateAlwaysZoom = p._updateAlwaysZoom;
         p._updateAlwaysZoom = function() {
@@ -68,7 +67,6 @@ dockedWorkspaces.prototype = {
 
         // Create a new thumbnailsbox object
         this._thumbnailsBox = new MyThumbnailsBox.myThumbnailsBox();
-        this._thumbnailsBox.show();
 		
         // Create the main container, turn on track hover, add hoverChange signal
         this.actor = new St.BoxLayout({
@@ -170,7 +168,10 @@ dockedWorkspaces.prototype = {
         */
         Main.overview._group.show();
         Main.overview._group.hide();
-
+        
+        // Show the thumbnailsBox.  We need it to calculate the width of the dock.
+        this._thumbnailsBox.show();
+        
         // Set initial position
         this._resetPosition();
 
@@ -221,12 +222,14 @@ dockedWorkspaces.prototype = {
         let NumGlobalWorkspaces = global.screen.n_workspaces;
         let active = global.screen.get_active_workspace_index();
         
+        // NumMyWorkspaces == NumGlobalWorkspaces shouldn't happen, but does when Firefox started.
+        // Assume that a workspace thumbnail is still in process of being removed from _thumbnailsBox
         if (NumMyWorkspaces == NumGlobalWorkspaces)
-            return;
+            NumMyWorkspaces --;
 
-        if (NumGlobalWorkspaces > NumMyWorkspaces) {
+        if (NumGlobalWorkspaces > NumMyWorkspaces)
             this._thumbnailsBox.addThumbnails(NumMyWorkspaces, NumGlobalWorkspaces - NumMyWorkspaces);
-        }
+
         this._redisplay();
     },
 
@@ -235,13 +238,23 @@ dockedWorkspaces.prototype = {
         let NumGlobalWorkspaces = global.screen.n_workspaces;
         let active = global.screen.get_active_workspace_index();
         
+        // TODO: Not sure if this is an issue?
         if (NumMyWorkspaces == NumGlobalWorkspaces)
             return;
 
-        if (NumGlobalWorkspaces < NumMyWorkspaces) {
-            this._thumbnailsBox.removeThumbmails(0, NumMyWorkspaces);
-            this._thumbnailsBox.addThumbnails(0, NumGlobalWorkspaces);
+        let removedIndex;
+        let removedNum = NumMyWorkspaces - NumGlobalWorkspaces;
+        for (let w = 0; w < NumMyWorkspaces; w++) {
+            let metaWorkspace = global.screen.get_workspace_by_index(w);
+            if (this._thumbnailsBox._thumbnails[w].metaWorkspace != metaWorkspace) {
+                removedIndex = w;
+                break;
+            }
         }
+        
+        if (removedIndex != null)
+            this._thumbnailsBox.removeThumbmails(removedIndex, removedNum);
+        
         this._redisplay();
     },
 
