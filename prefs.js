@@ -20,9 +20,9 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 
-const WorkspaceSettingsWidget = new GObject.Class({
-    Name: 'WorkspaceIndicator.WorkspaceSettingsWidget',
-    GTypeName: 'WorkspaceSettingsWidget',
+const WorkspacesToDockPreferencesWidget = new GObject.Class({
+    Name: 'workspacesToDock.WorkspacesToDockPreferencesWidget',
+    GTypeName: 'WorkspacesToDockPreferencesWidget',
     Extends: Gtk.Box,
 
     _init: function(params) {
@@ -305,7 +305,7 @@ function init() {
 }
 
 function buildPrefsWidget() {
-    let widget = new WorkspaceSettingsWidget({
+    let widget = new WorkspacesToDockPreferencesWidget({
         orientation: Gtk.Orientation.VERTICAL,
         spacing: 5,
         border_width: 5

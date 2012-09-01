@@ -36,18 +36,20 @@ v1
 - Initial extension based on the dash-to-dock v10 code (https://github.com/micheleg/dash-to-dock).
 
 
-
 Features Planned:
 -----------------
-- Preferences option to choose which monitor to place workspaces dock onto
 - RTL support
-
-
+- Better stationary/fixed dock support
+- Preferences option to choose which monitor to place workspaces dock onto
 
 
 Issues:
 -------
-- Stationary/Fixed (always visible) dock needs work to properly allow messageTray popup menus to react with mouse hover and clicks.
-- If you are using multiple monitors, it is recommended that you turn off the workspaces-only-on-primary option under org->gnome->shell->overrides (use dconf-editor). Gnome 3.4 seems buggy when using multiple monitors with the workspaces-only-on-primary option turned on.
 
+If you run into any strange behavior with dynamic workspaces, please disable the extension, restart Gnome Shell, and test again to see if the behavior can be replicated.
+
+**Some causes of strange workspace behavior:**
+
+- Letting Nautilus file manager handle the desktop  (this is an option in Gnome Tweak Tool).
+- Using dual monitors. If you are using dual monitors, it is recommended that you turn off the workspaces-only-on-primary option under org->gnome->shell->overrides (use dconf-editor). Gnome Shell 3.4 seems buggy when using dual monitors in general, but worse with this option on.
 
