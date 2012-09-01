@@ -261,7 +261,11 @@ intellihide.prototype = {
     },
 
     _searchCancelled: function() {
-      this._show();
+        if (Main.overview._viewSelector._activeTab.id == "windows") {
+            this._show();
+        } else {
+            this._hide();
+        }
     },
 
     _onTrayFocusGrabbed: function(actor, event) {
