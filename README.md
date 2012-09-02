@@ -12,7 +12,7 @@ Otherwise, you may download the .zip file from the Downloads page (https://githu
 
 If you have the .zip file, go to Gnome Tweak tools --> Shell Extensions --> Install from zip file --> choose the zip file.
 
-If you have the source code, copy the folder to the appropriate place:
+If you have the source code, rename the folder and copy it to the appropriate place:
 
 	$ cp workspaces-to-dock@passingthru67@gmail.com ~/.local/share/gnome-shell/extensions/
 
