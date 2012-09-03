@@ -469,9 +469,9 @@ dockedWorkspaces.prototype = {
         });
     },
 
-    // This function handles hiding the dock when dock is in fixed
-    // position but overlapped by gnome panel menus
-    fadeOutDock: function(time, delay) {
+    // This function handles hiding the dock when dock is in stationary-fixed
+    // position but overlapped by gnome panel menus or meta popup windows
+    fadeOutDock: function(time, delay, nonreactive) {
         Tweener.removeTweens(this.actor);
         Tweener.addTween(this.actor, {
             opacity: 0,
@@ -479,13 +479,15 @@ dockedWorkspaces.prototype = {
             delay: delay,
             transition: 'easeOutQuad',
             onComplete: Lang.bind(this, function() {
-                this.actor.lower_bottom();
+                this.actor.lower_bottom(); // send dock to back of stage allowing messageTray menus to react to clicks
+                if (nonreactive == true)
+                    global.set_stage_input_mode(Shell.StageInputMode.NONREACTIVE); // clutter stage needs to be nonreactive else meta popup windows (under stage) don't receive hover and click events
             })
         });
     },
 
-    // This function handles showing the dock when dock is fixed
-    // position but overlapped by gnome panel menus
+    // This function handles showing the dock when dock is stationary-fixed
+    // position but overlapped by gnome panel menus or meta popup windows
     fadeInDock: function(time, delay) {
         Tweener.removeTweens(this.actor);
         Tweener.addTween(this.actor, {
@@ -494,7 +496,8 @@ dockedWorkspaces.prototype = {
             delay: delay,
             transition: 'easeOutQuad',
             onComplete: Lang.bind(this, function() {
-                this.actor.raise_top();
+                this.actor.raise_top(); // return dock to front of stage
+                global.set_stage_input_mode(Shell.StageInputMode.NORMAL); // return stage to normal reactive mode
             })
         });
     },

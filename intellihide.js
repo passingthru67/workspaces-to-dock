@@ -220,7 +220,7 @@ intellihide.prototype = {
         if (this.status == true || force) {
             this.status = false;
             if (this._settings.get_boolean('dock-fixed')) {
-                this._target.fadeOutDock(this._settings.get_double('animation-time'), 0);
+                this._target.fadeOutDock(this._settings.get_double('animation-time'), 0, true);
             } else {
                 this._target.enableAutoHide();
             }
@@ -274,20 +274,20 @@ intellihide.prototype = {
         let [rwidth, rheight] = focusedActor.get_size();
         let test = (rx < this._target.staticBox.x2) && (rx + rwidth > this._target.staticBox.x1) && (ry - rheight < this._target.staticBox.y2) && (ry > this._target.staticBox.y1);
         if (test) {
+            this._disableIntellihide = true;
             if (this._settings.get_boolean('dock-fixed')) {
-                this._target.fadeOutDock(this._settings.get_double('animation-time'), 0);
+                this._target.fadeOutDock(this._settings.get_double('animation-time'), 0, false);
             } else {
-                this._disableIntellihide = true;
                 this._hide();
             }
         }
     },
 
     _onTrayFocusUngrabbed: function(actor, event) {
+        this._disableIntellihide = false;
         if (this._settings.get_boolean('dock-fixed')) {
             this._target.fadeInDock(this._settings.get_double('animation-time'), 0);
         } else {
-            this._disableIntellihide = false;
             if (this._inOverview) {
                 if (Main.overview._viewSelector._activeTab.id == "windows") {
                     this._show();
