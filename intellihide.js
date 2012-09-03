@@ -9,8 +9,10 @@
 const Lang = imports.lang;
 const Meta = imports.gi.Meta;
 const Mainloop = imports.mainloop;
+const Signals = imports.signals;
 
 const Main = imports.ui.main;
+const PopupMenu = imports.ui.popupMenu;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
@@ -59,6 +61,36 @@ let intellihide = function(target, settings) {
 intellihide.prototype = {
 
     _init: function(target, settings) {
+
+        // Override the PopupMenuManager addMenu function
+        // Emit a signal when new menus are added
+        let p = PopupMenu.PopupMenuManager.prototype;
+        this.saved_addMenu = p.addMenu;
+        p.addMenu = function(menu, position) {
+            let menudata = {
+                menu:              menu,
+                openStateChangeId: menu.connect('open-state-changed', Lang.bind(this, this._onMenuOpenState)),
+                childMenuAddedId:  menu.connect('child-menu-added', Lang.bind(this, this._onChildMenuAdded)),
+                childMenuRemovedId: menu.connect('child-menu-removed', Lang.bind(this, this._onChildMenuRemoved)),
+                destroyId:         menu.connect('destroy', Lang.bind(this, this._onMenuDestroy)),
+                enterId:           0,
+                focusInId:         0
+            };
+
+            let source = menu.sourceActor;
+            if (source) {
+                menudata.enterId = source.connect('enter-event', Lang.bind(this, function() { this._onMenuSourceEnter(menu); }));
+                menudata.focusInId = source.connect('key-focus-in', Lang.bind(this, function() { this._onMenuSourceEnter(menu); }));
+            }
+
+            if (position == undefined)
+                this._menus.push(menudata);
+            else
+                this._menus.splice(position, 0, menudata);
+            
+            this.emit("menu-added", menu);
+        };
+        Signals.addSignalMethods(PopupMenu.PopupMenuManager.prototype);
 
         // Load settings
         this._settings = settings;
@@ -148,6 +180,11 @@ intellihide.prototype = {
                 Main.messageTray._focusGrabber,
                 'focus-ungrabbed',
                 Lang.bind(this, this._onTrayFocusUngrabbed)
+            ],
+            [
+                Main.panel._menus,
+                'menu-added',
+                Lang.bind(this, this._onPanelMenuAdded)
             ]
         );
 
@@ -185,6 +222,10 @@ intellihide.prototype = {
 
         if (this._windowChangedTimeout > 0)
             Mainloop.source_remove(this._windowChangedTimeout); // Just to be sure
+
+        // Restore normal PopupMenuManager addMenu function
+        let p = PopupMenu.PopupMenuManager.prototype;
+        p.addMenu = this.saved_addMenu;
     },
 
     _bindSettingsChanges: function() {
@@ -305,7 +346,7 @@ intellihide.prototype = {
             let test = (rx < this._target.staticBox.x2) && (rx + rwidth > this._target.staticBox.x1) && (ry < this._target.staticBox.y2) && (ry + rheight > this._target.staticBox.y1);
             if (test) {
                 if (this._settings.get_boolean('dock-fixed')) {
-                    this._target.fadeOutDock(this._settings.get_double('animation-time'), 0);
+                    this._target.fadeOutDock(this._settings.get_double('animation-time'), 0, false);
                 } else {
                     this._hide();
                 }
@@ -323,6 +364,11 @@ intellihide.prototype = {
                 }
             }
         }
+    },
+
+    _onPanelMenuAdded: function(source, menu) {
+        // We need to add signals for new panel menus added after initialization
+        this._signalHandler.push([menu, 'open-state-changed', Lang.bind(this, this._onPanelMenuStateChange)]);
     },
 
     _grabOpBegin: function() {
