@@ -250,7 +250,13 @@ intellihide.prototype = {
         if (this.status == false || force) {
             this.status = true;
             if (this._settings.get_boolean('dock-fixed')) {
-                this._target.fadeInDock(this._settings.get_double('animation-time'), 0);
+                if (force) {
+                    // force is used when initializing .. therefore use standard fadein animation
+                    this._target.fadeInDock(this._settings.get_double('animation-time'), 0);
+                } else {
+                    // otherwise .. do quick fadein so that dock appears quickly
+                    this._target.fadeInDock(.05, 0);
+                }
             } else {
                 this._target.disableAutoHide();
             }
@@ -327,7 +333,7 @@ intellihide.prototype = {
     _onTrayFocusUngrabbed: function(actor, event) {
         this._disableIntellihide = false;
         if (this._settings.get_boolean('dock-fixed')) {
-            this._target.fadeInDock(this._settings.get_double('animation-time'), 0);
+            this._target.fadeInDock(.05, 0); // do quick fadein so that dock appears quickly
         } else {
             if (this._inOverview) {
                 if (Main.overview._viewSelector._activeTab.id == "windows") {
@@ -353,7 +359,7 @@ intellihide.prototype = {
             }
         } else {
             if (this._settings.get_boolean('dock-fixed')) {
-                this._target.fadeInDock(this._settings.get_double('animation-time'), 0);
+                this._target.fadeInDock(.05, 0); // do quick fadein so that dock appears quickly
             } else {
                 if (this._inOverview) {
                     if (Main.overview._viewSelector._activeTab.id == "windows") {

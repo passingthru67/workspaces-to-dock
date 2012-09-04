@@ -489,6 +489,8 @@ dockedWorkspaces.prototype = {
     // This function handles showing the dock when dock is stationary-fixed
     // position but overlapped by gnome panel menus or meta popup windows
     fadeInDock: function(time, delay) {
+        this.actor.raise_top(); // return dock to front of stage
+        global.set_stage_input_mode(Shell.StageInputMode.NORMAL); // return stage to normal reactive mode
         Tweener.removeTweens(this.actor);
         Tweener.addTween(this.actor, {
             opacity: 255,
@@ -496,8 +498,6 @@ dockedWorkspaces.prototype = {
             delay: delay,
             transition: 'easeOutQuad',
             onComplete: Lang.bind(this, function() {
-                this.actor.raise_top(); // return dock to front of stage
-                global.set_stage_input_mode(Shell.StageInputMode.NORMAL); // return stage to normal reactive mode
             })
         });
     },
