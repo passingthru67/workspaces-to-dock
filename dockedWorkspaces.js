@@ -490,7 +490,8 @@ dockedWorkspaces.prototype = {
     // position but overlapped by gnome panel menus or meta popup windows
     fadeInDock: function(time, delay) {
         this.actor.raise_top(); // return dock to front of stage
-        global.set_stage_input_mode(Shell.StageInputMode.NORMAL); // return stage to normal reactive mode
+        if (global.stage_input_mode == Shell.StageInputMode.NONREACTIVE)
+            global.set_stage_input_mode(Shell.StageInputMode.NORMAL); // return stage to normal reactive mode
         Tweener.removeTweens(this.actor);
         Tweener.addTween(this.actor, {
             opacity: 255,
