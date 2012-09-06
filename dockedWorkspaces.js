@@ -492,6 +492,7 @@ dockedWorkspaces.prototype = {
         this.actor.raise_top(); // return dock to front of stage
         if (global.stage_input_mode == Shell.StageInputMode.NONREACTIVE)
             global.set_stage_input_mode(Shell.StageInputMode.NORMAL); // return stage to normal reactive mode
+
         Tweener.removeTweens(this.actor);
         Tweener.addTween(this.actor, {
             opacity: 255,

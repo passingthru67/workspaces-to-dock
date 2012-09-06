@@ -263,11 +263,16 @@ intellihide.prototype = {
         }
     },
 
-    _hide: function(force) {
+    _hide: function(nonreactive) {
         if (this.status == true || force) {
             this.status = false;
             if (this._settings.get_boolean('dock-fixed')) {
-                this._target.fadeOutDock(this._settings.get_double('animation-time'), 0, true);
+                if (nonreactive) {
+                    // hide and make stage nonreactive so meta popup windows receive hover and clicks
+                    this._target.fadeOutDock(this._settings.get_double('animation-time'), 0, true);
+                } else {
+                    this._target.fadeOutDock(this._settings.get_double('animation-time'), 0, false);
+                }
             } else {
                 this._target.enableAutoHide();
             }
@@ -322,26 +327,18 @@ intellihide.prototype = {
         let test = (rx < this._target.staticBox.x2) && (rx + rwidth > this._target.staticBox.x1) && (ry - rheight < this._target.staticBox.y2) && (ry > this._target.staticBox.y1);
         if (test) {
             this._disableIntellihide = true;
-            if (this._settings.get_boolean('dock-fixed')) {
-                this._target.fadeOutDock(this._settings.get_double('animation-time'), 0, false);
-            } else {
-                this._hide();
-            }
+            this._hide();
         }
     },
 
     _onTrayFocusUngrabbed: function(actor, event) {
         this._disableIntellihide = false;
-        if (this._settings.get_boolean('dock-fixed')) {
-            this._target.fadeInDock(.05, 0); // do quick fadein so that dock appears quickly
-        } else {
-            if (this._inOverview) {
-                if (Main.overview._viewSelector._activeTab.id == "windows") {
-                    this._show();
-                }
-            } else {
-                this._updateDockVisibility();
+        if (this._inOverview) {
+            if (Main.overview._viewSelector._activeTab.id == "windows") {
+                this._show();
             }
+        } else {
+            this._updateDockVisibility();
         }
     },
 
@@ -351,23 +348,15 @@ intellihide.prototype = {
             let [rwidth, rheight] = menu.actor.get_size();
             let test = (rx < this._target.staticBox.x2) && (rx + rwidth > this._target.staticBox.x1) && (ry < this._target.staticBox.y2) && (ry + rheight > this._target.staticBox.y1);
             if (test) {
-                if (this._settings.get_boolean('dock-fixed')) {
-                    this._target.fadeOutDock(this._settings.get_double('animation-time'), 0, false);
-                } else {
-                    this._hide();
-                }
+                this._hide();
             }
         } else {
-            if (this._settings.get_boolean('dock-fixed')) {
-                this._target.fadeInDock(.05, 0); // do quick fadein so that dock appears quickly
-            } else {
-                if (this._inOverview) {
-                    if (Main.overview._viewSelector._activeTab.id == "windows") {
-                        this._show();
-                    }
-                } else {
-                    this._updateDockVisibility();
+            if (this._inOverview) {
+                if (Main.overview._viewSelector._activeTab.id == "windows") {
+                    this._show();
                 }
+            } else {
+                this._updateDockVisibility();
             }
         }
     },
@@ -421,7 +410,7 @@ intellihide.prototype = {
 
         //else in normal mode:
         else {
-            if (this._settings.get_boolean('intellihide')) {
+            if (this._settings.get_boolean('intellihide') || this._settings.get_boolean('dock-fixed')) {
                 let overlaps = false;
                 let windows = global.get_window_actors().filter(this._intellihideFilterInteresting, this);
                 for (let i = 0; i < windows.length; i++) {
@@ -436,7 +425,7 @@ intellihide.prototype = {
                     }
                 }
                 if (overlaps) {
-                    this._hide();
+                    this._hide(true); // hide and make stage nonreactive so meta popup windows receive hover and clicks
                 } else {
                     this._show();
                 }
