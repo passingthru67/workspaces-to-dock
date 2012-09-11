@@ -264,7 +264,7 @@ intellihide.prototype = {
     },
 
     _hide: function(nonreactive) {
-        if (this.status == true || force) {
+        if (this.status == true) {
             this.status = false;
             if (this._settings.get_boolean('dock-fixed')) {
                 if (nonreactive) {
