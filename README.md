@@ -39,10 +39,15 @@ If you run into any strange behavior with dynamic workspaces, please disable the
 Changelog:
 ----------
 
-versin 4 (Sept 6, 2012)
+version 5 (Sept 11, 2012)
+
+- Bug fixes
+
+version 4 (Sept 6, 2012)
 
 - Better stationary/fixed dock support.
 - Intellihide enhancements to dodge Gnome Shell panel menus added after initializing.
+- Bug fixes
 
 version 3 (Aug 31, 2012)
 
