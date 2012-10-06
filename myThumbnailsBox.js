@@ -94,20 +94,26 @@ const myThumbnailsBox = new Lang.Class({
             }
         }
 
-        if (thumbnail) {
-            this._animatingIndicator = true;
-            this.indicatorY = this._indicator.allocation.y1;
-            Tweener.addTween(this,
-                             { indicatorY: thumbnail.actor.allocation.y1,
-                               time: WorkspacesView.WORKSPACE_SWITCH_TIME,
-                               transition: 'easeOutQuad',
-                               onComplete: function() {
-                                   this._animatingIndicator = false;
-                                   this._queueUpdateStates();
-                               },
-                               onCompleteScope: this
-                             });
-        }
+        if (thumbnail == null)
+            return
+            
+        if (thumbnail.actor == null)
+            return
+
+        this._animatingIndicator = true;
+        this.indicatorY = this._indicator.allocation.y1;
+        Tweener.addTween(this,
+                         { indicatorY: thumbnail.actor.allocation.y1,
+                           time: WorkspacesView.WORKSPACE_SWITCH_TIME,
+                           transition: 'easeOutQuad',
+                           onComplete: function() {
+                               this._animatingIndicator = false;
+                               this._queueUpdateStates();
+                           },
+                           onCompleteScope: this
+                         });
+
     }
 
 });
+
