@@ -182,11 +182,11 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }));
 
         let topWindowOnly =  new Gtk.CheckButton({
-            label: "Dodge Top Window Only"
+            label: "Application based intellihide"
         });
-        topWindowOnly.set_active(this.settings.get_boolean('intellihide-top-window-only'));
+        topWindowOnly.set_active(this.settings.get_boolean('intellihide-perapp'));
         topWindowOnly.connect('toggled', Lang.bind(this, function(check){
-            this.settings.set_boolean('intellihide-top-window-only', check.get_active());
+            this.settings.set_boolean('intellihide-perapp', check.get_active());
         }));
 
         dockSettingsGrid1.attach(animationTimeLabel, 0, 0, 1, 1);

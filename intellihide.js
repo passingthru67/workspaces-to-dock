@@ -524,8 +524,8 @@ intellihide.prototype = {
             this._updateDockVisibility();
         }));
 
-        this._settings.connect('changed::intellihide-top-window-only', Lang.bind(this, function(){
-            if (_DEBUG_) global.log("intellihide: _bindSettingsChanges for intellihide-top-window-only");
+        this._settings.connect('changed::intellihide-perapp', Lang.bind(this, function(){
+            if (_DEBUG_) global.log("intellihide: _bindSettingsChanges for intellihide-perapp");
             this._updateDockVisibility();
         }));
 
@@ -809,15 +809,15 @@ intellihide.prototype = {
         var wksp = meta_win.get_workspace();
         var wksp_index = wksp.index();
 
-        // intellihide-top-window-only -- dodges top window only
-        if (this._settings.get_boolean('intellihide-top-window-only')) {
+        // intellihide-perapp -- only dodges windows of same application
+        if (this._settings.get_boolean('intellihide-perapp')) {
             if (this._topWindow && this._focusApp) {
                 // Ignore if not top window and not focused app
                 let metaWindowApp = this._tracker.get_window_app(meta_win);
                 if (this._topWindow != meta_win && this._focusApp != metaWindowApp) {
                     // Special consideration for half maximized windows, useful if one is using two apps side by side
                     //if (!(meta_win.maximized_vertically && !meta_win.maximized_horizontally))
-                        return false;
+                    return false;
                 }
             }
         }
