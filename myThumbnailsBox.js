@@ -36,52 +36,9 @@ const myThumbnailsBox = new Lang.Class({
     Name: 'workspacesToDock.myThumbnailsBox',
     Extends: WorkspaceThumbnail.ThumbnailsBox,
 
-    _init: function() {
+    _init: function(gsCurrentVersion) {
         this.parent();
-    },
-    
-    addThumbnails: function(start, count) {
-        for (let k = start; k < start + count; k++) {
-            let metaWorkspace = global.screen.get_workspace_by_index(k);
-            let thumbnail = new WorkspaceThumbnail.WorkspaceThumbnail(metaWorkspace);
-            thumbnail.setPorthole(this._porthole.x, this._porthole.y, this._porthole.width, this._porthole.height);
-            this._thumbnails.push(thumbnail);
-            this.actor.add_actor(thumbnail.actor);
-
-            if (start > 0) { // not the initial fill
-                thumbnail.state = ThumbnailState.NEW;
-                thumbnail.slidePosition = 1; // start slid out
-                this._haveNewThumbnails = true;
-            } else {
-                thumbnail.state = ThumbnailState.NORMAL;
-            }
-            
-            this._stateCounts[thumbnail.state]++;
-        }
-
-        this._queueUpdateStates();
-
-        // The thumbnails indicator actually needs to be on top of the thumbnails
-        this._indicator.raise_top();
-    },
-
-    removeThumbmails: function(start, count) {
-        let currentPos = 0;
-        for (let k = 0; k < this._thumbnails.length; k++) {
-            let thumbnail = this._thumbnails[k];
-
-            if (thumbnail.state > ThumbnailState.NORMAL)
-                continue;
-
-            if (currentPos >= start && currentPos < start + count) {
-                thumbnail.workspaceRemoved();
-                this._setThumbnailState(thumbnail, ThumbnailState.REMOVING);
-            }
-
-            currentPos++;
-        }
-
-        this._queueUpdateStates();
+        this._gsCurrentVersion = gsCurrentVersion;
     },
 
     _activeWorkspaceChanged: function(wm, from, to, direction) {
@@ -100,8 +57,21 @@ const myThumbnailsBox = new Lang.Class({
         if (thumbnail.actor == null)
             return
 
-        this._animatingIndicator = true;
-        this.indicatorY = this._indicator.allocation.y1;
+        switch (this._gsCurrentVersion[1]) {
+            case"4":
+                this._animatingIndicator = true;
+                this.indicatorY = this._indicator.allocation.y1;
+                break;
+            case"6":
+                this._animatingIndicator = true;
+                let indicatorThemeNode = this._indicator.get_theme_node();
+                let indicatorTopFullBorder = indicatorThemeNode.get_padding(St.Side.TOP) + indicatorThemeNode.get_border_width(St.Side.TOP);
+                this.indicatorY = this._indicator.allocation.y1 + indicatorTopFullBorder;
+                break;
+            default:
+                throw new Error("Unknown version number (myThumbnailsBox.js).");
+        }
+
         Tweener.addTween(this,
                          { indicatorY: thumbnail.actor.allocation.y1,
                            time: WorkspacesView.WORKSPACE_SWITCH_TIME,
@@ -112,8 +82,6 @@ const myThumbnailsBox = new Lang.Class({
                            },
                            onCompleteScope: this
                          });
-
     }
-
+    
 });
-

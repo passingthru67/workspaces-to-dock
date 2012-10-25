@@ -6,6 +6,7 @@
  * ========================================================================================================
  */
 
+const Config = imports.misc.config;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 const Intellihide = Me.imports.intellihide;
@@ -19,9 +20,12 @@ function init() {
 }
 
 function enable() {
+	let gsCurrentVersion = Config.PACKAGE_VERSION.split('.');
+	if (gsCurrentVersion.length != 3 || gsCurrentVersion[0] != 3) throw new Error("Unknown version number (extension.js).");
+    
     settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
-    dock = new DockedWorkspaces.dockedWorkspaces(settings);
-    intellihide = new Intellihide.intellihide(dock, settings);
+    dock = new DockedWorkspaces.dockedWorkspaces(settings, gsCurrentVersion);
+    intellihide = new Intellihide.intellihide(dock, settings, gsCurrentVersion);
 }
 
 function disable() {

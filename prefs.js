@@ -181,6 +181,14 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             this.settings.set_boolean('intellihide', check.get_active());
         }));
 
+        let topWindowOnly =  new Gtk.CheckButton({
+            label: "Dodge Top Window Only"
+        });
+        topWindowOnly.set_active(this.settings.get_boolean('intellihide-top-window-only'));
+        topWindowOnly.connect('toggled', Lang.bind(this, function(check){
+            this.settings.set_boolean('intellihide-top-window-only', check.get_active());
+        }));
+
         dockSettingsGrid1.attach(animationTimeLabel, 0, 0, 1, 1);
         dockSettingsGrid1.attach(animationTime, 1, 0, 1, 1);
         dockSettingsGrid1.attach(showDelayLabel, 0, 1, 1, 1);
@@ -192,12 +200,13 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         dockSettingsGrid2.attach(autohide, 1, 0, 1, 1);
         dockSettingsGrid2.attach(intellihideLabel, 0, 1, 1, 1);
         dockSettingsGrid2.attach(intellihide, 1, 1, 1, 1);
-        dockSettingsGrid2.attach(new Gtk.Label(), 0, 2, 1, 1);
+        dockSettingsGrid2.attach(topWindowOnly, 0, 2, 1, 1);
 
         dockSettingsMain1.add(dockSettingsGrid1);
         dockSettingsMain1.add(dockSettingsGrid2);
 
         this.settings.bind('dock-fixed', dockSettingsMain1, 'sensitive', Gio.SettingsBindFlags.INVERT_BOOLEAN);
+        this.settings.bind('intellihide', topWindowOnly, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
 
         dockSettings.add(dockSettingsTitle);
         dockSettings.add(dockSettingsControl1);
