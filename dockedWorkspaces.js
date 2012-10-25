@@ -18,7 +18,6 @@ const Signals = imports.signals;
 const St = imports.gi.St;
 const Mainloop = imports.mainloop;
 const Meta = imports.gi.Meta;
-const Gio = imports.gi.Gio;
 
 const Main = imports.ui.main;
 const WorkspacesView = imports.ui.workspacesView;
@@ -29,14 +28,9 @@ const Overview = imports.ui.overview;
 const Tweener = imports.ui.tweener;
 const WorkspaceSwitcherPopup = imports.ui.workspaceSwitcherPopup;
 
-const Config = imports.misc.config;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 const MyThumbnailsBox = Me.imports.myThumbnailsBox;
-
-const OVERRIDE_SCHEMA = "org.gnome.shell.overrides";
-const NUM_WORKSPACES_SCHEMA = "org.gnome.desktop.wm.preferences";
-
 
 function dockedWorkspaces(settings, gsCurrentVersion) {
     this._gsCurrentVersion = gsCurrentVersion;
@@ -69,25 +63,8 @@ dockedWorkspaces.prototype = {
 		// Override Gnome Shell functions
 		this._overrideGnomeShellFunctions();
 
-        //// Override the WorkspacesDisplay updateAlwaysZoom function
-        //// Force normal workspaces to be always zoomed
-        //let p = WorkspacesView.WorkspacesDisplay.prototype;
-        //this.saved_updateAlwaysZoom = p._updateAlwaysZoom;
-        //p._updateAlwaysZoom = function() {
-            //this._alwaysZoomOut = true;
-        //};
-        //gsOverviewWorkspacesDisplay._alwaysZoomOut = true;
-
-
-        //// Hide the normal workspaces thumbnailsBox
-        //// Main.overview._viewSelector._workspacesDisplay._thumbnailsBox.actor.hide();
-        //// note: gnome shell 3.6 won't zoom workspacesDisplay if hidden .. use opacity to hide instead
-        //gsOverviewWorkspacesDisplay._thumbnailsBox.actor.opacity = 0;
-
         // Create a new thumbnailsbox object
-        //@TODO: gs34 gs36
         this._thumbnailsBox = new MyThumbnailsBox.myThumbnailsBox(this._gsCurrentVersion);
-        //this._thumbnailsBox = new WorkspaceThumbnail.ThumbnailsBox();
 		
         // Create the main container, turn on track hover, add hoverChange signal
         this.actor = new St.BoxLayout({
@@ -97,13 +74,13 @@ dockedWorkspaces.prototype = {
         });
         this.actor.connect("notify::hover", Lang.bind(this, this._hoverChanged));
         this.actor.connect("scroll-event", Lang.bind(this, this._onScrollEvent));
-        //this._realizeId = this.actor.connect("realize", Lang.bind(this, this._initialize));
 
         // Sometimes Main.wm._workspaceSwitcherPopup is null when first loading the 
         // extension causing scroll-event problems
         if (Main.wm._workspaceSwitcherPopup == null)
             Main.wm._workspaceSwitcherPopup = new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup();
         
+        // additional fix for gnome shell 3.6 workspaceSwitcherPopup
         if (this._gsCurrentVersion[1] == "6") {
             Main.wm._workspaceSwitcherPopup.connect('destroy', function() {
                 Main.wm._workspaceSwitcherPopup = null;
@@ -119,7 +96,7 @@ dockedWorkspaces.prototype = {
         });
         this._backgroundBox.set_style('background-color: rgba(1,1,1,' + this._settings.get_double('background-opacity') + ')');
 
-        // Create the staticbox that stores the size and position where the dock is shown
+        // Create the staticbox that stores the size and position where the dock is shown for determining window overlaps
         // note: used by intellihide module to check window overlap
         this.staticBox = new Clutter.ActorBox({
             x1: 0,
@@ -153,11 +130,6 @@ dockedWorkspaces.prototype = {
                 'notify::size',
                 Lang.bind(this, this._thumbnailsBoxResized)
             ],
-            //[
-            //    this._thumbnailsBox.actor,
-            //    'notify::height',
-            //    Lang.bind(this, this._updateHeight)
-            //],
             [
                 global.screen,
                 'monitors-changed',
@@ -185,10 +157,12 @@ dockedWorkspaces.prototype = {
             ]
         );
 
+        // TODO: can we use messageTray.actor in gs 3.6?
+        // Connect global signals based on gnome shell version
         switch (this._gsCurrentVersion[1]) {
             case"4":
+                // Gnome Shell 3.4 signals
                 this._signalHandler.push(
-                    // Gnome Shell 3.4 signals
                     [
                         Main.messageTray.actor,
                         'notify::height',
@@ -197,8 +171,8 @@ dockedWorkspaces.prototype = {
                 );
                 break;
             case"6":
+                // Gnome Shell 3.6 signals
                 this._signalHandler.push(
-                    // Gnome Shell 3.6 signals
                     [
                         Main.messageTray,
                         'notify::height',
@@ -225,8 +199,10 @@ dockedWorkspaces.prototype = {
             affectsInputRegion: true
         });
 
+		// TODO: can we lower this.actor in gs 3.6 without causing workspace switching problems?
+        // TODO: gs 3.4 problem - dock immediately hides when workspace is switched even when mouse is hovering
         // Lower the dock below the trayBox so messageTray popups can receive focus & clicks
-		//this.actor.lower(Main.layoutManager.trayBox);
+        //this.actor.lower(Main.layoutManager.trayBox);
 		
         // Start main loop and bind initialize function
         Mainloop.idle_add(Lang.bind(this, this._initialize));
@@ -234,17 +210,6 @@ dockedWorkspaces.prototype = {
 
     _initialize: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: initializing");
-        /* This is a workaround I found to get correct size and positions of actor
-         * inside the overview
-        */
-        //Main.overview._group.show();
-        //Main.overview._group.hide();
-        
-        //if (this._realizeId > 0) {
-        //    this.actor.disconnect(this._realizeId);
-        //    this._realizeId=0;
-        //}
-        
         // Show the thumbnailsBox.  We need it to calculate the width of the dock.
         this._thumbnailsBox.show();
         
@@ -278,20 +243,9 @@ dockedWorkspaces.prototype = {
 
         // Restore normal Gnome Shell functions
         this._restoreGnomeShellFunctions();
-        
-        //// Restore normal workspaces to previous zoom setting
-        //let p = WorkspacesView.WorkspacesDisplay.prototype;
-        //p._updateAlwaysZoom = this.saved_updateAlwaysZoom;
-        //gsOverviewWorkspacesDisplay._alwaysZoomOut = false;
-        //gsOverviewWorkspacesDisplay._updateAlwaysZoom();
-
-        //// Reshow normal workspaces thumbnailsBox previously hidden
-        //gsOverviewWorkspacesDisplay._thumbnailsBox.actor.opacity = 255;
-        
-        //gsOverviewWorkspacesDisplay = null;
     },
 
-
+    // function called during init to override gnome shell 3.4/3.6/#
     _overrideGnomeShellFunctions: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _overrideGnomeShellFunctions");
         // Override the WorkspacesDisplay updateAlwaysZoom function
@@ -306,18 +260,19 @@ dockedWorkspaces.prototype = {
         switch (this._gsCurrentVersion[1]) {
             case"4":
                 Main.overview._workspacesDisplay._alwaysZoomOut = true;
-                Main.overview._workspacesDisplay._thumbnailsBox.actor.opacity = 0;
+                Main.overview._workspacesDisplay._thumbnailsBox.actor.hide();
                 break;
             case"6":
                 Main.overview._viewSelector._workspacesDisplay._alwaysZoomOut = true;
                 Main.overview._viewSelector._workspacesDisplay._thumbnailsBox.actor.opacity = 0;
                 break;
             default:
-                throw new Error("Unknown version number (intellihide.js).");
+                throw new Error("Unknown version number (dockedWorkspaces.js).");
         }
 
     },
     
+    // function called during destroy to restore gnome shell 3.4/3.6/#
     _restoreGnomeShellFunctions: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _restoreGnomeShellFunctions");
         // Restore normal workspaces to previous zoom setting
@@ -329,7 +284,7 @@ dockedWorkspaces.prototype = {
             case"4":
                 Main.overview._workspacesDisplay._alwaysZoomOut = false;
                 Main.overview._workspacesDisplay._updateAlwaysZoom();
-                Main.overview._workspacesDisplay._thumbnailsBox.actor.opacity = 255;
+                Main.overview._workspacesDisplay._thumbnailsBox.actor.show();
                 break;
             case"6":
                 Main.overview._viewSelector._workspacesDisplay._alwaysZoomOut = false;
@@ -337,23 +292,12 @@ dockedWorkspaces.prototype = {
                 Main.overview._viewSelector._workspacesDisplay._thumbnailsBox.actor.opacity = 255;
                 break;
             default:
-                throw new Error("Unknown version number (intellihide.js).");
+                throw new Error("Unknown version number (dockedWorkspaces.js).");
         }
 
     },
 
-    _getDynamicWorkspaceSetting: function() {
-        let overideSettings = new Gio.Settings({schema: OVERRIDE_SCHEMA});
-        let dw = overideSettings.get_boolean('dynamic-workspaces');
-        return dw;
-    },
-    
-    _getStaticWorkspaceNumber: function() {
-        let wmSettings = new Gio.Settings({schema: NUM_WORKSPACES_SCHEMA});
-        let num = wmSettings.get_int('num-workspaces');
-        return num;
-    },
-    
+    // handler for when workspace is restacked
     _workspacesRestacked: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _workspacesRestacked");
         let stack = global.get_window_actors();
@@ -365,17 +309,11 @@ dockedWorkspaces.prototype = {
         this._thumbnailsBox.syncStacking(stackIndices);
     },
 
+    // handler for when workspace is added
     _workspacesAdded: function() {
-        //let dw = this._getDynamicWorkspaceSetting();
-        //let num = this._getStaticWorkspaceNumber();
-        //if (_DEBUG_) global.log("dockedWorkspaces: _workspacesAdded dws ="+dw+" static ws num ="+num);
-        
         let NumMyWorkspaces = this._thumbnailsBox._thumbnails.length;
         let NumGlobalWorkspaces = global.screen.n_workspaces;
         let active = global.screen.get_active_workspace_index();
-        
-        //if (!dw && NumMyWorkspaces >= num)
-        //    return
         
         // NumMyWorkspaces == NumGlobalWorkspaces shouldn't happen, but does when Firefox started.
         // Assume that a workspace thumbnail is still in process of being removed from _thumbnailsBox
@@ -389,6 +327,7 @@ dockedWorkspaces.prototype = {
         this._redisplay();
     },
 
+    // handler for when workspace is removed
     _workspacesRemoved: function() {
 		if (_DEBUG_) global.log("dockedWorkspaces: _workspacesRemoved");
         let NumMyWorkspaces = this._thumbnailsBox._thumbnails.length;
@@ -418,13 +357,37 @@ dockedWorkspaces.prototype = {
                     this._thumbnailsBox.removeThumbnails(removedIndex, removedNum);
                     break;
                 default:
-                    throw new Error("Unknown version number (intellihide.js).");
+                    throw new Error("Unknown version number (dockedWorkspaces.js).");
             }
         }
         
         this._redisplay();
     },
 
+    // handler for when thumbnailsBox is resized
+    _thumbnailsBoxResized: function() {
+        if (_DEBUG_) global.log("dockedWorkspaces: _thumbnailsBoxResized");
+        this._updateSize();
+        this._redisplay();
+    },
+
+    // handler for when dock y position is updated
+    _updateYPosition: function() {
+        if (_DEBUG_) global.log("dockedWorkspaces: _updateYPosition");
+        this._updateSize();
+    },
+
+    // handler for when dock height is updated
+    _updateHeight: function() {
+        if (_DEBUG_) global.log("dockedWorkspaces: _updateHeight");
+        //this._updateStaticBox();
+        //this.actor.height = this.staticBox.y2 - this.staticBox.y1;
+        //this._thumbnailsBox.actor.height = this.staticBox.y2 - this.staticBox.y1;
+        //this._backgroundBox.height = this.staticBox.y2 - this.staticBox.y1 - 2;
+        this._updateSize();
+    },
+
+    // handler to bind settings when preferences changed
     _bindSettingsChanges: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _bindSettingsChanges");
         this._settings.connect('changed::opaque-background', Lang.bind(this, function() {
@@ -447,6 +410,8 @@ dockedWorkspaces.prototype = {
 				affectsInputRegion: true
 			});
             
+            // TODO: can we lower this.actor in gs 3.6 without causing workspace switching problems?
+            // TODO: gs 3.4 problem - dock immediately hides when workspace is switched even when mouse is hovering
             // Lower the dock below the trayBox so that messageTray popups can receive focus & clicks
 			//this.actor.lower(Main.layoutManager.trayBox);
 
@@ -465,6 +430,7 @@ dockedWorkspaces.prototype = {
         }));
     },
 
+    // handler for mouse hover events
     _hoverChanged: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _hoverChanged");
         //Skip if dock is not in autohide mode for instance because it is shown by intellihide
@@ -477,11 +443,11 @@ dockedWorkspaces.prototype = {
         }
     },
 
-    // Switch workspace by scrolling over the dock
+    // handler for mouse scroll events
+    // Switches workspace by scrolling over the dock
     // This comes from desktop-scroller@obsidien.github.com
     _onScrollEvent: function (actor, event) {
-        switch (event.get_scroll_direction()) {
-        case Clutter.ScrollDirection.UP:
+        if (event.get_scroll_direction() == Clutter.ScrollDirection.UP) {
             switch (this._gsCurrentVersion[1]) {
                 case "4":
                     Main.wm.actionMoveWorkspaceUp();
@@ -492,8 +458,7 @@ dockedWorkspaces.prototype = {
                 default:
                     throw new Error("Unknown version number (dockedWorkspaces.js).");
             }
-            break;
-        case Clutter.ScrollDirection.DOWN:
+        } else if (event.get_scroll_direction() == Clutter.ScrollDirection.DOWN) {
             switch (this._gsCurrentVersion[1]) {
                 case "4":
                     Main.wm.actionMoveWorkspaceDown();
@@ -504,11 +469,11 @@ dockedWorkspaces.prototype = {
                 default:
                     throw new Error("Unknown version number (dockedWorkspaces.js).");
             }
-            break;
         }
         return true;
     },
 
+    // autohide function to show dock
     _show: function() {
         let anim = this._animStatus;
         if (_DEBUG_) global.log("dockedWorkspaces: _show autohideStatus = "+this._autohideStatus+" anim.hidden = "+anim.hidden()+" anim.hiding = "+anim.hiding());
@@ -532,6 +497,24 @@ dockedWorkspaces.prototype = {
         }
     },
 
+    // autohide function to start a delay loop when showing the workspaces.
+    _startWorkspacesShowLoop: function() {
+		if (_DEBUG_) global.log("dockedWorkspaces: _startWorkspacesShowLoop");
+        // If a loop already exists clear it
+        if (this._workspacesShowTimeout > 0)
+            Mainloop.source_remove(this._workspacesShowTimeout);
+
+        this._workspacesShowTimeout = Mainloop.timeout_add(500, Lang.bind(this, function() {
+            if (_DEBUG_) global.log("dockedWorkspaces: delay looping");
+            // I'm not sure why but I need not to sync hover if it results already false
+            if (this.actor.hover == true) {
+                this.actor.sync_hover();
+            }
+            return true; // to make the loop continue;
+        }));
+    },
+
+    // autohide function to hide dock
     _hide: function() {
         let anim = this._animStatus;
         if (_DEBUG_) global.log("dockedWorkspaces: _hide autohideStatus = "+this._autohideStatus+" anim.shown = "+anim.shown()+" anim.showing = "+anim.showing());
@@ -565,6 +548,7 @@ dockedWorkspaces.prototype = {
         }
     },
 
+    // autohide function to animate the show dock process
     _animateIn: function(time, delay) {
         //let final_position = this.staticBox.x1;
         let final_position = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - 1;
@@ -591,7 +575,6 @@ dockedWorkspaces.prototype = {
                 onComplete: Lang.bind(this, function() {
                     this._animStatus.end();
 					if (_DEBUG_) global.log("dockedWorkspaces: _animateIn onComplete");
-					//this._startWorkspacesShowLoop();
                 })
             });
         } else {
@@ -602,6 +585,7 @@ dockedWorkspaces.prototype = {
 		}
     },
 
+    // autohide function to animate the hide dock process
     _animateOut: function(time, delay) {
         let final_position = this._monitor.x + this._monitor.width - 1;
         if (_DEBUG_) global.log("dockedWorkspaces: _animateOUT currrent_position = "+ this.actor.x+" final_position = "+final_position);
@@ -627,7 +611,6 @@ dockedWorkspaces.prototype = {
                 onComplete: Lang.bind(this, function() {
                     this._animStatus.end();
                     if (_DEBUG_) global.log("dockedWorkspaces: _animateOut onComplete");
-                    //this._startWorkspacesShowLoop();
                 })
             });
         } else {
@@ -638,37 +621,14 @@ dockedWorkspaces.prototype = {
 		}
     },
 
+    // autohide function to remove show-hide animations
     _removeAnimations: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _removeAnimations");
         Tweener.removeTweens(this.actor);
         this._animStatus.clearAll();
     },
 
-    // Utility function to make the dock clipped to the primary monitor
-    // clip dock to its original allocation along x and to the current monitor along y
-    // the current monitor; inspired by dock@gnome-shell-extensions.gcampax.github.com
-    _updateClip: function() {
-        // Here we implicitly assume that the stage and actor's parent
-        // share the same coordinate space
-        let clip = new Clutter.ActorBox({
-            x1: this._monitor.x,
-            y1: this._monitor.y,
-            x2: this._monitor.x + this._monitor.width,
-            y2: this._monitor.y + this._monitor.height
-        });
-
-        // Translate back into actor's coordinate space
-        // While the actor moves, the clip has to move in the opposite direction 
-        // to mantain its position in respect to the screen.
-        clip.x1 -= this.actor.x;
-        clip.x2 -= this.actor.x;
-        clip.y1 -= this.actor.y;
-        clip.y2 -= this.actor.y;
-
-        // Apply the clip
-        this.actor.set_clip(clip.x1, clip.y1, clip.x2 - clip.x1, clip.y2 - clip.y1);
-    },
-
+    // autohide function to fade out opaque background
     _fadeOutBackground: function(time, delay) {
         if (_DEBUG_) global.log("dockedWorkspaces: _fadeOutBackground");
         Tweener.removeTweens(this._backgroundBox);
@@ -680,6 +640,7 @@ dockedWorkspaces.prototype = {
         });
     },
 
+    // autohide function to fade in opaque background
     _fadeInBackground: function(time, delay) {
         if (_DEBUG_) global.log("dockedWorkspaces: _fadeInBackground");
         Tweener.removeTweens(this._backgroundBox);
@@ -728,6 +689,7 @@ dockedWorkspaces.prototype = {
         });
     },
 
+    // update background opacity based on preferences
     _updateBackgroundOpacity: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _updateBackgroundOpacity");
         if (this._settings.get_boolean('opaque-background') && (this._autohideStatus || this._settings.get_boolean('opaque-background-always'))) {
@@ -738,12 +700,12 @@ dockedWorkspaces.prototype = {
         }
     },
 
+    // resdiplay dock called if size-position changed due to dock resizing
     _redisplay: function() {
 		if (this._disableRedisplay)
             return
             
         if (_DEBUG_) global.log("dockedWorkspaces: _redisplay");
-        //this._updateStaticBox();
 
         // Redisplay dock by animating out/in .. necessary if thumbnailsBox size changed
         if (this._autohideStatus && (this._animStatus.hidden() || this._animStatus.hiding())) {
@@ -758,46 +720,7 @@ dockedWorkspaces.prototype = {
         this._updateClip();
     },
 
-    _thumbnailsBoxResized: function() {
-        if (_DEBUG_) global.log("dockedWorkspaces: _thumbnailsBoxResized");
-        this._updateSize();
-        this._redisplay();
-    },
-    
-    _updateYPosition: function() {
-        if (_DEBUG_) global.log("dockedWorkspaces: _updateYPosition");
-        //this._updateStaticBox();
-        //this.actor.y = this.staticBox.y1;
-        this._updateSize();
-    },
-
-    _updateHeight: function() {
-        if (_DEBUG_) global.log("dockedWorkspaces: _updateHeight");
-        //this._updateStaticBox();
-        //this.actor.height = this.staticBox.y2 - this.staticBox.y1;
-        //this._thumbnailsBox.actor.height = this.staticBox.y2 - this.staticBox.y1;
-        //this._backgroundBox.height = this.staticBox.y2 - this.staticBox.y1 - 2;
-        this._updateSize();
-    },
-
-    _updateStaticBox: function() {
-        this.staticBox.init_rect(
-            this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - 1,
-            this._monitor.y + Main.overview._viewSelector.actor.y + Main.overview._viewSelector._pageArea.y,
-            this._thumbnailsBox.actor.width + 1, //thumbnailsBox.actor.width is used to set staticBox.width
-            this._monitor.height - (this._monitor.y + Main.overview._viewSelector.actor.y + Main.overview._viewSelector._pageArea.y + (Main.overview._viewSelector.actor.y/2) + Main.messageTray.actor.height)
-        );
-
-        if (_DEBUG_) global.log("dockedWorkspaces: _updateStaticBox - _thumbnailsBox width = "+this._thumbnailsBox.actor.width);
-        if (_DEBUG_) global.log("dockedWorkspaces: _updateStaticBox x1="+this.staticBox.x1+" x2="+this.staticBox.x2+" y1="+this.staticBox.y1+" y2="+this.staticBox.y2);
-        
-        if (_DEBUG_) global.log("dockedWorkspaces: _updateStaticBox - viewSelector.y = "+Main.overview._viewSelector.actor.y);
-        if (_DEBUG_) global.log("dockedWorkspaces: _updateStaticBox - viewSelector.pagearea y = "+Main.overview._viewSelector._pageArea.y);
-        if (_DEBUG_) global.log("dockedWorkspaces: _updateStaticBox - messageTray height = "+Main.messageTray.actor.height);
-
-        //this.emit('box-changed');
-    },
-
+    // update the dock size
     _updateSize: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _updateSize");
         let x = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - 1;
@@ -824,7 +747,6 @@ dockedWorkspaces.prototype = {
     _resetPosition: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _resetPosition");
         this._monitor = Main.layoutManager.primaryMonitor;
-        //this._updateStaticBox();
         this._updateSize();
 
         let x = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - 1;
@@ -839,46 +761,37 @@ dockedWorkspaces.prototype = {
             this.actor.set_position(x2, y);
         }
 
-        //this._thumbnailsBox.actor.set_position(1, 0);
-        //this._thumbnailsBox.actor.height = this.staticBox.y2 - this.staticBox.y1;
-
-        //this.actor.set_position(this.staticBox.x1, this.staticBox.y1);
-        //this.actor.set_size(this.staticBox.x2 - this.staticBox.x1, this.staticBox.y2 - this.staticBox.y1);
-
-        //this._backgroundBox.set_position(1, 1);
-        //this._backgroundBox.set_size(this.staticBox.x2 - this.staticBox.x1, this.staticBox.y2 - this.staticBox.y1 - 2);
-
 		this._updateBackgroundOpacity();
         this._updateClip();
     },
 
-    _setPosition: function() {
-        //position dock on screen without animation
-        if (_DEBUG_) global.log("dockedWorkspaces: _setPosition");
-        this.actor.opacity = 0;
-        this.actor.x = this._monitor.x + this.staticBox.x1;
-        this.fadeInDock(.05, 0);
-    },
+    // Utility function to make the dock clipped to the primary monitor
+    // clip dock to its original allocation along x and to the current monitor along y
+    // the current monitor; inspired by dock@gnome-shell-extensions.gcampax.github.com
+    _updateClip: function() {
+        // Here we implicitly assume that the stage and actor's parent
+        // share the same coordinate space
+        let clip = new Clutter.ActorBox({
+            x1: this._monitor.x,
+            y1: this._monitor.y,
+            x2: this._monitor.x + this._monitor.width,
+            y2: this._monitor.y + this._monitor.height
+        });
 
-    // Start a loop to hide the workspaces.
-    _startWorkspacesShowLoop: function() {
-		if (_DEBUG_) global.log("dockedWorkspaces: _startWorkspacesShowLoop");
-        // If a loop already exists clear it
-        if (this._workspacesShowTimeout > 0)
-            Mainloop.source_remove(this._workspacesShowTimeout);
+        // Translate back into actor's coordinate space
+        // While the actor moves, the clip has to move in the opposite direction 
+        // to mantain its position in respect to the screen.
+        clip.x1 -= this.actor.x;
+        clip.x2 -= this.actor.x;
+        clip.y1 -= this.actor.y;
+        clip.y2 -= this.actor.y;
 
-        this._workspacesShowTimeout = Mainloop.timeout_add(500, Lang.bind(this, function() {
-            if (_DEBUG_) global.log("dockedWorkspaces: delay looping");
-            // I'm not sure why but I need not to sync hover if it results already false
-            if (this.actor.hover == true) {
-                this.actor.sync_hover();
-            }
-            return true; // to make the loop continue;
-        }));
+        // Apply the clip
+        this.actor.set_clip(clip.x1, clip.y1, clip.x2 - clip.x1, clip.y2 - clip.y1);
     },
 
     // Disable autohide effect, thus show workspaces
-    disableAutoHide: function(bypassAnimation) {
+    disableAutoHide: function() {
 		if (_DEBUG_) global.log("dockedWorkspaces: disableAutoHide - autohideStatus = "+this._autohideStatus);
         if (this._autohideStatus == null || this._autohideStatus == true) {
             this._autohideStatus = false;
@@ -888,11 +801,7 @@ dockedWorkspaces.prototype = {
                 Mainloop.source_remove(this._workspacesShowTimeout);
 
             this._removeAnimations();
-            if (bypassAnimation) {
-                this._setPosition();
-            } else {
-                this._animateIn(this._settings.get_double('animation-time'), 0);                
-            }
+            this._animateIn(this._settings.get_double('animation-time'), 0);                
 
             if (this._settings.get_boolean('opaque-background') && !this._settings.get_boolean('opaque-background-always'))
                 this._fadeOutBackground(this._settings.get_double('animation-time'), 0);
@@ -934,7 +843,6 @@ dockedWorkspaces.prototype = {
     }
 
 };
-
 Signals.addSignalMethods(dockedWorkspaces.prototype);
 
 /*

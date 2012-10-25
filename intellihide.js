@@ -16,8 +16,7 @@ const Shell = imports.gi.Shell;
 
 const Main = imports.ui.main;
 const PopupMenu = imports.ui.popupMenu;
-//const GrabHelper = imports.ui.grabHelper;
-let GrabHelper = null;
+let GrabHelper = null; // Gnome Shell 3.4 doesn't have a grabhelper
 
 const ViewSelector = imports.ui.viewSelector;
 const Tweener = imports.ui.tweener;
@@ -66,6 +65,8 @@ const OVERVIEW_MODE = IntellihideMode.SHOW;
 
 let intellihide = function(target, settings, gsCurrentVersion) {
     this._gsCurrentVersion = gsCurrentVersion;
+    
+    // define gnome shell 3.6 grabHelper
     if (this._gsCurrentVersion[1] == "6")
         grabHelper = imports.ui.grabHelper;
         
@@ -91,7 +92,7 @@ intellihide.prototype = {
         this._topWindow = null;
         this._focusApp = null;
 
-        // current intellihide status is null
+        // initial intellihide status is null
         this.status;
 
         // Target object
@@ -165,10 +166,11 @@ intellihide.prototype = {
             ]
         );
 
+        // Connect global signals based on gnome shell version
         switch (this._gsCurrentVersion[1]) {
             case"4":
+                // Gnome Shell 3.4 signals
                 this._signalHandler.push(
-                    // Gnome Shell 3.4 signals
                     [
                         Main.messageTray._focusGrabber,
                         'focus-grabbed',
@@ -185,17 +187,20 @@ intellihide.prototype = {
                         Lang.bind(this, this._onPanelMenuAdded)
                     ]
                 );
+                
                 // Detect viewSelector Tab signals in overview mode
                 for (let i = 0; i < Main.overview._viewSelector._tabs.length; i++) {
                     this._signalHandler.push([Main.overview._viewSelector._tabs[i], 'activated', Lang.bind(this, this._overviewChanged)]);
                 }
+                
                 // Detect Search started and cancelled
                 this._signalHandler.push([Main.overview._viewSelector._searchTab, 'activated', Lang.bind(this, this._searchStarted)]);
                 this._signalHandler.push([Main.overview._viewSelector._searchTab, 'search-cancelled', Lang.bind(this, this._searchCancelled)]);
+                
                 break;
             case"6":
+                // Gnome Shell 3.6 signals
                 this._signalHandler.push(
-                    // Gnome Shell 3.6 signals
                     [
                         Main.messageTray._grabHelper,
                         'focus-grabbed',
@@ -217,11 +222,11 @@ intellihide.prototype = {
                         Lang.bind(this, this._overviewChanged)
                     ]
                 );
+                
                 break;
             default:
                 throw new Error("Unknown version number (intellihide.js).");
         }
-
 		if (_DEBUG_) global.log("intellihide: init - signals being captured");
         
         // Start main loop and bind initialize function
@@ -267,32 +272,7 @@ intellihide.prototype = {
 		this._restoreGnomeShellFunctions();
     },
 
-	_onDockSettingsChanged: function() {
-		if (_DEBUG_) global.log("intellihide: _onDockSettingsChanged");
-		this._updateDockVisibility();
-	},
-	
-	_onWindowMaximized: function() {
-		if (_DEBUG_) global.log("intellihide: _onWindowMaximized");
-		this._updateDockVisibility();
-	},
-	
-	_onWindowUnmaximized: function() {
-		if (_DEBUG_) global.log("intellihide: _onWindowUnmaximized");
-		this._updateDockVisibility();
-	},
-	
-	_onScreenRestacked: function() {
-		if (_DEBUG_) global.log("intellihide: _onScreenRestacked");
-		this._updateDockVisibility();
-	},
-	
-	_onMonitorsChanged: function() {
-		if (_DEBUG_) global.log("intellihide: _onMonitorsChanged");
-		this._updateDockVisibility();
-	},
-	
-
+    // main function called during init to override gnome shell 3.4/3.6/#
     _overrideGnomeShellFunctions: function() {
         if (_DEBUG_) global.log("intellihide: _overrideGnomeShellFunctions");
         switch (this._gsCurrentVersion[1]) {
@@ -307,6 +287,7 @@ intellihide.prototype = {
         }
     },
 
+    // main function called during destroy to restore gnome shell 3.4/3.6/#
     _restoreGnomeShellFunctions: function() {
         if (_DEBUG_) global.log("intellihide: _restoreGnomeShellFunctions");
         switch (this._gsCurrentVersion[1]) {
@@ -321,6 +302,7 @@ intellihide.prototype = {
         }
     },
     
+    // gnome shell 3.4 function overrides
     _overrideGnomeShell34Functions: function() {
         // Override the PopupMenuManager addMenu function to emit a signal when new menus are added
 		// Copied from Gnome Shell .. emit 'menu-added' added
@@ -353,6 +335,7 @@ intellihide.prototype = {
         Signals.addSignalMethods(PopupMenu.PopupMenuManager.prototype);
     },
     
+    // gnome shell 3.6 function overrides
 	_overrideGnomeShell36Functions: function() {
         if (_DEBUG_) global.log("intellihide: _overrideGnomeShellFunctions");
         // Override the ViewSelector showPage function to emit a signal when overview page changes
@@ -494,12 +477,14 @@ intellihide.prototype = {
 		Signals.addSignalMethods(GrabHelper.GrabHelper.prototype);
 	},
 	
+    // gnome shell 3.4 function restores
 	_restoreGnomeShell34Functions: function() {
         // Restore normal PopupMenuManager addMenu function
         let p = PopupMenu.PopupMenuManager.prototype;
         p.addMenu = this.saved_PopupMenuManager_addMenu;
     },
     
+    // gnome shell 3.6 function restores
     _restoreGnomeShell36Functions: function() {
 		// Restore normal ViewSelector showPage function
         let p = ViewSelector.ViewSelector.prototype;
@@ -518,6 +503,7 @@ intellihide.prototype = {
         p.ungrab = this.saved_GrabHelper_ungrab;
 	},
 	
+    // handler to bind settings when preferences changed
     _bindSettingsChanges: function() {
         this._settings.connect('changed::intellihide', Lang.bind(this, function() {
             if (_DEBUG_) global.log("intellihide: _bindSettingsChanges for intellihide");
@@ -543,48 +529,37 @@ intellihide.prototype = {
         }));
     },
 
-    _show: function() {
-        if (this.status == null || this.status == false) {
-            if (this._settings.get_boolean('dock-fixed')) {
-                if (_DEBUG_) global.log("intellihide: _show - fadeInDock");
-				if (this.status == null) {
-                    // do slow fade in when first showing dock
-                    this._target.fadeInDock(this._settings.get_double('animation-time'), 0);
-                } else {
-                    // do a quick fade in afterward .. don't know why but slow animation sometimes leaves the fixed dock barely visible
-                    this._target.fadeInDock(.05, 0);
-                }
-            } else {
-				if (_DEBUG_) global.log("intellihide: _show - disableAutoHide");
-				if (this.status == null) {
-					//this._target.disableAutoHide(true); // no animation
-                    this._target.disableAutoHide();
-				} else {
-					this._target.disableAutoHide();
-				}
-            }
-            this.status = true;
-		}
-    },
+    // handler for when dock size-position is changed
+	_onDockSettingsChanged: function() {
+		if (_DEBUG_) global.log("intellihide: _onDockSettingsChanged");
+		this._updateDockVisibility();
+	},
+	
+    // handler for when window is maximized
+	_onWindowMaximized: function() {
+		if (_DEBUG_) global.log("intellihide: _onWindowMaximized");
+		this._updateDockVisibility();
+	},
+	
+    // handler for when window is unmaximized
+	_onWindowUnmaximized: function() {
+		if (_DEBUG_) global.log("intellihide: _onWindowUnmaximized");
+		this._updateDockVisibility();
+	},
+	
+    // handler for when screen is restacked
+	_onScreenRestacked: function() {
+		if (_DEBUG_) global.log("intellihide: _onScreenRestacked");
+		this._updateDockVisibility();
+	},
+	
+    // handler for when monitor changes
+	_onMonitorsChanged: function() {
+		if (_DEBUG_) global.log("intellihide: _onMonitorsChanged");
+		this._updateDockVisibility();
+	},
 
-    _hide: function(nonreactive) {
-        if (this.status == null || this.status == true) {
-            this.status = false;
-            if (this._settings.get_boolean('dock-fixed')) {
-                if (_DEBUG_) global.log("intellihide: _hide - fadeOutDock");
-                if (nonreactive) {
-                    // hide and make stage nonreactive so meta popup windows receive hover and clicks
-                    this._target.fadeOutDock(this._settings.get_double('animation-time'), 0, true);
-                } else {
-                    this._target.fadeOutDock(this._settings.get_double('animation-time'), 0, false);
-                }
-            } else {
-				if (_DEBUG_) global.log("intellihide: _hide - enableAutoHide");
-                this._target.enableAutoHide();
-            }
-        }
-    },
-
+    // handler for when overview mode exited
     _overviewExit: function() {
         if (_DEBUG_) global.log("intellihide: _overviewExit");
         this._inOverview = false;
@@ -592,6 +567,7 @@ intellihide.prototype = {
 
     },
 
+    // handler for when overview mode entered
     _overviewEnter: function() {
         if (_DEBUG_) global.log("intellihide: _overviewEnter");
         this._inOverview = true;
@@ -606,7 +582,7 @@ intellihide.prototype = {
         }
     },
 
-    // This function was added to handle changes in overview mode
+    // handler for when overview mode is changed
     // for example, when Applications button is clicked the workspaces dock is hidden
     // or when search is started the workspaces dock is hidden
     _overviewChanged: function(source, page) {
@@ -618,11 +594,15 @@ intellihide.prototype = {
         }
     },
 
+    // handler for when Gnome Shell 3.4 search started
     _searchStarted: function() {
+      if (_DEBUG_) global.log("intellihide: _searchStarted");
       this._hide();
     },
 
+    // handler for when Gnome Shell 3.4 search cancelled
     _searchCancelled: function() {
+        if (_DEBUG_) global.log("intellihide: _searchCancelled");
         if (Main.overview._viewSelector._activeTab.id == "windows") {
             this._show();
         } else {
@@ -630,6 +610,7 @@ intellihide.prototype = {
         }
     },
 
+    // handler for when messageTray focus is grabbed
     _onTrayFocusGrabbed: function(source, event) {
         let focusedActor;
         switch (this._gsCurrentVersion[1]) {
@@ -653,6 +634,7 @@ intellihide.prototype = {
         }
     },
 
+    // handler for when messageTray focus is ungrabbed
     _onTrayFocusUngrabbed: function(source, event) {
         if (_DEBUG_) global.log("intellihide: onTrayFocusUnGrabbed");
         this._disableIntellihide = false;
@@ -672,6 +654,7 @@ intellihide.prototype = {
         }
     },
 
+    // handler for when panel menu state is changed
     _onPanelMenuStateChange: function(menu, open) {
         if (open) {
             if (_DEBUG_) global.log("intellihide: _onPanelMenuStateChange - open");
@@ -700,12 +683,14 @@ intellihide.prototype = {
         }
     },
 
+    // handler for when panel menu is added
     _onPanelMenuAdded: function(source, menu) {
         if (_DEBUG_) global.log("intellihide: _onPanelMenuAdded");
-        // We need to push signals for new panel menus added after initialization
+        // We need to connect signals for new panel menus added after initialization
         this._signalHandler.push([menu, 'open-state-changed', Lang.bind(this, this._onPanelMenuStateChange)]);
     },
 
+    // handler for when window move begins
     _grabOpBegin: function() {
 		if (_DEBUG_) global.log("intellihide: _grabOpBegin");
         if (this._settings.get_boolean('intellihide')) {
@@ -723,6 +708,7 @@ intellihide.prototype = {
         }
     },
 
+    // handler for when window move ends
     _grabOpEnd: function() {
 		if (_DEBUG_) global.log("intellihide: _grabOpEnd");
         if (this._settings.get_boolean('intellihide')) {
@@ -733,11 +719,52 @@ intellihide.prototype = {
         }
     },
 
+    // handler for when workspace is switched
     _switchWorkspace: function(shellwm, from, to, direction) {
 		if (_DEBUG_) global.log("intellihide: _switchWorkspace");
         this._updateDockVisibility();
     },
 
+    // intellihide function to show dock
+    _show: function() {
+        if (this.status == null || this.status == false) {
+            if (this._settings.get_boolean('dock-fixed')) {
+                if (_DEBUG_) global.log("intellihide: _show - fadeInDock");
+				if (this.status == null) {
+                    // do slow fade in when first showing dock
+                    this._target.fadeInDock(this._settings.get_double('animation-time'), 0);
+                } else {
+                    // do a quick fade in afterward .. don't know why but slow animation sometimes leaves the fixed dock barely visible
+                    this._target.fadeInDock(.05, 0);
+                }
+            } else {
+				if (_DEBUG_) global.log("intellihide: _show - disableAutoHide");
+				this._target.disableAutoHide();
+            }
+            this.status = true;
+		}
+    },
+
+    // intellihide function to hide dock
+    _hide: function(nonreactive) {
+        if (this.status == null || this.status == true) {
+            this.status = false;
+            if (this._settings.get_boolean('dock-fixed')) {
+                if (_DEBUG_) global.log("intellihide: _hide - fadeOutDock");
+                if (nonreactive) {
+                    // hide and make stage nonreactive so meta popup windows receive hover and clicks
+                    this._target.fadeOutDock(this._settings.get_double('animation-time'), 0, true);
+                } else {
+                    this._target.fadeOutDock(this._settings.get_double('animation-time'), 0, false);
+                }
+            } else {
+				if (_DEBUG_) global.log("intellihide: _hide - enableAutoHide");
+                this._target.enableAutoHide();
+            }
+        }
+    },
+
+    // intellihide function to determine if dock overlaps a window
     _updateDockVisibility: function() {
         if (this._disableIntellihide)
             return;
@@ -756,7 +783,6 @@ intellihide.prototype = {
             if (this._settings.get_boolean('intellihide') || this._settings.get_boolean('dock-fixed')) {
                 if (_DEBUG_) global.log("intellihide: updateDockVisibility - normal mode");
                 let overlaps = false;
-                //let windows = global.get_window_actors().filter(this._intellihideFilterInteresting, this);
                 let windows = global.get_window_actors();
 
                 if (windows.length > 0) {

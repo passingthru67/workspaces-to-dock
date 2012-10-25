@@ -51,12 +51,15 @@ const myThumbnailsBox = new Lang.Class({
             }
         }
 
+        // passingthru67 - needed in case thumbnail is null outside of overview
         if (thumbnail == null)
             return
-            
+        
+        // passingthru67 - needed in case thumbnail.actor is null outside of overview    
         if (thumbnail.actor == null)
             return
 
+        // passingthru67 - conditional for gnome shell 3.4/3.6/# differences
         switch (this._gsCurrentVersion[1]) {
             case"4":
                 this._animatingIndicator = true;
