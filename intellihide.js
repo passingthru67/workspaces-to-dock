@@ -68,7 +68,7 @@ let intellihide = function(target, settings, gsCurrentVersion) {
     
     // define gnome shell 3.6 grabHelper
     if (this._gsCurrentVersion[1] == "6")
-        grabHelper = imports.ui.grabHelper;
+        GrabHelper = imports.ui.grabHelper;
         
     this._init(target, settings);
 }

@@ -154,36 +154,13 @@ dockedWorkspaces.prototype = {
                 global.screen,
                 'workspace-switched',
                 Lang.bind(this, this._workspacesRestacked)
+            ],
+            [
+                Main.messageTray.actor,
+                'notify::height',
+                Lang.bind(this, this._updateHeight)
             ]
         );
-
-        // TODO: can we use messageTray.actor in gs 3.6?
-        // Connect global signals based on gnome shell version
-        switch (this._gsCurrentVersion[1]) {
-            case"4":
-                // Gnome Shell 3.4 signals
-                this._signalHandler.push(
-                    [
-                        Main.messageTray.actor,
-                        'notify::height',
-                        Lang.bind(this, this._updateHeight)
-                    ]
-                );
-                break;
-            case"6":
-                // Gnome Shell 3.6 signals
-                this._signalHandler.push(
-                    [
-                        Main.messageTray,
-                        'notify::height',
-                        Lang.bind(this, this._updateHeight)
-                    ]
-                );
-                break;
-            default:
-                throw new Error("Unknown version number (dockedWorkspaces.js).");
-        }
-
         if (_DEBUG_) global.log("dockedWorkspaces: init - signals being captured");
         
         //Hide the dock whilst setting positions
@@ -199,10 +176,11 @@ dockedWorkspaces.prototype = {
             affectsInputRegion: true
         });
 
-		// TODO: can we lower this.actor in gs 3.6 without causing workspace switching problems?
+		// TODO: can we lower this.actor in gs 3.4 without causing workspace switching problems?
         // TODO: gs 3.4 problem - dock immediately hides when workspace is switched even when mouse is hovering
         // Lower the dock below the trayBox so messageTray popups can receive focus & clicks
-        //this.actor.lower(Main.layoutManager.trayBox);
+        if (this._gsCurrentVersion[1] == "6")
+            this.actor.lower(Main.layoutManager.trayBox);
 		
         // Start main loop and bind initialize function
         Mainloop.idle_add(Lang.bind(this, this._initialize));
@@ -410,10 +388,11 @@ dockedWorkspaces.prototype = {
 				affectsInputRegion: true
 			});
             
-            // TODO: can we lower this.actor in gs 3.6 without causing workspace switching problems?
+            // TODO: can we lower this.actor in gs 3.4 without causing workspace switching problems?
             // TODO: gs 3.4 problem - dock immediately hides when workspace is switched even when mouse is hovering
             // Lower the dock below the trayBox so that messageTray popups can receive focus & clicks
-			//this.actor.lower(Main.layoutManager.trayBox);
+            if (this._gsCurrentVersion[1] == "6")
+                this.actor.lower(Main.layoutManager.trayBox);
 
             if (this._settings.get_boolean('dock-fixed')) {
                 // show dock immediately when setting changes
