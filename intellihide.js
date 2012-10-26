@@ -93,7 +93,7 @@ intellihide.prototype = {
         this._focusApp = null;
 
         // initial intellihide status is null
-        this.status;
+        this.status = null;
 
         // Target object
         this._target = target;
@@ -337,7 +337,6 @@ intellihide.prototype = {
     
     // gnome shell 3.6 function overrides
 	_overrideGnomeShell36Functions: function() {
-        if (_DEBUG_) global.log("intellihide: _overrideGnomeShellFunctions");
         // Override the ViewSelector showPage function to emit a signal when overview page changes
 		// Copied from Gnome Shell .. emit 'show-page' added
         let p = ViewSelector.ViewSelector.prototype;

@@ -28,8 +28,8 @@ Features Planned:
 
 Known Issues:
 -------------
-- Dual monitor setups where 2nd monitor is on the right side - workspaces-to-dock prevents mouse clicks from reaching the desktop of the right monitor in the region where the dock is slid out (even though the dock is hidden). A workaround is to enable application based intellihide under workspaces-to-dock extension preferences.
-- Changes to Gnome Shell dynamic workspace setting or number of static workspaces requires a restart of workspaces-to-dock.
+- Dual monitor setups where 2nd monitor is on the right side - workspaces-to-dock prevents mouse clicks from reaching the desktop of the right monitor in the region where the dock is slid out (even though the dock is hidden). A workaround is to enable application based intellihide using the workspaces-to-dock extension preferences.
+- Changes to Gsettings dynamic workspace setting or number of static workspaces requires a Gnome Shell restart for workspaces-to-dock to function properly.
 
 
 Other Issues:
@@ -42,8 +42,8 @@ If you run into any strange behavior with dynamic workspaces, please disable the
 - Using dual monitors. If you are using dual monitors, it is recommended that you turn off the workspaces-only-on-primary option under org->gnome->shell->overrides (use dconf-editor).
 
 
-Changelog:
-----------
+Change Log:
+-----------
 version 6 (Oct 25, 2012)
 
 - Support for Gnome Shell 3.6 and new lock screen
@@ -51,7 +51,7 @@ version 6 (Oct 25, 2012)
 - Application based intellihide feature added
 - Bug fixes
 
-    **NOTE: Changes to Gnome Shell dynamic workspace setting or number of static workspaces requires a restart of workspaces-to-dock**
+    **NOTE: Changes to Gsettings dynamic workspace setting or number of static workspaces requires a Gnome Shell restart for workspaces-to-dock to function properly**
 
 version 5 (Sept 11, 2012)
 

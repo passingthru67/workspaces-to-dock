@@ -55,7 +55,7 @@ dockedWorkspaces.prototype = {
 
         // Authohide current status. Not to be confused with autohide enable/disagle global (g)settings
         // Initially set to null - will be set during first enable/disable autohide
-        this._autohideStatus;
+        this._autohideStatus = null;
         
         // initialize animation status object
         this._animStatus = new animationStatus(true);
@@ -176,11 +176,12 @@ dockedWorkspaces.prototype = {
             affectsInputRegion: true
         });
 
-		// TODO: can we lower this.actor in gs 3.4 without causing workspace switching problems?
-        // TODO: gs 3.4 problem - dock immediately hides when workspace is switched even when mouse is hovering
-        // Lower the dock below the trayBox so messageTray popups can receive focus & clicks
-        if (this._gsCurrentVersion[1] == "6")
-            this.actor.lower(Main.layoutManager.trayBox);
+        // TODO: can we lower this.actor in gnome shell without causing problems?
+        // gs3.4 problem - dock immediately hides when workspace is switched even when mouse is hovering
+        // gs3.6 problem - dock crashes gnome shell when returning from lock screen
+        // Lower the dock below the trayBox so that messageTray popups can receive focus & clicks
+        //if (this._gsCurrentVersion[1] == "6")
+        //    this.actor.lower(Main.layoutManager.trayBox);
 		
         // Start main loop and bind initialize function
         Mainloop.idle_add(Lang.bind(this, this._initialize));
@@ -358,10 +359,6 @@ dockedWorkspaces.prototype = {
     // handler for when dock height is updated
     _updateHeight: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _updateHeight");
-        //this._updateStaticBox();
-        //this.actor.height = this.staticBox.y2 - this.staticBox.y1;
-        //this._thumbnailsBox.actor.height = this.staticBox.y2 - this.staticBox.y1;
-        //this._backgroundBox.height = this.staticBox.y2 - this.staticBox.y1 - 2;
         this._updateSize();
     },
 
@@ -388,11 +385,12 @@ dockedWorkspaces.prototype = {
 				affectsInputRegion: true
 			});
             
-            // TODO: can we lower this.actor in gs 3.4 without causing workspace switching problems?
-            // TODO: gs 3.4 problem - dock immediately hides when workspace is switched even when mouse is hovering
+            // TODO: can we lower this.actor in gnome shell without causing problems?
+            // gs3.4 problem - dock immediately hides when workspace is switched even when mouse is hovering
+            // gs3.6 problem - dock crashes gnome shell when returning from lock screen
             // Lower the dock below the trayBox so that messageTray popups can receive focus & clicks
-            if (this._gsCurrentVersion[1] == "6")
-                this.actor.lower(Main.layoutManager.trayBox);
+            //if (this._gsCurrentVersion[1] == "6")
+            //    this.actor.lower(Main.layoutManager.trayBox);
 
             if (this._settings.get_boolean('dock-fixed')) {
                 // show dock immediately when setting changes

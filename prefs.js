@@ -168,7 +168,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }));
 
         let intellihideLabel = new Gtk.Label({
-            label: "intellihide",
+            label: "Intellihide",
             xalign: 0,
             hexpand: true
         });
