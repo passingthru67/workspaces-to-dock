@@ -5,7 +5,7 @@ A Gnome Shell extension that transforms the workspaces of the overview mode into
 
 ![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Screenshot.png)
 
-Installation
+Installation:
 ------------
 The easiest way to install Workspaces-to-Dock is from https://extensions.gnome.org/extension/427/workspaces-to-dock/ using your browser.
 
@@ -44,7 +44,7 @@ If you run into any strange behavior with dynamic workspaces, please disable the
 
 Change Log:
 -----------
-version 6 (Oct 25, 2012)
+version 6 (Oct 26, 2012)
 
 - Support for Gnome Shell 3.6 and new lock screen
 - Better support for static workspaces
