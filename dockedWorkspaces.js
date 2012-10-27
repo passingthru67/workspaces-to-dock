@@ -708,15 +708,10 @@ dockedWorkspaces.prototype = {
                 this._autohideStatus = true;
                 this.fadeInDock(this._settings.get_double('animation-time'), 0);
             } else {
-                if (this._settings.get_boolean('intellihide')) {
-                    this._removeAnimations();
-                    this._animateIn(this._settings.get_double('animation-time'), 0);
-                    this._autohideStatus = false;
-                } else {
-                    this._removeAnimations();
-                    this._animateOut(0, 0);
-                    this._autohideStatus = true;
-                }
+                // Initial animation is out .. intellihide will animate in if its needed
+                this._removeAnimations();
+                this._animateOut(0, 0);
+                this._autohideStatus = true;
             }
         } else {
             // Redisplay dock by animating back in .. necessary if thumbnailsBox size changed
