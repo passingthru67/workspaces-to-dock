@@ -6,7 +6,7 @@
  * ========================================================================================================
  */
 
-const _DEBUG_ = false;
+const _DEBUG_ = true;
 
 const Lang = imports.lang;
 const Meta = imports.gi.Meta;
