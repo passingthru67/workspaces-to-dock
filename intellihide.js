@@ -187,6 +187,11 @@ intellihide.prototype = {
                         Lang.bind(this, this._onPanelMenuAdded)
                     ]
                 );
+
+                // Detect gnome panel popup menus
+                for (let i = 0; i < Main.panel._menus._menus.length; i++) {
+                    this._signalHandler.push([Main.panel._menus._menus[i].menu, 'open-state-changed', Lang.bind(this, this._onPanelMenuStateChange)]);
+                }
                 
                 // Detect viewSelector Tab signals in overview mode
                 for (let i = 0; i < Main.overview._viewSelector._tabs.length; i++) {
@@ -222,7 +227,12 @@ intellihide.prototype = {
                         Lang.bind(this, this._overviewPageChanged)
                     ]
                 );
-                
+
+                // Detect gnome panel popup menus
+                for (let i = 0; i < Main.panel.menuManager._menus.length; i++) {
+                    this._signalHandler.push([Main.panel.menuManager._menus[i].menu, 'open-state-changed', Lang.bind(this, this._onPanelMenuStateChange)]);
+                }
+
                 break;
             default:
                 throw new Error("Unknown version number (intellihide.js).");
@@ -235,30 +245,12 @@ intellihide.prototype = {
 
     _initialize: function() {
 		if (_DEBUG_) global.log("intellihide: initializing");
-        // Detect gnome panel popup menus.  Reason for detection being here instead of during init
-        // is because it needs to be done after all the panel extensions have loaded
-        switch (this._gsCurrentVersion[1]) {
-            case"4":
-                for (let i = 0; i < Main.panel._menus._menus.length; i++) {
-                    this._signalHandler.push([Main.panel._menus._menus[i].menu, 'open-state-changed', Lang.bind(this, this._onPanelMenuStateChange)]);
-                }
-                break;
-            case"6":
-                for (let i = 0; i < Main.panel.menuManager._menus.length; i++) {
-                    this._signalHandler.push([Main.panel.menuManager._menus[i].menu, 'open-state-changed', Lang.bind(this, this._onPanelMenuStateChange)]);
-                }
-                break;
-            default:
-                throw new Error("Unknown version number (intellihide.js).");
-        }
-
         // enable intellihide now
         this._disableIntellihide = false;
         if (_DEBUG_) global.log("intellihide: initialize - turn on intellihide");
         
         // updte dock visibility
         this._updateDockVisibility();
-        
     },
     
     destroy: function() {
