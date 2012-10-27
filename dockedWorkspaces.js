@@ -9,7 +9,7 @@
  * ========================================================================================================
  */
 
-const _DEBUG_ = true;
+const _DEBUG_ = false;
 
 const Clutter = imports.gi.Clutter;
 const Lang = imports.lang;
