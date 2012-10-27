@@ -190,7 +190,7 @@ intellihide.prototype = {
                 
                 // Detect viewSelector Tab signals in overview mode
                 for (let i = 0; i < Main.overview._viewSelector._tabs.length; i++) {
-                    this._signalHandler.push([Main.overview._viewSelector._tabs[i], 'activated', Lang.bind(this, this._overviewChanged)]);
+                    this._signalHandler.push([Main.overview._viewSelector._tabs[i], 'activated', Lang.bind(this, this._overviewTabChanged)]);
                 }
                 
                 // Detect Search started and cancelled
@@ -219,7 +219,7 @@ intellihide.prototype = {
                     [
                         Main.overview._viewSelector,
                         'show-page',
-                        Lang.bind(this, this._overviewChanged)
+                        Lang.bind(this, this._overviewPageChanged)
                     ]
                 );
                 
@@ -581,11 +581,23 @@ intellihide.prototype = {
         }
     },
 
-    // handler for when overview mode is changed
+    // handler for when Gnome Shell 3.4 overview tab is changed
     // for example, when Applications button is clicked the workspaces dock is hidden
     // or when search is started the workspaces dock is hidden
-    _overviewChanged: function(source, page) {
-        if (_DEBUG_) global.log("intellihide: _overviewChanged");
+    _overviewTabChanged: function(source, page) {
+        if (_DEBUG_) global.log("intellihide: _overviewTabChanged");
+        if (Main.overview._viewSelector._activeTab.id == "windows") {
+            this._show();
+        } else {
+            this._hide();
+        }
+    },
+
+    // handler for when Gnome Shell 3.6 overview page is changed
+    // for example, when Applications button is clicked the workspaces dock is hidden
+    // or when search is started the workspaces dock is hidden
+    _overviewPageChanged: function(source, page) {
+        if (_DEBUG_) global.log("intellihide: _overviewPageChanged");
         if (page == Main.overview._viewSelector._workspacesPage) {
             this._show();
         } else {

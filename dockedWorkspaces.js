@@ -129,7 +129,7 @@ dockedWorkspaces.prototype = {
             ],
             [
                 this._thumbnailsBox.actor,
-                'notify::size',
+                'notify::width',
                 Lang.bind(this, this._thumbnailsBoxResized)
             ],
             [
@@ -193,6 +193,12 @@ dockedWorkspaces.prototype = {
             this._realizeId = 0;
         }
 
+        // GS3.4 workaround to get correct size and position of actor inside the overview
+        if (this._gsCurrentVersion[1] == "4") {
+            Main.overview._group.show();
+            Main.overview._group.hide();
+        }
+        
         // Show the thumbnailsBox.  We need it to calculate the width of the dock.
         this._thumbnailsBox.show();
         
@@ -207,6 +213,9 @@ dockedWorkspaces.prototype = {
 
         this._disableRedisplay = false;
         if (_DEBUG_) global.log("dockedWorkspaces: initialize - turn on redisplay");
+        
+        // Not really required because thumbnailsBox width signal will trigger a redisplay
+        this._redisplay();
     },
 
     destroy: function() {
@@ -713,7 +722,8 @@ dockedWorkspaces.prototype = {
             // Redisplay dock by animating back in .. necessary if thumbnailsBox size changed
             // even if dock is fixed
             if (this._autohideStatus == false) {
-                this._removeAnimations();
+                // had to comment out because GS3.4 fixed-dock isn't fully faded in yet when redisplay occurs again 
+                //this._removeAnimations();
                 this._animateIn(this._settings.get_double('animation-time'), 0);
                 this._autohideStatus = false;
             }
@@ -729,14 +739,25 @@ dockedWorkspaces.prototype = {
         let x = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - 1;
         let x2 = this._monitor.x + this._monitor.width - 1;
         let y = this._monitor.y + Main.overview._viewSelector.actor.y + Main.overview._viewSelector._pageArea.y;
-        let height = this._monitor.height - (this._monitor.y + Main.overview._viewSelector.actor.y + Main.overview._viewSelector._pageArea.y + (Main.overview._viewSelector.actor.y/2) + Main.messageTray.actor.height);
-
+        
+        let height;
+        switch (this._gsCurrentVersion[1]) {
+            case"4":
+                height = Main.overview._viewSelector._pageArea.height;
+                break;
+            case"6":
+                height = this._monitor.height - (this._monitor.y + Main.overview._viewSelector.actor.y + Main.overview._viewSelector._pageArea.y + (Main.overview._viewSelector.actor.y/2) + Main.messageTray.actor.height);
+                break;
+            default:
+                throw new Error("Unknown version number (dockedWorkspaces.js).");
+        }
+        
         // Updating size also resets the position of the staticBox (used to detect window overlaps)
         this.staticBox.init_rect(x, y, this._thumbnailsBox.actor.width + 1, height);
         
-        // Updating size shouldn't reset the position of the actor box (used to detect hover)
+        // Updating size shouldn't reset the x position of the actor box (used to detect hover)
         // especially if it's in the hidden slid out position
-        //this.actor.set_position(x, y);
+        this.actor.y = y;
         this.actor.set_size(this._thumbnailsBox.actor.width + 1, height);
 
         this._thumbnailsBox.actor.set_position(1, 0); // position inside actor
