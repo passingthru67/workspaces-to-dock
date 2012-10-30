@@ -245,7 +245,8 @@ dockedWorkspaces.prototype = {
         if (_DEBUG_) global.log("dockedWorkspaces: initialize - turn on redisplay");
         
         // Not really required because thumbnailsBox width signal will trigger a redisplay
-        this._redisplay();
+        // Also found GS3.6 crashes returning from lock screen (Ubuntu GS Remix)
+        //this._redisplay();
     },
 
     destroy: function() {
