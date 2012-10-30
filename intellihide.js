@@ -665,10 +665,12 @@ intellihide.prototype = {
             let [rwidth, rheight] = menu.actor.get_size();
             let test = (rx < this._target.staticBox.x2) && (rx + rwidth > this._target.staticBox.x1) && (ry < this._target.staticBox.y2) && (ry + rheight > this._target.staticBox.y1);
             if (test) {
+                this._disableIntellihide = true;
                 this._hide();
             }
         } else {
             if (_DEBUG_) global.log("intellihide: _onPanelMenuStateChange - closed");
+            this._disableIntellihide = false;
             if (this._inOverview) {
                 switch (this._gsCurrentVersion[1]) {
                     case "4":
