@@ -171,8 +171,7 @@ dockedWorkspaces.prototype = {
                 ExtensionSystem._signals,
                 'extension-state-changed',
                 Lang.bind(this, this._onExtensionSystemStateChanged)
-            ],
-
+            ]
         );
         if (_DEBUG_) global.log("dockedWorkspaces: init - signals being captured");
 
