@@ -32,6 +32,11 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 const MyThumbnailsBox = Me.imports.myThumbnailsBox;
 
+const ExtensionSystem = imports.ui.extensionSystem;
+const ExtensionUtils = imports.misc.extensionUtils;
+const DashToDock_UUID = "dash-to-dock@micxgx.gmail.com";
+let DashToDock = null;
+
 function dockedWorkspaces(settings, gsCurrentVersion) {
     this._gsCurrentVersion = gsCurrentVersion;
     this._init(settings);
@@ -161,9 +166,35 @@ dockedWorkspaces.prototype = {
                 Main.messageTray.actor,
                 'notify::height',
                 Lang.bind(this, this._updateHeight)
-            ]
+            ],
+            [
+                ExtensionSystem._signals,
+                'extension-state-changed',
+                Lang.bind(this, this._onExtensionSystemStateChanged)
+            ],
+
         );
         if (_DEBUG_) global.log("dockedWorkspaces: init - signals being captured");
+
+        // Connect DashToDock hover signal if the extension is already loaded and enabled
+        let extension = ExtensionUtils.extensions[DashToDock_UUID];
+        if (extension) {
+            if (extension.state == ExtensionSystem.ExtensionState.ENABLED) {
+                if (_DEBUG_) global.log("dockeWorkspaces.js: DashToDock extension is installed and enabled");
+                DashToDock = extension.imports.extension;
+                if (DashToDock && DashToDock.dock) {
+                    // Connect DashToDock hover signal
+                    this._signalHandler.pushWithLabel(
+                        'DashToDockHoverSignal',
+                        [
+                            DashToDock.dock._box,
+                            'notify::hover',
+                            Lang.bind(this, this._onDashToDockHoverChanged)
+                        ]
+                    );
+                }
+            }
+        }
         
         //Hide the dock whilst setting positions
         //this.actor.hide(); but I need to access its width, so I use opacity
@@ -412,7 +443,6 @@ dockedWorkspaces.prototype = {
         }));
 
         this._settings.connect('changed::autohide', Lang.bind(this, function() {
-            this._autohideStatus = this._settings.get_boolean('autohide');
             this.emit('box-changed');
         }));
     },
@@ -426,6 +456,44 @@ dockedWorkspaces.prototype = {
                 this._show();
             } else {
                 this._hide();
+            }
+        }
+    },
+
+    // handler for DashToDock hover events
+    _onDashToDockHoverChanged: function() {
+        if (_DEBUG_) global.log("dockedWorkspaces: _onDashToDockHoverChanged");
+        //Skip if dock is not in dashtodock hover mode
+        if (this._settings.get_boolean('dashtodock-hover') && DashToDock && DashToDock.dock) {
+            if (DashToDock.dock._box.hover) {
+                this._show();
+            } else {
+                this._hide();
+            }
+        }
+    },
+
+    // handler for extensionSystem state changes
+    _onExtensionSystemStateChanged: function(source, extension) {
+        // Only looking for DashToDock state changes
+        if (extension.uuid == DashToDock_UUID) {
+            if (_DEBUG_) global.log("dockedWorkspaces: _onExtensionSystemStateChanged for "+extension.uuid+" state= "+extension.state);
+            if (extension.state == ExtensionSystem.ExtensionState.ENABLED) {
+                DashToDock = extension.imports.extension;
+                if (DashToDock && DashToDock.dock) {
+                    // Connect DashToDock hover signal
+                    this._signalHandler.pushWithLabel(
+                        'DashToDockHoverSignal',
+                        [
+                            DashToDock.dock._box,
+                            'notify::hover',
+                            Lang.bind(this, this._onDashToDockHoverChanged)
+                        ]
+                    );
+                }
+            } else if (extension.state == ExtensionSystem.ExtensionState.DISABLED || extension.state == ExtensionSystem.ExtensionState.UNINSTALLED) {
+                DashToDock = null;
+                this._signalHandler.disconnectWithLabel('DashToDockHoverSignal');
             }
         }
     },
@@ -843,8 +911,11 @@ dockedWorkspaces.prototype = {
 
             if (!this.actor.hover || !this._settings.get_boolean('autohide')) {
                 if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - mouse not hovering OR dock not using autohide, so animate out");
-				this._animateOut(this._settings.get_double('animation-time'), 0);
-                delay = this._settings.get_double('animation-time');
+                if (!this._settings.get_boolean('dashtodock-hover') || !DashToDock || !DashToDock.dock || !DashToDock.dock._box.hover) {
+                    if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - dashtodock mouse not hovering OR dock not using dashtodock-hover, so animate out");
+                    this._animateOut(this._settings.get_double('animation-time'), 0);
+                    delay = this._settings.get_double('animation-time');
+                }
             } else {
                 if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - mouse hovering AND dock using autohide, so startWorkspacesShowLoop instead of animate out");
                 // I'm enabling autohide and the workspaces keeps being showed because of mouse hover

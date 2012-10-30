@@ -181,11 +181,11 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             this.settings.set_boolean('intellihide', check.get_active());
         }));
 
-        let topWindowOnly =  new Gtk.CheckButton({
+        let perappIntellihide =  new Gtk.CheckButton({
             label: "Application based intellihide"
         });
-        topWindowOnly.set_active(this.settings.get_boolean('intellihide-perapp'));
-        topWindowOnly.connect('toggled', Lang.bind(this, function(check){
+        perappIntellihide.set_active(this.settings.get_boolean('intellihide-perapp'));
+        perappIntellihide.connect('toggled', Lang.bind(this, function(check){
             this.settings.set_boolean('intellihide-perapp', check.get_active());
         }));
 
@@ -200,13 +200,13 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         dockSettingsGrid2.attach(autohide, 1, 0, 1, 1);
         dockSettingsGrid2.attach(intellihideLabel, 0, 1, 1, 1);
         dockSettingsGrid2.attach(intellihide, 1, 1, 1, 1);
-        dockSettingsGrid2.attach(topWindowOnly, 0, 2, 1, 1);
+        dockSettingsGrid2.attach(perappIntellihide, 0, 2, 1, 1);
 
         dockSettingsMain1.add(dockSettingsGrid1);
         dockSettingsMain1.add(dockSettingsGrid2);
 
         this.settings.bind('dock-fixed', dockSettingsMain1, 'sensitive', Gio.SettingsBindFlags.INVERT_BOOLEAN);
-        this.settings.bind('intellihide', topWindowOnly, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+        this.settings.bind('intellihide', perappIntellihide, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
 
         dockSettings.add(dockSettingsTitle);
         dockSettings.add(dockSettingsControl1);
@@ -301,8 +301,56 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         background.add(backgroundTitle);
         background.add(opaqueLayerControl);
         background.add(opaqueLayerMain);
-
+        
         frame.add(background);
+
+
+        /* DASH INTEGRATION SETTINGS */
+
+        let dashIntegration = new Gtk.Box({
+            orientation: Gtk.Orientation.VERTICAL
+        });
+
+        let dashIntegrationTitle = new Gtk.Label({
+            label: "<b>Dash Integration</b>",
+            use_markup: true,
+            xalign: 0,
+            margin_top: 5,
+            margin_bottom: 5
+        });
+
+        let dashIntegrationControl = new Gtk.Box({
+            margin_left: 10,
+            margin_top: 10,
+            margin_bottom: 10,
+            margin_right: 10
+        });
+
+        /* DASH-TO-DOCK HOVER */
+
+        let dashToDockHoverLabel = new Gtk.Label({
+            label: "Show workspaces when hovering over Dash-To-Dock extension",
+            xalign: 0,
+            hexpand: true
+        });
+
+        let dashToDockHover = new Gtk.Switch ({
+            halign: Gtk.Align.END
+        });
+        dashToDockHover.set_active(this.settings.get_boolean('dashtodock-hover'));
+        dashToDockHover.connect('notify::active', Lang.bind(this, function(check) {
+            this.settings.set_boolean('dashtodock-hover', check.get_active());
+        }));
+
+        
+        dashIntegrationControl.add(dashToDockHoverLabel);
+        dashIntegrationControl.add(dashToDockHover);
+        
+        dashIntegration.add(dashIntegrationTitle);
+        dashIntegration.add(dashIntegrationControl);
+        
+        frame.add(dashIntegration);
+
 
         this.add(frame);
 

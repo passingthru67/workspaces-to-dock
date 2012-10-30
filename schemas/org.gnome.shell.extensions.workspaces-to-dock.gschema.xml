@@ -58,5 +58,10 @@
       <summary>Dock always visible</summary>
       <description>Dock is always visible</description>
     </key>
+    <key type="b" name="dashtodock-hover">
+      <default>false</default>
+      <summary>Dock shown on Dash-To-Dock mouse over</summary>
+      <description>Enable or disable Dash-To-Dock hover mode</description>
+    </key>
   </schema>
 </schemalist>
