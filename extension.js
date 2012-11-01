@@ -6,13 +6,11 @@
  * ========================================================================================================
  */
 
-const Config = imports.misc.config;
-const Me = imports.misc.extensionUtils.getCurrentExtension();
-const Convenience = Me.imports.convenience;
-const Intellihide = Me.imports.intellihide;
-const DockedWorkspaces = Me.imports.dockedWorkspaces;
+const Me = imports.ui.extensionSystem.extensions["workspaces-to-dock@passingthru67.gmail.com"];
+const Convenience = Me.convenience;
+const Intellihide = Me.intellihide;
+const DockedWorkspaces = Me.dockedWorkspaces;
 
-let settings;
 let intellihide;
 let dock;
 
@@ -20,23 +18,15 @@ function init() {
 }
 
 function enable() {
-	// determine gnome shell version
-    let gsCurrentVersion = Config.PACKAGE_VERSION.split('.');
-	if (gsCurrentVersion.length != 3 || gsCurrentVersion[0] != 3) throw new Error("Unknown version number (extension.js).");
-
-    // enable the extension
-    settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
-    dock = new DockedWorkspaces.dockedWorkspaces(settings, gsCurrentVersion);
-    intellihide = new Intellihide.intellihide(dock, settings, gsCurrentVersion);
+    dock = new DockedWorkspaces.dockedWorkspaces();
+    intellihide = new Intellihide.intellihide(dock);
 }
 
 function disable() {
     intellihide.destroy();
     dock.destroy();
-    settings.run_dispose();
 
     dock = null;
     intellihide = null;
-    settings = null;
 }
 

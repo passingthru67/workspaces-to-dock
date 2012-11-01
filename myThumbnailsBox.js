@@ -12,6 +12,7 @@ const Shell = imports.gi.Shell;
 const Signals = imports.signals;
 const St = imports.gi.St;
 const Mainloop = imports.mainloop;
+const Meta = imports.gi.Meta;
 
 const Main = imports.ui.main;
 const Dash = imports.ui.dash;
@@ -20,6 +21,12 @@ const Workspace = imports.ui.workspace;
 const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
 const Overview = imports.ui.overview;
 const Tweener = imports.ui.tweener;
+
+// The maximum size of a thumbnail is 1/8 the width and height of the screen
+let MAX_THUMBNAIL_SCALE = 1/8.;
+
+const RESCALE_ANIMATION_TIME = 0.2;
+const SLIDE_ANIMATION_TIME = 0.2;
 
 const ThumbnailState = {
     NEW: 0,
@@ -32,13 +39,442 @@ const ThumbnailState = {
     DESTROYED: 7
 };
 
-const myThumbnailsBox = new Lang.Class({
-    Name: 'workspacesToDock.myThumbnailsBox',
-    Extends: WorkspaceThumbnail.ThumbnailsBox,
 
-    _init: function(gsCurrentVersion) {
-        this.parent();
-        this._gsCurrentVersion = gsCurrentVersion;
+/* This class is a fork of the upstream thumbnailsbox class (ui.workspaceThumbnail.js)
+ *
+ * Summary of changes:
+ * line 490: added conditional to determine if thumbnail exists
+ *
+ */
+
+function myThumbnailsBox() {
+    this._init();
+}
+
+myThumbnailsBox.prototype = {
+    _init: function() {
+        this.actor = new Shell.GenericContainer({ style_class: 'workspace-thumbnails',
+                                                  request_mode: Clutter.RequestMode.WIDTH_FOR_HEIGHT });
+        this.actor.connect('get-preferred-width', Lang.bind(this, this._getPreferredWidth));
+        this.actor.connect('get-preferred-height', Lang.bind(this, this._getPreferredHeight));
+        this.actor.connect('allocate', Lang.bind(this, this._allocate));
+
+        // When we animate the scale, we don't animate the requested size of the thumbnails, rather
+        // we ask for our final size and then animate within that size. This slightly simplifies the
+        // interaction with the main workspace windows (instead of constantly reallocating them
+        // to a new size, they get a new size once, then use the standard window animation code
+        // allocate the windows to their new positions), however it causes problems for drawing
+        // the background and border wrapped around the thumbnail as we animate - we can't just pack
+        // the container into a box and set style properties on the box since that box would wrap
+        // around the final size not the animating size. So instead we fake the background with
+        // an actor underneath the content and adjust the allocation of our children to leave space
+        // for the border and padding of the background actor.
+        this._background = new St.Bin({ style_class: 'workspace-thumbnails-background' });
+
+        this.actor.add_actor(this._background);
+
+        let indicator = new St.Bin({ style_class: 'workspace-thumbnail-indicator' });
+
+        // We don't want the indicator to affect drag-and-drop
+        Shell.util_set_hidden_from_pick(indicator, true);
+
+        this._indicator = indicator;
+        this.actor.add_actor(indicator);
+
+        this._targetScale = 0;
+        this._scale = 0;
+        this._pendingScaleUpdate = false;
+        this._stateUpdateQueued = false;
+        this._animatingIndicator = false;
+        this._indicatorY = 0; // only used when _animatingIndicator is true
+
+        this._stateCounts = {};
+        for (let key in ThumbnailState)
+            this._stateCounts[ThumbnailState[key]] = 0;
+
+        this._thumbnails = [];
+    },
+
+    show: function() {
+        this._switchWorkspaceNotifyId =
+            global.window_manager.connect('switch-workspace',
+                                          Lang.bind(this, this._activeWorkspaceChanged));
+
+        this._targetScale = 0;
+        this._scale = 0;
+        this._pendingScaleUpdate = false;
+        this._stateUpdateQueued = false;
+
+        this._stateCounts = {};
+        for (let key in ThumbnailState)
+            this._stateCounts[ThumbnailState[key]] = 0;
+
+        // The "porthole" is the portion of the screen that we show in the workspaces
+        let panelHeight = Main.panel.actor.height;
+        let monitor = Main.layoutManager.primaryMonitor;
+        this._porthole = {
+            x: monitor.x,
+            y: monitor.y + panelHeight,
+            width: monitor.width,
+            height: monitor.height - panelHeight
+        };
+
+        this.addThumbnails(0, global.screen.n_workspaces);
+    },
+
+    hide: function() {
+        if (this._switchWorkspaceNotifyId > 0) {
+            global.window_manager.disconnect(this._switchWorkspaceNotifyId);
+            this._switchWorkspaceNotifyId = 0;
+        }
+
+        for (let w = 0; w < this._thumbnails.length; w++)
+            this._thumbnails[w].destroy();
+        this._thumbnails = [];
+    },
+
+    addThumbnails: function(start, count) {
+        for (let k = start; k < start + count; k++) {
+            let metaWorkspace = global.screen.get_workspace_by_index(k);
+            let thumbnail = new WorkspaceThumbnail.WorkspaceThumbnail(metaWorkspace);
+            thumbnail.setPorthole(this._porthole.x, this._porthole.y,
+                                  this._porthole.width, this._porthole.height);
+            this._thumbnails.push(thumbnail);
+            this.actor.add_actor(thumbnail.actor);
+
+            if (start > 0) { // not the initial fill
+                thumbnail.state = ThumbnailState.NEW;
+                thumbnail.slidePosition = 1; // start slid out
+                this._haveNewThumbnails = true;
+            } else {
+                thumbnail.state = ThumbnailState.NORMAL;
+            }
+
+            this._stateCounts[thumbnail.state]++;
+        }
+
+        this._queueUpdateStates();
+
+        // The thumbnails indicator actually needs to be on top of the thumbnails
+        this._indicator.raise_top();
+    },
+
+    removeThumbmails: function(start, count) {
+        let currentPos = 0;
+        for (let k = 0; k < this._thumbnails.length; k++) {
+            let thumbnail = this._thumbnails[k];
+
+            if (thumbnail.state > ThumbnailState.NORMAL)
+                continue;
+
+            if (currentPos >= start && currentPos < start + count)
+                this._setThumbnailState(thumbnail, ThumbnailState.REMOVING);
+
+            currentPos++;
+        }
+
+        this._queueUpdateStates();
+    },
+
+    syncStacking: function(stackIndices) {
+        for (let i = 0; i < this._thumbnails.length; i++)
+            this._thumbnails[i].syncStacking(stackIndices);
+    },
+
+    set scale(scale) {
+        this._scale = scale;
+        this.actor.queue_relayout();
+    },
+
+    get scale() {
+        return this._scale;
+    },
+
+    set indicatorY(indicatorY) {
+        this._indicatorY = indicatorY;
+        this.actor.queue_relayout();
+    },
+
+    get indicatorY() {
+        return this._indicatorY;
+    },
+
+    _setThumbnailState: function(thumbnail, state) {
+        this._stateCounts[thumbnail.state]--;
+        thumbnail.state = state;
+        this._stateCounts[thumbnail.state]++;
+    },
+
+    _iterateStateThumbnails: function(state, callback) {
+        if (this._stateCounts[state] == 0)
+            return;
+
+        for (let i = 0; i < this._thumbnails.length; i++) {
+            if (this._thumbnails[i].state == state)
+                callback.call(this, this._thumbnails[i]);
+        }
+    },
+
+    _tweenScale: function() {
+        Tweener.addTween(this,
+                         { scale: this._targetScale,
+                           time: RESCALE_ANIMATION_TIME,
+                           transition: 'easeOutQuad',
+                           onComplete: this._queueUpdateStates,
+                           onCompleteScope: this });
+    },
+
+    _updateStates: function() {
+        this._stateUpdateQueued = false;
+
+        // If we are animating the indicator, wait
+        if (this._animatingIndicator)
+            return;
+
+        // Then slide out any thumbnails that have been destroyed
+        this._iterateStateThumbnails(ThumbnailState.REMOVING,
+            function(thumbnail) {
+                this._setThumbnailState(thumbnail, ThumbnailState.ANIMATING_OUT);
+
+                Tweener.addTween(thumbnail,
+                                 { slidePosition: 1,
+                                   time: SLIDE_ANIMATION_TIME,
+                                   transition: 'linear',
+                                   onComplete: function() {
+                                       this._setThumbnailState(thumbnail, ThumbnailState.ANIMATED_OUT);
+                                       this._queueUpdateStates();
+                                   },
+                                   onCompleteScope: this
+                                 });
+            });
+
+        // As long as things are sliding out, don't proceed
+        if (this._stateCounts[ThumbnailState.ANIMATING_OUT] > 0)
+            return;
+
+        // Once that's complete, we can start scaling to the new size and collapse any removed thumbnails
+        this._iterateStateThumbnails(ThumbnailState.ANIMATED_OUT,
+            function(thumbnail) {
+                this.actor.set_skip_paint(thumbnail.actor, true);
+                this._setThumbnailState(thumbnail, ThumbnailState.COLLAPSING);
+                Tweener.addTween(thumbnail,
+                                 { collapseFraction: 1,
+                                   time: RESCALE_ANIMATION_TIME,
+                                   transition: 'easeOutQuad',
+                                   onComplete: function() {
+                                       this._stateCounts[thumbnail.state]--;
+                                       thumbnail.state = ThumbnailState.DESTROYED;
+
+                                       let index = this._thumbnails.indexOf(thumbnail);
+                                       this._thumbnails.splice(index, 1);
+                                       thumbnail.destroy();
+
+                                       this._queueUpdateStates();
+                                   },
+                                   onCompleteScope: this
+                                 });
+                });
+
+        if (this._pendingScaleUpdate) {
+            this._tweenScale();
+            this._pendingScaleUpdate = false;
+        }
+
+        // Wait until that's done
+        if (this._scale != this._targetScale || this._stateCounts[ThumbnailState.COLLAPSING] > 0)
+            return;
+
+        // And then slide in any new thumbnails
+        this._iterateStateThumbnails(ThumbnailState.NEW,
+            function(thumbnail) {
+                this._setThumbnailState(thumbnail, ThumbnailState.ANIMATING_IN);
+                Tweener.addTween(thumbnail,
+                                 { slidePosition: 0,
+                                   time: SLIDE_ANIMATION_TIME,
+                                   transition: 'easeOutQuad',
+                                   onComplete: function() {
+                                       this._setThumbnailState(thumbnail, ThumbnailState.NORMAL);
+                                   },
+                                   onCompleteScope: this
+                                 });
+            });
+    },
+
+    _queueUpdateStates: function() {
+        if (this._stateUpdateQueued)
+            return;
+
+        Meta.later_add(Meta.LaterType.BEFORE_REDRAW,
+                       Lang.bind(this, this._updateStates));
+
+        this._stateUpdateQueued = true;
+    },
+
+    _getPreferredHeight: function(actor, forWidth, alloc) {
+        // See comment about this._background in _init()
+        let themeNode = this._background.get_theme_node();
+
+        forWidth = themeNode.adjust_for_width(forWidth);
+
+        // Note that for getPreferredWidth/Height we cheat a bit and skip propagating
+        // the size request to our children because we know how big they are and know
+        // that the actors aren't depending on the virtual functions being called.
+
+        if (this._thumbnails.length == 0)
+            return;
+
+        let spacing = this.actor.get_theme_node().get_length('spacing');
+        let nWorkspaces = global.screen.n_workspaces;
+        let totalSpacing = (nWorkspaces - 1) * spacing;
+
+        [alloc.min_size, alloc.natural_size] =
+            themeNode.adjust_preferred_height(totalSpacing,
+                                              totalSpacing + nWorkspaces * this._porthole.height * MAX_THUMBNAIL_SCALE);
+    },
+
+    _getPreferredWidth: function(actor, forHeight, alloc) {
+        // See comment about this._background in _init()
+        let themeNode = this._background.get_theme_node();
+
+        if (this._thumbnails.length == 0)
+            return;
+
+        // We don't animate our preferred width, which is always reported according
+        // to the actual number of current workspaces, we just animate within that
+
+        let spacing = this.actor.get_theme_node().get_length('spacing');
+        let nWorkspaces = global.screen.n_workspaces;
+        let totalSpacing = (nWorkspaces - 1) * spacing;
+
+        let avail = forHeight - totalSpacing;
+
+        let scale = (avail / nWorkspaces) / this._porthole.height;
+        scale = Math.min(scale, MAX_THUMBNAIL_SCALE);
+
+        let width = Math.round(this._porthole.width * scale);
+        [alloc.min_size, alloc.natural_size] =
+            themeNode.adjust_preferred_width(width, width);
+    },
+
+    _allocate: function(actor, box, flags) {
+        let rtl = (St.Widget.get_default_direction () == St.TextDirection.RTL);
+
+        // See comment about this._background in _init()
+        let themeNode = this._background.get_theme_node();
+        let contentBox = themeNode.get_content_box(box);
+
+        if (this._thumbnails.length == 0) // not visible
+            return;
+
+        let portholeWidth = this._porthole.width;
+        let portholeHeight = this._porthole.height;
+        let spacing = this.actor.get_theme_node().get_length('spacing');
+
+        // Compute the scale we'll need once everything is updated
+        let nWorkspaces = global.screen.n_workspaces;
+        let totalSpacing = (nWorkspaces - 1) * spacing;
+        let avail = (contentBox.y2 - contentBox.y1) - totalSpacing;
+
+        let newScale = (avail / nWorkspaces) / portholeHeight;
+        newScale = Math.min(newScale, MAX_THUMBNAIL_SCALE);
+
+        if (newScale != this._targetScale) {
+            if (this._targetScale > 0) {
+                // We don't do the tween immediately because we need to observe the ordering
+                // in queueUpdateStates - if workspaces have been removed we need to slide them
+                // out as the first thing.
+                this._targetScale = newScale;
+                this._pendingScaleUpdate = true;
+            } else {
+                this._targetScale = this._scale = newScale;
+            }
+
+            this._queueUpdateStates();
+        }
+
+        let thumbnailHeight = portholeHeight * this._scale;
+        let thumbnailWidth = Math.round(portholeWidth * this._scale);
+        let roundedHScale = thumbnailWidth / portholeWidth;
+
+        let slideOffset; // X offset when thumbnail is fully slid offscreen
+        if (rtl)
+            slideOffset = - (thumbnailWidth + themeNode.get_padding(St.Side.LEFT));
+        else
+            slideOffset = thumbnailWidth + themeNode.get_padding(St.Side.RIGHT);
+
+        let childBox = new Clutter.ActorBox();
+
+        // The background is horizontally restricted to correspond to the current thumbnail size
+        // but otherwise covers the entire allocation
+        if (rtl) {
+            childBox.x1 = box.x1;
+            childBox.x2 = box.x2 - ((contentBox.x2 - contentBox.x1) - thumbnailWidth);
+        } else {
+            childBox.x1 = box.x1 + ((contentBox.x2 - contentBox.x1) - thumbnailWidth);
+            childBox.x2 = box.x2;
+        }
+        childBox.y1 = box.y1;
+        childBox.y2 = box.y2;
+        this._background.allocate(childBox, flags);
+
+        let indicatorY = this._indicatorY;
+        // when not animating, the workspace position overrides this._indicatorY
+        let indicatorWorkspace = !this._animatingIndicator ? global.screen.get_active_workspace() : null;
+
+        let y = contentBox.y1;
+
+        for (let i = 0; i < this._thumbnails.length; i++) {
+            let thumbnail = this._thumbnails[i];
+
+            if (i > 0)
+                y += spacing - Math.round(thumbnail.collapseFraction * spacing);
+
+            // We might end up with thumbnailHeight being something like 99.33
+            // pixels. To make this work and not end up with a gap at the bottom,
+            // we need some thumbnails to be 99 pixels and some 100 pixels height;
+            // we compute an actual scale separately for each thumbnail.
+            let y1 = Math.round(y);
+            let y2 = Math.round(y + thumbnailHeight);
+            let roundedVScale = (y2 - y1) / portholeHeight;
+
+            let x1, x2;
+            if (rtl) {
+                x1 = contentBox.x1 + slideOffset * thumbnail.slidePosition;
+                x2 = x1 + thumbnailWidth;
+            } else {
+                x1 = contentBox.x2 - thumbnailWidth + slideOffset * thumbnail.slidePosition;
+                x2 = x1 + thumbnailWidth;
+            }
+
+            if (thumbnail.metaWorkspace == indicatorWorkspace)
+                indicatorY = y1;
+
+            // Allocating a scaled actor is funny - x1/y1 correspond to the origin
+            // of the actor, but x2/y2 are increased by the *unscaled* size.
+            childBox.x1 = x1;
+            childBox.x2 = x1 + portholeWidth;
+            childBox.y1 = y1;
+            childBox.y2 = y1 + portholeHeight;
+
+            thumbnail.actor.set_scale(roundedHScale, roundedVScale);
+            thumbnail.actor.allocate(childBox, flags);
+
+            // We round the collapsing portion so that we don't get thumbnails resizing
+            // during an animation due to differences in rounded, but leave the uncollapsed
+            // portion unrounded so that non-animating we end up with the right total
+            y += thumbnailHeight - Math.round(thumbnailHeight * thumbnail.collapseFraction);
+        }
+
+        if (rtl) {
+            childBox.x1 = contentBox.x1;
+            childBox.x2 = contentBox.x1 + thumbnailWidth;
+        } else {
+            childBox.x1 = contentBox.x2 - thumbnailWidth;
+            childBox.x2 = contentBox.x2;
+        }
+        childBox.y1 = indicatorY;
+        childBox.y2 = childBox.y1 + thumbnailHeight;
+        this._indicator.allocate(childBox, flags);
     },
 
     _activeWorkspaceChanged: function(wm, from, to, direction) {
@@ -51,40 +487,19 @@ const myThumbnailsBox = new Lang.Class({
             }
         }
 
-        // passingthru67 - needed in case thumbnail is null outside of overview
-        if (thumbnail == null)
-            return
-        
-        // passingthru67 - needed in case thumbnail.actor is null outside of overview    
-        if (thumbnail.actor == null)
-            return
-
-        // passingthru67 - conditional for gnome shell 3.4/3.6/# differences
-        switch (this._gsCurrentVersion[1]) {
-            case"4":
-                this._animatingIndicator = true;
-                this.indicatorY = this._indicator.allocation.y1;
-                break;
-            case"6":
-                this._animatingIndicator = true;
-                let indicatorThemeNode = this._indicator.get_theme_node();
-                let indicatorTopFullBorder = indicatorThemeNode.get_padding(St.Side.TOP) + indicatorThemeNode.get_border_width(St.Side.TOP);
-                this.indicatorY = this._indicator.allocation.y1 + indicatorTopFullBorder;
-                break;
-            default:
-                throw new Error("Unknown version number (myThumbnailsBox.js).");
+        if (thumbnail) {
+            this._animatingIndicator = true;
+            this.indicatorY = this._indicator.allocation.y1;
+            Tweener.addTween(this,
+                             { indicatorY: thumbnail.actor.allocation.y1,
+                               time: WorkspacesView.WORKSPACE_SWITCH_TIME,
+                               transition: 'easeOutQuad',
+                               onComplete: function() {
+                                   this._animatingIndicator = false;
+                                   this._queueUpdateStates();
+                               },
+                               onCompleteScope: this
+                             });
         }
-
-        Tweener.addTween(this,
-                         { indicatorY: thumbnail.actor.allocation.y1,
-                           time: WorkspacesView.WORKSPACE_SWITCH_TIME,
-                           transition: 'easeOutQuad',
-                           onComplete: function() {
-                               this._animatingIndicator = false;
-                               this._queueUpdateStates();
-                           },
-                           onCompleteScope: this
-                         });
     }
-    
-});
+};

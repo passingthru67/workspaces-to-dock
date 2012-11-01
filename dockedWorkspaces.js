@@ -28,48 +28,50 @@ const Overview = imports.ui.overview;
 const Tweener = imports.ui.tweener;
 const WorkspaceSwitcherPopup = imports.ui.workspaceSwitcherPopup;
 
-const Me = imports.misc.extensionUtils.getCurrentExtension();
-const Convenience = Me.imports.convenience;
-const MyThumbnailsBox = Me.imports.myThumbnailsBox;
+const Me = imports.ui.extensionSystem.extensions["workspaces-to-dock@passingthru67.gmail.com"];
+const Convenience = Me.convenience;
+const MyThumbnailsBox = Me.myThumbnailsBox;
 
-const ExtensionSystem = imports.ui.extensionSystem;
-const ExtensionUtils = imports.misc.extensionUtils;
-const DashToDock_UUID = "dash-to-dock@micxgx.gmail.com";
-let DashToDock = null;
+// Settings backported for GS 3.2 .. settings also need to be adjusted in intellihide.js -------------------
+const ANIMATION_TIME = Overview.ANIMATION_TIME; // show/hide transition time
+const SHOW_DELAY     = 0.500; // delay before showing dash when it's hidden 
+const HIDE_DELAY     = 0.250; // delay befoee hiding dash when mouse goes out
+const OPAQUE_BACKGROUND = true; // make the dash opaque increasing readability. Some themes like the default one have a transparent bacground.
+const BACKGROUND_OPACITY = 0.8; // set dash background opacity if key above is true
+const OPAQUE_BACKGROUND_ALWAYS = false; // whether the dash has always an opaque background or only when in autohide mode
+const AUTOHIDE = true; // Enable or disable autohide mode
+const DOCK_FIXED = false; //Dock is always visible
+const HEIGHT_SUBTRACT = 0;
+// End Settings --------------------------------------------------------------------------------------------
 
-function dockedWorkspaces(settings, gsCurrentVersion) {
-    this._gsCurrentVersion = gsCurrentVersion;
-    this._init(settings);
+function dockedWorkspaces() {
+    this._init();
 }
 
 dockedWorkspaces.prototype = {
 
-    _init: function(settings) {
+    _init: function() {
         // temporarily disable redisplay until initialized (prevents connected signals from trying to update dock visibility)
         this._disableRedisplay = true;
         if (_DEBUG_) global.log("dockedWorkspaces: init - disableRediplay");
         
-        // Load settings
-        this._settings = settings;
-        this._bindSettingsChanges();
-
         this._signalHandler = new Convenience.globalSignalHandler();
 
         // Timeout id used to ensure the workspaces is hidden after some menu is shown
         this._workspacesShowTimeout = 0;
 
         // Authohide current status. Not to be confused with autohide enable/disagle global (g)settings
-        // Initially set to null - will be set during first enable/disable autohide
+        // Initially set to null - will be set during first redisplay
         this._autohideStatus = null;
         
         // initialize animation status object
         this._animStatus = new animationStatus(true);
 
-		// Override Gnome Shell functions
-		this._overrideGnomeShellFunctions();
+        // Override Gnome Shell functions
+        this._overrideGnomeShellFunctions();
 
         // Create a new thumbnailsbox object
-        this._thumbnailsBox = new MyThumbnailsBox.myThumbnailsBox(this._gsCurrentVersion);
+        this._thumbnailsBox = new MyThumbnailsBox.myThumbnailsBox();
 		
         // Create the main container, turn on track hover, add hoverChange signal
         this.actor = new St.BoxLayout({
@@ -79,19 +81,13 @@ dockedWorkspaces.prototype = {
         });
         this.actor.connect("notify::hover", Lang.bind(this, this._hoverChanged));
         this.actor.connect("scroll-event", Lang.bind(this, this._onScrollEvent));
-        this._realizeId = this.actor.connect("realize", Lang.bind(this, this._initialize));
+        // Using actor realize in GS3.2 caused dock to initially show sized improperly
+        //this._realizeId = this.actor.connect("realize", Lang.bind(this, this._initialize));
 
         // Sometimes Main.wm._workspaceSwitcherPopup is null when first loading the 
         // extension causing scroll-event problems
         if (Main.wm._workspaceSwitcherPopup == null) {
             Main.wm._workspaceSwitcherPopup = new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup();
-            // additional fix for gnome shell 3.6 workspaceSwitcherPopup
-            // popup is destroy and not just hidden in 3.6
-            if (this._gsCurrentVersion[1] == "6") {
-                Main.wm._workspaceSwitcherPopup.connect('destroy', function() {
-                    Main.wm._workspaceSwitcherPopup = null;
-                });
-            }
         }
 
         // Create the background box and set opacity
@@ -101,7 +97,7 @@ dockedWorkspaces.prototype = {
             y_align: St.Align.START,
             style_class: 'workspace-thumbnails-background'
         });
-        this._backgroundBox.set_style('background-color: rgba(1,1,1,' + this._settings.get_double('background-opacity') + ')');
+        this._backgroundBox.set_style('background-color: rgba(1,1,1,' + BACKGROUND_OPACITY + ')');
 
         // Create the staticbox that stores the size and position where the dock is shown for determining window overlaps
         // note: used by intellihide module to check window overlap
@@ -166,35 +162,10 @@ dockedWorkspaces.prototype = {
                 Main.messageTray.actor,
                 'notify::height',
                 Lang.bind(this, this._updateHeight)
-            ],
-            [
-                ExtensionSystem._signals,
-                'extension-state-changed',
-                Lang.bind(this, this._onExtensionSystemStateChanged)
             ]
         );
         if (_DEBUG_) global.log("dockedWorkspaces: init - signals being captured");
 
-        // Connect DashToDock hover signal if the extension is already loaded and enabled
-        let extension = ExtensionUtils.extensions[DashToDock_UUID];
-        if (extension) {
-            if (extension.state == ExtensionSystem.ExtensionState.ENABLED) {
-                if (_DEBUG_) global.log("dockeWorkspaces.js: DashToDock extension is installed and enabled");
-                DashToDock = extension.imports.extension;
-                if (DashToDock && DashToDock.dock) {
-                    // Connect DashToDock hover signal
-                    this._signalHandler.pushWithLabel(
-                        'DashToDockHoverSignal',
-                        [
-                            DashToDock.dock._box,
-                            'notify::hover',
-                            Lang.bind(this, this._onDashToDockHoverChanged)
-                        ]
-                    );
-                }
-            }
-        }
-        
         //Hide the dock whilst setting positions
         //this.actor.hide(); but I need to access its width, so I use opacity
         this.actor.set_opacity(0);
@@ -204,30 +175,27 @@ dockedWorkspaces.prototype = {
         this.actor.add_actor(this._thumbnailsBox.actor);
 
         Main.layoutManager.addChrome(this.actor, {
-            affectsStruts: this._settings.get_boolean('dock-fixed'),
+            affectsStruts: DOCK_FIXED,
             affectsInputRegion: true
         });
 
-        // TODO: can we lower this.actor in gnome shell without causing problems?
-        // gs3.4 problem - dock immediately hides when workspace is switched even when mouse is hovering
-        // Lower the dock below the trayBox so that messageTray popups can receive focus & clicks
-        if (this._gsCurrentVersion[1] == "6")
-            this.actor.lower(Main.layoutManager.trayBox);
-		
+	// Using actor realize in GS3.2 caused dock to initially show sized improperly
+	// Went back to using Mainloop idle for GS3.2
+	Mainloop.idle_add(Lang.bind(this, this._initialize));
     },
 
     _initialize: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: initializing");
-        if(this._realizeId > 0){
-            this.actor.disconnect(this._realizeId);
-            this._realizeId = 0;
-        }
+        // Using actor realize in GS3.2 caused dock to initially show sized improperly
+        //if(this._realizeId > 0){
+        //    this.actor.disconnect(this._realizeId);
+        //    this._realizeId = 0;
+        //}
 
         // GS3.4 workaround to get correct size and position of actor inside the overview
-        if (this._gsCurrentVersion[1] == "4") {
-            Main.overview._group.show();
-            Main.overview._group.hide();
-        }
+        Main.overview._group.show();
+        Main.overview._group.hide();
+
         
         // Show the thumbnailsBox.  We need it to calculate the width of the dock.
         this._thumbnailsBox.show();
@@ -235,18 +203,19 @@ dockedWorkspaces.prototype = {
         // Set initial position
         this._resetPosition();
 
-		if (!this._settings.get_boolean('dock-fixed')) {
+        if (!DOCK_FIXED) {
             // Show the non-fixed dock (off screen from resetPosition)
             // note: fixed dock already on screen and will animate opacity to 255 when fadeInDock is called
             this.actor.set_opacity(255);
-		}
+        }
 
         this._disableRedisplay = false;
         if (_DEBUG_) global.log("dockedWorkspaces: initialize - turn on redisplay");
         
-        // Not really required because thumbnailsBox width signal will trigger a redisplay
+        // Not really required in GS3.4 or GS3.6 because thumbnailsBox width signal will trigger a redisplay
         // Also found GS3.6 crashes returning from lock screen (Ubuntu GS Remix)
-        //this._redisplay();
+        // Required in GS3.2 to initially show
+        this._redisplay();
     },
 
     destroy: function() {
@@ -280,19 +249,8 @@ dockedWorkspaces.prototype = {
         };
 
         // Set zoom status to true & hide normal workspaces thumbnailsBox
-        switch (this._gsCurrentVersion[1]) {
-            case"4":
-                Main.overview._workspacesDisplay._alwaysZoomOut = true;
-                Main.overview._workspacesDisplay._thumbnailsBox.actor.hide();
-                break;
-            case"6":
-                Main.overview._viewSelector._workspacesDisplay._alwaysZoomOut = true;
-                Main.overview._viewSelector._workspacesDisplay._thumbnailsBox.actor.opacity = 0;
-                break;
-            default:
-                throw new Error("Unknown version number (dockedWorkspaces.js).");
-        }
-
+        Main.overview._workspacesDisplay._alwaysZoomOut = true;
+        Main.overview._workspacesDisplay._thumbnailsBox.actor.hide();
     },
     
     // function called during destroy to restore gnome shell 3.4/3.6/#
@@ -303,21 +261,9 @@ dockedWorkspaces.prototype = {
         p._updateAlwaysZoom = this.saved_updateAlwaysZoom;
 
         // Restore zoom status to false & normal workspaces thumbnailsBox to show
-        switch (this._gsCurrentVersion[1]) {
-            case"4":
-                Main.overview._workspacesDisplay._alwaysZoomOut = false;
-                Main.overview._workspacesDisplay._updateAlwaysZoom();
-                Main.overview._workspacesDisplay._thumbnailsBox.actor.show();
-                break;
-            case"6":
-                Main.overview._viewSelector._workspacesDisplay._alwaysZoomOut = false;
-                Main.overview._viewSelector._workspacesDisplay._updateAlwaysZoom();
-                Main.overview._viewSelector._workspacesDisplay._thumbnailsBox.actor.opacity = 255;
-                break;
-            default:
-                throw new Error("Unknown version number (dockedWorkspaces.js).");
-        }
-
+        Main.overview._workspacesDisplay._alwaysZoomOut = false;
+        Main.overview._workspacesDisplay._updateAlwaysZoom();
+        Main.overview._workspacesDisplay._thumbnailsBox.actor.show();
     },
 
     // handler for when workspace is restacked
@@ -372,16 +318,7 @@ dockedWorkspaces.prototype = {
         
         if (removedIndex != null) {
             if (_DEBUG_) global.log("dockedWorkspaces: _workspacesRemoved - thumbnail index being removed is = "+removedIndex);
-            switch (this._gsCurrentVersion[1]) {
-                case"4":
-                    this._thumbnailsBox.removeThumbmails(removedIndex, removedNum);
-                    break;
-                case"6":
-                    this._thumbnailsBox.removeThumbnails(removedIndex, removedNum);
-                    break;
-                default:
-                    throw new Error("Unknown version number (dockedWorkspaces.js).");
-            }
+            this._thumbnailsBox.removeThumbmails(removedIndex, removedNum);
         }
     },
 
@@ -404,96 +341,15 @@ dockedWorkspaces.prototype = {
         this._updateSize();
     },
 
-    // handler to bind settings when preferences changed
-    _bindSettingsChanges: function() {
-        if (_DEBUG_) global.log("dockedWorkspaces: _bindSettingsChanges");
-        this._settings.connect('changed::opaque-background', Lang.bind(this, function() {
-            this._updateBackgroundOpacity();
-        }));
-
-        this._settings.connect('changed::background-opacity', Lang.bind(this, function() {
-            this._backgroundBox.set_style('background-color: rgba(1,1,1,' + this._settings.get_double('background-opacity') + ');padding:0;margin:0;border:0;');
-        }));
-
-        this._settings.connect('changed::opaque-background-always', Lang.bind(this, function() {
-            this._updateBackgroundOpacity();
-        }));
-
-        this._settings.connect('changed::dock-fixed', Lang.bind(this, function() {
-            if (_DEBUG_) global.log("dockedWorkspaces: _bindSettingsChanges for dock-fixed");
-            Main.layoutManager.removeChrome(this.actor);
-			Main.layoutManager.addChrome(this.actor, {
-				affectsStruts: this._settings.get_boolean('dock-fixed'),
-				affectsInputRegion: true
-			});
-            
-            // TODO: can we lower this.actor in gnome shell without causing problems?
-            // gs3.4 problem - dock immediately hides when workspace is switched even when mouse is hovering
-            // Lower the dock below the trayBox so that messageTray popups can receive focus & clicks
-            if (this._gsCurrentVersion[1] == "6")
-                this.actor.lower(Main.layoutManager.trayBox);
-
-            if (this._settings.get_boolean('dock-fixed')) {
-                // show dock immediately when setting changes
-                this._autohideStatus = true; // It could be false but the dock could be hidden
-                this.disableAutoHide();
-            } else {
-                this.emit('box-changed');
-            }
-        }));
-
-        this._settings.connect('changed::autohide', Lang.bind(this, function() {
-            this.emit('box-changed');
-        }));
-    },
-
     // handler for mouse hover events
     _hoverChanged: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _hoverChanged");
         //Skip if dock is not in autohide mode for instance because it is shown by intellihide
-        if (this._settings.get_boolean('autohide') && this._autohideStatus) {
+        if (AUTOHIDE && this._autohideStatus) {
             if (this.actor.hover) {
                 this._show();
             } else {
                 this._hide();
-            }
-        }
-    },
-
-    // handler for DashToDock hover events
-    _onDashToDockHoverChanged: function() {
-        if (_DEBUG_) global.log("dockedWorkspaces: _onDashToDockHoverChanged");
-        //Skip if dock is not in dashtodock hover mode
-        if (this._settings.get_boolean('dashtodock-hover') && DashToDock && DashToDock.dock) {
-            if (DashToDock.dock._box.hover) {
-                this._show();
-            } else {
-                this._hide();
-            }
-        }
-    },
-
-    // handler for extensionSystem state changes
-    _onExtensionSystemStateChanged: function(source, extension) {
-        // Only looking for DashToDock state changes
-        if (extension.uuid == DashToDock_UUID) {
-            if (_DEBUG_) global.log("dockedWorkspaces: _onExtensionSystemStateChanged for "+extension.uuid+" state= "+extension.state);
-            if (extension.state == ExtensionSystem.ExtensionState.ENABLED) {
-                DashToDock = extension.imports.extension;
-                if (DashToDock && DashToDock.dock) {
-                    // Connect DashToDock hover signal
-                    this._signalHandler.pushWithLabel(
-                        'DashToDockHoverSignal',
-                        [
-                            DashToDock.dock._box,
-                            'notify::hover',
-                            Lang.bind(this, this._onDashToDockHoverChanged)
-                        ]
-                    );
-                }
-            } else if (extension.state == ExtensionSystem.ExtensionState.DISABLED || extension.state == ExtensionSystem.ExtensionState.UNINSTALLED) {
-                DashToDock = null;
-                this._signalHandler.disconnectWithLabel('DashToDockHoverSignal');
             }
         }
     },
@@ -503,27 +359,9 @@ dockedWorkspaces.prototype = {
     // This comes from desktop-scroller@obsidien.github.com
     _onScrollEvent: function (actor, event) {
         if (event.get_scroll_direction() == Clutter.ScrollDirection.UP) {
-            switch (this._gsCurrentVersion[1]) {
-                case "4":
-                    Main.wm.actionMoveWorkspaceUp();
-                    break;
-                case "6":
-                    Main.wm.actionMoveWorkspace(Meta.MotionDirection.UP);
-                    break;
-                default:
-                    throw new Error("Unknown version number (dockedWorkspaces.js).");
-            }
+            Main.wm.actionMoveWorkspaceUp();
         } else if (event.get_scroll_direction() == Clutter.ScrollDirection.DOWN) {
-            switch (this._gsCurrentVersion[1]) {
-                case "4":
-                    Main.wm.actionMoveWorkspaceDown();
-                    break;
-                case "6":
-                    Main.wm.actionMoveWorkspace(Meta.MotionDirection.DOWN);
-                    break;
-                default:
-                    throw new Error("Unknown version number (dockedWorkspaces.js).");
-            }
+            Main.wm.actionMoveWorkspaceDown();
         }
         return true;
     },
@@ -535,17 +373,17 @@ dockedWorkspaces.prototype = {
         
         if (this._autohideStatus && (anim.hidden() || anim.hiding())) {
             let delay;
-            // If the dock is hidden, wait this._settings.get_double('show-delay') before showing it; 
+            // If the dock is hidden, wait SHOW_DELAY before showing it; 
             // otherwise show it immediately.
             if (anim.hidden()) {
-                delay = this._settings.get_double('show-delay');
+                delay = SHOW_DELAY;
             } else if (anim.hiding()) {
                 // suppress all potential queued hiding animations (always give priority to show)
                 this._removeAnimations();
                 delay = 0;
             }
 
-            this._animateIn(this._settings.get_double('animation-time'), delay);
+            this._animateIn(ANIMATION_TIME, delay);
 
             // Ensure workspaces is hidden after closing icon menu if necessary
             this._startWorkspacesShowLoop();
@@ -586,16 +424,16 @@ dockedWorkspaces.prototype = {
                     // If a show already started, let it finish; queue hide without removing the show.
                     // to obtain this I increase the delay to avoid the overlap and interference 
                     // between the animations
-                    delay = this._settings.get_double('hide-delay') + 2 * this._settings.get_double('animation-time') + this._settings.get_double('show-delay');
+                    delay = HIDE_DELAY + 2 * ANIMATION_TIME + SHOW_DELAY;
                 } else {
                     this._removeAnimations();
                     delay = 0;
                 }
             } else if (anim.shown()) {
-                delay = this._settings.get_double('hide-delay');
+                delay = HIDE_DELAY;
             }
 
-            this._animateOut(this._settings.get_double('animation-time'), delay);
+            this._animateOut(ANIMATION_TIME, delay);
 
             // Clear workspacesShow Loop
             if (this._workspacesShowTimeout > 0)
@@ -605,7 +443,6 @@ dockedWorkspaces.prototype = {
 
     // autohide function to animate the show dock process
     _animateIn: function(time, delay) {
-        //let final_position = this.staticBox.x1;
         let final_position = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - 1;
 		if (_DEBUG_) global.log("dockedWorkspaces: _animateIN - currrent_position = "+ this.actor.x+" final_position = "+final_position);
         if (_DEBUG_) global.log("dockedWorkspaces: _animateIN - _thumbnailsBox width = "+this._thumbnailsBox.actor.width);
@@ -755,11 +592,11 @@ dockedWorkspaces.prototype = {
     // update background opacity based on preferences
     _updateBackgroundOpacity: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _updateBackgroundOpacity");
-        if (this._settings.get_boolean('opaque-background') && (this._autohideStatus || this._settings.get_boolean('opaque-background-always'))) {
+        if (OPAQUE_BACKGROUND && (this._autohideStatus || OPAQUE_BACKGROUND_ALWAYS)) {
             this._backgroundBox.show();
-            this._fadeInBackground(this._settings.get_double('animation-time'), 0);
-        } else if (!this._settings.get_boolean('opaque-background') || (!this._autohideStatus && !this._settings.get_boolean('opaque-background-always'))) {
-            this._fadeOutBackground(this._settings.get_double('animation-time'), 0);
+            this._fadeInBackground(ANIMATION_TIME, 0);
+        } else if (!OPAQUE_BACKGROUND || (!this._autohideStatus && !OPAQUE_BACKGROUND_ALWAYS)) {
+            this._fadeOutBackground(ANIMATION_TIME, 0);
         }
     },
 
@@ -772,9 +609,9 @@ dockedWorkspaces.prototype = {
 
         // Initial display of dock .. sets autohideStatus
         if (this._autohideStatus == null) {
-            if (this._settings.get_boolean('dock-fixed')) {
+            if (DOCK_FIXED) {
                 this._autohideStatus = true;
-                this.fadeInDock(this._settings.get_double('animation-time'), 0);
+                this.fadeInDock(ANIMATION_TIME, 0);
             } else {
                 // Initial animation is out .. intellihide will animate in if its needed
                 this._removeAnimations();
@@ -787,7 +624,7 @@ dockedWorkspaces.prototype = {
             if (this._autohideStatus == false) {
                 // had to comment out because GS3.4 fixed-dock isn't fully faded in yet when redisplay occurs again 
                 //this._removeAnimations();
-                this._animateIn(this._settings.get_double('animation-time'), 0);
+                this._animateIn(ANIMATION_TIME, 0);
                 this._autohideStatus = false;
             }
         }
@@ -803,20 +640,13 @@ dockedWorkspaces.prototype = {
         let x2 = this._monitor.x + this._monitor.width - 1;
         let y = this._monitor.y + Main.overview._viewSelector.actor.y + Main.overview._viewSelector._pageArea.y;
         
-        let height;
-        switch (this._gsCurrentVersion[1]) {
-            case"4":
-                height = Main.overview._viewSelector._pageArea.height;
-                break;
-            case"6":
-                height = this._monitor.height - (this._monitor.y + Main.overview._viewSelector.actor.y + Main.overview._viewSelector._pageArea.y + (Main.overview._viewSelector.actor.y/2) + Main.messageTray.actor.height);
-                break;
-            default:
-                throw new Error("Unknown version number (dockedWorkspaces.js).");
-        }
+        let height = Main.overview._viewSelector._pageArea.height - HEIGHT_SUBTRACT;
         
         // Updating size also resets the position of the staticBox (used to detect window overlaps)
-        this.staticBox.init_rect(x, y, this._thumbnailsBox.actor.width + 1, height);
+        this.staticBox.x1 = x;
+        this.staticBox.y1 = y;
+        this.staticBox.x2 = x + this._thumbnailsBox.actor.width + 1;
+        this.staticBox.y2 = y + height;
         
         // Updating size shouldn't reset the x position of the actor box (used to detect hover)
         // especially if it's in the hidden slid out position
@@ -840,7 +670,7 @@ dockedWorkspaces.prototype = {
         let x2 = this._monitor.x + this._monitor.width - 1;
         let y = this._monitor.y + Main.overview._viewSelector.actor.y + Main.overview._viewSelector._pageArea.y;
         
-        if (this._settings.get_boolean('dock-fixed')) {
+        if (DOCK_FIXED) {
             //position on the screen (right side) so that its initial show is not animated
             this.actor.set_position(x, y);
         } else {
@@ -888,10 +718,10 @@ dockedWorkspaces.prototype = {
                 Mainloop.source_remove(this._workspacesShowTimeout);
 
             this._removeAnimations();
-            this._animateIn(this._settings.get_double('animation-time'), 0);                
+            this._animateIn(ANIMATION_TIME, 0);                
 
-            if (this._settings.get_boolean('opaque-background') && !this._settings.get_boolean('opaque-background-always'))
-                this._fadeOutBackground(this._settings.get_double('animation-time'), 0);
+            if (OPAQUE_BACKGROUND && !OPAQUE_BACKGROUND_ALWAYS)
+                this._fadeOutBackground(ANIMATION_TIME, 0);
 
         }
     },
@@ -909,13 +739,10 @@ dockedWorkspaces.prototype = {
                 this.actor.sync_hover();
             }
 
-            if (!this.actor.hover || !this._settings.get_boolean('autohide')) {
+            if (!this.actor.hover || !AUTOHIDE) {
                 if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - mouse not hovering OR dock not using autohide, so animate out");
-                if (!this._settings.get_boolean('dashtodock-hover') || !DashToDock || !DashToDock.dock || !DashToDock.dock._box.hover) {
-                    if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - dashtodock mouse not hovering OR dock not using dashtodock-hover, so animate out");
-                    this._animateOut(this._settings.get_double('animation-time'), 0);
-                    delay = this._settings.get_double('animation-time');
-                }
+                this._animateOut(ANIMATION_TIME, 0);
+                delay = ANIMATION_TIME;
             } else {
                 if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - mouse hovering AND dock using autohide, so startWorkspacesShowLoop instead of animate out");
                 // I'm enabling autohide and the workspaces keeps being showed because of mouse hover
@@ -925,8 +752,8 @@ dockedWorkspaces.prototype = {
                 delay = 0;
             }
 
-            if (this._settings.get_boolean('opaque-background') && !this._settings.get_boolean('opaque-background-always')) {
-                this._fadeInBackground(this._settings.get_double('animation-time'), delay);
+            if (OPAQUE_BACKGROUND && !OPAQUE_BACKGROUND_ALWAYS) {
+                this._fadeInBackground(ANIMATION_TIME, delay);
             }
         }
     }
