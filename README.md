@@ -44,6 +44,14 @@ If you run into any strange behavior with dynamic workspaces, please disable the
 
 Change Log:
 -----------
+version 7 (Nov 3, 2012)
+
+- Bug fixes
+- Dash-To-Dock hover feature added
+
+    Dash-To-Dock hover shows the workspaces dock when hovering over the dash-to-dock extension (if you've got it installed). 
+    Extremely useful in cases where your workspaces dock is hidden and you want to open a new app from the dash. Rather than going into overview just to see your workspaces, hover over the dash-to-dock extension. The workspaces dock will show to the right. Use the dash-to-dock scroll to go to the appropriate workspace.
+
 version 6 (Oct 26, 2012)
 
 - Support for Gnome Shell 3.6 and new lock screen
