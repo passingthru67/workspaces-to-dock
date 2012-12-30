@@ -590,10 +590,12 @@ intellihide.prototype = {
     // or when search is started the workspaces dock is hidden
     _overviewPageChanged: function(source, page) {
         if (_DEBUG_) global.log("intellihide: _overviewPageChanged");
-        if (page == Main.overview._viewSelector._workspacesPage) {
-            this._show();
-        } else {
-            this._hide();
+        if (this._inOverview) {
+            if (page == Main.overview._viewSelector._workspacesPage) {
+                this._show();
+            } else {
+                this._hide();
+            }
         }
     },
 
