@@ -501,8 +501,8 @@ intellihide.prototype = {
             this._updateDockVisibility();
         }));
 
-        this._settings.connect('changed::intellihide-perapp', Lang.bind(this, function(){
-            if (_DEBUG_) global.log("intellihide: _bindSettingsChanges for intellihide-perapp");
+        this._settings.connect('changed::intellihide-option', Lang.bind(this, function(){
+            if (_DEBUG_) global.log("intellihide: _bindSettingsChanges for intellihide-option");
             this._updateDockVisibility();
         }));
 
@@ -840,17 +840,20 @@ intellihide.prototype = {
         var wksp = meta_win.get_workspace();
         var wksp_index = wksp.index();
 
-        // intellihide-perapp -- only dodges windows of same application
-        if (this._settings.get_boolean('intellihide-perapp')) {
-            if (this._topWindow && this._focusApp) {
-                // Ignore if not top window and not focused app
-                let metaWindowApp = this._tracker.get_window_app(meta_win);
-                if (this._topWindow != meta_win && this._focusApp != metaWindowApp) {
-                    // Special consideration for half maximized windows, useful if one is using two apps side by side
-                    //if (!(meta_win.maximized_vertically && !meta_win.maximized_horizontally))
-                    return false;
-                }
-            }
+        // check intellihide-option for top window intellihide
+        if (this._settings.get_int('intellihide-option') == 1) {
+            // only dodge if meta_win is top window
+            if (this._topWindow != meta_win)
+                return false;
+
+        }
+
+        // check intellihide-option for focused app intellihide
+        if (this._settings.get_int('intellihide-option') == 2) { 
+            // only dodge if meta_win is a top-focused app window
+            if (this._topWindow.get_wm_class() != meta_win.get_wm_class())
+                return false;
+
         }
         
         if (wksp_index == currentWorkspace && meta_win.showing_on_its_workspace()) {

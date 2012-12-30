@@ -43,10 +43,10 @@
       <summary>Dock dodges windows</summary>
       <description>Enable or disable intellihide mode</description>
     </key>
-    <key type="b" name="intellihide-perapp">
-      <default>false</default>
-      <summary>Dock only dodges windows of same application</summary>
-      <description>Enable or disable application based intellhide</description>
+    <key type="i" name="intellihide-option">
+      <default>0</default>
+      <summary>Intellihide mode options</summary>
+      <description>Select type of intellihide mode</description>
     </key>
     <key type="b" name="autohide">
       <default>true</default>
