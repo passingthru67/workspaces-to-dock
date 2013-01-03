@@ -9,7 +9,7 @@
  * ========================================================================================================
  */
 
-const _DEBUG_ = false;
+const _DEBUG_ = true;
 
 const Clutter = imports.gi.Clutter;
 const Lang = imports.lang;
@@ -127,11 +127,11 @@ dockedWorkspaces.prototype = {
                 'notify::y',
                 Lang.bind(this, this._updateYPosition)
             ],
-            [
-                Main.overview._viewSelector._pageArea,
-                'notify::height',
-                Lang.bind(this, this._updateHeight)
-            ],
+            //[
+            //    Main.overview._viewSelector._pageArea,
+            //    'notify::height',
+            //    Lang.bind(this, this._updateHeight)
+            //],
             [
                 this._thumbnailsBox.actor,
                 'notify::width',
@@ -162,11 +162,11 @@ dockedWorkspaces.prototype = {
                 'workspace-switched',
                 Lang.bind(this, this._workspacesRestacked)
             ],
-            [
-                Main.messageTray.actor,
-                'notify::height',
-                Lang.bind(this, this._updateHeight)
-            ],
+            //[
+            //    Main.messageTray.actor,
+            //    'notify::height',
+            //    Lang.bind(this, this._updateHeight)
+            //],
             [
                 ExtensionSystem._signals,
                 'extension-state-changed',
@@ -836,9 +836,10 @@ dockedWorkspaces.prototype = {
         }
 
         // skip updating if size is same
-        //if ((this.actor.y == y) && (this.actor.width == this._thumbnailsBox.actor.width + 1) && (this.actor.height == height)) {
-        //    return;
-        //}
+        if ((this.actor.y == y) && (this.actor.width == this._thumbnailsBox.actor.width + 1) && (this.actor.height == height)) {
+            if (_DEBUG_) global.log("dockedWorkspaces: _updateSize not necessary .. size the same");
+            return;
+        }
         
         // Updating size also resets the position of the staticBox (used to detect window overlaps)
         this.staticBox.init_rect(x, y, this._thumbnailsBox.actor.width + 1, height);
