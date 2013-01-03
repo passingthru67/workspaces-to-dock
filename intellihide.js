@@ -13,6 +13,7 @@ const Meta = imports.gi.Meta;
 const Mainloop = imports.mainloop;
 const Signals = imports.signals;
 const Shell = imports.gi.Shell;
+const Gdk = imports.gi.Gdk;
 
 const Main = imports.ui.main;
 const PopupMenu = imports.ui.popupMenu;
@@ -793,14 +794,24 @@ intellihide.prototype = {
                 let windows = global.get_window_actors();
 
                 if (windows.length > 0) {
-                    // This is the window on top of all others in the current workspace
+                    // This is the default app window on top of all others at startup
                     this._topWindow = windows[windows.length-1].get_meta_window();
+                    
+                    // Filter out window types not in handledWindowType1
+                    // Reason: tooltip window types don't have an app associated with them
+                    for (let i = windows.length-1; i >= 0; i--) {
+                        let win = windows[i].get_meta_window();
+                        if (this._handledWindowType(win, 1)) {
+                            this._topWindow = win;
+                            break;
+                        }
+                    }
 
                     // If there isn't a focused app, use that of the window on top
                     this._focusApp = this._tracker.focus_app || this._tracker.get_window_app(this._topWindow);
 
                     windows = windows.filter(this._intellihideFilterInteresting, this);
-                
+
                     for (let i = 0; i < windows.length; i++) {
                         let win = windows[i].get_meta_window();
                         if (win) {
@@ -844,15 +855,36 @@ intellihide.prototype = {
 
         // check intellihide-option for top window intellihide
         if (this._settings.get_int('intellihide-option') == 1) {
-            // only dodge if meta_win is top window
-            if (this._topWindow != meta_win)
-                return false;
+            if (meta_win.get_window_type() == Meta.WindowType.NORMAL) {
+                // normal window type .. only dodge if top window
+                if (this._topWindow != meta_win)
+                    return false;            
+            } else {
+                if (this._handledWindowType(meta_win, 1)) {
+                    // other main types dodge if meta_win is same class as top window
+                    if (this._topWindow.get_wm_class() != meta_win.get_wm_class()) {
+                        return false;
+                    }
+                } else {
+                    // tooltips, popup_menus, dropdown_menus types dodge if meta_win is same class as top window
+                    if (this._topWindow.get_wm_class() != meta_win.get_wm_class())
+                        return false;
 
+                    // and mouse pointer positioned over top window                    
+                    let pointer = Gdk.Display.get_default().get_device_manager().get_client_pointer();
+                    let [scr,x,y] = pointer.get_position();
+                    let rect = this._topWindow.get_outer_rect();
+                    let test = ((x > rect.x) && (x < rect.x+rect.width) && (y > rect.y) && (y < rect.y+rect.height));
+                    if (!test)
+                        return false;
+
+                }
+            }
         }
 
         // check intellihide-option for focused app intellihide
         if (this._settings.get_int('intellihide-option') == 2) { 
-            // only dodge if meta_win is a top-focused app window
+            // only dodge if meta_win is same class as top (focused app) window
             if (this._topWindow.get_wm_class() != meta_win.get_wm_class())
                 return false;
 
@@ -867,22 +899,28 @@ intellihide.prototype = {
 
     // Filter windows by type
     // inspired by Opacify@gnome-shell.localdomain.pl
-    _handledWindowType: function(metaWindow) {
+    _handledWindowType: function(metaWindow, grptype) {
         var wtype = metaWindow.get_window_type();
-        if (!this._settings.get_boolean('dock-fixed')) {
-            // Test primary window types .. only if dock is not fixed
-            for (var i = 0; i < handledWindowTypes.length; i++) {
-                var hwtype = handledWindowTypes[i];
-                if (hwtype == wtype) {
-                    return true;
+
+        if (grptype == null || grptype == 1) {
+            if (!this._settings.get_boolean('dock-fixed')) {
+                // Test primary window types .. only if dock is not fixed
+                for (var i = 0; i < handledWindowTypes.length; i++) {
+                    var hwtype = handledWindowTypes[i];
+                    if (hwtype == wtype) {
+                        return true;
+                    }
                 }
             }
         }
-        // Test secondary window types .. even if dock is fixed
-        for (var i = 0; i < handledWindowTypes2.length; i++) {
-            var hwtype = handledWindowTypes2[i];
-            if (hwtype == wtype) {
-                return true;
+
+        if (grptype == null || grptype == 2) {
+            // Test secondary window types .. even if dock is fixed
+            for (var i = 0; i < handledWindowTypes2.length; i++) {
+                var hwtype = handledWindowTypes2[i];
+                if (hwtype == wtype) {
+                    return true;
+                }
             }
         }
         
