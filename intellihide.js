@@ -100,6 +100,9 @@ intellihide.prototype = {
         this._target = target;
         // Keep track of the current overview mode (I mean if it is on/off)
         this._inOverview = false;
+        
+        // Flag set when overview mode is toggled by window drag event
+        this._toggledOverviewOnDrag = false;
 
         // Main id of the timeout controlling timeout for updateDockVisibility function 
         // when windows are dragged around (move and resize)
@@ -158,6 +161,22 @@ intellihide.prototype = {
                 Main.overview,
                 'hiding',
                 Lang.bind(this,this._overviewExit)
+            ],
+            // window-drag-events emitted from workspaces thumbnail window dragging action
+            [
+                Main.overview,
+                'window-drag-begin',
+                Lang.bind(this,this._onWindowDragBegin)
+            ],
+            [
+                Main.overview,
+                'window-drag-cancelled',
+                Lang.bind(this,this._onWindowDragCancelled)
+            ],
+            [
+                Main.overview,
+                'window-drag-end',
+                Lang.bind(this,this._onWindowDragEnd)
             ],
             // update when monitor changes, for instance in multimonitor when monitors are attached
             [
@@ -550,6 +569,28 @@ intellihide.prototype = {
 		if (_DEBUG_) global.log("intellihide: _onMonitorsChanged");
 		this._updateDockVisibility();
 	},
+
+    // handler for when thumbnail windows dragging started
+    _onWindowDragBegin: function() {
+        Main.overview.show();
+        this._toggledOverviewOnDrag = true;
+    },
+    
+    // handler for when thumbnail windows dragging cancelled
+    _onWindowDragCancelled: function() {
+        if (this._toggledOverviewOnDrag) {
+            this._toggledOverviewOnDrag = false;
+            Main.overview.hide();
+        }
+    },
+
+    // handler for when thumbnail windows dragging ended
+    _onWindowDragEnd: function() {
+        if (this._toggledOverviewOnDrag) {
+            this._toggledOverviewOnDrag = false;
+            Main.overview.hide();
+        }
+    },
 
     // handler for when overview mode exited
     _overviewExit: function() {
