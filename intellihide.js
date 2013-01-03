@@ -91,7 +91,7 @@ intellihide.prototype = {
         this._signalHandler = new Convenience.globalSignalHandler();
         this._tracker = Shell.WindowTracker.get_default();
         this._topWindow = null;
-        this._focusApp = null;
+        this._focusedWin = null;
 
         // initial intellihide status is null
         this.status = null;
@@ -835,21 +835,34 @@ intellihide.prototype = {
                 let windows = global.get_window_actors();
 
                 if (windows.length > 0) {
-                    // This is the default app window on top of all others at startup
-                    this._topWindow = windows[windows.length-1].get_meta_window();
                     
-                    // Filter out window types not in handledWindowType1
-                    // Reason: tooltip window types don't have an app associated with them
+                    // SANITY CHECK
+                    //global.log("===============================================================");
+                    //for (let i = windows.length-1; i >= 0; i--) {
+                        //let win = windows[i].get_meta_window();
+                        //let wclass = win.get_wm_class();
+                        //let wtype = win.get_window_type();
+                        //let wfocus = win.has_focus();
+                        //let wapp = this._tracker.get_window_app(win);
+                        //let msg = wclass + " [" + wtype + "] focused? " + wfocus + " app? " + wapp;
+                        //global.log(msg);
+                    //}
+                    //global.log("---------------------------------------------------------------");
+                    
+                    // This is the default window on top of all others
+                    this._topWindow = windows[windows.length-1].get_meta_window();
+
+                    // Find focused window (not always top window)
                     for (let i = windows.length-1; i >= 0; i--) {
                         let win = windows[i].get_meta_window();
-                        if (this._handledWindowType(win, 1)) {
-                            this._topWindow = win;
+                        if (win.has_focus()) {
+                            this._focusedWin = win;
                             break;
                         }
                     }
 
                     // If there isn't a focused app, use that of the window on top
-                    this._focusApp = this._tracker.focus_app || this._tracker.get_window_app(this._topWindow);
+                    //this._focusApp = this._tracker.focus_app || this._tracker.get_window_app(this._topWindow);
 
                     windows = windows.filter(this._intellihideFilterInteresting, this);
 
@@ -894,39 +907,44 @@ intellihide.prototype = {
         var wksp = meta_win.get_workspace();
         var wksp_index = wksp.index();
 
-        // check intellihide-option for focused app windows
+        // check intellihide-option for windows of focused app
         if (this._settings.get_int('intellihide-option') == 1) { 
-            // only dodge if meta_win is same class as top (focused app) window
-            if (this._topWindow.get_wm_class() != meta_win.get_wm_class())
-                return false;
-
+            
+            // TEST1: ignore if meta_win is a popup window
+            if (meta_win.get_window_type() != Meta.WindowType.POPUP_MENU) {
+                // TEST2: ignore if meta_win is not same class as the focused window (not same app)
+                if (this._focusedWin.get_wm_class() != meta_win.get_wm_class())
+                    return false;
+            }
         }
 
-        // check intellihide-option for top focused app window
+        // check intellihide-option for top-level windows of  focused app
         if (this._settings.get_int('intellihide-option') == 2) {
-            if (meta_win.get_window_type() == Meta.WindowType.NORMAL) {
-                // normal window type .. only dodge if top window
-                if (this._topWindow != meta_win)
-                    return false;            
-            } else {
-                if (this._handledWindowType(meta_win, 1)) {
-                    // other main types dodge if meta_win is same class as top window
-                    if (this._topWindow.get_wm_class() != meta_win.get_wm_class()) {
-                        return false;
-                    }
-                } else {
-                    // tooltips, popup_menus, dropdown_menus types dodge if meta_win is same class as top window
-                    if (this._topWindow.get_wm_class() != meta_win.get_wm_class())
-                        return false;
+            
+            // TEST1: ignore if meta_win is a popup window
+            if (meta_win.get_window_type() != Meta.WindowType.POPUP_MENU) {
+                
+                // TEST2: ignore if meta_win is not same class as the focused window (not same app)
+                if (this._focusedWin.get_wm_class() != meta_win.get_wm_class())
+                    return false;
 
-                    // and mouse pointer positioned over top window                    
+                // same app .. but is it top-level window?
+                // TEST3: ignore if meta_win is not the focused window and both are normal windows
+                if (this._focusedWin.get_window_type() == Meta.WindowType.NORMAL) {
+                    if (meta_win.get_window_type() == Meta.WindowType.NORMAL) {
+                        if (this._focusedWin != meta_win)
+                            return false;
+                    }
+                }
+
+                // TEST4: ignore if meta_win is tooltip but mouse pointer is not over focused window
+                if (meta_win.get_window_type() == Meta.WindowType.TOOLTIP) {
                     let pointer = Gdk.Display.get_default().get_device_manager().get_client_pointer();
                     let [scr,x,y] = pointer.get_position();
-                    let rect = this._topWindow.get_outer_rect();
-                    let test = ((x > rect.x) && (x < rect.x+rect.width) && (y > rect.y) && (y < rect.y+rect.height));
-                    if (!test)
+                    let rect = this._focusedWin.get_outer_rect();
+                    let overlap = ((x > rect.x) && (x < rect.x+rect.width) && (y > rect.y) && (y < rect.y+rect.height));
+                    if (!overlap)
                         return false;
-
                 }
             }
         }
