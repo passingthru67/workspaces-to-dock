@@ -36,9 +36,38 @@ const myThumbnailsBox = new Lang.Class({
     Name: 'workspacesToDock.myThumbnailsBox',
     Extends: WorkspaceThumbnail.ThumbnailsBox,
 
-    _init: function(gsCurrentVersion) {
+    _init: function(gsCurrentVersion, settings) {
         this.parent();
         this._gsCurrentVersion = gsCurrentVersion;
+        this._settings = settings;
+    },
+
+	// override button release to provide overview on right click
+    _onButtonRelease: function(actor, event) {
+        if (this._settings.get_boolean('toggle-overview')) {
+            let button = event.get_button();
+            if (button == 3) { //right click
+                if (Main.overview.visible) {
+                    Main.overview.hide(); // force normal mode
+                } else {
+                    Main.overview.show(); // force overview mode
+                }
+                return false;
+            }
+        }
+        let [stageX, stageY] = event.get_coords();
+        let [r, x, y] = this.actor.transform_stage_point(stageX, stageY);
+
+        for (let i = 0; i < this._thumbnails.length; i++) {
+            let thumbnail = this._thumbnails[i]
+            let [w, h] = thumbnail.actor.get_transformed_size();
+            if (y >= thumbnail.actor.y && y <= thumbnail.actor.y + h) {
+                thumbnail.activate(event.time);
+                break;
+            }
+        }
+        return true;
+
     },
 
     _activeWorkspaceChanged: function(wm, from, to, direction) {

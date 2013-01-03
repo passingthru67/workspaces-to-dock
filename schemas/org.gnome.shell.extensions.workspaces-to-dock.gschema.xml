@@ -63,5 +63,10 @@
       <summary>Dock shown on Dash-To-Dock mouse over</summary>
       <description>Enable or disable Dash-To-Dock hover mode</description>
     </key>
+    <key type="b" name="toggle-overview">
+      <default>false</default>
+      <summary>Toggle overview mode</summary>
+      <description>Toggle overview mode with right click</description>
+    </key>
   </schema>
 </schemalist>

@@ -69,7 +69,7 @@ dockedWorkspaces.prototype = {
 		this._overrideGnomeShellFunctions();
 
         // Create a new thumbnailsbox object
-        this._thumbnailsBox = new MyThumbnailsBox.myThumbnailsBox(this._gsCurrentVersion);
+        this._thumbnailsBox = new MyThumbnailsBox.myThumbnailsBox(this._gsCurrentVersion, this._settings);
 		
         // Create the main container, turn on track hover, add hoverChange signal
         this.actor = new St.BoxLayout({
@@ -271,6 +271,22 @@ dockedWorkspaces.prototype = {
     // function called during init to override gnome shell 3.4/3.6/#
     _overrideGnomeShellFunctions: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _overrideGnomeShellFunctions");
+        // Override the WorkspaceClone onButtonRelease function to allow right click events to bubble up
+        // Copied from Gnome Shell .. right click detection added .. returns false to bubble
+        let self = this;
+        let p = WorkspaceThumbnail.WindowClone.prototype;
+        this.saved_WindowClone_onButtonRelease = p._onButtonRelease;
+        p._onButtonRelease = function (actor, event) {
+            if (self._settings.get_boolean('toggle-overview')) {
+                let button = event.get_button();
+                if (button == 3) { //right click
+                    return false;
+                }
+            }
+            this.emit('selected', event.get_time());
+            return true;
+        };
+
         // Override the WorkspacesDisplay updateAlwaysZoom function
         // Force normal workspaces to be always zoomed
         let p = WorkspacesView.WorkspacesDisplay.prototype;
@@ -298,6 +314,10 @@ dockedWorkspaces.prototype = {
     // function called during destroy to restore gnome shell 3.4/3.6/#
     _restoreGnomeShellFunctions: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _restoreGnomeShellFunctions");
+        // Restore normal WindowClone onButtonRelease function
+        let p = WorkspaceThumbnail.WindowClone.prototype;
+        p._onButtonRelease = this.saved_WindowClone_onButtonRelease;
+
         // Restore normal workspaces to previous zoom setting
         let p = WorkspacesView.WorkspacesDisplay.prototype;
         p._updateAlwaysZoom = this.saved_updateAlwaysZoom;
@@ -814,6 +834,11 @@ dockedWorkspaces.prototype = {
             default:
                 throw new Error("Unknown version number (dockedWorkspaces.js).");
         }
+
+        // skip updating if size is same
+        //if ((this.actor.y == y) && (this.actor.width == this._thumbnailsBox.actor.width + 1) && (this.actor.height == height)) {
+        //    return;
+        //}
         
         // Updating size also resets the position of the staticBox (used to detect window overlaps)
         this.staticBox.init_rect(x, y, this._thumbnailsBox.actor.width + 1, height);
