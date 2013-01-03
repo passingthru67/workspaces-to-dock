@@ -894,8 +894,16 @@ intellihide.prototype = {
         var wksp = meta_win.get_workspace();
         var wksp_index = wksp.index();
 
-        // check intellihide-option for top window intellihide
-        if (this._settings.get_int('intellihide-option') == 1) {
+        // check intellihide-option for focused app windows
+        if (this._settings.get_int('intellihide-option') == 1) { 
+            // only dodge if meta_win is same class as top (focused app) window
+            if (this._topWindow.get_wm_class() != meta_win.get_wm_class())
+                return false;
+
+        }
+
+        // check intellihide-option for top focused app window
+        if (this._settings.get_int('intellihide-option') == 2) {
             if (meta_win.get_window_type() == Meta.WindowType.NORMAL) {
                 // normal window type .. only dodge if top window
                 if (this._topWindow != meta_win)
@@ -923,14 +931,6 @@ intellihide.prototype = {
             }
         }
 
-        // check intellihide-option for focused app intellihide
-        if (this._settings.get_int('intellihide-option') == 2) { 
-            // only dodge if meta_win is same class as top (focused app) window
-            if (this._topWindow.get_wm_class() != meta_win.get_wm_class())
-                return false;
-
-        }
-        
         if (wksp_index == currentWorkspace && meta_win.showing_on_its_workspace()) {
             return true;
         } else {

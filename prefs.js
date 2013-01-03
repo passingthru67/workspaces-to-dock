@@ -190,35 +190,35 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             if (check.get_active()) this.settings.set_int('intellihide-option', 0);
         }));
 
-        let intellihideTopWindow =  new Gtk.RadioButton({
-            label: "Hide only from top window",
-            group: intellihideNormal
-        });
-        intellihideTopWindow.connect('toggled', Lang.bind(this, function(check){
-            if (check.get_active()) this.settings.set_int('intellihide-option', 1);
-        }));
-
         let intellihideFocusApp =  new Gtk.RadioButton({
-            label: "Hide only from focused app windows",
+            label: "Hide only from windows of focused app",
             group: intellihideNormal
         });
         intellihideFocusApp.connect('toggled', Lang.bind(this, function(check){
+            if (check.get_active()) this.settings.set_int('intellihide-option', 1);
+        }));
+
+        let intellihideTopWindow =  new Gtk.RadioButton({
+            label: "Hide only from top window of focused app",
+            group: intellihideNormal
+        });
+        intellihideTopWindow.connect('toggled', Lang.bind(this, function(check){
             if (check.get_active()) this.settings.set_int('intellihide-option', 2);
         }));
 
         let intellihideOption = this.settings.get_int('intellihide-option');
         switch (intellihideOption) {
             case 0:
-                intellihideNormal.set_active(true);
+                intellihideNormal.set_active(true); // any window .. normal mode
                 break;
             case 1:
-                intellihideTopWindow.set_active(true);
+                intellihideFocusApp.set_active(true); // focused application windows mode
                 break;
             case 2:
-                intellihideFocusApp.set_active(true);
+                intellihideTopWindow.set_active(true); // top focused application window mode
                 break;
             default:
-                intellihideNormal.set_active(true);
+                intellihideNormal.set_active(true); // default .. any window
         }
 
         dockSettingsGrid1.attach(animationTimeLabel, 0, 0, 1, 1);
@@ -233,23 +233,23 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         dockSettingsGrid2.attach(intellihideLabel, 0, 1, 1, 1);
         dockSettingsGrid2.attach(intellihide, 1, 1, 1, 1);
         dockSettingsGrid2.attach(intellihideNormal, 0, 2, 2, 1);
-        dockSettingsGrid2.attach(intellihideTopWindow, 0, 3, 2, 1);
-        dockSettingsGrid2.attach(intellihideFocusApp, 0, 4, 2, 1);
-
+        dockSettingsGrid2.attach(intellihideFocusApp, 0, 3, 2, 1);
+        dockSettingsGrid2.attach(intellihideTopWindow, 0, 4, 2, 1);
+        
         dockSettingsMain1.add(dockSettingsGrid1);
         dockSettingsMain1.add(dockSettingsGrid2);
 
         this.settings.bind('dock-fixed', dockSettingsMain1, 'sensitive', Gio.SettingsBindFlags.INVERT_BOOLEAN);
         this.settings.bind('intellihide', intellihideNormal, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
-        this.settings.bind('intellihide', intellihideTopWindow, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
         this.settings.bind('intellihide', intellihideFocusApp, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
-
+        this.settings.bind('intellihide', intellihideTopWindow, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+        
         dockSettings.add(dockSettingsTitle);
         dockSettings.add(dockSettingsControl1);
         dockSettings.add(dockSettingsMain1);
         frame.add(dockSettings);
 
-        /* ACTIONS SETTINGS */
+        /* CUSTOM ACTIONS SETTINGS */
 
         let actions = new Gtk.Box({
             orientation: Gtk.Orientation.VERTICAL
