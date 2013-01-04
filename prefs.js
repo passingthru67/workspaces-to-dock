@@ -184,14 +184,14 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         /* INTELLIHIDE OPTIONS */
         
         let intellihideNormal =  new Gtk.RadioButton({
-            label: "Hide from any window"
+            label: "Dodge all windows"
         });
         intellihideNormal.connect('toggled', Lang.bind(this, function(check){
             if (check.get_active()) this.settings.set_int('intellihide-option', 0);
         }));
 
         let intellihideFocusApp =  new Gtk.RadioButton({
-            label: "Hide only from windows of focused app",
+            label: "Dodge all instances of focused app",
             group: intellihideNormal
         });
         intellihideFocusApp.connect('toggled', Lang.bind(this, function(check){
@@ -199,7 +199,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }));
 
         let intellihideTopWindow =  new Gtk.RadioButton({
-            label: "Hide only from top window of focused app",
+            label: "Dodge only top instance of focused app",
             group: intellihideNormal
         });
         intellihideTopWindow.connect('toggled', Lang.bind(this, function(check){
@@ -248,48 +248,6 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         dockSettings.add(dockSettingsControl1);
         dockSettings.add(dockSettingsMain1);
         frame.add(dockSettings);
-
-        /* CUSTOM ACTIONS SETTINGS */
-
-        let actions = new Gtk.Box({
-            orientation: Gtk.Orientation.VERTICAL
-        });
-
-        let actionsTitle = new Gtk.Label({
-            label: "<b>Actions</b>",
-            use_markup: true,
-            xalign: 0,
-            margin_top: 5,
-            margin_bottom: 5
-        });
-
-        let actionsMain = new Gtk.Box({
-            margin_left: 10,
-            margin_top: 10,
-            margin_bottom: 10,
-            margin_right: 10
-        });
-
-        let toggleOverviewLabel = new Gtk.Label({
-            label: "Toggle overview mode with right click",
-            xalign: 0,
-            hexpand: true
-        });
-
-        let toggleOverviewSwitch = new Gtk.Switch ({
-            halign: Gtk.Align.END
-        });
-        toggleOverviewSwitch.set_active(this.settings.get_boolean('toggle-overview'));
-        toggleOverviewSwitch.connect('notify::active', Lang.bind(this, function(check) {
-            this.settings.set_boolean('toggle-overview', check.get_active());
-        }));
-        
-        actionsMain.add(toggleOverviewLabel);
-        actionsMain.add(toggleOverviewSwitch);
-        
-        actions.add(actionsTitle);
-        actions.add(actionsMain);
-        frame.add(actions);
 
         /* BACKGROUND SETTINGS */
 
@@ -382,6 +340,47 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         
         frame.add(background);
 
+        /* CUSTOM ACTIONS SETTINGS */
+
+        let actions = new Gtk.Box({
+            orientation: Gtk.Orientation.VERTICAL
+        });
+
+        let actionsTitle = new Gtk.Label({
+            label: "<b>Custom Actions</b>",
+            use_markup: true,
+            xalign: 0,
+            margin_top: 5,
+            margin_bottom: 5
+        });
+
+        let actionsMain = new Gtk.Box({
+            margin_left: 10,
+            margin_top: 10,
+            margin_bottom: 10,
+            margin_right: 10
+        });
+
+        let toggleOverviewLabel = new Gtk.Label({
+            label: "Toggle overview mode with right click",
+            xalign: 0,
+            hexpand: true
+        });
+
+        let toggleOverviewSwitch = new Gtk.Switch ({
+            halign: Gtk.Align.END
+        });
+        toggleOverviewSwitch.set_active(this.settings.get_boolean('toggle-overview'));
+        toggleOverviewSwitch.connect('notify::active', Lang.bind(this, function(check) {
+            this.settings.set_boolean('toggle-overview', check.get_active());
+        }));
+        
+        actionsMain.add(toggleOverviewLabel);
+        actionsMain.add(toggleOverviewSwitch);
+        
+        actions.add(actionsTitle);
+        actions.add(actionsMain);
+        frame.add(actions);
 
         /* DASH INTEGRATION SETTINGS */
 
