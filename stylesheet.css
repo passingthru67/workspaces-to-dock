@@ -11,7 +11,7 @@
     font-size: 12px;
     font-weight: bold;
     text-align: center;
-    padding: 1px 8px 0px 8px;
+    padding: 0px 8px;
 }
 
 /* caption workspace name */
@@ -32,7 +32,7 @@
     font-size: 12px;
     font-weight: bold;
     text-align: center;
-    padding: 1px 8px 0px 8px;
+    padding: 0px 8px;
 }
 
 /* caption workspace windowcount image*/
@@ -45,21 +45,27 @@
 .workspacestodock-caption-windowcount-image-1 {
     background-image: url('h-one.svg');
 }
-
 .workspacestodock-caption-windowcount-image-2 {
     background-image: url('h-two.svg');
-
 }
-
 .workspacestodock-caption-windowcount-image-3 {
     background-image: url('h-three.svg');
 }
-
 .workspacestodock-caption-windowcount-image-4 {
     background-image: url('h-four.svg');
 }
 
 /* caption spacer-filler */
 .workspacestodock-caption-spacer {
+}
 
+/* The classes below are used in conjuction with the above classes
+ * They provide additional theming of the current workspace caption */
+.workspacestodock-workspace-caption-current {
+}
+.workspacestodock-caption-number-current {
+}
+.workspacestodock-caption-name-current {
+}
+.workspacestodock-caption-windowcount-current {
 }

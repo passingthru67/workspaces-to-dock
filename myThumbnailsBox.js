@@ -151,7 +151,7 @@ const myThumbnailsBox = new Lang.Class({
         // passingthru67 - Caption area below thumbnail used to display thumbnail labels
         let captionHeight = 0;
         if (this._settings.get_boolean('workspace-captions'))
-            captionHeight = 18;
+            captionHeight = 20;
         
         spacing = spacing + captionHeight;
         
@@ -302,7 +302,7 @@ const myThumbnailsBox = new Lang.Class({
                     }
                     childBox.y1 = indicatorY;
                     // passingthru67 - indicator needs to include caption
-                    childBox.y2 = childBox.y1 + thumbnailHeight + captionHeight;
+                    childBox.y2 = childBox.y1 + thumbnailHeight + captionHeight - 2; // the -2 adjusts for wsNumber, wsName, wsWindowcount, wsSpacer -2 offsets in addThumbnails function
                     this._indicator.allocate(childBox, flags);
             
             
@@ -406,7 +406,7 @@ const myThumbnailsBox = new Lang.Class({
                     childBox.y1 = indicatorY1 - indicatorTopFullBorder;
                     //childBox.y2 = (indicatorY2 ? indicatorY2 : (indicatorY1 + thumbnailHeight)) + indicatorBottomFullBorder;
                     // passingthru67 - indicator needs to include caption
-                    childBox.y2 = (indicatorY2 ? indicatorY2 + captionHeight : (indicatorY1 + thumbnailHeight + captionHeight)) + indicatorBottomFullBorder;
+                    childBox.y2 = (indicatorY2 ? indicatorY2 + captionHeight - 2 : (indicatorY1 + thumbnailHeight + captionHeight - 2)) + indicatorBottomFullBorder; // the -2 adjusts for wsNumber, wsName, wsWindowcount, wsSpacer -2 offsets in addThumbnails function
 
                     this._indicator.allocate(childBox, flags);
             
@@ -484,21 +484,26 @@ const myThumbnailsBox = new Lang.Class({
                     switch (item) {
                         case "number":
                             wsCaption.add(wsNumber, {x_align: St.Align.END, expand: expandState});
+                            wsNumber.add_constraint(new Clutter.BindConstraint({source: wsCaption, coordinate: Clutter.BindCoordinate.HEIGHT, offset: -2})); // negative offset acts as bottom padding to show bottom border of number label
                             break;
                         case "name":
                             wsCaption.add(wsName, {x_align: St.Align.END, expand: expandState});
+                            wsName.add_constraint(new Clutter.BindConstraint({source: wsCaption, coordinate: Clutter.BindCoordinate.HEIGHT, offset: -2})); // negative offset acts as bottom padding to show bottom border of name label
                             break;
                         case "windowcount":
                             wsCaption.add(wsWindowCount, {x_align: St.Align.END, expand: expandState});
+                            wsWindowCount.add_constraint(new Clutter.BindConstraint({source: wsCaption, coordinate: Clutter.BindCoordinate.HEIGHT, offset: -2})); // negative offset acts as bottom padding to show bottom border of windowcount label
                             break;
                         case "spacer":
                             wsCaption.add(wsSpacer, {x_align: St.Align.END, expand: expandState});
+                            wsSpacer.add_constraint(new Clutter.BindConstraint({source: wsCaption, coordinate: Clutter.BindCoordinate.HEIGHT, offset: -2})); // negative offset acts as bottom padding to show bottom border of spacer label
                             break;
                     }
                     
                 }
 
                 wsCaptionContainer.add_actor(wsCaption);
+                wsCaptionContainer.set_style("padding: 0px 0px 1px 0px"); // bottom padding needed to show bottom border of caption (gets cut off by 1px due to _allocate design)
                 thumbnail.actor.add_actor(wsCaptionContainer);
                 
                 // Make thumbnail background transparent so that it doesn't show through
@@ -585,10 +590,10 @@ const myThumbnailsBox = new Lang.Class({
     _setThumbnailCaption: function(thumbnail, i, thumbnailWidth, thumbnailHeight, captionHeight, roundedHScale, roundedVScale) {
         let wsCaptionContainer = thumbnail.actor.get_child_at_index(1);
         wsCaptionContainer.set_scale(1/roundedHScale, 1/roundedVScale);
-        wsCaptionContainer.set_size(thumbnailWidth, thumbnailHeight+captionHeight);
+        wsCaptionContainer.set_size(thumbnailWidth, thumbnailHeight + captionHeight);
 
         let wsCaption = wsCaptionContainer.get_child_at_index(0);
-        wsCaption.height = captionHeight + 2; // addional 2px forces caption to cover up thumbnail background 1px differences (see dev comments in _allocate)
+        wsCaption.height = captionHeight; // constrains height to caption height
 
         let wsNumber = wsCaption.find_child_by_name("workspacestodockCaptionNumber");
         if (wsNumber)
@@ -605,11 +610,13 @@ const myThumbnailsBox = new Lang.Class({
         let wsSpacer = wsCaption.find_child_by_name("workspacestodockCaptionSpacer");    
 
         if (i == global.screen.get_active_workspace_index()) {
+            wsCaption.add_style_class_name('workspacestodock-workspace-caption-current');
             wsNumber.add_style_class_name('workspacestodock-caption-number-current');
             wsName.add_style_class_name('workspacestodock-caption-name-current');
             wsWindowCount.add_style_class_name('workspacestodock-caption-windowcount-current');
             wsSpacer.add_style_class_name('workspacestodock-caption-spacer-current');
         } else {
+            wsCaption.remove_style_class_name('workspacestodock-workspace-caption-current');
             wsNumber.remove_style_class_name('workspacestodock-caption-number-current');
             wsName.remove_style_class_name('workspacestodock-caption-name-current');
             wsWindowCount.remove_style_class_name('workspacestodock-caption-windowcount-current');
