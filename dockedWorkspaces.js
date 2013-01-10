@@ -465,6 +465,20 @@ dockedWorkspaces.prototype = {
         this._settings.connect('changed::autohide', Lang.bind(this, function() {
             this.emit('box-changed');
         }));
+        
+        this._settings.connect('changed::workspace-captions', Lang.bind(this, function() {
+            this._thumbnailsBox.hide();
+            this._thumbnailsBox.show();
+        }));
+        this._settings.connect('changed::workspace-caption-items', Lang.bind(this, function() {
+            this._thumbnailsBox.hide();
+            this._thumbnailsBox.show();
+        }));
+        this._settings.connect('changed::workspace-caption-windowcount-image', Lang.bind(this, function() {
+            this._thumbnailsBox.hide();
+            this._thumbnailsBox.show();
+        }));
+
     },
 
     // handler for mouse hover events

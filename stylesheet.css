@@ -1,0 +1,65 @@
+/* workspace caption container */
+.workspacestodock-workspace-caption {
+    background-color: rgba(55,55,55,1.0);
+    border-radius: 0px 0px 2px 2px;
+}
+
+/* caption workspace number */
+.workspacestodock-caption-number {
+    color: rgba(0,0,0,1.0);
+    background-color: rgba(255,255,255,0.9);
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+    padding: 1px 8px 0px 8px;
+}
+
+/* caption workspace name */
+.workspacestodock-caption-name {
+    max-width: 80px;
+    color: rgba(255,255,255,1.0);
+    font-size: 10px;
+    font-weight: bold;
+    text-align: center;
+    padding: 2px 8px 0px 8px;
+}
+
+/* caption workspace windowcount */
+.workspacestodock-caption-windowcount {
+    min-width: 10px;
+    color: rgba(255,255,255,1.0);
+    background-color: rgba(155,155,155,1.0);
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+    padding: 1px 8px 0px 8px;
+}
+
+/* caption workspace windowcount image*/
+.workspacestodock-caption-windowcount-image {
+    width: 76px;
+}
+
+/* The classes below are used in conjunction with the above workspacestodock-caption-windowcount-image 
+ * They provide background images that corespond with the window count */
+.workspacestodock-caption-windowcount-image-1 {
+    background-image: url('h-one.svg');
+}
+
+.workspacestodock-caption-windowcount-image-2 {
+    background-image: url('h-two.svg');
+
+}
+
+.workspacestodock-caption-windowcount-image-3 {
+    background-image: url('h-three.svg');
+}
+
+.workspacestodock-caption-windowcount-image-4 {
+    background-image: url('h-four.svg');
+}
+
+/* caption spacer-filler */
+.workspacestodock-caption-spacer {
+
+}

@@ -26,29 +26,45 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
     Extends: Gtk.Box,
 
     _init: function(params) {
+        let self = this;
         this.parent(params);
         this.settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
 
-        let frame = new Gtk.Box({
-            orientation: Gtk.Orientation.VERTICAL
+        let notebook = new Gtk.Notebook();
+        
+        
+        /* ================================================*/
+        /* NOTEBOOK - MAIN SETTINGS PAGE */
+        /* ------------------------------------------------*/
+
+        let notebookMainSettings = new Gtk.Box({
+            orientation: Gtk.Orientation.VERTICAL,
+            margin_left: 10
+        });
+        let notebookMainSettingsTitle = new Gtk.Label({
+            label: "Main Settings",
+            use_markup: true,
+            xalign: 0,
+            margin_top: 5,
+            margin_bottom: 5,
         });
 
-        /* MAIN DOCK SETTINGS */
+        /* DOCK SETTINGS */
 
         let dockSettings = new Gtk.Box({
             orientation: Gtk.Orientation.VERTICAL
         });
 
         let dockSettingsTitle = new Gtk.Label({
-            label: "<b>Dock Settings</b>",
+            label: "<b>Visibility</b>",
             use_markup: true,
             xalign: 0,
-            margin_top: 5,
+            margin_top: 15,
             margin_bottom: 5
         });
 
         let dockSettingsMain1 = new Gtk.Box({
-            spacing: 30,
+            spacing: 20,
             orientation: Gtk.Orientation.HORIZONTAL,
             homogeneous: true,
             margin_left: 20,
@@ -58,8 +74,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
 
         let dockSettingsControl1 = new Gtk.Box({
-            spacing: 30,
-            margin_left: 10,
+            spacing: 20,
             margin_top: 10,
             margin_right: 10
         });
@@ -68,7 +83,8 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             label: "Dock is fixed and always visible",
             use_markup: true,
             xalign: 0,
-            hexpand: true
+            hexpand: true,
+            margin_left: 10
         });
 
         let alwaysVisible = new Gtk.Switch ({
@@ -247,7 +263,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         dockSettings.add(dockSettingsTitle);
         dockSettings.add(dockSettingsControl1);
         dockSettings.add(dockSettingsMain1);
-        frame.add(dockSettings);
+        notebookMainSettings.add(dockSettings);
 
         /* BACKGROUND SETTINGS */
 
@@ -290,7 +306,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         opaqueLayerControl.add(opaqueLayer);
 
         let opaqueLayerMain = new Gtk.Box({
-            spacing: 30,
+            spacing: 20,
             orientation: Gtk.Orientation.HORIZONTAL,
             homogeneous: false,
             margin_left: 20,
@@ -338,7 +354,417 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         background.add(opaqueLayerControl);
         background.add(opaqueLayerMain);
         
-        frame.add(background);
+        notebookMainSettings.add(background);
+
+        /* DOCK POSITION */
+
+        let dockPosition = new Gtk.Box({
+            orientation: Gtk.Orientation.VERTICAL
+        });
+
+        let dockPositionTitle = new Gtk.Label({
+            label: "<b>Position</b>",
+            use_markup: true,
+            xalign: 0,
+            margin_top: 5,
+            margin_bottom: 5
+        });
+
+        let dockMonitor = new Gtk.Box({
+            orientation: Gtk.Orientation.HORIZONTAL,
+            margin_left: 10,
+            margin_top: 10,
+            margin_bottom: 10,
+            margin_right: 10
+        });
+
+        //let dockMonitor = new Gtk.Box({margin_left:10, margin_top:10, margin_bottom:0, margin_right:10});
+        let dockMonitorLabel = new Gtk.Label({label: "Show the dock on following monitor (if attached)", hexpand:true, xalign:0});
+        let dockMonitorCombo = new Gtk.ComboBoxText({halign:Gtk.Align.END});
+            dockMonitorCombo.append_text('Primary (default)');
+            dockMonitorCombo.append_text('1');
+            dockMonitorCombo.append_text('2');
+            dockMonitorCombo.append_text('3');
+            dockMonitorCombo.append_text('4');
+            
+            let active = this.settings.get_int('preferred-monitor');
+            if (active<0)
+                active = 0;
+            dockMonitorCombo.set_active(active);
+
+            dockMonitorCombo.connect('changed', Lang.bind (this, function(widget) {
+                let active = widget.get_active();
+                if (active <=0)
+                    this.settings.set_int('preferred-monitor', -1);
+                else
+                    this.settings.set_int('preferred-monitor', active );
+            }));
+
+
+        dockMonitor.add(dockMonitorLabel)
+        dockMonitor.add(dockMonitorCombo);
+
+        dockPosition.add(dockPositionTitle);
+        dockPosition.add(dockMonitor);
+
+        notebookMainSettings.add(dockPosition);
+        notebook.append_page(notebookMainSettings, notebookMainSettingsTitle);
+
+
+
+
+        /* ================================================*/
+        /* NOTEBOOK - ADDITIONAL SETTINGS PAGE */
+        /* ------------------------------------------------*/
+        let notebookAdditionalSettings = new Gtk.Box({
+            orientation: Gtk.Orientation.VERTICAL,
+            margin_left: 10
+        });
+        let notebookAdditionalSettingsTitle = new Gtk.Label({
+            label: "Additional Settings",
+            use_markup: true,
+            xalign: 0,
+            margin_top: 5,
+            margin_bottom: 5,
+        });
+
+
+        
+        /* WORKSPACE CAPTIONS */
+
+        let workspaceCaptions = new Gtk.Box({
+            orientation: Gtk.Orientation.VERTICAL
+        });
+
+        let workspaceCaptionsTitle = new Gtk.Label({
+            label: "<b>Workspace Captions</b>",
+            use_markup: true,
+            xalign: 0,
+            margin_top: 15,
+            margin_bottom: 5
+        });
+        
+        // Workspace Captions - Enable/Disable Controller
+        let workspaceCaptionsControl = new Gtk.Box({
+            margin_top: 10,
+            margin_bottom: 10,
+            margin_right: 10
+        });
+
+        let workspaceCaptionsLabel = new Gtk.Label({
+            label: "Add captions to workspace thumbnails",
+            xalign: 0,
+            hexpand: true,
+            margin_left: 10
+        });
+
+        let workspaceCaptionsSwitch = new Gtk.Switch ({
+            halign: Gtk.Align.END
+        });
+        workspaceCaptionsSwitch.set_active(this.settings.get_boolean('workspace-captions'));
+        workspaceCaptionsSwitch.connect('notify::active', Lang.bind(this, function(check) {
+            this.settings.set_boolean('workspace-captions', check.get_active());
+        }));
+
+        workspaceCaptionsControl.add(workspaceCaptionsLabel);
+        workspaceCaptionsControl.add(workspaceCaptionsSwitch);
+
+
+        //let workspaceCaptionsMain = new Gtk.Grid({
+        //    orientation: Gtk.Orientation.HORIZONTAL,
+        //});
+
+
+
+        let workspaceCaptionsGrid = new Gtk.Grid({
+            row_homogeneous: true,
+            column_homogeneous: false,
+            margin_left: 20,
+            margin_right: 10
+        });
+
+        
+        // Workspace Captions - Allocated Height
+        
+        
+        //// Workspace Captions - Packing
+        //let workspaceCaptionPacking = new Gtk.Box({
+            //spacing: 20,
+            //orientation: Gtk.Orientation.HORIZONTAL,
+            //homogeneous: false,
+            //margin_left: 20,
+            //margin_top: 0,
+            //margin_bottom: 0,
+            //margin_right: 10
+        //});
+        //let wsCaptionPackingLabel = new Gtk.Label({
+            //label: "Position order of the caption components",
+            //xalign: 0,
+            //hexpand: true,
+            //margin_left: 0
+        //});
+        //let wsCaptionPackingCombo = new Gtk.ComboBoxText({halign:Gtk.Align.END});
+            //wsCaptionPackingCombo.append_text('number - windowcount - name');
+            //wsCaptionPackingCombo.append_text('number - name - windowcount');
+            //wsCaptionPackingCombo.append_text('name - windowcount - number');
+            //wsCaptionPackingCombo.append_text('name - number - windowcount');
+            //wsCaptionPackingCombo.append_text('windowcount - name - number');
+            //wsCaptionPackingCombo.append_text('windowcount - number - name');
+
+            //wsCaptionPackingCombo.set_active(this.settings.get_enum('workspace-caption-packing'));
+            //wsCaptionPackingCombo.connect('changed', Lang.bind (this, function(widget) {
+                    //this.settings.set_enum('workspace-caption-packing', widget.get_active());
+            //}));
+            
+
+        //workspaceCaptionPacking.add(wsCaptionPackingLabel);
+        //workspaceCaptionPacking.add(wsCaptionPackingCombo);
+
+
+        // Workspace Captions - Number
+        let workspaceCaptionNumber = new Gtk.Box({
+            spacing: 20,
+            orientation: Gtk.Orientation.HORIZONTAL,
+            homogeneous: false,
+            margin_left: 20,
+            margin_top: 0,
+            margin_bottom: 0,
+            margin_right: 10
+        });
+        let wsCaptionNumber =  new Gtk.CheckButton({
+            label: "Show the workspace number",
+            hexpand: true
+        });
+        wsCaptionNumber.set_active(this._getItemExists('number'));
+        wsCaptionNumber.connect('toggled', Lang.bind(this, function(check){
+            if (check.get_active()) {
+                this._addItem('number', wsCaptionNumberExpand.get_active());
+            } else {
+                this._removeItem('number');
+            }
+        }));
+        let wsCaptionNumberExpand =  new Gtk.CheckButton({
+            label: "Expand",
+            hexpand: true
+        });
+
+        wsCaptionNumberExpand.set_active(this._getItemExpanded('number'));
+        wsCaptionNumberExpand.connect('toggled', Lang.bind(this, function(check){
+            this._setItemExpanded('number', check.get_active());
+        }));
+
+        let wsCaptionNumber_MoveLeftButton = new Gtk.Button({
+            image: new Gtk.Image({
+                icon_name: 'go-previous'
+            })
+        });
+        wsCaptionNumber_MoveLeftButton.connect('clicked', function(){
+            self._moveItem('number', 1);
+        });
+        let wsCaptionNumber_MoveRightButton = new Gtk.Button({
+            image: new Gtk.Image({
+                icon_name: 'go-next'
+            })
+        });
+        wsCaptionNumber_MoveRightButton.connect('clicked', function(){
+            self._moveItem('number', -1);
+        });
+
+        //workspaceCaptionNumber.add(wsCaptionNumber);
+        //workspaceCaptionNumber.add(wsCaptionNumberExpand);
+
+
+        // Workspace Captions - Name
+        let workspaceCaptionName = new Gtk.Box({
+            spacing: 20,
+            orientation: Gtk.Orientation.HORIZONTAL,
+            homogeneous: false,
+            margin_left: 20,
+            margin_top: 0,
+            margin_bottom: 0,
+            margin_right: 10
+        });
+        let wsCaptionName =  new Gtk.CheckButton({
+            label: "Show the workspace name",
+            hexpand: true
+        });
+        wsCaptionName.set_active(this._getItemExists('name'));
+        wsCaptionName.connect('toggled', Lang.bind(this, function(check){
+            if (check.get_active()) {
+                this._addItem('name', wsCaptionNameExpand.get_active());
+            } else {
+                this._removeItem('name');
+            }
+        }));
+
+        let wsCaptionNameExpand =  new Gtk.CheckButton({
+            label: "Expand",
+            hexpand: true
+        });
+        wsCaptionNameExpand.set_active(this._getItemExpanded('name'));
+        wsCaptionNameExpand.connect('toggled', Lang.bind(this, function(check){
+            this._setItemExpanded('name', check.get_active());
+        }));
+
+        let wsCaptionName_MoveLeftButton = new Gtk.Button({
+            image: new Gtk.Image({
+                icon_name: 'go-previous'
+            })
+        });
+        wsCaptionName_MoveLeftButton.connect('clicked', function(){
+            self._moveItem('name', 1);
+        });
+        let wsCaptionName_MoveRightButton = new Gtk.Button({
+            image: new Gtk.Image({
+                icon_name: 'go-next'
+            })
+        });
+        wsCaptionName_MoveRightButton.connect('clicked', function(){
+            self._moveItem('name', -1);
+        });
+
+        //workspaceCaptionName.add(wsCaptionName);
+        //workspaceCaptionName.add(wsCaptionNameExpand);
+
+
+        // Workspace Captions - Window Count
+        let workspaceCaptionWindowCount = new Gtk.Box({
+            spacing: 20,
+            orientation: Gtk.Orientation.HORIZONTAL,
+            homogeneous: false,
+            margin_left: 20,
+            margin_top: 0,
+            margin_bottom: 0,
+            margin_right: 10
+        });
+        let wsCaptionWindowCount =  new Gtk.CheckButton({
+            label: "Show the workspace window count",
+            hexpand: true
+        });
+
+        wsCaptionWindowCount.set_active(this._getItemExists('windowcount'));
+        wsCaptionWindowCount.connect('toggled', Lang.bind(this, function(check){
+            if (check.get_active()) {
+                this._addItem('windowcount', wsCaptionWindowCountExpand.get_active());
+            } else {
+                this._removeItem('windowcount');
+            }
+        }));
+
+        let wsCaptionWindowCountUseImage =  new Gtk.CheckButton({
+            label: "Use image",
+            hexpand: true
+        });
+        wsCaptionWindowCountUseImage.set_active(this.settings.get_boolean('workspace-caption-windowcount-image'));
+        wsCaptionWindowCountUseImage.connect('toggled', Lang.bind(this, function(check) {
+            this.settings.set_boolean('workspace-caption-windowcount-image', check.get_active());
+        }));
+
+        let wsCaptionWindowCountExpand =  new Gtk.CheckButton({
+            label: "Expand",
+            hexpand: true
+        });
+
+        wsCaptionWindowCountExpand.set_active(this._getItemExpanded('windowcount'));
+        wsCaptionWindowCountExpand.connect('toggled', Lang.bind(this, function(check){
+            this._setItemExpanded('windowcount', check.get_active());
+        }));
+
+        let wsCaptionWindowCount_MoveLeftButton = new Gtk.Button({
+            image: new Gtk.Image({
+                icon_name: 'go-previous'
+            })
+        });
+        wsCaptionWindowCount_MoveLeftButton.connect('clicked', function(){
+            self._moveItem('windowcount', 1);
+        });
+        let wsCaptionWindowCount_MoveRightButton = new Gtk.Button({
+            image: new Gtk.Image({
+                icon_name: 'go-next'
+            })
+        });
+        wsCaptionWindowCount_MoveRightButton.connect('clicked', function(){
+            self._moveItem('windowcount', -1);
+        });
+
+        //workspaceCaptionWindowCount.add(wsCaptionWindowCount);
+        //workspaceCaptionWindowCount.add(wsCaptionWindowCountExpand);
+
+
+        // Workspace Captions - Spacer
+        let wsCaptionSpacer =  new Gtk.CheckButton({
+            label: "Add a spacer/filler",
+            hexpand: true
+        });
+
+        wsCaptionSpacer.set_active(this._getItemExists('spacer'));
+        wsCaptionSpacer.connect('toggled', Lang.bind(this, function(check){
+            if (check.get_active()) {
+                this._addItem('spacer', wsCaptionSpacerExpand.get_active());
+            } else {
+                this._removeItem('spacer');
+            }
+        }));
+
+        let wsCaptionSpacerExpand =  new Gtk.CheckButton({
+            label: "Expand",
+            hexpand: true
+        });
+
+        wsCaptionSpacerExpand.set_active(this._getItemExpanded('spacer'));
+        wsCaptionSpacerExpand.connect('toggled', Lang.bind(this, function(check){
+            this._setItemExpanded('spacer', check.get_active());
+        }));
+
+        let wsCaptionSpacer_MoveLeftButton = new Gtk.Button({
+            image: new Gtk.Image({
+                icon_name: 'go-previous'
+            })
+        });
+        wsCaptionSpacer_MoveLeftButton.connect('clicked', function(){
+            self._moveItem('spacer', 1);
+        });
+        let wsCaptionSpacer_MoveRightButton = new Gtk.Button({
+            image: new Gtk.Image({
+                icon_name: 'go-next'
+            })
+        });
+        wsCaptionSpacer_MoveRightButton.connect('clicked', function(){
+            self._moveItem('spacer', -1);
+        });
+
+
+
+        this.settings.bind('workspace-captions', workspaceCaptionsGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+
+        
+        
+        workspaceCaptionsGrid.attach(wsCaptionNumber, 0, 1, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionNumberExpand, 2, 1, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionNumber_MoveLeftButton, 3, 1, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionNumber_MoveRightButton, 4, 1, 1, 1);
+        
+        workspaceCaptionsGrid.attach(wsCaptionName, 0, 2, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionNameExpand, 2, 2, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionName_MoveLeftButton, 3, 2, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionName_MoveRightButton, 4, 2, 1, 1);
+        
+        workspaceCaptionsGrid.attach(wsCaptionWindowCount, 0, 3, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionWindowCountUseImage, 1, 3, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionWindowCountExpand, 2, 3, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionWindowCount_MoveLeftButton, 3, 3, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionWindowCount_MoveRightButton, 4, 3, 1, 1);
+        
+        workspaceCaptionsGrid.attach(wsCaptionSpacer, 0, 4, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionSpacerExpand, 2, 4, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionSpacer_MoveLeftButton, 3, 4, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionSpacer_MoveRightButton, 4, 4, 1, 1);
+        
+        workspaceCaptions.add(workspaceCaptionsTitle);
+        workspaceCaptions.add(workspaceCaptionsControl);
+        workspaceCaptions.add(workspaceCaptionsGrid);
+        notebookAdditionalSettings.add(workspaceCaptions);
+        
 
         /* CUSTOM ACTIONS SETTINGS */
 
@@ -380,7 +806,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         
         actions.add(actionsTitle);
         actions.add(actionsMain);
-        frame.add(actions);
+        notebookAdditionalSettings.add(actions);
 
         /* DASH INTEGRATION SETTINGS */
 
@@ -425,12 +851,119 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         
         dashIntegration.add(dashIntegrationTitle);
         dashIntegration.add(dashIntegrationControl);
+        notebookAdditionalSettings.add(dashIntegration);
+
+        notebook.append_page(notebookAdditionalSettings, notebookAdditionalSettingsTitle);
         
-        frame.add(dashIntegration);
 
 
-        this.add(frame);
+        this.add(notebook);
 
+    },
+    
+    _getItemExists: function(item) {
+        let currentItems = this.settings.get_strv('workspace-caption-items');
+        let items = currentItems.map(function(el) {
+            return el.split(':')[0];
+        });
+        
+        let index = items.indexOf(item);
+
+        if (index == -1)
+            return false;
+
+        return true;
+    },
+    
+    _getItemExpanded: function(item) {
+        let currentItems = this.settings.get_strv('workspace-caption-items');
+        let items = currentItems.map(function(el) {
+            return el.split(':')[0];
+        });
+        
+        let index = items.indexOf(item);
+
+        if (index == -1)
+            return false;
+
+        let currentItem = currentItems[index];
+        let expandState = currentItem.split(':')[1];
+        
+        if (expandState == "false")
+            return false
+            
+        return true;
+    },
+    
+    _setItemExpanded: function(item, expandState) {
+        let currentItems = this.settings.get_strv('workspace-caption-items');
+        let items = currentItems.map(function(el) {
+            return el.split(':')[0];
+        });
+        
+        let index = items.indexOf(item);
+
+        if (index == -1)
+            return false;
+
+        currentItems[index] = item + ":" + expandState;
+        this.settings.set_strv('workspace-caption-items', currentItems);
+        return true;
+    },
+
+    _addItem: function(item, expandState) {
+        let currentItems = this.settings.get_strv('workspace-caption-items');
+        let items = currentItems.map(function(el) {
+            return el.split(':')[0];
+        });
+        
+        let index = items.indexOf(item);
+
+        if (index != -1)
+            return false;
+
+        let newitem = item + ":" + expandState;
+
+        currentItems.push(newitem);
+        this.settings.set_strv('workspace-caption-items', currentItems);
+        return true;
+    },
+    
+    _removeItem: function(item) {
+        let currentItems = this.settings.get_strv('workspace-caption-items');
+        let items = currentItems.map(function(el) {
+            return el.split(':')[0];
+        });
+        
+        let index = items.indexOf(item);
+
+        if (index < 0)
+            return false;
+        
+        currentItems.splice(index, 1);
+        this.settings.set_strv('workspace-caption-items', currentItems);
+        return true;
+    },
+    
+    _moveItem: function(item, delta) {
+        let currentItems = this.settings.get_strv('workspace-caption-items');
+        let items = currentItems.map(function(el) {
+            return el.split(':')[0];
+        });
+        
+        let index = items.indexOf(item);
+
+        if (index < 0)
+            return false;
+
+        let newIndex = index + delta;
+        if (newIndex < 0 || newIndex >= currentItems.length || newIndex == index) {
+            return false;
+        }
+
+        currentItems.splice(newIndex, 0, currentItems.splice(index, 1)[0]);
+        this.settings.set_strv('workspace-caption-items', currentItems);
+        return true;
     }
 });
 

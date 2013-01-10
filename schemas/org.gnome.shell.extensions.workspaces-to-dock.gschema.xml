@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist gettext-domain="gnome-shell-extensions">
-  <enum id='org.gnome.shell.extensions.workspaces-to-dock.IntellihideMode'>
-    <value value='0' nick='hide'/>
-    <value value='1' nick='show'/>
-    <value value='2' nick='autohide'/>
-    <value value='3' nick='intellihide'/>
+  <enum id='org.gnome.shell.extensions.workspaces-to-dock.HorizontalPositions'>
+    <value value='0' nick='left'/>
+    <value value='1' nick='middle'/>
+    <value value='2' nick='right'/>
   </enum>
-
   <schema path="/org/gnome/shell/extensions/workspaces-to-dock/" id="org.gnome.shell.extensions.workspaces-to-dock">
+    <key type="b" name="dock-fixed">
+      <default>false</default>
+      <summary>Dock always visible</summary>
+      <description>Dock is always visible</description>
+    </key>
     <key type="d" name="animation-time">
       <default>0.25</default>
       <summary>Animation time</summary>
@@ -19,9 +22,24 @@
       <description>Sets the delay after the mouse reaches the screen border before showing the dock.</description>
     </key>
     <key type="d" name="hide-delay">
-      <default>0.2</default>
+      <default>0.1</default>
       <summary>Show delay</summary>
       <description>Sets the delay after the mouse left the dock before hiding it.</description>
+    </key>
+    <key type="b" name="autohide">
+      <default>true</default>
+      <summary>Dock shown on mouse over</summary>
+      <description>Enable or disable autohide mode</description>
+    </key>
+    <key type="b" name="intellihide">
+      <default>true</default>
+      <summary>Dock dodges windows</summary>
+      <description>Enable or disable intellihide mode</description>
+    </key>
+    <key type="i" name="intellihide-option">
+      <default>0</default>
+      <summary>Intellihide mode options</summary>
+      <description>Select type of intellihide mode</description>
     </key>
     <key type="b" name="opaque-background">
       <default>true</default>
@@ -38,35 +56,35 @@
       <summary>Opacity of the workspaces background</summary>
       <description>Sets the opacity of the workspaces background  when in autohide mode.</description>
     </key>
-    <key type="b" name="intellihide">
-      <default>true</default>
-      <summary>Dock dodges windows</summary>
-      <description>Enable or disable intellihide mode</description>
+    <key type="i" name="preferred-monitor">
+      <default>-1</default>
+      <summary>Monitor on which to put the dock</summary>
+      <description>Choose on which monitor to put the dock, use -1 for the primary one</description>
     </key>
-    <key type="i" name="intellihide-option">
-      <default>0</default>
-      <summary>Intellihide mode options</summary>
-      <description>Select type of intellihide mode</description>
-    </key>
-    <key type="b" name="autohide">
-      <default>true</default>
-      <summary>Dock shown on mouse over</summary>
-      <description>Enable or disable autohide mode</description>
-    </key>
-    <key type="b" name="dock-fixed">
+    <key type="b" name="workspace-captions">
       <default>false</default>
-      <summary>Dock always visible</summary>
-      <description>Dock is always visible</description>
+      <summary>Show workspace captions</summary>
+      <description>Enable or disable workspace captions.</description>
     </key>
-    <key type="b" name="dashtodock-hover">
-      <default>false</default>
-      <summary>Dock shown on Dash-To-Dock mouse over</summary>
-      <description>Enable or disable Dash-To-Dock hover mode</description>
+    <key type="as" name="workspace-caption-items">
+      <default>['name:false', 'spacer:true', 'windowcount:false', 'number:false']</default>
+      <summary>List of items placed in caption</summary>
+      <description>List of items placed in the caption - allowed items are number, name, windowcount, and spacer.</description>
+    </key>
+    <key type="b" name="workspace-caption-windowcount-image">
+      <default>true</default>
+      <summary>Show workspace window count labels</summary>
+      <description>Enable or disable workspace window count labels.</description>
     </key>
     <key type="b" name="toggle-overview">
       <default>false</default>
       <summary>Toggle overview mode</summary>
       <description>Toggle overview mode with right click</description>
+    </key>
+    <key type="b" name="dashtodock-hover">
+      <default>false</default>
+      <summary>Dock shown on Dash-To-Dock mouse over</summary>
+      <description>Enable or disable Dash-To-Dock hover mode</description>
     </key>
   </schema>
 </schemalist>
