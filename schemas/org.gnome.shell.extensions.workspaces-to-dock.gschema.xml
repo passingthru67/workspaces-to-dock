@@ -67,7 +67,7 @@
       <description>Enable or disable workspace captions.</description>
     </key>
     <key type="as" name="workspace-caption-items">
-      <default>['number:false', 'spacer:true', 'windowcount:false']</default>
+      <default>['name:false', 'spacer:true', 'windowcount:false', 'number:false']</default>
       <summary>List of items placed in caption</summary>
       <description>List of items placed in the caption - allowed items are number, name, windowcount, and spacer.</description>
     </key>

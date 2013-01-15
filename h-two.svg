@@ -9,12 +9,12 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="66"
+   width="38"
    height="22"
    id="svg11252"
    version="1.1"
    inkscape:version="0.48.3.1 r9886"
-   sodipodi:docname="h-three.svg">
+   sodipodi:docname="h-two.svg">
   <metadata
      id="metadata19">
     <rdf:RDF>
@@ -23,7 +23,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -49,8 +49,8 @@
      inkscape:zoom="4.0000001"
      inkscape:cx="21.036051"
      inkscape:cy="35.2558"
-     inkscape:window-x="575"
-     inkscape:window-y="422"
+     inkscape:window-x="516"
+     inkscape:window-y="219"
      inkscape:window-maximized="0"
      inkscape:current-layer="svg11252"
      inkscape:snap-global="false" />
@@ -81,32 +81,6 @@
          inkscape:collect="always"
          stdDeviation="2.967213"
          id="feGaussianBlur3850" />
-    </filter>
-    <filter
-       color-interpolation-filters="sRGB"
-       inkscape:collect="always"
-       id="filter3848-1"
-       x="-0.84364861"
-       width="2.6872971"
-       y="-0.73578483"
-       height="2.4715698">
-      <feGaussianBlur
-         inkscape:collect="always"
-         stdDeviation="2.967213"
-         id="feGaussianBlur3850-2" />
-    </filter>
-    <filter
-       color-interpolation-filters="sRGB"
-       inkscape:collect="always"
-       id="filter3844-0"
-       x="-0.55334961"
-       width="2.1066992"
-       y="-0.48260167"
-       height="1.9652034">
-      <feGaussianBlur
-         inkscape:collect="always"
-         stdDeviation="1.9461966"
-         id="feGaussianBlur3846-9" />
     </filter>
     <filter
        color-interpolation-filters="sRGB"
