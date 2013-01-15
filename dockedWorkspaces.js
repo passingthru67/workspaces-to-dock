@@ -500,7 +500,9 @@ dockedWorkspaces.prototype = {
         //Skip if dock is not in dashtodock hover mode
         if (this._settings.get_boolean('dashtodock-hover') && DashToDock && DashToDock.dock) {
             if (DashToDock.dock._box.hover) {
-                this._show();
+                if (Main.overview.visible == false) {
+                    this._show();
+                }
             } else {
                 this._hide();
             }
@@ -951,11 +953,8 @@ dockedWorkspaces.prototype = {
 
             if (!this.actor.hover || !this._settings.get_boolean('autohide')) {
                 if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - mouse not hovering OR dock not using autohide, so animate out");
-                if (!this._settings.get_boolean('dashtodock-hover') || !DashToDock || !DashToDock.dock || !DashToDock.dock._box.hover) {
-                    if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - dashtodock mouse not hovering OR dock not using dashtodock-hover, so animate out");
-                    this._animateOut(this._settings.get_double('animation-time'), 0);
-                    delay = this._settings.get_double('animation-time');
-                }
+                this._animateOut(this._settings.get_double('animation-time'), 0);
+                delay = this._settings.get_double('animation-time');
             } else {
                 if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - mouse hovering AND dock using autohide, so startWorkspacesShowLoop instead of animate out");
                 // I'm enabling autohide and the workspaces keeps being showed because of mouse hover
