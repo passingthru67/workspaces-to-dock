@@ -134,7 +134,6 @@ const myThumbnailsBox = new Lang.Class({
 
     // override _allocate to provide workspaceThumbnail captions
     _allocate: function(actor, box, flags) {
-        global.log("*thumbnailbox allocate triggered");
         let rtl = (Clutter.get_default_text_direction () == Clutter.TextDirection.RTL);
 
         // See comment about this._background in _init()
@@ -421,7 +420,6 @@ const myThumbnailsBox = new Lang.Class({
 
     // override addThumbnails to provide workspace thumbnail labels
     addThumbnails: function(start, count) {
-        global.log("addThumbnails");
         for (let k = start; k < start + count; k++) {
             let metaWorkspace = global.screen.get_workspace_by_index(k);
             let thumbnail = new WorkspaceThumbnail.WorkspaceThumbnail(metaWorkspace);
@@ -485,29 +483,30 @@ const myThumbnailsBox = new Lang.Class({
                     switch (item) {
                         case "number":
                             wsCaption.add(wsNumber, {x_align: St.Align.END, expand: expandState});
-                            wsNumber.add_constraint(new Clutter.BindConstraint({source: wsCaption, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0})); // negative offset acts as bottom padding to show bottom border of number label
+                            wsNumber.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaption, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
                             break;
                         case "name":
                             wsCaption.add(wsName, {x_align: St.Align.END, expand: expandState});
-                            wsName.add_constraint(new Clutter.BindConstraint({source: wsCaption, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0})); // negative offset acts as bottom padding to show bottom border of name label
+                            wsName.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaption, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
                             break;
                         case "windowcount":
                             wsCaption.add(wsWindowCount, {x_align: St.Align.END, expand: expandState});
-                            wsWindowCount.add_constraint(new Clutter.BindConstraint({source: wsCaption, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0})); // negative offset acts as bottom padding to show bottom border of windowcount label
+                            wsWindowCount.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaption, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
                             break;
                         case "spacer":
                             wsCaption.add(wsSpacer, {x_align: St.Align.END, expand: expandState});
-                            wsSpacer.add_constraint(new Clutter.BindConstraint({source: wsCaption, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0})); // negative offset acts as bottom padding to show bottom border of spacer label
+                            wsSpacer.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaption, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
                             break;
                     }
                     
                 }
 
                 wsCaptionContainer.add_actor(wsCaption);
-                wsCaptionContainer.set_style("border: 0px solid rgba(0,0,0,0.0)"); // container borders causes caption to push up requiring negative constraint offsets above that match border with (1px border = -1 offset)
-                //wsCaptionContainer.set_style("padding: 0px 0px 1px 0px"); // bottom padding needed to show bottom border of caption (gets cut off by 1px due to _allocate design)
+                //wsCaption.set_style("border: 0px solid rgba(0,0,0,0.0)"); // container borders causes caption to push up requiring negative constraint offsets above that match border with (1px border = -1 offset)
+                wsCaption.connect("realize", Lang.bind(this, this._initThumbnailCaptions));
                 thumbnail.actor.add_actor(wsCaptionContainer);
-                
+                                
+
                 // Make thumbnail background transparent so that it doesn't show through
                 // on edges where border-radius is set on caption
                 thumbnail.actor.set_style("background-color: rgba(0,0,0,0.0)");
@@ -630,6 +629,25 @@ const myThumbnailsBox = new Lang.Class({
             if (wsSpacer) wsSpacer.remove_style_class_name('workspacestodock-caption-spacer-current');
         }
 
+    },
+    
+    _initThumbnailCaptions: function(actor) {
+        let caption = actor;
+        let themeNode = caption.get_theme_node();
+        
+        // Get caption top and bottom border width
+        let topBorderWidth = themeNode.get_border_width(St.Side.TOP);
+        let bottomBorderWidth = themeNode.get_border_width(St.Side.BOTTOM);
+        
+        // Set constraint offsets of caption items to negative
+        // a negative constraint offset acts as bottom padding to align items with bottom border of caption
+        let childOffset = (topBorderWidth + bottomBorderWidth) * -1;
+        
+        let children = caption.get_children();
+        for (let i = 0; i < children.length; i++) {
+            let constraint = children[i].get_constraint('constraint');
+            constraint.set_offset(childOffset);
+        }
     }
 
     
