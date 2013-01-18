@@ -289,7 +289,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
 
         let opaqueLayerLabel = new Gtk.Label({
-            label: "Add an opaque layer below the dock",
+            label: "Customize the dock background opacity",
             xalign: 0,
             hexpand: true
         });
@@ -316,7 +316,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
 
         let layerOpacityLabel = new Gtk.Label({
-            label: "Layer opacity",
+            label: "Opacity",
             use_markup: true,
             xalign: 0
         });
@@ -336,12 +336,12 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }));
 
         let opaqueLayeralwaysVisible = new Gtk.CheckButton({
-            label: "always visible",
+            label: "only when in autohide",
             margin_left: 20
         });
-        opaqueLayeralwaysVisible.set_active(this.settings.get_boolean('opaque-background-always'));
+        opaqueLayeralwaysVisible.set_active(!this.settings.get_boolean('opaque-background-always'));
         opaqueLayeralwaysVisible.connect('toggled', Lang.bind(this, function(check) {
-            this.settings.set_boolean('opaque-background-always', check.get_active());
+            this.settings.set_boolean('opaque-background-always', !check.get_active());
         }));
 
         this.settings.bind('opaque-background', opaqueLayerMain, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
