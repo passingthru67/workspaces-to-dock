@@ -65,6 +65,10 @@ dockedWorkspaces.prototype = {
         // initialize animation status object
         this._animStatus = new animationStatus(true);
 
+        // initialize colors with generic values
+        this._defaultBackground = {red:0, green:0, blue:0};
+        this._customBackground = {red:0, green:0, blue:0};
+
 		// Override Gnome Shell functions
 		this._overrideGnomeShellFunctions();
 
@@ -93,15 +97,6 @@ dockedWorkspaces.prototype = {
                 });
             }
         }
-
-        // Create the background box and set opacity
-        this._backgroundBox = new St.Bin({
-            name: 'workspacestodockBackground',
-            reactive: false,
-            y_align: St.Align.START,
-            style_class: 'workspace-thumbnails-background'
-        });
-        this._backgroundBox.set_style('background-color: rgba(1,1,1,' + this._settings.get_double('background-opacity') + ')');
 
         // Create the staticbox that stores the size and position where the dock is shown for determining window overlaps
         // note: used by intellihide module to check window overlap
@@ -162,6 +157,11 @@ dockedWorkspaces.prototype = {
                 'workspace-switched',
                 Lang.bind(this, this._workspacesRestacked)
             ],
+            [
+                St.ThemeContext.get_for_stage(global.stage),
+                'changed',
+                Lang.bind(this, this._onThemeChanged)
+            ],
             //[
             //    Main.messageTray.actor,
             //    'notify::height',
@@ -199,8 +199,7 @@ dockedWorkspaces.prototype = {
         //this.actor.hide(); but I need to access its width, so I use opacity
         this.actor.set_opacity(0);
 
-        // Add workspaces and backgroundBox to the main container actor and then to the Chrome.
-        this.actor.add_actor(this._backgroundBox);
+        // Add workspaces and to the main container actor and then to the Chrome.
         this.actor.add_actor(this._thumbnailsBox.actor);
 
         Main.layoutManager.addChrome(this.actor, {
@@ -244,6 +243,10 @@ dockedWorkspaces.prototype = {
         this._disableRedisplay = false;
         if (_DEBUG_) global.log("dockedWorkspaces: initialize - turn on redisplay");
         
+        // Now that the dock is on the stage and custom themes are loaded
+        // retrieve background color and set background opacity
+        this._updateBackgroundOpacity();
+
         // Not really required because thumbnailsBox width signal will trigger a redisplay
         // Also found GS3.6 crashes returning from lock screen (Ubuntu GS Remix)
         //this._redisplay();
@@ -432,7 +435,7 @@ dockedWorkspaces.prototype = {
         }));
 
         this._settings.connect('changed::background-opacity', Lang.bind(this, function() {
-            this._backgroundBox.set_style('background-color: rgba(1,1,1,' + this._settings.get_double('background-opacity') + ');padding:0;margin:0;border:0;');
+            this._updateBackgroundOpacity();
         }));
 
         this._settings.connect('changed::opaque-background-always', Lang.bind(this, function() {
@@ -724,25 +727,19 @@ dockedWorkspaces.prototype = {
     // autohide function to fade out opaque background
     _fadeOutBackground: function(time, delay) {
         if (_DEBUG_) global.log("dockedWorkspaces: _fadeOutBackground");
-        Tweener.removeTweens(this._backgroundBox);
-        Tweener.addTween(this._backgroundBox, {
-            opacity: 0,
-            time: time,
-            delay: delay,
-            transition: 'easeOutQuad'
-        });
+        // CSS time is in ms
+        this._thumbnailsBox._background.set_style('transition-duration:' + time*1000 + ';' + 
+            'transition-delay:' + delay*1000 + ';' + 
+            'background-color:' + this._defaultBackground);
     },
 
     // autohide function to fade in opaque background
     _fadeInBackground: function(time, delay) {
         if (_DEBUG_) global.log("dockedWorkspaces: _fadeInBackground");
-        Tweener.removeTweens(this._backgroundBox);
-        Tweener.addTween(this._backgroundBox, {
-            opacity: 255,
-            time: time,
-            delay: delay,
-            transition: 'easeOutQuad'
-        });
+        // CSS time is in ms
+        this._thumbnailsBox._background.set_style('transition-duration:' + time*1000 + ';' + 
+            'transition-delay:' + delay*1000 + ';' + 
+            'background-color:' + this._customBackground);
     },
 
     // This function handles hiding the dock when dock is in stationary-fixed
@@ -790,17 +787,47 @@ dockedWorkspaces.prototype = {
         }
     },
 
+    // retrieve default background color
+    _getBackgroundColor: function() {
+        if (_DEBUG_) global.log("dockedWorkspaces: _getBackgroundColor");
+        // Remove custom style
+        let oldStyle = this._thumbnailsBox._background.get_style();
+        this._thumbnailsBox._background.set_style(null);
+        
+        // Prevent shell crash if the actor is not on the stage
+        // It happens enabling/disabling repeatedly the extension
+        if (!this._thumbnailsBox._background.get_stage())
+            return;
+            
+        let themeNode = this._thumbnailsBox._background.get_theme_node();
+        this._thumbnailsBox._background.set_style(oldStyle);
+        
+        let backgroundColor = themeNode.get_background_color();
+        return backgroundColor;
+    },
+
     // update background opacity based on preferences
     _updateBackgroundOpacity: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _updateBackgroundOpacity");
+        let backgroundColor = this._getBackgroundColor();
+        
+        let newAlpha = this._settings.get_double('background-opacity');
+        this._defaultBackground = "rgba(" + backgroundColor.red + "," + backgroundColor.green + "," + backgroundColor.blue + "," + Math.round(backgroundColor.alpha/2.55)/100 + ")";
+        this._customBackground = "rgba(" + backgroundColor.red + "," + backgroundColor.green + "," + backgroundColor.blue + "," + newAlpha + ")";
+        
         if (this._settings.get_boolean('opaque-background') && (this._autohideStatus || this._settings.get_boolean('opaque-background-always'))) {
-            this._backgroundBox.show();
             this._fadeInBackground(this._settings.get_double('animation-time'), 0);
         } else if (!this._settings.get_boolean('opaque-background') || (!this._autohideStatus && !this._settings.get_boolean('opaque-background-always'))) {
             this._fadeOutBackground(this._settings.get_double('animation-time'), 0);
         }
     },
 
+    // handler for theme changes
+    _onThemeChanged: function() {
+        if (_DEBUG_) global.log("dockedWorkspaces: _onThemeChanged");
+        this._updateBackgroundOpacity();
+    },
+    
     // resdiplay dock called if size-position changed due to dock resizing
     _redisplay: function() {
 		if (this._disableRedisplay)
@@ -869,9 +896,6 @@ dockedWorkspaces.prototype = {
 
         this._thumbnailsBox.actor.set_position(1, 0); // position inside actor
         this._thumbnailsBox.actor.height = height;
-
-        this._backgroundBox.set_position(1, 1); // position inside actor
-        this._backgroundBox.set_size(this._thumbnailsBox.actor.width, height - 2);
     },
     
     // 'Hard' reset dock positon: called on start and when monitor changes
