@@ -466,6 +466,8 @@ dockedWorkspaces.prototype = {
             this.emit('box-changed');
         }));
         
+        this._settings.connect('changed::preferred-monitor', Lang.bind(this, this._resetPosition));
+        
         this._settings.connect('changed::workspace-captions', Lang.bind(this, function() {
             this._thumbnailsBox.hide();
             this._thumbnailsBox.show();
@@ -875,7 +877,8 @@ dockedWorkspaces.prototype = {
     // 'Hard' reset dock positon: called on start and when monitor changes
     _resetPosition: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _resetPosition");
-        this._monitor = Main.layoutManager.primaryMonitor;
+        this._monitor = this._getMonitor();
+        
         this._updateSize();
 
         let x = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - 1;
@@ -894,6 +897,20 @@ dockedWorkspaces.prototype = {
         this._updateClip();
     },
 
+    // Retrieve the preferred monitor
+    _getMonitor: function() {
+        let monitorIndex = this._settings.get_int('preferred-monitor');
+        let monitor;
+        
+        if (monitorIndex > 0 && monitorIndex < Main.layoutManager.monitors.length) {
+            monitor = Main.layoutManager.monitors[monitorIndex];
+        } else {
+            monitor = Main.layoutManager.primaryMonitor;
+        }
+        
+        return monitor;
+    },
+    
     // Utility function to make the dock clipped to the primary monitor
     // clip dock to its original allocation along x and to the current monitor along y
     // the current monitor; inspired by dock@gnome-shell-extensions.gcampax.github.com
