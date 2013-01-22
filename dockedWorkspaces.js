@@ -9,7 +9,7 @@
  * ========================================================================================================
  */
 
-const _DEBUG_ = true;
+const _DEBUG_ = false;
 
 const Clutter = imports.gi.Clutter;
 const Lang = imports.lang;
@@ -864,17 +864,38 @@ dockedWorkspaces.prototype = {
     // update the dock size
     _updateSize: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _updateSize");
+
+        // check if the dock is on the primary monitor
+        let primary = false;
+        if (this._monitor.x == Main.layoutManager.primaryMonitor.x && this._monitor.y == Main.layoutManager.primaryMonitor.y)
+            primary = true;
+
+        
         let x = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - 1;
         let x2 = this._monitor.x + this._monitor.width - 1;
-        let y = this._monitor.y + Main.overview._viewSelector.actor.y + Main.overview._viewSelector._pageArea.y;
+        
+        let y;
+        if (primary) {
+            y = this._monitor.y + Main.overview._viewSelector.actor.y + Main.overview._viewSelector._pageArea.y;
+        } else {
+            y = this._monitor.y + Main.overview._viewSelector.actor.y;
+        }
         
         let height;
         switch (this._gsCurrentVersion[1]) {
             case"4":
-                height = Main.overview._viewSelector._pageArea.height;
+                if (primary) {
+                    height = Main.overview._viewSelector._pageArea.height;
+                } else {
+                    height = this._monitor.height - (Main.overview._viewSelector.actor.y + Main.messageTray.actor.height);
+                }
                 break;
             case"6":
-                height = this._monitor.height - (this._monitor.y + Main.overview._viewSelector.actor.y + Main.overview._viewSelector._pageArea.y + (Main.overview._viewSelector.actor.y/2) + Main.messageTray.actor.height);
+                if (primary) {
+                    height = this._monitor.height - (this._monitor.y + Main.overview._viewSelector.actor.y + Main.overview._viewSelector._pageArea.y + (Main.overview._viewSelector.actor.y/2) + Main.messageTray.actor.height);
+                } else {
+                    height = this._monitor.height - (Main.overview._viewSelector.actor.y + Main.messageTray.actor.height);
+                }
                 break;
             default:
                 throw new Error("Unknown version number (dockedWorkspaces.js).");
@@ -902,12 +923,23 @@ dockedWorkspaces.prototype = {
     _resetPosition: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _resetPosition");
         this._monitor = this._getMonitor();
-        
+
         this._updateSize();
+
+        // check if the dock is on the primary monitor
+        let primary = false;
+        if (this._monitor.x == Main.layoutManager.primaryMonitor.x && this._monitor.y == Main.layoutManager.primaryMonitor.y)
+            primary = true;
 
         let x = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - 1;
         let x2 = this._monitor.x + this._monitor.width - 1;
-        let y = this._monitor.y + Main.overview._viewSelector.actor.y + Main.overview._viewSelector._pageArea.y;
+        
+        let y;
+        if (primary) {
+            y = this._monitor.y + Main.overview._viewSelector.actor.y + Main.overview._viewSelector._pageArea.y;
+        } else {
+            y = this._monitor.y + Main.overview._viewSelector.actor.y;
+        }
         
         if (this._settings.get_boolean('dock-fixed')) {
             //position on the screen (right side) so that its initial show is not animated
