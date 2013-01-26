@@ -470,12 +470,6 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         workspaceCaptionsControl.add(workspaceCaptionsSwitch);
 
 
-        //let workspaceCaptionsMain = new Gtk.Grid({
-        //    orientation: Gtk.Orientation.HORIZONTAL,
-        //});
-
-
-
         let workspaceCaptionsGrid = new Gtk.Grid({
             row_homogeneous: true,
             column_homogeneous: false,
@@ -483,43 +477,15 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             margin_right: 10
         });
 
-        
-        // Workspace Captions - Allocated Height
-        
-        
-        //// Workspace Captions - Packing
-        //let workspaceCaptionPacking = new Gtk.Box({
-            //spacing: 20,
-            //orientation: Gtk.Orientation.HORIZONTAL,
-            //homogeneous: false,
-            //margin_left: 20,
-            //margin_top: 0,
-            //margin_bottom: 0,
-            //margin_right: 10
-        //});
-        //let wsCaptionPackingLabel = new Gtk.Label({
-            //label: "Position order of the caption components",
-            //xalign: 0,
-            //hexpand: true,
-            //margin_left: 0
-        //});
-        //let wsCaptionPackingCombo = new Gtk.ComboBoxText({halign:Gtk.Align.END});
-            //wsCaptionPackingCombo.append_text('number - windowcount - name');
-            //wsCaptionPackingCombo.append_text('number - name - windowcount');
-            //wsCaptionPackingCombo.append_text('name - windowcount - number');
-            //wsCaptionPackingCombo.append_text('name - number - windowcount');
-            //wsCaptionPackingCombo.append_text('windowcount - name - number');
-            //wsCaptionPackingCombo.append_text('windowcount - number - name');
-
-            //wsCaptionPackingCombo.set_active(this.settings.get_enum('workspace-caption-packing'));
-            //wsCaptionPackingCombo.connect('changed', Lang.bind (this, function(widget) {
-                    //this.settings.set_enum('workspace-caption-packing', widget.get_active());
-            //}));
-            
-
-        //workspaceCaptionPacking.add(wsCaptionPackingLabel);
-        //workspaceCaptionPacking.add(wsCaptionPackingCombo);
-
+        // Workspace Captions - User Theme Support
+        let wsCaptionThemeSupport =  new Gtk.CheckButton({
+            label: "User theme supports workspaces-to-dock captions",
+            hexpand: true
+        });
+        wsCaptionThemeSupport.set_active(this.settings.get_boolean('workspace-captions-support'));
+        wsCaptionThemeSupport.connect('toggled', Lang.bind(this, function(check){
+            this.settings.set_boolean('workspace-captions-support', check.get_active());
+        }));
 
         // Workspace Captions - Number
         let workspaceCaptionNumber = new Gtk.Box({
@@ -570,10 +536,6 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             self._moveItem('number', -1);
         });
 
-        //workspaceCaptionNumber.add(wsCaptionNumber);
-        //workspaceCaptionNumber.add(wsCaptionNumberExpand);
-
-
         // Workspace Captions - Name
         let workspaceCaptionName = new Gtk.Box({
             spacing: 20,
@@ -622,10 +584,6 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         wsCaptionName_MoveRightButton.connect('clicked', function(){
             self._moveItem('name', -1);
         });
-
-        //workspaceCaptionName.add(wsCaptionName);
-        //workspaceCaptionName.add(wsCaptionNameExpand);
-
 
         // Workspace Captions - Window Count
         let workspaceCaptionWindowCount = new Gtk.Box({
@@ -687,13 +645,9 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             self._moveItem('windowcount', -1);
         });
 
-        //workspaceCaptionWindowCount.add(wsCaptionWindowCount);
-        //workspaceCaptionWindowCount.add(wsCaptionWindowCountExpand);
-
-
         // Workspace Captions - Spacer
         let wsCaptionSpacer =  new Gtk.CheckButton({
-            label: "Add a spacer/filler",
+            label: "Show a spacer/filler",
             hexpand: true
         });
 
@@ -734,34 +688,35 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
 
 
-
         this.settings.bind('workspace-captions', workspaceCaptionsGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
 
+        workspaceCaptionsGrid.attach(wsCaptionThemeSupport, 0, 1, 2, 1);        
+
+        workspaceCaptionsGrid.attach(wsCaptionNumber, 0, 2, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionNumberExpand, 2, 2, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionNumber_MoveLeftButton, 3, 2, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionNumber_MoveRightButton, 4, 2, 1, 1);
         
+        workspaceCaptionsGrid.attach(wsCaptionName, 0, 3, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionNameExpand, 2, 3, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionName_MoveLeftButton, 3, 3, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionName_MoveRightButton, 4, 3, 1, 1);
         
-        workspaceCaptionsGrid.attach(wsCaptionNumber, 0, 1, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionNumberExpand, 2, 1, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionNumber_MoveLeftButton, 3, 1, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionNumber_MoveRightButton, 4, 1, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionWindowCount, 0, 4, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionWindowCountUseImage, 1, 4, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionWindowCountExpand, 2, 4, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionWindowCount_MoveLeftButton, 3, 4, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionWindowCount_MoveRightButton, 4, 4, 1, 1);
         
-        workspaceCaptionsGrid.attach(wsCaptionName, 0, 2, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionNameExpand, 2, 2, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionName_MoveLeftButton, 3, 2, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionName_MoveRightButton, 4, 2, 1, 1);
-        
-        workspaceCaptionsGrid.attach(wsCaptionWindowCount, 0, 3, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionWindowCountUseImage, 1, 3, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionWindowCountExpand, 2, 3, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionWindowCount_MoveLeftButton, 3, 3, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionWindowCount_MoveRightButton, 4, 3, 1, 1);
-        
-        workspaceCaptionsGrid.attach(wsCaptionSpacer, 0, 4, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionSpacerExpand, 2, 4, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionSpacer_MoveLeftButton, 3, 4, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionSpacer_MoveRightButton, 4, 4, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionSpacer, 0, 5, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionSpacerExpand, 2, 5, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionSpacer_MoveLeftButton, 3, 5, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionSpacer_MoveRightButton, 4, 5, 1, 1);
+
         
         workspaceCaptions.add(workspaceCaptionsTitle);
         workspaceCaptions.add(workspaceCaptionsControl);
+        workspaceCaptions.add(wsCaptionThemeSupport);
         workspaceCaptions.add(workspaceCaptionsGrid);
         notebookAdditionalSettings.add(workspaceCaptions);
         

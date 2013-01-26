@@ -11,6 +11,8 @@
 
 const _DEBUG_ = false;
 
+const GLib = imports.gi.GLib;
+
 const Clutter = imports.gi.Clutter;
 const Lang = imports.lang;
 const Shell = imports.gi.Shell;
@@ -18,6 +20,7 @@ const Signals = imports.signals;
 const St = imports.gi.St;
 const Mainloop = imports.mainloop;
 const Meta = imports.gi.Meta;
+
 
 const Main = imports.ui.main;
 const WorkspacesView = imports.ui.workspacesView;
@@ -68,6 +71,7 @@ dockedWorkspaces.prototype = {
         // initialize colors with generic values
         this._defaultBackground = {red:0, green:0, blue:0};
         this._customBackground = {red:0, green:0, blue:0};
+        this._cssStylesheet = null;
 
 		// Override Gnome Shell functions
 		this._overrideGnomeShellFunctions();
@@ -244,8 +248,9 @@ dockedWorkspaces.prototype = {
         if (_DEBUG_) global.log("dockedWorkspaces: initialize - turn on redisplay");
         
         // Now that the dock is on the stage and custom themes are loaded
-        // retrieve background color and set background opacity
+        // retrieve background color and set background opacity and load workspace caption css
         this._updateBackgroundOpacity();
+        this._onThemeSupportChanged();
 
         // Not really required because thumbnailsBox width signal will trigger a redisplay
         // Also found GS3.6 crashes returning from lock screen (Ubuntu GS Remix)
@@ -482,6 +487,10 @@ dockedWorkspaces.prototype = {
         this._settings.connect('changed::workspace-caption-windowcount-image', Lang.bind(this, function() {
             this._thumbnailsBox.hide();
             this._thumbnailsBox.show();
+        }));
+        
+        this._settings.connect('changed::workspace-captions-support', Lang.bind(this, function() {
+            this._onThemeSupportChanged();
         }));
 
     },
@@ -797,7 +806,7 @@ dockedWorkspaces.prototype = {
         // Prevent shell crash if the actor is not on the stage
         // It happens enabling/disabling repeatedly the extension
         if (!this._thumbnailsBox._background.get_stage())
-            return;
+            return null;
             
         let themeNode = this._thumbnailsBox._background.get_theme_node();
         this._thumbnailsBox._background.set_style(oldStyle);
@@ -811,17 +820,42 @@ dockedWorkspaces.prototype = {
         if (_DEBUG_) global.log("dockedWorkspaces: _updateBackgroundOpacity");
         let backgroundColor = this._getBackgroundColor();
         
-        let newAlpha = this._settings.get_double('background-opacity');
-        this._defaultBackground = "rgba(" + backgroundColor.red + "," + backgroundColor.green + "," + backgroundColor.blue + "," + Math.round(backgroundColor.alpha/2.55)/100 + ")";
-        this._customBackground = "rgba(" + backgroundColor.red + "," + backgroundColor.green + "," + backgroundColor.blue + "," + newAlpha + ")";
-        
-        if (this._settings.get_boolean('opaque-background') && (this._autohideStatus || this._settings.get_boolean('opaque-background-always'))) {
-            this._fadeInBackground(this._settings.get_double('animation-time'), 0);
-        } else if (!this._settings.get_boolean('opaque-background') || (!this._autohideStatus && !this._settings.get_boolean('opaque-background-always'))) {
-            this._fadeOutBackground(this._settings.get_double('animation-time'), 0);
+        if (backgroundColor) {
+            let newAlpha = this._settings.get_double('background-opacity');
+            this._defaultBackground = "rgba(" + backgroundColor.red + "," + backgroundColor.green + "," + backgroundColor.blue + "," + Math.round(backgroundColor.alpha/2.55)/100 + ")";
+            this._customBackground = "rgba(" + backgroundColor.red + "," + backgroundColor.green + "," + backgroundColor.blue + "," + newAlpha + ")";
+            
+            if (this._settings.get_boolean('opaque-background') && (this._autohideStatus || this._settings.get_boolean('opaque-background-always'))) {
+                this._fadeInBackground(this._settings.get_double('animation-time'), 0);
+            } else if (!this._settings.get_boolean('opaque-background') || (!this._autohideStatus && !this._settings.get_boolean('opaque-background-always'))) {
+                this._fadeOutBackground(this._settings.get_double('animation-time'), 0);
+            }
         }
     },
 
+    // handler for workspace captions theme support changes
+    _onThemeSupportChanged: function() {
+        if (_DEBUG_) global.log("dockedWorkspaces: _onThemeSupportChanged");
+        let cssPath = GLib.build_filenamev([Me.path,'workspace-captions.css']);
+        if (!GLib.file_test(cssPath, GLib.FileTest.EXISTS)) {
+            return;
+        }
+
+        let themeContext = St.ThemeContext.get_for_stage(global.stage);
+        let currentTheme = themeContext.get_theme();
+
+        if (this._settings.get_boolean('workspace-captions-support')) {
+            // unload workspace captions css
+            currentTheme.unload_stylesheet(cssPath);
+        } else {
+            // load workspace captions css
+            currentTheme.load_stylesheet(cssPath);
+        }
+
+        this._thumbnailsBox.hide();
+        this._thumbnailsBox.show();
+    },
+    
     // handler for theme changes
     _onThemeChanged: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _onThemeChanged");

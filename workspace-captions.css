@@ -1,75 +1,94 @@
 /* workspace caption container */
 .workspacestodock-workspace-caption {
-    background-color: rgba(0,0,0,0.4);
-    border: 1px solid rgba(128, 128, 128, 0.4);
+    background-gradient-start: rgba(10,10,10,0.4);
+    background-gradient-end: rgba(10,10,10,0.4);
+    border: 1px solid rgba(128,128,128,0.2);
     border-radius: 0px 0px 2px 2px;
 }
 
 /* caption workspace number */
 .workspacestodock-caption-number {
-    color: rgba(0,0,0,1.0);
-    background-color: rgba(255,255,255,0.7);
-    font-size: 12px;
+    color: rgba(0,0,0,0.7);
+    background-gradient-start: rgba(255,255,255,0.2);
+    background-gradient-end: rgba(255,255,255,0.3);
+    background-gradient-direction: vertical;
+    font-size: 10px;
     font-weight: bold;
     text-align: center;
-    padding: 0px 6px;
+    padding: 1px 8px 0px 8px;
+    border-radius: 1px;
 }
 
 /* caption workspace name */
 .workspacestodock-caption-name {
-    color: rgba(255,255,255,1.0);
+    color: rgba(150,150,150,0.8);
+    color: rgba(255,255,255,0.3);
     font-size: 10px;
     font-weight: bold;
     text-align: center;
-    padding: 1px 6px 0px 6px;
+    padding: 1px 8px 0px 8px;
 }
 
 /* caption workspace windowcount */
 .workspacestodock-caption-windowcount {
-    min-width: 10px;
-    color: rgba(255,255,255,1.0);
-    background-color: rgba(100,100,100,0.4);
-    font-size: 12px;
+    min-width: 7px;
+	color: rgba(150,150,150,0.8);
+    background-color: rgba(10,10,10,0.2);
+    font-size: 10px;
     font-weight: bold;
     text-align: center;
-    padding: 0px 4px;
-    border-radius: 8px;
+    padding: 1px 8px 0px 8px;
+    border-radius: 1px;
 }
 
 /* caption workspace windowcount image*/
 .workspacestodock-caption-windowcount-image {
+    width: 26px;
+    height: 16px;
+    background-position: 4px 0px;
 }
 
 /* The classes below are used in conjunction with the above workspacestodock-caption-windowcount-image 
  * They provide background images that corespond with the window count */
 .workspacestodock-caption-windowcount-image-1 {
     background-image: url('h-one.svg');
-    width: 33px;
 }
 .workspacestodock-caption-windowcount-image-2 {
     background-image: url('h-two.svg');
-    width: 48px;
 }
 .workspacestodock-caption-windowcount-image-3 {
     background-image: url('h-three.svg');
-    width: 63px;
 }
 .workspacestodock-caption-windowcount-image-4 {
     background-image: url('h-four.svg');
-    width: 76px;
 }
 
 /* caption spacer-filler */
 .workspacestodock-caption-spacer {
+    border: 1px solid rgba(0, 0, 0, 0.0);
+    width: 1px;
 }
 
 /* The classes below are used in conjuction with the above classes
  * They provide additional theming for the current workspace caption */
 .workspacestodock-workspace-caption-current {
+    background-gradient-start: rgba(0,0,0,0.5);
+    background-gradient-end: rgba(0,0,0,0.5);
+    background-gradient-direction: vertical;
+    border: 1px solid rgba(0,0,0,0.4);
 }
 .workspacestodock-caption-number-current {
+    color: rgba(0,0,0,0.9);
+    background-gradient-start: rgba(255,255,255,0.6);
+    background-gradient-end: rgba(255,255,255,0.7);
+    background-gradient-direction: vertical;
 }
 .workspacestodock-caption-name-current {
+    color: rgba(255,255,255,0.8);
 }
 .workspacestodock-caption-windowcount-current {
+    color: rgba(255,255,255,0.8);
+    background-color: rgba(10,10,10,0.4);
+}
+.workspacestodock-caption-windowcount-image-current {
 }

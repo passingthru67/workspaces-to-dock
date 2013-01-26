@@ -475,7 +475,7 @@ const myThumbnailsBox = new Lang.Class({
                 
                 let currentItems = this._settings.get_strv('workspace-caption-items');
 
-                for (i = 0; i < currentItems.length; i++) {
+                for (let i = 0; i < currentItems.length; i++) {
                     let elements = currentItems[i].split(':');
                     let item = elements[0]
                     let expandState = (elements[1] == "true"? true: false);
@@ -619,13 +619,25 @@ const myThumbnailsBox = new Lang.Class({
             if (wsCaption) wsCaption.add_style_class_name('workspacestodock-workspace-caption-current');
             if (wsNumber) wsNumber.add_style_class_name('workspacestodock-caption-number-current');
             if (wsName) wsName.add_style_class_name('workspacestodock-caption-name-current');
-            if (wsWindowCount) wsWindowCount.add_style_class_name('workspacestodock-caption-windowcount-current');
+            if (wsWindowCount) {
+                if (this._settings.get_boolean('workspace-caption-windowcount-image')) {
+                    wsWindowCount.add_style_class_name('workspacestodock-caption-windowcount-image-current');
+                } else {
+                    wsWindowCount.add_style_class_name('workspacestodock-caption-windowcount-current');
+                }
+            }
             if (wsSpacer) wsSpacer.add_style_class_name('workspacestodock-caption-spacer-current');
         } else {
             if (wsCaption) wsCaption.remove_style_class_name('workspacestodock-workspace-caption-current');
             if (wsNumber) wsNumber.remove_style_class_name('workspacestodock-caption-number-current');
             if (wsName) wsName.remove_style_class_name('workspacestodock-caption-name-current');
-            if (wsWindowCount) wsWindowCount.remove_style_class_name('workspacestodock-caption-windowcount-current');
+            if (wsWindowCount) {
+                if (this._settings.get_boolean('workspace-caption-windowcount-image')) {
+                    wsWindowCount.remove_style_class_name('workspacestodock-caption-windowcount-image-current');
+                } else {
+                    wsWindowCount.remove_style_class_name('workspacestodock-caption-windowcount-current');
+                }
+            }
             if (wsSpacer) wsSpacer.remove_style_class_name('workspacestodock-caption-spacer-current');
         }
 

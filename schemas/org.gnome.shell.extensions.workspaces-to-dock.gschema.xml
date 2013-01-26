@@ -62,12 +62,17 @@
       <description>Choose on which monitor to put the dock, use -1 for the primary one</description>
     </key>
     <key type="b" name="workspace-captions">
-      <default>false</default>
+      <default>true</default>
       <summary>Show workspace captions</summary>
       <description>Enable or disable workspace captions.</description>
     </key>
+    <key type="b" name="workspace-captions-support">
+      <default>false</default>
+      <summary>User theme supports workspace captions</summary>
+      <description>Enable or disable user theme support - Enable if workspace caption support is provided by user theme.</description>
+    </key>
     <key type="as" name="workspace-caption-items">
-      <default>['name:false', 'spacer:true', 'windowcount:false', 'number:false']</default>
+      <default>['windowcount:false', 'spacer:true', 'number:false']</default>
       <summary>List of items placed in caption</summary>
       <description>List of items placed in the caption - allowed items are number, name, windowcount, and spacer.</description>
     </key>
