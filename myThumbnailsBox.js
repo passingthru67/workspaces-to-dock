@@ -150,7 +150,7 @@ const myThumbnailsBox = new Lang.Class({
         // passingthru67 - Caption area below thumbnail used to display thumbnail labels
         let captionHeight = 0;
         if (this._settings.get_boolean('workspace-captions'))
-            captionHeight = 19;
+            captionHeight = 20; // was 19
         
         spacing = spacing + captionHeight;
         

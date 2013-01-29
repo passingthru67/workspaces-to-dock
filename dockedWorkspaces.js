@@ -836,7 +836,7 @@ dockedWorkspaces.prototype = {
     // handler for workspace captions theme support changes
     _onThemeSupportChanged: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _onThemeSupportChanged");
-        let cssPath = GLib.build_filenamev([Me.path,'workspace-captions.css']);
+        let cssPath = GLib.build_filenamev([Me.path, 'captions', 'default', 'workspace-captions.css']);
         if (!GLib.file_test(cssPath, GLib.FileTest.EXISTS)) {
             return;
         }
