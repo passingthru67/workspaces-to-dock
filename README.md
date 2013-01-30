@@ -10,7 +10,7 @@ Installation:
 ------------
 The easiest way to install Workspaces-to-Dock is from https://extensions.gnome.org/extension/427/workspaces-to-dock/ using your browser.
 
-If you would rather install it manually, please download the zip file from the downloads section of Github (https://github.com/passingthru67/workspaces-to-dock/downloads). That zip file contains the same version of the extension as https://extensions.gnome.org and can be installed using Gnome Tweak tool.
+If you would rather install it manually, please download the appropriate zip file from the releases branch on Github (https://github.com/passingthru67/workspaces-to-dock/tree/releases). That zip file contains the same non-debug version of the extension as https://extensions.gnome.org and can be installed using Gnome Tweak tool.
 
 	Gnome Tweak tool --> Shell Extensions --> Install from zip file --> choose the zip file.
 
