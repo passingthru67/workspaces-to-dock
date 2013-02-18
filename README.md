@@ -14,9 +14,9 @@ If you would rather install it manually, please download the appropriate zip fil
 
 	Gnome Tweak tool --> Shell Extensions --> Install from zip file --> choose the zip file.
 
-If you're checking out code from the master branch (downloaded as zip or tar.gz), you will need to rename the extracted folder to workspaces-to-dock@passingthru67.gmail.com and manually copy it into your ~/.local/share/gnome-shell/extensions/ folder. I have included the gschemas.compiled file (compiled xml schema for gsettings) in the master branch so you won't have to compile it manually. 
+If you're checking out code from the master branch (downloaded as zip or tar.gz), you will find an installation zip file inside with the latest updates and fixes. The version number is 0 signifying it is not a release version. You simply need to extract it and manually copy it into your ~/.local/share/gnome-shell/extensions/ folder. You may also install it using the Gnome Tweak tool.
 
-	$ cp workspaces-to-dock@passingthru67@gmail.com ~/.local/share/gnome-shell/extensions/
+	$ unzip workspaces-to-dock@passingthru67@gmail.com.zip -d ~/.local/share/gnome-shell/extensions/workspaces-to-dock@passingthru67@gmail.com
 
 Configure using `gnome-shell-extension-prefs`. No shell restarts required.
 
