@@ -477,16 +477,6 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             margin_right: 10
         });
 
-        // Workspace Captions - User Theme Support
-        let wsCaptionThemeSupport =  new Gtk.CheckButton({
-            label: "User theme supports workspaces-to-dock captions",
-            hexpand: true
-        });
-        wsCaptionThemeSupport.set_active(this.settings.get_boolean('workspace-captions-support'));
-        wsCaptionThemeSupport.connect('toggled', Lang.bind(this, function(check){
-            this.settings.set_boolean('workspace-captions-support', check.get_active());
-        }));
-
         // Workspace Captions - Number
         let workspaceCaptionNumber = new Gtk.Box({
             spacing: 20,
@@ -690,33 +680,30 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
         this.settings.bind('workspace-captions', workspaceCaptionsGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
 
-        workspaceCaptionsGrid.attach(wsCaptionThemeSupport, 0, 1, 2, 1);        
-
-        workspaceCaptionsGrid.attach(wsCaptionNumber, 0, 2, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionNumberExpand, 2, 2, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionNumber_MoveLeftButton, 3, 2, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionNumber_MoveRightButton, 4, 2, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionNumber, 0, 1, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionNumberExpand, 2, 1, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionNumber_MoveLeftButton, 3, 1, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionNumber_MoveRightButton, 4, 1, 1, 1);
         
-        workspaceCaptionsGrid.attach(wsCaptionName, 0, 3, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionNameExpand, 2, 3, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionName_MoveLeftButton, 3, 3, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionName_MoveRightButton, 4, 3, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionName, 0, 2, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionNameExpand, 2, 2, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionName_MoveLeftButton, 3, 2, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionName_MoveRightButton, 4, 2, 1, 1);
         
-        workspaceCaptionsGrid.attach(wsCaptionWindowCount, 0, 4, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionWindowCountUseImage, 1, 4, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionWindowCountExpand, 2, 4, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionWindowCount_MoveLeftButton, 3, 4, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionWindowCount_MoveRightButton, 4, 4, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionWindowCount, 0, 3, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionWindowCountUseImage, 1, 3, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionWindowCountExpand, 2, 3, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionWindowCount_MoveLeftButton, 3, 3, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionWindowCount_MoveRightButton, 4, 3, 1, 1);
         
-        workspaceCaptionsGrid.attach(wsCaptionSpacer, 0, 5, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionSpacerExpand, 2, 5, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionSpacer_MoveLeftButton, 3, 5, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionSpacer_MoveRightButton, 4, 5, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionSpacer, 0, 4, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionSpacerExpand, 2, 4, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionSpacer_MoveLeftButton, 3, 4, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionSpacer_MoveRightButton, 4, 4, 1, 1);
 
         
         workspaceCaptions.add(workspaceCaptionsTitle);
         workspaceCaptions.add(workspaceCaptionsControl);
-        workspaceCaptions.add(wsCaptionThemeSupport);
         workspaceCaptions.add(workspaceCaptionsGrid);
         notebookAdditionalSettings.add(workspaceCaptions);
         

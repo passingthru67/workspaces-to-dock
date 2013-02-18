@@ -70,9 +70,7 @@ Additional Settings:
 
 	**Add captions to workspace thumbnails** - Adds captions to the workspace thumbnails.
 
-	**User theme supports workspaces-to-dock captions** - When enabled, user themes that support workspaces-to-dock captions will be used to style the captions.
-
-	**NOTE: Unfortunately, there is no built-in detection for when a theme supports workspaces-to-dock captions. Therefore, if this option is enabled, the default style will be disabled. We hope to provide auto-detection in a future release.**
+	**NOTE: Version 9 auto detects when a theme supports workspaces-to-dock. Theme writers should place the 'workspaces-to-dock.css' stylesheet in ./themes/<usertheme>/gnome-shell/extensions/ folder and use the @import directive in 'gnome-shell.css' to incorporate the stylesheet. If no theme support is detected, the extension's default theme will be used.**
 
 	**Show the workspace number** - When enabled, the workspace number is shown in the caption. It can be expanded to take up available space or its position can be adjusted using the arrow buttons.
 

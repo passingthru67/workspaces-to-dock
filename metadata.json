@@ -5,5 +5,6 @@
     "shell-version": ["3.4","3.6"],
     "url": "https://github.com/passingthru67/workspaces-to-dock",
     "uuid": "workspaces-to-dock@passingthru67.gmail.com",
-    "version": 8
+    "gettext-domain": "workspacestodock",
+    "version": 0
 }
