@@ -31,14 +31,18 @@ const Overview = imports.ui.overview;
 const Tweener = imports.ui.tweener;
 const WorkspaceSwitcherPopup = imports.ui.workspaceSwitcherPopup;
 
-const Me = imports.misc.extensionUtils.getCurrentExtension();
+const ExtensionSystem = imports.ui.extensionSystem;
+const ExtensionUtils = imports.misc.extensionUtils;
+const Me = ExtensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 const MyThumbnailsBox = Me.imports.myThumbnailsBox;
 
-const ExtensionSystem = imports.ui.extensionSystem;
-const ExtensionUtils = imports.misc.extensionUtils;
+const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
+const _ = Gettext.gettext;
+
 const DashToDock_UUID = "dash-to-dock@micxgx.gmail.com";
 let DashToDock = null;
+
 
 function dockedWorkspaces(settings, gsCurrentVersion) {
     this._gsCurrentVersion = gsCurrentVersion;
@@ -314,7 +318,7 @@ dockedWorkspaces.prototype = {
                 Main.overview._viewSelector._workspacesDisplay._thumbnailsBox.actor.opacity = 0;
                 break;
             default:
-                throw new Error("Unknown version number (dockedWorkspaces.js).");
+                throw new Error(_("Unknown version number") + " (dockedWorkspaces.js).");
         }
 
     },
@@ -343,7 +347,7 @@ dockedWorkspaces.prototype = {
                 Main.overview._viewSelector._workspacesDisplay._thumbnailsBox.actor.opacity = 255;
                 break;
             default:
-                throw new Error("Unknown version number (dockedWorkspaces.js).");
+                throw new Error(_("Unknown version number") + " (dockedWorkspaces.js).");
         }
 
     },
@@ -408,7 +412,7 @@ dockedWorkspaces.prototype = {
                     this._thumbnailsBox.removeThumbnails(removedIndex, removedNum);
                     break;
                 default:
-                    throw new Error("Unknown version number (dockedWorkspaces.js).");
+                    throw new Error(_("Unknown version number") + " (dockedWorkspaces.js).");
             }
         }
     },
@@ -556,7 +560,7 @@ dockedWorkspaces.prototype = {
                     Main.wm.actionMoveWorkspace(Meta.MotionDirection.UP);
                     break;
                 default:
-                    throw new Error("Unknown version number (dockedWorkspaces.js).");
+                    throw new Error(_("Unknown version number") + " (dockedWorkspaces.js).");
             }
         } else if (event.get_scroll_direction() == Clutter.ScrollDirection.DOWN) {
             switch (this._gsCurrentVersion[1]) {
@@ -567,7 +571,7 @@ dockedWorkspaces.prototype = {
                     Main.wm.actionMoveWorkspace(Meta.MotionDirection.DOWN);
                     break;
                 default:
-                    throw new Error("Unknown version number (dockedWorkspaces.js).");
+                    throw new Error(_("Unknown version number") + " (dockedWorkspaces.js).");
             }
         }
         return true;
@@ -990,7 +994,7 @@ dockedWorkspaces.prototype = {
                 }
                 break;
             default:
-                throw new Error("Unknown version number (dockedWorkspaces.js).");
+                throw new Error(_("Unknown version number") + " (dockedWorkspaces.js).");
         }
 
         // skip updating if size is same

@@ -1,0 +1,128 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Workspaces-To-Dock\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: 2013-02-18 17:36\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: extension.js, dockedWorkspaces.js
+msgid "Unknown version number"
+msgstr ""
+
+#: prefs.js
+
+msgid "Main Settings"
+msgstr ""
+
+msgid "<b>Visibility</b>"
+msgstr ""
+
+msgid "Dock is fixed and always visible"
+msgstr ""
+
+msgid "Animation time [ms]"
+msgstr ""
+
+msgid "Show delay [ms]"
+msgstr ""
+
+msgid "Hide delay [ms]"
+msgstr ""
+
+msgid "Autohide"
+msgstr ""
+
+msgid "Intellihide"
+msgstr ""
+
+msgid "Dodge all windows"
+msgstr ""
+
+msgid "Dodge all instances of focused app"
+msgstr ""
+
+msgid "Dodge only top instance of focused app"
+msgstr ""
+
+msgid "<b>Background</b>"
+msgstr ""
+
+msgid "Customize the dock background opacity"
+msgstr ""
+
+msgid "Opacity"
+msgstr ""
+
+msgid "Only when in autohide"
+msgstr ""
+
+msgid "<b>Position</b>"
+msgstr ""
+
+msgid "Show the dock on following monitor (if attached)"
+msgstr ""
+
+msgid "Primary (default)"
+msgstr ""
+
+#, fuzzy
+msgid "1"
+msgstr "1"
+
+#, fuzzy
+msgid "2"
+msgstr "2"
+
+#, fuzzy
+msgid "3"
+msgstr "3"
+
+#, fuzzy
+msgid "4"
+msgstr "4"
+
+msgid "Additional Settings"
+msgstr ""
+
+msgid "<b>Workspace Captions</b>"
+msgstr ""
+
+msgid "Add captions to workspace thumbnails"
+msgstr ""
+
+msgid "Show the workspace number"
+msgstr ""
+
+msgid "Show the workspace name"
+msgstr ""
+
+msgid "Show the workspace window count"
+msgstr ""
+
+msgid "Show a spacer/filler"
+msgstr ""
+
+msgid "Use image"
+msgstr ""
+
+msgid "Expand"
+msgstr ""
+
+msgid "<b>Custom Actions</b>"
+msgstr ""
+
+msgid "Toggle overview mode with right click"
+msgstr ""
+
+msgid "<b>Dash Integration</b>"
+msgstr ""
+
+msgid "Show workspaces when hovering over Dash-To-Dock extension"
+msgstr ""
+

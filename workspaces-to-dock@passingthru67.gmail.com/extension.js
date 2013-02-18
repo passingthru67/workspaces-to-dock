@@ -12,17 +12,21 @@ const Convenience = Me.imports.convenience;
 const Intellihide = Me.imports.intellihide;
 const DockedWorkspaces = Me.imports.dockedWorkspaces;
 
+const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
+const _ = Gettext.gettext;
+
 let settings;
 let intellihide;
 let dock;
 
 function init() {
+    Convenience.initTranslations();
 }
 
 function enable() {
 	// determine gnome shell version
     let gsCurrentVersion = Config.PACKAGE_VERSION.split('.');
-	if (gsCurrentVersion.length != 3 || gsCurrentVersion[0] != 3) throw new Error("Unknown version number (extension.js).");
+	if (gsCurrentVersion.length != 3 || gsCurrentVersion[0] != 3) throw new Error(_("Unknown version number") + " (extension.js).");
 
     // enable the extension
     settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');

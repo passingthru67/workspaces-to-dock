@@ -12,13 +12,12 @@ const GObject = imports.gi.GObject;
 const Gtk = imports.gi.Gtk;
 const Lang = imports.lang;
 
-const _ = function(t) {
-    return t;
-};
-
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
+const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
+
+const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
+const _ = Gettext.gettext;
+
 
 const WorkspacesToDockPreferencesWidget = new GObject.Class({
     Name: 'workspacesToDock.WorkspacesToDockPreferencesWidget',
@@ -42,7 +41,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             margin_left: 10
         });
         let notebookMainSettingsTitle = new Gtk.Label({
-            label: "Main Settings",
+            label: _("Main Settings"),
             use_markup: true,
             xalign: 0,
             margin_top: 5,
@@ -56,7 +55,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
 
         let dockSettingsTitle = new Gtk.Label({
-            label: "<b>Visibility</b>",
+            label: _("<b>Visibility</b>"),
             use_markup: true,
             xalign: 0,
             margin_top: 15,
@@ -80,7 +79,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
 
         let alwaysVisibleLabel = new Gtk.Label({
-            label: "Dock is fixed and always visible",
+            label: _("Dock is fixed and always visible"),
             use_markup: true,
             xalign: 0,
             hexpand: true,
@@ -106,7 +105,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
 
         let animationTimeLabel = new Gtk.Label({
-            label: "Animation time [ms]",
+            label: _("Animation time [ms]"),
             use_markup: true,
             xalign: 0,
             hexpand: true
@@ -125,7 +124,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }));
 
         let showDelayLabel = new Gtk.Label({
-            label: "Show delay [ms]",
+            label: _("Show delay [ms]"),
             use_markup: true,
             xalign: 0,
             hexpand: true
@@ -144,7 +143,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }));
 
         let hideDelayLabel = new Gtk.Label({
-            label: "Hide delay [ms]",
+            label: _("Hide delay [ms]"),
             use_markup: true,
             xalign: 0,
             hexpand: true
@@ -170,7 +169,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
 
         let autohideLabel = new Gtk.Label({
-            label: "Autohide",
+            label: _("Autohide"),
             xalign: 0,
             hexpand: true
         });
@@ -184,7 +183,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }));
 
         let intellihideLabel = new Gtk.Label({
-            label: "Intellihide",
+            label: _("Intellihide"),
             xalign: 0,
             hexpand: true
         });
@@ -200,14 +199,14 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         /* INTELLIHIDE OPTIONS */
         
         let intellihideNormal =  new Gtk.RadioButton({
-            label: "Dodge all windows"
+            label: _("Dodge all windows")
         });
         intellihideNormal.connect('toggled', Lang.bind(this, function(check){
             if (check.get_active()) this.settings.set_int('intellihide-option', 0);
         }));
 
         let intellihideFocusApp =  new Gtk.RadioButton({
-            label: "Dodge all instances of focused app",
+            label: _("Dodge all instances of focused app"),
             group: intellihideNormal
         });
         intellihideFocusApp.connect('toggled', Lang.bind(this, function(check){
@@ -215,7 +214,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }));
 
         let intellihideTopWindow =  new Gtk.RadioButton({
-            label: "Dodge only top instance of focused app",
+            label: _("Dodge only top instance of focused app"),
             group: intellihideNormal
         });
         intellihideTopWindow.connect('toggled', Lang.bind(this, function(check){
@@ -272,7 +271,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
 
         let backgroundTitle = new Gtk.Label({
-            label: "<b>Background</b>",
+            label: _("<b>Background</b>"),
             use_markup: true,
             xalign: 0,
             margin_top: 5,
@@ -289,7 +288,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
 
         let opaqueLayerLabel = new Gtk.Label({
-            label: "Customize the dock background opacity",
+            label: _("Customize the dock background opacity"),
             xalign: 0,
             hexpand: true
         });
@@ -316,7 +315,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
 
         let layerOpacityLabel = new Gtk.Label({
-            label: "Opacity",
+            label: _("Opacity"),
             use_markup: true,
             xalign: 0
         });
@@ -336,7 +335,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }));
 
         let opaqueLayeralwaysVisible = new Gtk.CheckButton({
-            label: "only when in autohide",
+            label: _("Only when in autohide"),
             margin_left: 20
         });
         opaqueLayeralwaysVisible.set_active(!this.settings.get_boolean('opaque-background-always'));
@@ -363,7 +362,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
 
         let dockPositionTitle = new Gtk.Label({
-            label: "<b>Position</b>",
+            label: _("<b>Position</b>"),
             use_markup: true,
             xalign: 0,
             margin_top: 5,
@@ -381,11 +380,11 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         //let dockMonitor = new Gtk.Box({margin_left:10, margin_top:10, margin_bottom:0, margin_right:10});
         let dockMonitorLabel = new Gtk.Label({label: "Show the dock on following monitor (if attached)", hexpand:true, xalign:0});
         let dockMonitorCombo = new Gtk.ComboBoxText({halign:Gtk.Align.END});
-            dockMonitorCombo.append_text('Primary (default)');
-            dockMonitorCombo.append_text('1');
-            dockMonitorCombo.append_text('2');
-            dockMonitorCombo.append_text('3');
-            dockMonitorCombo.append_text('4');
+            dockMonitorCombo.append_text(_('Primary (default)'));
+            dockMonitorCombo.append_text(_('1'));
+            dockMonitorCombo.append_text(_('2'));
+            dockMonitorCombo.append_text(_('3'));
+            dockMonitorCombo.append_text(_('4'));
             
             let active = this.settings.get_int('preferred-monitor');
             if (active<0)
@@ -421,7 +420,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             margin_left: 10
         });
         let notebookAdditionalSettingsTitle = new Gtk.Label({
-            label: "Additional Settings",
+            label: _("Additional Settings"),
             use_markup: true,
             xalign: 0,
             margin_top: 5,
@@ -437,7 +436,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
 
         let workspaceCaptionsTitle = new Gtk.Label({
-            label: "<b>Workspace Captions</b>",
+            label: _("<b>Workspace Captions</b>"),
             use_markup: true,
             xalign: 0,
             margin_top: 15,
@@ -452,7 +451,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
 
         let workspaceCaptionsLabel = new Gtk.Label({
-            label: "Add captions to workspace thumbnails",
+            label: _("Add captions to workspace thumbnails"),
             xalign: 0,
             hexpand: true,
             margin_left: 10
@@ -488,7 +487,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             margin_right: 10
         });
         let wsCaptionNumber =  new Gtk.CheckButton({
-            label: "Show the workspace number",
+            label: _("Show the workspace number"),
             hexpand: true
         });
         wsCaptionNumber.set_active(this._getItemExists('number'));
@@ -500,7 +499,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             }
         }));
         let wsCaptionNumberExpand =  new Gtk.CheckButton({
-            label: "Expand",
+            label: _("Expand"),
             hexpand: true
         });
 
@@ -537,7 +536,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             margin_right: 10
         });
         let wsCaptionName =  new Gtk.CheckButton({
-            label: "Show the workspace name",
+            label: _("Show the workspace name"),
             hexpand: true
         });
         wsCaptionName.set_active(this._getItemExists('name'));
@@ -550,7 +549,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }));
 
         let wsCaptionNameExpand =  new Gtk.CheckButton({
-            label: "Expand",
+            label: _("Expand"),
             hexpand: true
         });
         wsCaptionNameExpand.set_active(this._getItemExpanded('name'));
@@ -586,7 +585,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             margin_right: 10
         });
         let wsCaptionWindowCount =  new Gtk.CheckButton({
-            label: "Show the workspace window count",
+            label: _("Show the workspace window count"),
             hexpand: true
         });
 
@@ -600,7 +599,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }));
 
         let wsCaptionWindowCountUseImage =  new Gtk.CheckButton({
-            label: "Use image",
+            label: _("Use image"),
             hexpand: true
         });
         wsCaptionWindowCountUseImage.set_active(this.settings.get_boolean('workspace-caption-windowcount-image'));
@@ -609,7 +608,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }));
 
         let wsCaptionWindowCountExpand =  new Gtk.CheckButton({
-            label: "Expand",
+            label: _("Expand"),
             hexpand: true
         });
 
@@ -637,7 +636,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
         // Workspace Captions - Spacer
         let wsCaptionSpacer =  new Gtk.CheckButton({
-            label: "Show a spacer/filler",
+            label: _("Show a spacer/filler"),
             hexpand: true
         });
 
@@ -651,7 +650,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }));
 
         let wsCaptionSpacerExpand =  new Gtk.CheckButton({
-            label: "Expand",
+            label: _("Expand"),
             hexpand: true
         });
 
@@ -715,7 +714,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
 
         let actionsTitle = new Gtk.Label({
-            label: "<b>Custom Actions</b>",
+            label: _("<b>Custom Actions</b>"),
             use_markup: true,
             xalign: 0,
             margin_top: 5,
@@ -730,7 +729,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
 
         let toggleOverviewLabel = new Gtk.Label({
-            label: "Toggle overview mode with right click",
+            label: _("Toggle overview mode with right click"),
             xalign: 0,
             hexpand: true
         });
@@ -757,7 +756,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
 
         let dashIntegrationTitle = new Gtk.Label({
-            label: "<b>Dash Integration</b>",
+            label: _("<b>Dash Integration</b>"),
             use_markup: true,
             xalign: 0,
             margin_top: 5,
@@ -774,7 +773,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         /* DASH-TO-DOCK HOVER */
 
         let dashToDockHoverLabel = new Gtk.Label({
-            label: "Show workspaces when hovering over Dash-To-Dock extension",
+            label: _("Show workspaces when hovering over Dash-To-Dock extension"),
             xalign: 0,
             hexpand: true
         });
@@ -910,7 +909,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 });
 
 function init() {
-    // Convenience.initTranslations();
+    Convenience.initTranslations();
 }
 
 function buildPrefsWidget() {

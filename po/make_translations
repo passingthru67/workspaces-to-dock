@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# This is a script which avoids having to install intltool just to
+# translate a few phrases
+
+# apt-get install gettext
+
+# To add a translation - add the language to LANGUAGES, copy
+# en_US.po to a po file for the language, and then run this script
+
+for file in `cat LANGUAGES`
+do
+
+if ! [ -d ../workspaces-to-dock@passingthru67.gmail.com/locale/$file/LC_MESSAGES ]; then
+  mkdir -p ../workspaces-to-dock@passingthru67.gmail.com/locale/$file/LC_MESSAGES
+fi
+
+msgfmt $file.po
+mv messages.mo ../workspaces-to-dock@passingthru67.gmail.com/locale/$file/LC_MESSAGES/workspacestodock.mo
+
+done
