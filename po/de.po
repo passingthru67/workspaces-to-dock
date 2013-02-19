@@ -3,25 +3,26 @@ msgstr ""
 "Project-Id-Version: Workspaces-To-Dock\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2013-02-18 17:36\n"
-"Last-Translator: \n"
-"Language-Team: \n"
+"PO-Revision-Date: 2013-02-19 10:01+0100\n"
+"Last-Translator: Jonatan Zeidler <jonatan_zeidler@hotmail.de>\n"
+"Language-Team: German <jonatan_zeidler@gmx.de>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: German\n"
+"X-Poedit-Country: GERMANY\n"
 
 #: extension.js, dockedWorkspaces.js
 msgid "Unknown version number"
-msgstr ""
+msgstr "Unbekannte Versionsnummer"
 
 #: prefs.js
-
 msgid "Main Settings"
 msgstr "Grundeinstellungen"
 
 msgid "<b>Visibility</b>"
-msgstr ""
+msgstr "<b>Sichtbarkeit</b>"
 
 msgid "Dock is fixed and always visible"
 msgstr "Die Dock hat eine feste Position und ist immer sichtbar"
@@ -42,13 +43,13 @@ msgid "Intellihide"
 msgstr "Intelligentes Verstecken"
 
 msgid "Dodge all windows"
-msgstr ""
+msgstr "Allen Fenstern ausweichen"
 
 msgid "Dodge all instances of focused app"
-msgstr ""
+msgstr "Allen Fenstern des fokusierten Programms ausweichen"
 
 msgid "Dodge only top instance of focused app"
-msgstr ""
+msgstr "Nur dem aktuell fokusiertem Fenster ausweichen"
 
 msgid "<b>Background</b>"
 msgstr "<b>Hintergrund</b>"
@@ -63,62 +64,58 @@ msgid "Only when in autohide"
 msgstr "Nur im Autoverstecken-Modus"
 
 msgid "<b>Position</b>"
-msgstr ""
+msgstr "<b>Position</b>"
 
 msgid "Show the dock on following monitor (if attached)"
 msgstr "Zeige Dock auf folgendem Monitor (falls angeschlossen)"
 
 msgid "Primary (default)"
-msgstr ""
+msgstr "Hauptmonitor (Vorgabe)"
 
-#, fuzzy
 msgid "1"
 msgstr "1"
 
-#, fuzzy
 msgid "2"
 msgstr "2"
 
-#, fuzzy
 msgid "3"
 msgstr "3"
 
-#, fuzzy
 msgid "4"
 msgstr "4"
 
 msgid "Additional Settings"
-msgstr ""
+msgstr "Weitere Einstellungen"
 
 msgid "<b>Workspace Captions</b>"
-msgstr ""
+msgstr "<b>Arbeitsflächenbeschriftungen</b>"
 
 msgid "Add captions to workspace thumbnails"
-msgstr ""
+msgstr "Beschriftung auf Arbeitsflächenvorschau anzeigen"
 
 msgid "Show the workspace number"
-msgstr ""
+msgstr "Arbeitsflächennummer"
 
 msgid "Show the workspace name"
-msgstr ""
+msgstr "Arbeitsflächennamen"
 
 msgid "Show the workspace window count"
-msgstr ""
+msgstr "Fensteranzahl"
 
 msgid "Show a spacer/filler"
-msgstr ""
+msgstr "Platzhalter"
 
 msgid "Use image"
-msgstr ""
+msgstr "Nutze Bild"
 
 msgid "Expand"
-msgstr ""
+msgstr "Ausdehnen"
 
 msgid "<b>Custom Actions</b>"
-msgstr ""
+msgstr "Aktionen anpassen"
 
 msgid "Toggle overview mode with right click"
-msgstr ""
+msgstr "Mit Rechtsklick zur Übersicht wechseln"
 
 msgid "<b>Dash Integration</b>"
 msgstr "<b>Dash-Integration</b>"
