@@ -1,0 +1,63 @@
+#!/bin/bash
+#
+# @param: <version_number>
+# version_number = 0 creates zip in root
+# version_number > 0 creates zip in attic/releases/master/<version_number>
+#
+
+if [ $# -lt 1 ] ;
+then
+    echo "Cannot build without a release number. Command syntax is ./build_release <version_number>."
+    echo "Replace <version_number> with an integer number."
+    exit 1
+fi
+
+# variables
+extension_dir=~/.local/share/gnome-shell/extensions/workspaces-to-dock@passingthru67.gmail.com
+files_dir=$extension_dir/workspaces-to-dock@passingthru67.gmail.com
+temp_dir=$extension_dir/attic/releases/build
+if [ $1 -gt 0 ] ;
+then
+    release_dir=$extension_dir/attic/releases/master/$1
+else
+    release_dir=$extension_dir
+fi
+
+
+
+# create temp directory
+rm -Rf $temp_dir
+mkdir $temp_dir
+
+# copy extension files stripping out debug and changing version number in metadata
+cd $files_dir
+sed "s/ 0/ $1/g" metadata.json > $temp_dir/metadata.json
+cat extension.js | grep -v '_DEBUG_' > $temp_dir/extension.js
+cat convenience.js | grep -v '_DEBUG_' > $temp_dir/convenience.js
+cat intellihide.js | grep -v '_DEBUG_' > $temp_dir/intellihide.js
+cat dockedWorkspaces.js | grep -v '_DEBUG_' > $temp_dir/dockedWorkspaces.js
+cat myThumbnailsBox.js | grep -v '_DEBUG_' > $temp_dir/myThumbnailsBox.js
+cat prefs.js | grep -v '_DEBUG_' > $temp_dir/prefs.js
+
+# copy extension subfolders
+cp -R schemas/ $temp_dir/
+cp -R themes/ $temp_dir/
+cp -R locale/ $temp_dir/
+
+# create release zip
+cd $temp_dir/
+zip -r workspaces-to-dock@passingthru67.gmail.com.zip *
+
+# copy zip to release directory
+if [ $1 -gt 0 ] ;
+then
+    rm -Rf $release_dir
+    mkdir $release_dir
+fi
+
+cp workspaces-to-dock@passingthru67.gmail.com.zip $release_dir/
+
+# cleanup - remove temp directory
+rm -Rf $temp_dir
+echo "Build completed."
+
