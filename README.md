@@ -10,15 +10,18 @@ Installation:
 ------------
 The easiest way to install Workspaces-to-Dock is from https://extensions.gnome.org/extension/427/workspaces-to-dock/ using your browser.
 
-If you would rather install it manually, please download the appropriate zip file from the releases branch on Github (https://github.com/passingthru67/workspaces-to-dock/tree/releases). That zip file contains the same non-debug version of the extension as https://extensions.gnome.org and can be installed using Gnome Tweak tool.
+If you would rather install it manually, download the releases branch on Github (https://github.com/passingthru67/workspaces-to-dock/tree/releases) and locate the appropriate release zip file. The release zip file contains the same non-debug version of the extension as https://extensions.gnome.org. The zip file can be extracted manually to the extensions folder or installed by using Gnome Tweak tool.
 
-	Gnome Tweak tool --> Shell Extensions --> Install from zip file --> choose the zip file.
+    $unzip workspaces-to-dock@passingthru67@gmail.com.zip -d ~/.local/share/gnome-shell/extensions/workspaces-to-dock@passingthru67@gmail.com
 
-If you're checking out code from the master branch (downloaded as zip or tar.gz), you will find an installation zip file inside with the latest updates and fixes. The version number is 0 signifying it is not a release version. You simply need to extract it and manually copy it into your ~/.local/share/gnome-shell/extensions/ folder. You may also install it using the Gnome Tweak tool.
+or
+     
+    Gnome Tweak tool --> Shell Extensions --> Install from zip file --> choose the zip file.
 
-	$ unzip workspaces-to-dock@passingthru67@gmail.com.zip -d ~/.local/share/gnome-shell/extensions/workspaces-to-dock@passingthru67@gmail.com
+If you're checking out code from the master branch (downloaded as zip or tar.gz), you will find an installation zip file inside with the latest updates and fixes. The version number is 0 signifying it is not a release version. The zip file can be extracted manually to the extensions folder or installed by using the Gnome Tweak tool as described above.
 
-Configure using `gnome-shell-extension-prefs`. No shell restarts required.
+
+The extension can be configured using `gnome-shell-extension-prefs`. No shell restarts are required.
 
 
 Main Settings:
@@ -44,7 +47,7 @@ Main Settings:
 
 	**Show delay** - The time delayed before sliding the dock to the visible state.
 		
-	**NOTE: If you are having trouble with the mouse accidentally touching the right edge of the screen (usually due to using vertical scroll bars), adjust this delay higher (say around 700ms).**
+	**NOTE: If you are having trouble with the mouse accidentally touching the right edge of the screen (usually due to using vertical scroll bars), adjust this delay higher (~ 700ms).**
 
 	**Hide delay** - The time delayed before sliding the dock to the hidden state.
 
@@ -60,6 +63,12 @@ Main Settings:
 
 	**Show the dock on following monitor (if attached)** - Option to position the workspaces dock on a secondary monitor in dual monitor configurations.
 
+    **Extend the height of the dock to fill the screen** - Option to extend the height of the dock to fill the screen.
+
+    **Top Margin** - Allows setting a top margin for the extended dock. The range allowed is 0% to 15% of the screen height.
+
+    **Bottom Margin** - Allows setting a bottom margin for the extended dock. The range allowed is 0% to 15% of the screen height.
+
 
 Additional Settings:
 --------------------
@@ -70,7 +79,7 @@ Additional Settings:
 
 	**Add captions to workspace thumbnails** - Adds captions to the workspace thumbnails.
 
-	**NOTE: Version 9 auto detects when a theme supports workspaces-to-dock. Theme writers should place the 'workspaces-to-dock.css' stylesheet in ./themes/<usertheme>/gnome-shell/extensions/ folder and use the @import directive in 'gnome-shell.css' to incorporate the stylesheet. If no theme support is detected, the extension's default theme will be used.**
+	**NOTE: Version 9 auto detects if a theme supports workspaces-to-dock. Theme writers should place the 'workspaces-to-dock.css' stylesheet in ./themes/usertheme/gnome-shell/extensions/ folder and use the @import directive to incorporate the stylesheet into gnome-shell.css. If no theme support is detected, the extension's default theme will be used.**
 
 	**Show the workspace number** - When enabled, the workspace number is shown in the caption. It can be expanded to take up available space or its position can be adjusted using the arrow buttons.
 
@@ -95,12 +104,11 @@ Additional Settings:
 
 Workspace Caption Theming:
 -------------------------
-Adding support for workspaces-to-dock captions to a theme can be accomplished by incorporating the css classes found in workspace-captions.css (see extension folder) into the theme. If you prefer to maintain a separate css stylesheet for workspaces-to-dock captions, you can incorporate it into your theme using the @import directive. Please see the workspace-captions.css stylesheet for a description of these css classes.
+Adding workspaces-to-dock caption support to a theme can be accomplished by placing a custom 'workspaces-to-dock.css' stylesheet in the theme's gnome-shell/extensions/ folder. Workspaces-to-dock will detect the presence of this stylesheet file and disable the default style. You can then use the @import directive to incorporate the stylesheet classes into your theme's gnome-shell.css. Please see the workspace-captions.css stylesheet for a description of the css classes.
 
 
 Features Planned:
 -----------------
-- Localization
 - Editing the workspace caption name.
 - Closing workspaces (and all associated windows) with mouse click
 - RTL support
@@ -135,13 +143,20 @@ To reset the extension to its default settings, type the command below in a term
 
 If the behavior persists, try disabling all other extensions and enable each extension one at a time until the behavior reappears. You may be experiencing a conflict with another extension.
 
-If the behavior persists with other extensions disabled, check for extension errors in Looking Glass (Gnome Shell 3.4) or by typing gnome-shell --replace in a terminal and watching for JS error logs.
+If the behavior persists with other extensions disabled, check for extension errors in Looking Glass (Gnome Shell 3.4) or by typing gnome-shell --replace in a terminal and watching for JS error logs related to the extension.
 
 If the problem persists, please report it by opening an issue on github or with a bug report message on the extension website.
 
 
 Change Log:
 -----------
+**version 9 (Feb 22, 2013)**
+
+- Language support added
+- Auto detect if user theme supports workspaces-to-dock
+- Option to extend dock height to fill the screen
+- Bug fixes
+
 **version 8 (Jan 26, 2013)**
 
 - Option to display workspace thumbnail captions (feature)
