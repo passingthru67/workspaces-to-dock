@@ -84,6 +84,15 @@ msgstr "3"
 msgid "4"
 msgstr "4"
 
+msgid "Extend the height of the dock to fill the screen"
+msgstr ""
+
+msgid "Top Margin"
+msgstr ""
+
+msgid "Bottom Margin"
+msgstr ""
+
 msgid "Additional Settings"
 msgstr "Weitere Einstellungen"
 

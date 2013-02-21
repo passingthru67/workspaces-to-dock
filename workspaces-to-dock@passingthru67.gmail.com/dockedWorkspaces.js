@@ -492,6 +492,10 @@ dockedWorkspaces.prototype = {
             this._thumbnailsBox.hide();
             this._thumbnailsBox.show();
         }));
+        
+        this._settings.connect('changed::extend-height', Lang.bind(this, this._updateSize));
+        this._settings.connect('changed::top-margin', Lang.bind(this, this._updateSize));
+        this._settings.connect('changed::bottom-margin', Lang.bind(this, this._updateSize));
     },
 
     // handler for mouse hover events
@@ -966,35 +970,48 @@ dockedWorkspaces.prototype = {
         if (this._monitor.x == Main.layoutManager.primaryMonitor.x && this._monitor.y == Main.layoutManager.primaryMonitor.y)
             primary = true;
 
-        
         let x = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - 1;
         let x2 = this._monitor.x + this._monitor.width - 1;
-        
+
+        let extend = this._settings.get_boolean('extend-height');
+        let topMargin = Math.floor(this._settings.get_double('top-margin') * this._monitor.height);
+        let bottomMargin = Math.floor(this._settings.get_double('bottom-margin') * this._monitor.height);
+
         let y;
-        if (primary) {
-            y = this._monitor.y + Main.overview._viewSelector.actor.y + Main.overview._viewSelector._pageArea.y;
-        } else {
-            y = this._monitor.y + Main.overview._viewSelector.actor.y;
-        }
-        
         let height;
-        switch (this._gsCurrentVersion[1]) {
-            case"4":
-                if (primary) {
-                    height = Main.overview._viewSelector._pageArea.height;
-                } else {
-                    height = this._monitor.height - (Main.overview._viewSelector.actor.y + Main.messageTray.actor.height);
-                }
-                break;
-            case"6":
-                if (primary) {
-                    height = this._monitor.height - (this._monitor.y + Main.overview._viewSelector.actor.y + Main.overview._viewSelector._pageArea.y + (Main.overview._viewSelector.actor.y/2) + Main.messageTray.actor.height);
-                } else {
-                    height = this._monitor.height - (Main.overview._viewSelector.actor.y + Main.messageTray.actor.height);
-                }
-                break;
-            default:
-                throw new Error(_("Unknown version number") + " (dockedWorkspaces.js).");
+        if (extend) {
+            if (primary) {
+                y = this._monitor.y + Main.panel.actor.height + topMargin;
+                height = this._monitor.height - Main.panel.actor.height - topMargin - bottomMargin;
+            } else {
+                y = this._monitor.y + topMargin;
+                height = this._monitor.height - topMargin - bottomMargin;
+            }
+        } else {
+            if (primary) {
+                y = this._monitor.y + Main.overview._viewSelector.actor.y + Main.overview._viewSelector._pageArea.y;
+            } else {
+                y = this._monitor.y + Main.overview._viewSelector.actor.y;
+            }
+            
+            switch (this._gsCurrentVersion[1]) {
+                case"4":
+                    if (primary) {
+                        height = Main.overview._viewSelector._pageArea.height;
+                    } else {
+                        height = this._monitor.height - (Main.overview._viewSelector.actor.y + Main.messageTray.actor.height);
+                    }
+                    break;
+                case"6":
+                    if (primary) {
+                        height = this._monitor.height - (this._monitor.y + Main.overview._viewSelector.actor.y + Main.overview._viewSelector._pageArea.y + (Main.overview._viewSelector.actor.y/2) + Main.messageTray.actor.height);
+                    } else {
+                        height = this._monitor.height - (Main.overview._viewSelector.actor.y + Main.messageTray.actor.height);
+                    }
+                    break;
+                default:
+                    throw new Error(_("Unknown version number") + " (dockedWorkspaces.js).");
+            }
         }
 
         // skip updating if size is same
@@ -1029,20 +1046,15 @@ dockedWorkspaces.prototype = {
 
         let x = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - 1;
         let x2 = this._monitor.x + this._monitor.width - 1;
-        
-        let y;
-        if (primary) {
-            y = this._monitor.y + Main.overview._viewSelector.actor.y + Main.overview._viewSelector._pageArea.y;
-        } else {
-            y = this._monitor.y + Main.overview._viewSelector.actor.y;
-        }
-        
+
         if (this._settings.get_boolean('dock-fixed')) {
             //position on the screen (right side) so that its initial show is not animated
-            this.actor.set_position(x, y);
+            //this.actor.set_position(x, y);
+            this.actor.set_position(x, this.actor.y);
         } else {
             //position out of the screen (right side) so that its initial show is animated
-            this.actor.set_position(x2, y);
+            //this.actor.set_position(x2, y);
+            this.actor.set_position(x2, this.actor.y);
         }
 
 		this._updateBackgroundOpacity();

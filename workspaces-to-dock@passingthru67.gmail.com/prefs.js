@@ -373,12 +373,11 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             orientation: Gtk.Orientation.HORIZONTAL,
             margin_left: 10,
             margin_top: 10,
-            margin_bottom: 10,
+            margin_bottom: 5,
             margin_right: 10
         });
 
-        //let dockMonitor = new Gtk.Box({margin_left:10, margin_top:10, margin_bottom:0, margin_right:10});
-        let dockMonitorLabel = new Gtk.Label({label: "Show the dock on following monitor (if attached)", hexpand:true, xalign:0});
+        let dockMonitorLabel = new Gtk.Label({label: _("Show the dock on following monitor (if attached)"), hexpand:true, xalign:0});
         let dockMonitorCombo = new Gtk.ComboBoxText({halign:Gtk.Align.END});
             dockMonitorCombo.append_text(_('Primary (default)'));
             dockMonitorCombo.append_text(_('1'));
@@ -386,29 +385,116 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             dockMonitorCombo.append_text(_('3'));
             dockMonitorCombo.append_text(_('4'));
             
-            let active = this.settings.get_int('preferred-monitor');
-            if (active<0)
-                active = 0;
-            dockMonitorCombo.set_active(active);
-
-            dockMonitorCombo.connect('changed', Lang.bind (this, function(widget) {
-                let active = widget.get_active();
-                if (active <=0)
-                    this.settings.set_int('preferred-monitor', -1);
-                else
-                    this.settings.set_int('preferred-monitor', active );
-            }));
-
+        let active = this.settings.get_int('preferred-monitor');
+        if (active<0)
+            active = 0;
+        dockMonitorCombo.set_active(active);
+        dockMonitorCombo.connect('changed', Lang.bind (this, function(widget) {
+            let active = widget.get_active();
+            if (active <=0)
+                this.settings.set_int('preferred-monitor', -1);
+            else
+                this.settings.set_int('preferred-monitor', active );
+        }));
 
         dockMonitor.add(dockMonitorLabel)
         dockMonitor.add(dockMonitorCombo);
 
+
+        let dockHeightControl = new Gtk.Box({
+            margin_left: 10,
+            margin_top: 5,
+            margin_bottom: 10,
+            margin_right: 10
+        });
+
+        let extendHeightLabel = new Gtk.Label({
+            label: _("Extend the height of the dock to fill the screen"),
+            xalign: 0,
+            hexpand: true
+        });
+
+        let extendHeight = new Gtk.Switch ({
+            halign: Gtk.Align.END
+        });
+        extendHeight.set_active(this.settings.get_boolean('extend-height'));
+        extendHeight.connect('notify::active', Lang.bind(this, function(check) {
+            this.settings.set_boolean('extend-height', check.get_active());
+        }));
+
+        dockHeightControl.add(extendHeightLabel);
+        dockHeightControl.add(extendHeight);
+
+
+        let dockHeightMargins = new Gtk.Box({
+            orientation: Gtk.Orientation.HORIZONTAL,
+            homogeneous: false,
+            spacing: 20,
+            margin_left: 20,
+            margin_top: 10,
+            margin_bottom: 10,
+            margin_right: 10
+        });
+
+        let topMarginLabel = new Gtk.Label({
+            label: _("Top Margin"),
+            use_markup: true,
+            xalign: 0
+        });
+
+        let topMargin = new Gtk.SpinButton();
+        topMargin.set_range(0, 15);
+        topMargin.set_value(this.settings.get_double('top-margin') * 100);
+        topMargin.set_digits(1);
+        topMargin.set_increments(.5, 1);
+        topMargin.set_size_request(120, -1);
+        topMargin.connect('value-changed', Lang.bind(this, function(button) {
+            let s = button.get_value() / 100;
+            this.settings.set_double('top-margin', s);
+        }));
+        topMargin.connect('output', function(button, data) {
+            var val = button.get_value().toFixed(1);
+            button.set_text(val + "%");
+            return true;
+        });
+
+        let bottomMarginLabel = new Gtk.Label({
+            label: _("Bottom Margin"),
+            use_markup: true,
+            xalign: 0
+        });
+
+        let bottomMargin = new Gtk.SpinButton();
+        bottomMargin.set_range(0, 15);
+        bottomMargin.set_value(this.settings.get_double('bottom-margin') * 100);
+        bottomMargin.set_digits(1);
+        bottomMargin.set_increments(.5, 1);
+        bottomMargin.set_size_request(120, -1);
+        bottomMargin.connect('value-changed', Lang.bind(this, function(button) {
+            let s = button.get_value() / 100;
+            this.settings.set_double('bottom-margin', s);
+        }));
+        bottomMargin.connect('output', function(button, data) {
+            var val = button.get_value().toFixed(1);
+            button.set_text(val + "%");
+            return true;
+        });
+
+
+        this.settings.bind('extend-height', dockHeightMargins, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+        
+        dockHeightMargins.add(topMarginLabel);
+        dockHeightMargins.add(topMargin);
+        dockHeightMargins.add(bottomMarginLabel);
+        dockHeightMargins.add(bottomMargin);
+
         dockPosition.add(dockPositionTitle);
         dockPosition.add(dockMonitor);
+        dockPosition.add(dockHeightControl);
+        dockPosition.add(dockHeightMargins);
 
         notebookMainSettings.add(dockPosition);
         notebook.append_page(notebookMainSettings, notebookMainSettingsTitle);
-
 
 
 
