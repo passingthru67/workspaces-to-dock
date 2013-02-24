@@ -104,11 +104,17 @@ Additional Settings:
 
 Workspace Caption Theming:
 -------------------------
-Adding workspaces-to-dock caption support to a theme can be accomplished by placing a custom 'workspaces-to-dock.css' stylesheet in the theme's gnome-shell/extensions/ folder. Workspaces-to-dock will detect the presence of this stylesheet file and disable the default style. You can then use the @import directive to incorporate the stylesheet classes into your theme's gnome-shell.css. Please see the workspace-captions.css stylesheet for a description of the css classes.
+Adding workspaces-to-dock caption support to a theme can be accomplished by placing a custom 'workspaces-to-dock.css' stylesheet in the theme's gnome-shell/extensions/ folder. Workspaces-to-dock will detect the presence of this stylesheet file and disable the default style. You can then use the @import directive to incorporate the stylesheet classes into your theme's gnome-shell.css. Please see the workspaces-to-dock.css stylesheet for a description of the css classes.
+
+
+Localization Support:
+--------------------
+Support for languages is now provided with the editable translation files being located in the po folder of the repository. If you would like to help with translations, please download one of the po files (en_US.po serves as a clean template) and email your translation to me at passingthru67@gmail.com.
 
 
 Features Planned:
 -----------------
+- Windowlist/Taskbar on the workspace caption.
 - Editing the workspace caption name.
 - Closing workspaces (and all associated windows) with mouse click
 - RTL support
@@ -150,11 +156,11 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
-**version 9 (Feb 22, 2013)**
+**version 9 (Feb 25, 2013)**
 
 - Language support added
-- Auto detect if user theme supports workspaces-to-dock
-- Option to extend dock height to fill the screen
+- Auto detect if user theme supports workspaces-to-dock (feature)
+- Option to extend dock height to fill the screen (feature)
 - Bug fixes
 
 **version 8 (Jan 26, 2013)**
@@ -162,7 +168,7 @@ Change Log:
 - Option to display workspace thumbnail captions (feature)
 - Ability to toggle overview mode with right click (feature)
 - Another intellihide option for dodging the top instance of an application (feature)
-- Ability to position the dock on secondary monitors.
+- Ability to position the dock on secondary monitors (feature)
 - Bug fixes
 
 **version 7 (Nov 3, 2012)**
