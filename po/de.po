@@ -99,6 +99,9 @@ msgstr "Weitere Einstellungen"
 msgid "<b>Workspace Captions</b>"
 msgstr "<b>Arbeitsflächenbeschriftungen</b>"
 
+msgid "User theme supports workspaces-to-dock captions"
+msgstr ""
+
 msgid "Add captions to workspace thumbnails"
 msgstr "Beschriftung auf Arbeitsflächenvorschau anzeigen"
 

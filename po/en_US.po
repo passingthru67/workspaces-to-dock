@@ -102,6 +102,9 @@ msgstr ""
 msgid "<b>Workspace Captions</b>"
 msgstr ""
 
+msgid "User theme supports workspaces-to-dock captions"
+msgstr ""
+
 msgid "Add captions to workspace thumbnails"
 msgstr ""
 

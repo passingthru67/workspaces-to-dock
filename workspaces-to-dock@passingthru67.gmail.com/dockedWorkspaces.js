@@ -254,7 +254,7 @@ dockedWorkspaces.prototype = {
         // Now that the dock is on the stage and custom themes are loaded
         // retrieve background color and set background opacity and load workspace caption css
         this._updateBackgroundOpacity();
-        this._loadWorkspacesToDockStylesheet();
+        this._onThemeSupportChanged();
 
         // Not really required because thumbnailsBox width signal will trigger a redisplay
         // Also found GS3.6 crashes returning from lock screen (Ubuntu GS Remix)
@@ -491,6 +491,10 @@ dockedWorkspaces.prototype = {
         this._settings.connect('changed::workspace-caption-windowcount-image', Lang.bind(this, function() {
             this._thumbnailsBox.hide();
             this._thumbnailsBox.show();
+        }));
+
+        this._settings.connect('changed::workspace-captions-support', Lang.bind(this, function() {
+            this._onThemeSupportChanged();
         }));
         
         this._settings.connect('changed::extend-height', Lang.bind(this, this._updateSize));
@@ -836,96 +840,57 @@ dockedWorkspaces.prototype = {
         }
     },
 
-    _loadWorkspacesToDockStylesheet: function() {
-        if (_DEBUG_) global.log("dockedWorkspaces: _loadWorkspacesToDockStylesheet");
-        // Get css stylesheet for current theme
-        // Main._defaultCssStylesheet = GLib.get_home_dir() + '/.themes/' + _themeName + '/gnome-shell/gnome-shell.css';
-        let cssStylesheet = Main._defaultCssStylesheet;
-        if (Main._cssStylesheet != null)
-            cssStylesheet = Main._cssStylesheet;
-
-        // Get theme directory
-        let cssDirectory = GLib.path_get_dirname(cssStylesheet);
-        
-        // Test for workspaces-to-dock stylesheet
-        let workspacesToDockStylesheet = cssDirectory + '/extensions/workspaces-to-dock.css';
-        if (GLib.file_test(workspacesToDockStylesheet, GLib.FileTest.EXISTS)) {
-            if (_DEBUG_) global.log("Theme supports workspaces-to-dock. Unload workspaces-to-dock.css if previously loaded");
-            this._unloadWorkspacesToDockStylesheet();
-        } else {
-            // Load workspaces-to-dock stylesheet from extension /themes
-            let themeSelected = "default";
-            let workspacesToDockExtStylesheet = GLib.build_filenamev([Me.path, 'themes', themeSelected, 'workspaces-to-dock.css']);
-            if (!GLib.file_test(workspacesToDockExtStylesheet, GLib.FileTest.EXISTS)) {
-                return;
-            }
-            if (_DEBUG_) global.log("Theme does not support workspaces-to-dock. Load extension /themes stylesheet");
-            let themeContext = St.ThemeContext.get_for_stage(global.stage);
-            if (themeContext) {
-                let theme = themeContext.get_theme();
-                let customStylesheets = theme.get_custom_stylesheets();
-                // Check if stylesheet already loaded
-                let found = false;
-                for (let i = 0; i < customStylesheets.length; i++) {
-                    if (customStylesheets[i] == workspacesToDockExtStylesheet) {
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    theme.load_stylesheet(workspacesToDockExtStylesheet);
-                }
-            }
-        }
-    },
-    
-    _unloadWorkspacesToDockStylesheet: function() {
-        if (_DEBUG_) global.log("dockedWorkspaces: _unloadWorkspacesToDockStylesheet");
-        let themeSelected = "default";
-        let workspacesToDockExtStylesheet = GLib.build_filenamev([Me.path, 'themes', themeSelected, 'workspaces-to-dock.css']);
+    // handler for workspace captions theme support changes
+    _onThemeSupportChanged: function() {
+        if (_DEBUG_) global.log("dockedWorkspaces: _onThemeSupportChanged");
+        let workspacesToDockExtStylesheet = GLib.build_filenamev([Me.path, 'themes', 'default', 'workspaces-to-dock.css']);
         if (!GLib.file_test(workspacesToDockExtStylesheet, GLib.FileTest.EXISTS)) {
             return;
         }
+
         let themeContext = St.ThemeContext.get_for_stage(global.stage);
         if (themeContext) {
             let theme = themeContext.get_theme();
-            let customStylesheets = theme.get_custom_stylesheets();
-            // Check if stylesheet already loaded
-            let found = false;
-            for (let i = 0; i < customStylesheets.length; i++) {
-                if (customStylesheets[i] == workspacesToDockExtStylesheet) {
-                    found = true;
-                    break;
-                }
-            }
-            if (found) {
-                // theme.unload_stylesheet(workspacesToDockExtStylesheet);
-                // ISSUE: just trying to unload stylesheet crashes GS36 when returning from lock screen
-                // WORKAROUND:
-                let cssStylesheet = Main._defaultCssStylesheet;
-                if (Main._cssStylesheet != null)
-                    cssStylesheet = Main._cssStylesheet;
-
-                let newTheme = new St.Theme ({ application_stylesheet: cssStylesheet });
-                for (let i = 0; i < customStylesheets.length; i++) {
-                    if (customStylesheets[i] != workspacesToDockExtStylesheet) {
-                        newTheme.load_stylesheet(customStylesheets[i]);
+            if (theme) {
+                let customStylesheets = theme.get_custom_stylesheets();
+                if (this._settings.get_boolean('workspace-captions-support')) {
+                    // Check if stylesheet already loaded
+                    let found = false;
+                    for (let i = 0; i < customStylesheets.length; i++) {
+                        if (customStylesheets[i] == workspacesToDockExtStylesheet) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (found) {
+                        // unload workspace captions css
+                        theme.unload_stylesheet(workspacesToDockExtStylesheet);
+                    }
+                } else {
+                    // Check if stylesheet already loaded
+                    let found = false;
+                    for (let i = 0; i < customStylesheets.length; i++) {
+                        if (customStylesheets[i] == workspacesToDockExtStylesheet) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        // load workspace captions css
+                        theme.load_stylesheet(workspacesToDockExtStylesheet);
                     }
                 }
-
-                themeContext.set_theme (newTheme);
             }
         }
+        
+        this._thumbnailsBox.hide();
+        this._thumbnailsBox.show();
     },
     
     // handler for theme changes
     _onThemeChanged: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _onThemeChanged");
         this._updateBackgroundOpacity();
-
-        this._loadWorkspacesToDockStylesheet();
-        this._thumbnailsBox.hide();
-        this._thumbnailsBox.show();
     },
     
     // resdiplay dock called if size-position changed due to dock resizing

@@ -79,7 +79,9 @@ Additional Settings:
 
 	**Add captions to workspace thumbnails** - Adds captions to the workspace thumbnails.
 
-	**NOTE: Version 9 auto detects if a theme supports workspaces-to-dock. Theme writers should place the 'workspaces-to-dock.css' stylesheet in ./themes/usertheme/gnome-shell/extensions/ folder and use the @import directive to incorporate the stylesheet into gnome-shell.css. If no theme support is detected, the extension's default theme will be used.**
+	**User theme supports workspaces-to-dock captions** - When enabled, user themes that support workspaces-to-dock captions will be used to style the captions.
+
+	**NOTE: Unfortunately, there is no built-in detection for when a theme supports workspaces-to-dock captions. Therefore, if this option is enabled, the default style will be disabled. We hope to provide auto-detection in a future release.**
 
 	**Show the workspace number** - When enabled, the workspace number is shown in the caption. It can be expanded to take up available space or its position can be adjusted using the arrow buttons.
 
@@ -104,7 +106,7 @@ Additional Settings:
 
 Workspace Caption Theming:
 -------------------------
-Adding workspaces-to-dock caption support to a theme can be accomplished by placing a custom 'workspaces-to-dock.css' stylesheet in the theme's gnome-shell/extensions/ folder. Workspaces-to-dock will detect the presence of this stylesheet file and disable the default style. You can then use the @import directive to incorporate the stylesheet classes into your theme's gnome-shell.css. Please see the workspaces-to-dock.css stylesheet for a description of the css classes.
+Adding workspaces-to-dock caption support to a theme can be accomplished by placing a custom 'workspaces-to-dock.css' stylesheet in the theme's gnome-shell/extensions/ folder. You can then use the @import directive to incorporate the stylesheet classes into your theme's gnome-shell.css. Please see the workspaces-to-dock.css stylesheet for a description of the css classes.
 
 
 Localization Support:
@@ -156,6 +158,9 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
+**version 10 (Feb 27, 2013)**
+- Removed auto detection of user theme support (buggy?)
+
 **version 9 (Feb 25, 2013)**
 
 - Language support added
