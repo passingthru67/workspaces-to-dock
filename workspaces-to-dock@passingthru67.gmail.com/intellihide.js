@@ -67,8 +67,8 @@ const OVERVIEW_MODE = IntellihideMode.SHOW;
 let intellihide = function(target, settings, gsCurrentVersion) {
     this._gsCurrentVersion = gsCurrentVersion;
     
-    // define gnome shell 3.6 grabHelper
-    if (this._gsCurrentVersion[1] == "6")
+    // Define gnome shell 3.6+ grabHelper
+    if (this._gsCurrentVersion[1] > 4)
         GrabHelper = imports.ui.grabHelper;
         
     this._init(target, settings);
@@ -187,75 +187,100 @@ intellihide.prototype = {
         );
 
         // Connect global signals based on gnome shell version
-        switch (this._gsCurrentVersion[1]) {
-            case"4":
-                // Gnome Shell 3.4 signals
-                this._signalHandler.push(
-                    [
-                        Main.messageTray._focusGrabber,
-                        'focus-grabbed',
-                        Lang.bind(this, this._onTrayFocusGrabbed)
-                    ],
-                    [
-                        Main.messageTray._focusGrabber,
-                        'focus-ungrabbed',
-                        Lang.bind(this, this._onTrayFocusUngrabbed)
-                    ],
-                    [
-                        Main.panel._menus,
-                        'menu-added',
-                        Lang.bind(this, this._onPanelMenuAdded)
-                    ]
-                );
+        if (this._gsCurrentVersion[1] == 4) {
+            // Gnome Shell 3.4 signals
+            this._signalHandler.push(
+                [
+                    Main.messageTray._focusGrabber,
+                    'focus-grabbed',
+                    Lang.bind(this, this._onTrayFocusGrabbed)
+                ],
+                [
+                    Main.messageTray._focusGrabber,
+                    'focus-ungrabbed',
+                    Lang.bind(this, this._onTrayFocusUngrabbed)
+                ],
+                [
+                    Main.panel._menus,
+                    'menu-added',
+                    Lang.bind(this, this._onPanelMenuAdded)
+                ]
+            );
 
-                // Detect gnome panel popup menus
-                for (let i = 0; i < Main.panel._menus._menus.length; i++) {
-                    this._signalHandler.push([Main.panel._menus._menus[i].menu, 'open-state-changed', Lang.bind(this, this._onPanelMenuStateChange)]);
-                }
-                
-                // Detect viewSelector Tab signals in overview mode
-                for (let i = 0; i < Main.overview._viewSelector._tabs.length; i++) {
-                    this._signalHandler.push([Main.overview._viewSelector._tabs[i], 'activated', Lang.bind(this, this._overviewTabChanged)]);
-                }
-                
-                // Detect Search started and cancelled
-                this._signalHandler.push([Main.overview._viewSelector._searchTab, 'activated', Lang.bind(this, this._searchStarted)]);
-                this._signalHandler.push([Main.overview._viewSelector._searchTab, 'search-cancelled', Lang.bind(this, this._searchCancelled)]);
-                
-                break;
-            case"6":
-                // Gnome Shell 3.6 signals
-                this._signalHandler.push(
-                    [
-                        Main.messageTray._grabHelper,
-                        'focus-grabbed',
-                        Lang.bind(this, this._onTrayFocusGrabbed)
-                    ],
-                    [
-                        Main.messageTray._grabHelper,
-                        'focus-ungrabbed',
-                        Lang.bind(this, this._onTrayFocusUngrabbed)
-                    ],
-                    [
-                        Main.panel.menuManager,
-                        'menu-added',
-                        Lang.bind(this, this._onPanelMenuAdded)
-                    ],
-                    [
-                        Main.overview._viewSelector,
-                        'show-page',
-                        Lang.bind(this, this._overviewPageChanged)
-                    ]
-                );
+            // Detect gnome panel popup menus
+            for (let i = 0; i < Main.panel._menus._menus.length; i++) {
+                this._signalHandler.push([Main.panel._menus._menus[i].menu, 'open-state-changed', Lang.bind(this, this._onPanelMenuStateChange)]);
+            }
+            
+            // Detect viewSelector Tab signals in overview mode
+            for (let i = 0; i < Main.overview._viewSelector._tabs.length; i++) {
+                this._signalHandler.push([Main.overview._viewSelector._tabs[i], 'activated', Lang.bind(this, this._overviewTabChanged)]);
+            }
+            
+            // Detect Search started and cancelled
+            this._signalHandler.push([Main.overview._viewSelector._searchTab, 'activated', Lang.bind(this, this._searchStarted)]);
+            this._signalHandler.push([Main.overview._viewSelector._searchTab, 'search-cancelled', Lang.bind(this, this._searchCancelled)]);
+            
+        } else if (this._gsCurrentVersion[1] == 6) {
+            // Gnome Shell 3.6 signals
+            this._signalHandler.push(
+                [
+                    Main.messageTray._grabHelper,
+                    'focus-grabbed',
+                    Lang.bind(this, this._onTrayFocusGrabbed)
+                ],
+                [
+                    Main.messageTray._grabHelper,
+                    'focus-ungrabbed',
+                    Lang.bind(this, this._onTrayFocusUngrabbed)
+                ],
+                [
+                    Main.panel.menuManager,
+                    'menu-added',
+                    Lang.bind(this, this._onPanelMenuAdded)
+                ],
+                [
+                    Main.overview._viewSelector,
+                    'show-page',
+                    Lang.bind(this, this._overviewPageChanged)
+                ]
+            );
 
-                // Detect gnome panel popup menus
-                for (let i = 0; i < Main.panel.menuManager._menus.length; i++) {
-                    this._signalHandler.push([Main.panel.menuManager._menus[i].menu, 'open-state-changed', Lang.bind(this, this._onPanelMenuStateChange)]);
-                }
+            // Detect gnome panel popup menus
+            for (let i = 0; i < Main.panel.menuManager._menus.length; i++) {
+                this._signalHandler.push([Main.panel.menuManager._menus[i].menu, 'open-state-changed', Lang.bind(this, this._onPanelMenuStateChange)]);
+            }
 
-                break;
-            default:
-                throw new Error("Unknown version number (intellihide.js).");
+        } else {
+            // Gnome Shell 3.8 signals
+            this._signalHandler.push(
+                [
+                    Main.overview._viewSelector,
+                    'page-changed',
+                    Lang.bind(this, this._overviewPageChanged)
+                ],
+                // GS38 panel menus use the grabHelper
+                [
+                    Main.panel.menuManager._grabHelper,
+                    'focus-grabbed',
+                    Lang.bind(this, this._onPanelFocusGrabbed)
+                ],
+                [
+                    Main.panel.menuManager._grabHelper,
+                    'focus-ungrabbed',
+                    Lang.bind(this, this._onPanelFocusUngrabbed)
+                ],
+                [
+                    Main.layoutManager._bgManagers[0].background.actor._backgroundManager._grabHelper,
+                    'focus-grabbed',
+                    Lang.bind(this, this._onPanelFocusGrabbed)
+                ],
+                [
+                    Main.layoutManager._bgManagers[0].background.actor._backgroundManager._grabHelper,
+                    'focus-ungrabbed',
+                    Lang.bind(this, this._onPanelFocusUngrabbed)
+                ]
+            );
         }
 		if (_DEBUG_) global.log("intellihide: init - signals being captured");
         
@@ -287,30 +312,24 @@ intellihide.prototype = {
     // main function called during init to override gnome shell 3.4/3.6/#
     _overrideGnomeShellFunctions: function() {
         if (_DEBUG_) global.log("intellihide: _overrideGnomeShellFunctions");
-        switch (this._gsCurrentVersion[1]) {
-            case"4":
-                this._overrideGnomeShell34Functions();
-                break;
-            case"6":
-                this._overrideGnomeShell36Functions();
-                break;
-            default:
-                throw new Error("Unknown version number (intellihide.js).");
+        if (this._gsCurrentVersion[1] == 4) {
+            this._overrideGnomeShell34Functions();
+        } else if (this._gsCurrentVersion[1] == 6) {
+            this._overrideGnomeShell36Functions();            
+        } else {
+            this._overrideGnomeShell38Functions();
         }
     },
 
     // main function called during destroy to restore gnome shell 3.4/3.6/#
     _restoreGnomeShellFunctions: function() {
         if (_DEBUG_) global.log("intellihide: _restoreGnomeShellFunctions");
-        switch (this._gsCurrentVersion[1]) {
-            case"4":
-                this._restoreGnomeShell34Functions();
-                break;
-            case"6":
-                this._restoreGnomeShell36Functions();
-                break;
-            default:
-                throw new Error("Unknown version number (intellihide.js).");
+        if (this._gsCurrentVersion[1] == 4) {
+            this._restoreGnomeShell34Functions();
+        } else if (this._gsCurrentVersion[1] == 6) {
+            this._restoreGnomeShell36Functions();            
+        } else {
+            this._restoreGnomeShell38Functions();
         }
     },
     
@@ -445,7 +464,6 @@ intellihide.prototype = {
             return true;
 		};
 
-
         // Override the GrabHelper ungrab function to emit a signal when focus is ungrabbed
 		// Copied from Gnome Shell .. emit 'focus-ungrabbed' added
 		let p = GrabHelper.GrabHelper.prototype;
@@ -487,6 +505,110 @@ intellihide.prototype = {
 		};
 		Signals.addSignalMethods(GrabHelper.GrabHelper.prototype);
 	},
+
+    // gnome shell 3.8 function overrides
+	_overrideGnomeShell38Functions: function() {
+        // Override the GrabHelper grab function to emit a signal when focus is grabbed
+		// Copied from Gnome Shell .. emit 'focus-grabbed' added
+        let p = GrabHelper.GrabHelper.prototype;
+		this.saved_GrabHelper_grab = p.grab;
+		p.grab = function(params) {
+            params = Params.parse(params, { actor: null,
+                                            modal: false,
+                                            grabFocus: false,
+                                            focus: null,
+                                            onUngrab: null });
+
+            let focus = global.stage.key_focus;
+            let hadFocus = focus && this._isWithinGrabbedActor(focus);
+            let newFocus = params.actor;
+
+            if (this.isActorGrabbed(params.actor))
+                return true;
+
+            params.savedFocus = focus;
+
+            if (params.modal && !this._takeModalGrab())
+                return false;
+
+            if (params.grabFocus && !this._takeFocusGrab(hadFocus))
+                return false;
+
+            this._grabStack.push(params);
+
+            if (params.focus) {
+                params.focus.grab_key_focus();
+            } else if (newFocus && (hadFocus || params.grabFocus)) {
+                if (!newFocus.navigate_focus(null, Gtk.DirectionType.TAB_FORWARD, false))
+                    newFocus.grab_key_focus();
+            }
+
+            if ((params.grabFocus || params.modal) && !this._capturedEventId)
+                this._capturedEventId = global.stage.connect('captured-event', Lang.bind(this, this._onCapturedEvent));
+
+            this.emit('focus-grabbed');
+            return true;
+        };
+
+        // Override the GrabHelper ungrab function to emit a signal when focus is ungrabbed
+		// Copied from Gnome Shell .. emit 'focus-ungrabbed' added
+		let p = GrabHelper.GrabHelper.prototype;
+		this.saved_GrabHelper_ungrab = p.ungrab;
+		p.ungrab = function(params) {
+            params = Params.parse(params, { actor: this.currentGrab.actor,
+                                            isUser: false });
+
+            let grabStackIndex = this._findStackIndex(params.actor);
+            if (grabStackIndex < 0)
+                return;
+
+            // We may get key focus changes when calling onUngrab, which
+            // would cause an extra ungrab() on the next actor in the
+            // stack, which is wrong. Ignore key focus changes during the
+            // ungrab, and restore the saved key focus ourselves afterwards.
+            // We use a count as ungrab() may be re-entrant, as onUngrab()
+            // may ungrab additional actors.
+            this._isUngrabbingCount++;
+
+            let focus = global.stage.key_focus;
+            let hadFocus = focus && this._isWithinGrabbedActor(focus);
+
+            let poppedGrabs = this._grabStack.slice(grabStackIndex);
+            // "Pop" all newly ungrabbed actors off the grab stack
+            // by truncating the array.
+            this._grabStack.length = grabStackIndex;
+
+            for (let i = poppedGrabs.length - 1; i >= 0; i--) {
+                let poppedGrab = poppedGrabs[i];
+
+                if (poppedGrab.onUngrab)
+                    poppedGrab.onUngrab(params.isUser);
+
+                if (poppedGrab.modal)
+                    this._releaseModalGrab();
+
+                if (poppedGrab.grabFocus)
+                    this._releaseFocusGrab();
+            }
+
+            if (!this.grabbed && this._capturedEventId > 0) {
+                global.stage.disconnect(this._capturedEventId);
+                this._capturedEventId = 0;
+            }
+
+            if (hadFocus) {
+                let poppedGrab = poppedGrabs[0];
+                if (poppedGrab.savedFocus)
+                    poppedGrab.savedFocus.grab_key_focus();
+            }
+
+            this._isUngrabbingCount--;
+
+            this.emit('focus-ungrabbed');
+		};
+
+        Signals.addSignalMethods(GrabHelper.GrabHelper.prototype);
+	},
 	
     // gnome shell 3.4 function restores
 	_restoreGnomeShell34Functions: function() {
@@ -514,6 +636,17 @@ intellihide.prototype = {
         p.ungrab = this.saved_GrabHelper_ungrab;
 	},
 	
+    // gnome shell 3.8 function restores
+    _restoreGnomeShell38Functions: function() {
+        // Restore normal GrabHelper grab function
+        let p = GrabHelper.GrabHelper.prototype;
+        p.grab = this.saved_GrabHelper_grab;
+        
+        // Restore normal GrabHelper ungrab function
+        let p = GrabHelper.GrabHelper.prototype;
+        p.ungrab = this.saved_GrabHelper_ungrab;
+	},
+
     // handler to bind settings when preferences changed
     _bindSettingsChanges: function() {
         this._settings.connect('changed::intellihide', Lang.bind(this, function() {
@@ -630,10 +763,11 @@ intellihide.prototype = {
     // handler for when Gnome Shell 3.6 overview page is changed
     // for example, when Applications button is clicked the workspaces dock is hidden
     // or when search is started the workspaces dock is hidden
-    _overviewPageChanged: function(source, page) {
+    _overviewPageChanged: function(source) {
         if (_DEBUG_) global.log("intellihide: _overviewPageChanged");
+        let activePage = Main.overview._viewSelector._activePage;
         if (this._inOverview) {
-            if (page == Main.overview._viewSelector._workspacesPage) {
+            if (activePage == Main.overview._viewSelector._workspacesPage) {
                 this._show();
             } else {
                 this._hide();
@@ -657,19 +791,48 @@ intellihide.prototype = {
         }
     },
 
+    // handler for when panel focus is grabbed
+    _onPanelFocusGrabbed: function(source, event) {
+        let focusedActor;
+        if (this._gsCurrentVersion[1] < 6) {
+            focusedActor = source.actor;
+        } else {
+            let idx = source._grabStack.length - 1;
+            focusedActor = source._grabStack[idx].actor;
+        }
+		let [rx, ry] = focusedActor.get_transformed_position();
+        let [rwidth, rheight] = focusedActor.get_size();
+        let test = (rx < this._target.staticBox.x2) && (rx + rwidth > this._target.staticBox.x1) && (ry < this._target.staticBox.y2) && (ry + rheight > this._target.staticBox.y1);
+        if (_DEBUG_) global.log("intellihide: onPanelFocusGrabbed actor = "+focusedActor+"  position = "+focusedActor.get_transformed_position()+" size = "+focusedActor.get_size()+" test = "+test);
+        if (test) {
+            this._disableIntellihide = true;
+            this._hide();
+        }
+    },
+
+    // handler for when panel focus is ungrabbed
+    _onPanelFocusUngrabbed: function(source, event) {
+        if (_DEBUG_) global.log("intellihide: onPanelFocusUnGrabbed");
+        this._disableIntellihide = false;
+        if (this._inOverview) {
+            if (this._gsCurrentVersion[1] < 6) {
+                if (Main.overview._viewSelector._activeTab.id == "windows") this._show();
+            } else {
+                if (Main.overview._viewSelector._activePage == Main.overview._viewSelector._workspacesPage) this._show();
+            }
+        } else {
+            this._updateDockVisibility();
+        }
+    },
+
     // handler for when messageTray focus is grabbed
     _onTrayFocusGrabbed: function(source, event) {
         let focusedActor;
-        switch (this._gsCurrentVersion[1]) {
-            case "4":
-                focusedActor = source.actor;
-                break;
-            case "6":
-                let idx = source._grabStack.length - 1;
-                focusedActor = source._grabStack[idx].actor;
-                break;
-            default:
-                throw new Error("Unknown version number (intellihide.js).");
+        if (this._gsCurrentVersion[1] < 6) {
+            focusedActor = source.actor;
+        } else {
+            let idx = source._grabStack.length - 1;
+            focusedActor = source._grabStack[idx].actor;
         }
 		let [rx, ry] = focusedActor.get_transformed_position();
         let [rwidth, rheight] = focusedActor.get_size();
@@ -686,15 +849,10 @@ intellihide.prototype = {
         if (_DEBUG_) global.log("intellihide: onTrayFocusUnGrabbed");
         this._disableIntellihide = false;
         if (this._inOverview) {
-            switch (this._gsCurrentVersion[1]) {
-                case "4":
-                    if (Main.overview._viewSelector._activeTab.id == "windows") this._show();
-                    break;
-                case "6":
-                    if (Main.overview._viewSelector._activePage == Main.overview._viewSelector._workspacesPage) this._show();
-                    break;
-                default:
-                    throw new Error("Unknown version number (intellihide.js).");
+            if (this._gsCurrentVersion[1] < 6) {
+                if (Main.overview._viewSelector._activeTab.id == "windows") this._show();
+            } else {
+                if (Main.overview._viewSelector._activePage == Main.overview._viewSelector._workspacesPage) this._show();
             }
         } else {
             this._updateDockVisibility();
@@ -716,15 +874,10 @@ intellihide.prototype = {
             if (_DEBUG_) global.log("intellihide: _onPanelMenuStateChange - closed");
             this._disableIntellihide = false;
             if (this._inOverview) {
-                switch (this._gsCurrentVersion[1]) {
-                    case "4":
-                        if (Main.overview._viewSelector._activeTab.id == "windows") this._show();
-                        break;
-                    case "6":
-                        if (Main.overview._viewSelector._activePage == Main.overview._viewSelector._workspacesPage) this._show();
-                        break;
-                    default:
-                        throw new Error("Unknown version number (intellihide.js).");
+                if (this._gsCurrentVersion[1] < 6) {
+                    if (Main.overview._viewSelector._activeTab.id == "windows") this._show();
+                } else {
+                    if (Main.overview._viewSelector._activePage == Main.overview._viewSelector._workspacesPage) this._show();
                 }
             } else {
                 this._updateDockVisibility();
@@ -895,8 +1048,8 @@ intellihide.prototype = {
     // Filter interesting windows to be considered for intellihide.
     // Consider all windows visible on the current workspace.
     _intellihideFilterInteresting: function(wa, edge) {
-        var currentWorkspace = global.screen.get_active_workspace_index();
-        var meta_win = wa.get_meta_window();
+        let currentWorkspace = global.screen.get_active_workspace_index();
+        let meta_win = wa.get_meta_window();
         if (!meta_win) { //TODO michele: why? What does it mean?
             return false;
         }
@@ -904,8 +1057,11 @@ intellihide.prototype = {
         if (!this._handledWindowType(meta_win))
             return false;
 
-        var wksp = meta_win.get_workspace();
-        var wksp_index = wksp.index();
+        let wksp = meta_win.get_workspace();        
+        if (!wksp)
+            return false;
+
+        let wksp_index = wksp.index();
 
         // check intellihide-option for windows of focused app
         if (this._settings.get_int('intellihide-option') == 1) { 

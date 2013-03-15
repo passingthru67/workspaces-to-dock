@@ -30,6 +30,7 @@ const ViewSelector = imports.ui.viewSelector;
 const Overview = imports.ui.overview;
 const Tweener = imports.ui.tweener;
 const WorkspaceSwitcherPopup = imports.ui.workspaceSwitcherPopup;
+let OverviewControls = null;
 
 const ExtensionSystem = imports.ui.extensionSystem;
 const ExtensionUtils = imports.misc.extensionUtils;
@@ -46,6 +47,11 @@ let DashToDock = null;
 
 function dockedWorkspaces(settings, gsCurrentVersion) {
     this._gsCurrentVersion = gsCurrentVersion;
+    
+    // Define gnome shell 3.8 OverviewControls
+    if (this._gsCurrentVersion[1] > 6)
+        OverviewControls = imports.ui.overviewControls;
+
     this._init(settings);
 }
 
@@ -99,7 +105,7 @@ dockedWorkspaces.prototype = {
             Main.wm._workspaceSwitcherPopup = new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup();
             // additional fix for gnome shell 3.6 workspaceSwitcherPopup
             // popup is destroy and not just hidden in 3.6
-            if (this._gsCurrentVersion[1] == "6") {
+            if (this._gsCurrentVersion[1] > 4) {
                 Main.wm._workspaceSwitcherPopup.connect('destroy', function() {
                     Main.wm._workspaceSwitcherPopup = null;
                 });
@@ -126,16 +132,6 @@ dockedWorkspaces.prototype = {
                 Lang.bind(this, this._updateYPosition)
             ],
             [
-                Main.overview._viewSelector._pageArea,
-                'notify::y',
-                Lang.bind(this, this._updateYPosition)
-            ],
-            //[
-            //    Main.overview._viewSelector._pageArea,
-            //    'notify::height',
-            //    Lang.bind(this, this._updateHeight)
-            //],
-            [
                 this._thumbnailsBox.actor,
                 'notify::width',
                 Lang.bind(this, this._thumbnailsBoxResized)
@@ -146,41 +142,47 @@ dockedWorkspaces.prototype = {
                 Lang.bind(this, this._resetPosition)
             ],
             [
-                global.screen,
-                'restacked',
-                Lang.bind(this, this._workspacesRestacked)
-            ],
-            [
-                global.screen,
-                'workspace-added',
-                Lang.bind(this, this._workspacesAdded)
-            ],
-            [
-                global.screen,
-                'workspace-removed',
-                Lang.bind(this, this._workspacesRemoved)
-            ],
-            [
-                global.screen,
-                'workspace-switched',
-                Lang.bind(this, this._workspacesRestacked)
-            ],
-            [
                 St.ThemeContext.get_for_stage(global.stage),
                 'changed',
                 Lang.bind(this, this._onThemeChanged)
             ],
-            //[
-            //    Main.messageTray.actor,
-            //    'notify::height',
-            //    Lang.bind(this, this._updateHeight)
-            //],
             [
                 ExtensionSystem._signals,
                 'extension-state-changed',
                 Lang.bind(this, this._onExtensionSystemStateChanged)
             ]
         );
+
+		// Connect GS34 & GS36 global signals
+		if (this._gsCurrentVersion[1] < 7) {
+		    this._signalHandler.push(
+		        [
+		            Main.overview._viewSelector._pageArea,
+		            'notify::y',
+		            Lang.bind(this, this._updateYPosition)
+		        ],
+		        [
+		            global.screen,
+		            'restacked',
+		            Lang.bind(this, this._workspacesRestacked)
+		        ],
+		        [
+		            global.screen,
+		            'workspace-added',
+		            Lang.bind(this, this._workspacesAdded)
+		        ],
+		        [
+		            global.screen,
+		            'workspace-removed',
+		            Lang.bind(this, this._workspacesRemoved)
+		        ],
+		        [
+		            global.screen,
+		            'workspace-switched',
+		            Lang.bind(this, this._workspacesRestacked)
+		        ]
+			);
+		}
         if (_DEBUG_) global.log("dockedWorkspaces: init - signals being captured");
 
         // Connect DashToDock hover signal if the extension is already loaded and enabled
@@ -218,7 +220,7 @@ dockedWorkspaces.prototype = {
         // TODO: can we lower this.actor in gnome shell without causing problems?
         // gs3.4 problem - dock immediately hides when workspace is switched even when mouse is hovering
         // Lower the dock below the trayBox so that messageTray popups can receive focus & clicks
-        if (this._gsCurrentVersion[1] == "6")
+        if (this._gsCurrentVersion[1] > 4)
             this.actor.lower(Main.layoutManager.trayBox);
 		
     },
@@ -231,13 +233,17 @@ dockedWorkspaces.prototype = {
         }
 
         // GS3.4 workaround to get correct size and position of actor inside the overview
-        if (this._gsCurrentVersion[1] == "4") {
+        if (this._gsCurrentVersion[1] == 4) {
             Main.overview._group.show();
             Main.overview._group.hide();
         }
         
         // Show the thumbnailsBox.  We need it to calculate the width of the dock.
-        this._thumbnailsBox.show();
+        if (this._gsCurrentVersion[1] < 7) {
+            this._thumbnailsBox.show();
+        } else {
+            this._thumbnailsBox._createThumbnails();
+        }
         
         // Set initial position
         this._resetPosition();
@@ -299,26 +305,35 @@ dockedWorkspaces.prototype = {
             return true;
         };
 
-        // Override the WorkspacesDisplay updateAlwaysZoom function
         // Force normal workspaces to be always zoomed
-        let p = WorkspacesView.WorkspacesDisplay.prototype;
-        this.saved_updateAlwaysZoom = p._updateAlwaysZoom;
-        p._updateAlwaysZoom = function() {
-            this._alwaysZoomOut = true;
-        };
+        if (this._gsCurrentVersion[1] < 7) {
+            // Override the WorkspacesDisplay updateAlwaysZoom function
+            let p = WorkspacesView.WorkspacesDisplay.prototype;
+            this.saved_updateAlwaysZoom = p._updateAlwaysZoom;
+            p._updateAlwaysZoom = function() {
+                this._alwaysZoomOut = true;
+            };
 
-        // Set zoom status to true & hide normal workspaces thumbnailsBox
-        switch (this._gsCurrentVersion[1]) {
-            case"4":
+            // Set zoom status to true & hide normal workspaces thumbnailsBox
+            if (this._gsCurrentVersion[1] == 4) {
                 Main.overview._workspacesDisplay._alwaysZoomOut = true;
                 Main.overview._workspacesDisplay._thumbnailsBox.actor.hide();
-                break;
-            case"6":
+            }
+            if (this._gsCurrentVersion[1] == 6) {
                 Main.overview._viewSelector._workspacesDisplay._alwaysZoomOut = true;
                 Main.overview._viewSelector._workspacesDisplay._thumbnailsBox.actor.opacity = 0;
-                break;
-            default:
-                throw new Error(_("Unknown version number") + " (dockedWorkspaces.js).");
+            }
+        } else {
+            // GS38 moved things to the overviewControls thumbnailsSlider
+            let p = OverviewControls.ThumbnailsSlider.prototype;
+            this.saved_getAlwaysZoomOut = p._getAlwaysZoomOut;
+            p._getAlwaysZoomOut = function() {
+                let alwaysZoomOut = true;
+                return alwaysZoomOut;
+            };
+            // Hide normal workspaces thumbnailsBox
+            //Main.overview._controls._thumbnailsSlider.actor.hide();
+            Main.overview._controls._thumbnailsSlider.actor.opacity = 0;
         }
 
     },
@@ -330,24 +345,25 @@ dockedWorkspaces.prototype = {
         let p = WorkspaceThumbnail.WindowClone.prototype;
         p._onButtonRelease = this.saved_WindowClone_onButtonRelease;
 
-        // Restore normal workspaces to previous zoom setting
-        let p = WorkspacesView.WorkspacesDisplay.prototype;
-        p._updateAlwaysZoom = this.saved_updateAlwaysZoom;
+        if (this._gsCurrentVersion[1] < 7) {
+            // Restore normal workspaces to previous zoom setting
+            let p = WorkspacesView.WorkspacesDisplay.prototype;
+            p._updateAlwaysZoom = this.saved_updateAlwaysZoom;
 
-        // Restore zoom status to false & normal workspaces thumbnailsBox to show
-        switch (this._gsCurrentVersion[1]) {
-            case"4":
+            // Restore zoom status to false & normal workspaces thumbnailsBox to show
+            if (this._gsCurrentVersion[1] == 4) {
                 Main.overview._workspacesDisplay._alwaysZoomOut = false;
                 Main.overview._workspacesDisplay._updateAlwaysZoom();
                 Main.overview._workspacesDisplay._thumbnailsBox.actor.show();
-                break;
-            case"6":
+            }
+            if (this._gsCurrentVersion[1] == 6) {
                 Main.overview._viewSelector._workspacesDisplay._alwaysZoomOut = false;
                 Main.overview._viewSelector._workspacesDisplay._updateAlwaysZoom();
                 Main.overview._viewSelector._workspacesDisplay._thumbnailsBox.actor.opacity = 255;
-                break;
-            default:
-                throw new Error(_("Unknown version number") + " (dockedWorkspaces.js).");
+            }
+        } else {
+            let p = OverviewControls.ThumbnailsSlider.prototype;
+            p._getAlwaysZoomOut = this.saved_getAlwaysZoomOut;
         }
 
     },
@@ -404,15 +420,10 @@ dockedWorkspaces.prototype = {
         
         if (removedIndex != null) {
             if (_DEBUG_) global.log("dockedWorkspaces: _workspacesRemoved - thumbnail index being removed is = "+removedIndex);
-            switch (this._gsCurrentVersion[1]) {
-                case"4":
-                    this._thumbnailsBox.removeThumbmails(removedIndex, removedNum);
-                    break;
-                case"6":
-                    this._thumbnailsBox.removeThumbnails(removedIndex, removedNum);
-                    break;
-                default:
-                    throw new Error(_("Unknown version number") + " (dockedWorkspaces.js).");
+            if (this._gsCurrentVersion[1] < 6) {
+                this._thumbnailsBox.removeThumbmails(removedIndex, removedNum);
+            } else {
+                this._thumbnailsBox.removeThumbnails(removedIndex, removedNum);
             }
         }
     },
@@ -462,7 +473,7 @@ dockedWorkspaces.prototype = {
             // TODO: can we lower this.actor in gnome shell without causing problems?
             // gs3.4 problem - dock immediately hides when workspace is switched even when mouse is hovering
             // Lower the dock below the trayBox so that messageTray popups can receive focus & clicks
-            if (this._gsCurrentVersion[1] == "6")
+            if (this._gsCurrentVersion[1] > 4)
                 this.actor.lower(Main.layoutManager.trayBox);
 
             if (this._settings.get_boolean('dock-fixed')) {
@@ -481,16 +492,31 @@ dockedWorkspaces.prototype = {
         this._settings.connect('changed::preferred-monitor', Lang.bind(this, this._resetPosition));
         
         this._settings.connect('changed::workspace-captions', Lang.bind(this, function() {
-            this._thumbnailsBox.hide();
-            this._thumbnailsBox.show();
+            if (this._gsCurrentVersion[1] < 7) {
+                this._thumbnailsBox.hide();
+                this._thumbnailsBox.show();
+            } else {
+                this._thumbnailsBox._destroyThumbnails();
+                this._thumbnailsBox._createThumbnails();
+            }
         }));
         this._settings.connect('changed::workspace-caption-items', Lang.bind(this, function() {
-            this._thumbnailsBox.hide();
-            this._thumbnailsBox.show();
+            if (this._gsCurrentVersion[1] < 7) {
+                this._thumbnailsBox.hide();
+                this._thumbnailsBox.show();
+            } else {
+                this._thumbnailsBox._destroyThumbnails();
+                this._thumbnailsBox._createThumbnails();
+            }
         }));
         this._settings.connect('changed::workspace-caption-windowcount-image', Lang.bind(this, function() {
-            this._thumbnailsBox.hide();
-            this._thumbnailsBox.show();
+            if (this._gsCurrentVersion[1] < 7) {
+                this._thumbnailsBox.hide();
+                this._thumbnailsBox.show();
+            } else {
+                this._thumbnailsBox._destroyThumbnails();
+                this._thumbnailsBox._createThumbnails();
+            }
         }));
 
         this._settings.connect('changed::workspace-captions-support', Lang.bind(this, function() {
@@ -560,26 +586,16 @@ dockedWorkspaces.prototype = {
     // This comes from desktop-scroller@obsidien.github.com
     _onScrollEvent: function (actor, event) {
         if (event.get_scroll_direction() == Clutter.ScrollDirection.UP) {
-            switch (this._gsCurrentVersion[1]) {
-                case "4":
-                    Main.wm.actionMoveWorkspaceUp();
-                    break;
-                case "6":
-                    Main.wm.actionMoveWorkspace(Meta.MotionDirection.UP);
-                    break;
-                default:
-                    throw new Error(_("Unknown version number") + " (dockedWorkspaces.js).");
+            if (this._gsCurrentVersion[1] < 6) {
+                Main.wm.actionMoveWorkspaceUp();
+            } else {
+                Main.wm.actionMoveWorkspace(Meta.MotionDirection.UP);
             }
         } else if (event.get_scroll_direction() == Clutter.ScrollDirection.DOWN) {
-            switch (this._gsCurrentVersion[1]) {
-                case "4":
-                    Main.wm.actionMoveWorkspaceDown();
-                    break;
-                case "6":
-                    Main.wm.actionMoveWorkspace(Meta.MotionDirection.DOWN);
-                    break;
-                default:
-                    throw new Error(_("Unknown version number") + " (dockedWorkspaces.js).");
+            if (this._gsCurrentVersion[1] < 6) {
+                Main.wm.actionMoveWorkspaceDown();
+            } else {
+                Main.wm.actionMoveWorkspace(Meta.MotionDirection.DOWN);
             }
         }
         return true;
@@ -727,7 +743,7 @@ dockedWorkspaces.prototype = {
             });
         } else {
 			// Still need to trigger animStatus states so that show/hide dock functions work properly
-			if (_DEBUG_) global.log("dockedWorkspaces: _animateIn final_position == actor.x .. trigger animStatus");
+			if (_DEBUG_) global.log("dockedWorkspaces: _animateOut final_position == actor.x .. trigger animStatus");
             this._animStatus.queue(false);
 			this._animStatus.end();
 		}
@@ -883,8 +899,13 @@ dockedWorkspaces.prototype = {
             }
         }
         
-        this._thumbnailsBox.hide();
-        this._thumbnailsBox.show();
+		if (this._gsCurrentVersion[1] < 7) {
+            this._thumbnailsBox.hide();
+            this._thumbnailsBox.show();
+        } else {
+            this._thumbnailsBox._destroyThumbnails();
+            this._thumbnailsBox._createThumbnails();
+        }
     },
     
     // handler for theme changes
@@ -953,29 +974,30 @@ dockedWorkspaces.prototype = {
                 height = this._monitor.height - topMargin - bottomMargin;
             }
         } else {
-            if (primary) {
-                y = this._monitor.y + Main.overview._viewSelector.actor.y + Main.overview._viewSelector._pageArea.y;
+            if (this._gsCurrentVersion[1] == 4) {
+                if (primary) {
+                    y = this._monitor.y + Main.overview._viewSelector.actor.y + Main.overview._viewSelector._pageArea.y;
+                    height = Main.overview._viewSelector._pageArea.height;
+                } else {
+                    y = this._monitor.y + Main.overview._viewSelector.actor.y;
+                    height = this._monitor.height - (Main.overview._viewSelector.actor.y + Main.messageTray.actor.height);
+                }
+            } else if (this._gsCurrentVersion[1] == 6) {
+                if (primary) {
+                    y = this._monitor.y + Main.overview._viewSelector.actor.y + Main.overview._viewSelector._pageArea.y;
+                    height = this._monitor.height - (this._monitor.y + Main.overview._viewSelector.actor.y + Main.overview._viewSelector._pageArea.y + (Main.overview._viewSelector.actor.y/2) + Main.messageTray.actor.height);
+                } else {
+                    y = this._monitor.y + Main.overview._viewSelector.actor.y;
+                    height = this._monitor.height - (Main.overview._viewSelector.actor.y + Main.messageTray.actor.height);
+                }
             } else {
-                y = this._monitor.y + Main.overview._viewSelector.actor.y;
-            }
-            
-            switch (this._gsCurrentVersion[1]) {
-                case"4":
-                    if (primary) {
-                        height = Main.overview._viewSelector._pageArea.height;
-                    } else {
-                        height = this._monitor.height - (Main.overview._viewSelector.actor.y + Main.messageTray.actor.height);
-                    }
-                    break;
-                case"6":
-                    if (primary) {
-                        height = this._monitor.height - (this._monitor.y + Main.overview._viewSelector.actor.y + Main.overview._viewSelector._pageArea.y + (Main.overview._viewSelector.actor.y/2) + Main.messageTray.actor.height);
-                    } else {
-                        height = this._monitor.height - (Main.overview._viewSelector.actor.y + Main.messageTray.actor.height);
-                    }
-                    break;
-                default:
-                    throw new Error(_("Unknown version number") + " (dockedWorkspaces.js).");
+                if (primary) {
+                    y = y = this._monitor.y + Main.panel.actor.height + Main.overview._searchEntryBin.y + Main.overview._searchEntryBin.height;
+                    height = this._monitor.height - (Main.overview._searchEntryBin.y + Main.overview._searchEntryBin.height + Main.messageTray.actor.height);
+                } else {
+                    y = y = this._monitor.y + Main.overview._viewSelector.actor.y;
+                    height = this._monitor.height - (Main.messageTray.actor.height);
+                }
             }
         }
 
