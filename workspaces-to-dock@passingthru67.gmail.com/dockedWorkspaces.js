@@ -864,7 +864,12 @@ dockedWorkspaces.prototype = {
     // handler for workspace captions theme support changes
     _onThemeSupportChanged: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _onThemeSupportChanged");
-        let workspacesToDockExtStylesheet = GLib.build_filenamev([Me.path, 'themes', 'default', 'workspaces-to-dock.css']);
+        let workspacesToDockExtStylesheet;
+        if (this._gsCurrentVersion[1] < 6) {
+            workspacesToDockExtStylesheet = GLib.build_filenamev([Me.path, 'themes', 'default', 'workspaces-to-dock-gs34.css']);
+        } else {
+            workspacesToDockExtStylesheet = GLib.build_filenamev([Me.path, 'themes', 'default', 'workspaces-to-dock.css']);
+        }
         if (!GLib.file_test(workspacesToDockExtStylesheet, GLib.FileTest.EXISTS)) {
             return;
         }
