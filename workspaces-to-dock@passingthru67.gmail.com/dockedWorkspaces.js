@@ -150,6 +150,16 @@ dockedWorkspaces.prototype = {
                 ExtensionSystem._signals,
                 'extension-state-changed',
                 Lang.bind(this, this._onExtensionSystemStateChanged)
+            ],
+            [
+                global.screen,
+                'workspace-added',
+                Lang.bind(this, this._workspacesAdded)
+            ],
+            [
+                global.screen,
+                'workspace-removed',
+                Lang.bind(this, this._workspacesRemoved)
             ]
         );
 
@@ -165,16 +175,6 @@ dockedWorkspaces.prototype = {
 		            global.screen,
 		            'restacked',
 		            Lang.bind(this, this._workspacesRestacked)
-		        ],
-		        [
-		            global.screen,
-		            'workspace-added',
-		            Lang.bind(this, this._workspacesAdded)
-		        ],
-		        [
-		            global.screen,
-		            'workspace-removed',
-		            Lang.bind(this, this._workspacesRemoved)
 		        ],
 		        [
 		            global.screen,
@@ -269,6 +269,11 @@ dockedWorkspaces.prototype = {
 
     destroy: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: destroying");
+        if (this._gsCurrentVersion[1] > 6) {
+            // Destroy thumbnailsBox & global signals
+            this._thumbnailsBox._destroyThumbnails();
+        }
+        
         // Disconnect global signals
         this._signalHandler.disconnect();
 
@@ -332,7 +337,6 @@ dockedWorkspaces.prototype = {
                 return alwaysZoomOut;
             };
             // Hide normal workspaces thumbnailsBox
-            //Main.overview._controls._thumbnailsSlider.actor.hide();
             Main.overview._controls._thumbnailsSlider.actor.opacity = 0;
         }
 
@@ -364,6 +368,7 @@ dockedWorkspaces.prototype = {
         } else {
             let p = OverviewControls.ThumbnailsSlider.prototype;
             p._getAlwaysZoomOut = this.saved_getAlwaysZoomOut;
+            Main.overview._controls._thumbnailsSlider.actor.opacity = 255;
         }
 
     },

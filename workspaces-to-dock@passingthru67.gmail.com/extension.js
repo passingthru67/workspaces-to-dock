@@ -6,6 +6,8 @@
  * ========================================================================================================
  */
 
+const _DEBUG_ = false;
+
 const Config = imports.misc.config;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
@@ -24,6 +26,7 @@ function init() {
 }
 
 function enable() {
+    if (_DEBUG_) global.log("workspaces-to-dock: ENABLE");
 	// determine gnome shell version
     let gsCurrentVersion = Config.PACKAGE_VERSION.split('.');
 	if (gsCurrentVersion[0] != 3) throw new Error(_("Unknown version number") + " (extension.js).");
@@ -35,6 +38,7 @@ function enable() {
 }
 
 function disable() {
+    if (_DEBUG_) global.log("workspaces-to-dock: DISABLE");
     intellihide.destroy();
     dock.destroy();
     settings.run_dispose();

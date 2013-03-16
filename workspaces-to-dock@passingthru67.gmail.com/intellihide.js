@@ -14,6 +14,7 @@ const Mainloop = imports.mainloop;
 const Signals = imports.signals;
 const Shell = imports.gi.Shell;
 const Gdk = imports.gi.Gdk;
+const Gtk = imports.gi.Gtk;
 
 const Main = imports.ui.main;
 const PopupMenu = imports.ui.popupMenu;
@@ -255,11 +256,21 @@ intellihide.prototype = {
             // Gnome Shell 3.8 signals
             this._signalHandler.push(
                 [
+                    Main.messageTray._grabHelper,
+                    'focus-grabbed',
+                    Lang.bind(this, this._onTrayFocusGrabbed)
+                ],
+                [
+                    Main.messageTray._grabHelper,
+                    'focus-ungrabbed',
+                    Lang.bind(this, this._onTrayFocusUngrabbed)
+                ],
+                [
                     Main.overview._viewSelector,
                     'page-changed',
                     Lang.bind(this, this._overviewPageChanged)
                 ],
-                // GS38 panel menus use the grabHelper
+                // GS38 panel and background menus use the grabHelper
                 [
                     Main.panel.menuManager._grabHelper,
                     'focus-grabbed',

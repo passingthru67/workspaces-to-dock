@@ -62,6 +62,7 @@ const myThumbnailsBox = new Lang.Class({
         if (this._gsCurrentVersion[1] < 7) {
             this.parent();
         } else {
+            // override GS38 _init to remove create/destroy thumbnails when showing/hiding overview
             this.actor = new Shell.GenericContainer({ reactive: true,
                                                       style_class: 'workspace-thumbnails',
                                                       request_mode: Clutter.RequestMode.WIDTH_FOR_HEIGHT });
@@ -137,8 +138,39 @@ const myThumbnailsBox = new Lang.Class({
         }    
     },
 
+    // override GS38 _createThumbnails to remove global n-workspaces notification
+    _createThumbnails: function() {
+        if (_DEBUG_) global.log("mythumbnailsBox: _createThumbnails");
+        this._switchWorkspaceNotifyId =
+            global.window_manager.connect('switch-workspace',
+                                          Lang.bind(this, this._activeWorkspaceChanged));
+        //this._nWorkspacesNotifyId =
+            //global.screen.connect('notify::n-workspaces',
+                                  //Lang.bind(this, this._workspacesChanged));
+        this._syncStackingId =
+            Main.overview.connect('windows-restacked',
+                                  Lang.bind(this, this._syncStacking));
+
+        this._targetScale = 0;
+        this._scale = 0;
+        this._pendingScaleUpdate = false;
+        this._stateUpdateQueued = false;
+
+        this._stateCounts = {};
+        for (let key in ThumbnailState)
+            this._stateCounts[ThumbnailState[key]] = 0;
+
+        // The "porthole" is the portion of the screen that we show in the workspaces
+        this._porthole = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
+
+        this.addThumbnails(0, global.screen.n_workspaces);
+
+        this._updateSwitcherVisibility();
+    },
+
 	// override _onButtonRelease to provide overview on right click
     _onButtonRelease: function(actor, event) {
+        if (_DEBUG_) global.log("mythumbnailsBox: _onButtonRelease");
         if (this._mySettings.get_boolean('toggle-overview')) {
             let button = event.get_button();
             if (button == 3) { //right click
@@ -157,7 +189,8 @@ const myThumbnailsBox = new Lang.Class({
             let thumbnail = this._thumbnails[i]
             let [w, h] = thumbnail.actor.get_transformed_size();
             if (y >= thumbnail.actor.y && y <= thumbnail.actor.y + h) {
-                thumbnail.activate(event.time);
+                //thumbnail.activate(event.time);
+                thumbnail.activate(event.get_time());
                 break;
             }
         }
@@ -167,6 +200,7 @@ const myThumbnailsBox = new Lang.Class({
 
     // override _activeWorkspaceChanged to eliminate errors thrown
     _activeWorkspaceChanged: function(wm, from, to, direction) {
+        if (_DEBUG_) global.log("mythumbnailsBox: _activeWorkspaceChanged");
         let thumbnail;
         let activeWorkspace = global.screen.get_active_workspace();
         for (let i = 0; i < this._thumbnails.length; i++) {
@@ -486,6 +520,7 @@ const myThumbnailsBox = new Lang.Class({
 
     // override addThumbnails to provide workspace thumbnail labels
     addThumbnails: function(start, count) {
+        if (_DEBUG_) global.log("mythumbnailsBox: addThumbnails");
         for (let k = start; k < start + count; k++) {
             let metaWorkspace = global.screen.get_workspace_by_index(k);
             let thumbnail = new WorkspaceThumbnail.WorkspaceThumbnail(metaWorkspace);
