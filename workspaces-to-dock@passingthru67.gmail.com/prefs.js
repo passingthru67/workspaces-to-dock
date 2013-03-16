@@ -671,6 +671,55 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             self._moveItem('name', -1);
         });
 
+        // Workspace Captions - Window Apps (taskbar)
+        let workspaceCaptionWindowApps = new Gtk.Box({
+            spacing: 20,
+            orientation: Gtk.Orientation.HORIZONTAL,
+            homogeneous: false,
+            margin_left: 20,
+            margin_top: 0,
+            margin_bottom: 0,
+            margin_right: 10
+        });
+        let wsCaptionWindowApps =  new Gtk.CheckButton({
+            label: _("Show the workspace taskbar (app icons)"),
+            hexpand: true
+        });
+        wsCaptionWindowApps.set_active(this._getItemExists('windowapps'));
+        wsCaptionWindowApps.connect('toggled', Lang.bind(this, function(check){
+            if (check.get_active()) {
+                this._addItem('windowapps', wsCaptionWindowAppsExpand.get_active());
+            } else {
+                this._removeItem('windowapps');
+            }
+        }));
+
+        let wsCaptionWindowAppsExpand =  new Gtk.CheckButton({
+            label: _("Expand"),
+            hexpand: true
+        });
+        wsCaptionWindowAppsExpand.set_active(this._getItemExpanded('windowapps'));
+        wsCaptionWindowAppsExpand.connect('toggled', Lang.bind(this, function(check){
+            this._setItemExpanded('windowapps', check.get_active());
+        }));
+
+        let wsCaptionWindowApps_MoveLeftButton = new Gtk.Button({
+            image: new Gtk.Image({
+                icon_name: 'go-previous'
+            })
+        });
+        wsCaptionWindowApps_MoveLeftButton.connect('clicked', function(){
+            self._moveItem('windowapps', 1);
+        });
+        let wsCaptionWindowApps_MoveRightButton = new Gtk.Button({
+            image: new Gtk.Image({
+                icon_name: 'go-next'
+            })
+        });
+        wsCaptionWindowApps_MoveRightButton.connect('clicked', function(){
+            self._moveItem('windowapps', -1);
+        });
+
         // Workspace Captions - Window Count
         let workspaceCaptionWindowCount = new Gtk.Box({
             spacing: 20,
@@ -788,16 +837,21 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         workspaceCaptionsGrid.attach(wsCaptionName_MoveLeftButton, 3, 3, 1, 1);
         workspaceCaptionsGrid.attach(wsCaptionName_MoveRightButton, 4, 3, 1, 1);
         
-        workspaceCaptionsGrid.attach(wsCaptionWindowCount, 0, 4, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionWindowCountUseImage, 1, 4, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionWindowCountExpand, 2, 4, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionWindowCount_MoveLeftButton, 3, 4, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionWindowCount_MoveRightButton, 4, 4, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionWindowApps, 0, 4, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionWindowAppsExpand, 2, 4, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionWindowApps_MoveLeftButton, 3, 4, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionWindowApps_MoveRightButton, 4, 4, 1, 1);
+
+        workspaceCaptionsGrid.attach(wsCaptionWindowCount, 0, 5, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionWindowCountUseImage, 1, 5, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionWindowCountExpand, 2, 5, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionWindowCount_MoveLeftButton, 3, 5, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionWindowCount_MoveRightButton, 4, 5, 1, 1);
         
-        workspaceCaptionsGrid.attach(wsCaptionSpacer, 0, 5, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionSpacerExpand, 2, 5, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionSpacer_MoveLeftButton, 3, 5, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionSpacer_MoveRightButton, 4, 5, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionSpacer, 0, 6, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionSpacerExpand, 2, 6, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionSpacer_MoveLeftButton, 3, 6, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionSpacer_MoveRightButton, 4, 6, 1, 1);
 
         
         workspaceCaptions.add(workspaceCaptionsTitle);

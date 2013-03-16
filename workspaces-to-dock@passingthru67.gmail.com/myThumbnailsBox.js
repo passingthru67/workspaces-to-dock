@@ -24,6 +24,7 @@ const Workspace = imports.ui.workspace;
 const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
 const Overview = imports.ui.overview;
 const Tweener = imports.ui.tweener;
+const AppDisplay = imports.ui.appDisplay;
 
 // The maximum size of a thumbnail is 1/8 the width and height of the screen
 let MAX_THUMBNAIL_SCALE = 1/8.;
@@ -51,6 +52,141 @@ const ThumbnailState = {
     COLLAPSING: 6,
     DESTROYED: 7
 };
+
+
+const myWorkspaceThumbnail = new Lang.Class({
+    Name: 'workspacesToDock.myWorkspaceThumbnail',
+    Extends: WorkspaceThumbnail.WorkspaceThumbnail,
+
+    _init: function(metaWorkspace, gsCurrentVersion) {
+        this.parent(metaWorkspace);
+        
+        this._gsCurrentVersion = gsCurrentVersion;
+        this._wsWindowAppsButtons = [];
+        this._afterWindowAddedId = this.metaWorkspace.connect_after('window-added',
+                                                          Lang.bind(this, this._onAfterWindowAdded));
+        this._afterWindowRemovedId = this.metaWorkspace.connect_after('window-removed',
+                                                           Lang.bind(this, this._onAfterWindowRemoved));
+    },
+
+    workspaceRemoved : function() {
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: workspaceRemoved w="+this.metaWorkspace);
+        this.metaWorkspace.disconnect(this._afterWindowAddedId);
+        this.metaWorkspace.disconnect(this._afterWindowRemovedId);
+
+        this.parent();
+    },
+
+    _onAfterWindowAdded : function(metaWorkspace, metaWin) {
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: _onAfterWindowAdded wsp="+this.metaWorkspace);
+        // Add window button to WindowApps of thumbnail caption
+        this._updateWindowApps(metaWin, 0);
+    },
+
+    _onAfterWindowRemoved : function(metaWorkspace, metaWin) {
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: _onAfterWindowRemoved wsp="+this.metaWorkspace);
+        // Remove window button from WindowApps of thumbnail caption
+        this._updateWindowApps(metaWin, 1);
+    },
+
+    _onWindowAppsButtonClick: function(actor, event, thumbnail, metaWin) {
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: _onWindowAppsButtonClick");
+        let mouseButton = event.get_button();
+        if (mouseButton == 1) {
+            let activeWorkspace = global.screen.get_active_workspace();
+            if (_DEBUG_) global.log("_onWindowAppsButtonClick: activeWorkspace = "+activeWorkspace);
+            if (_DEBUG_) global.log("_onWindowAppsButtonClick: metaWorkspace = "+thumbnail.metaWorkspace);
+            if (activeWorkspace != thumbnail.metaWorkspace) {
+                if (_DEBUG_) global.log("_onWindowAppsButtonClick: activeWorkspace is metaWorkspace");
+                thumbnail.activate(event.get_time());
+                metaWin.activate(global.get_current_time());
+            } else {
+                metaWin.activate(global.get_current_time());
+                if (!metaWin.has_focus())
+                    metaWin.activate(global.get_current_time());
+                else 
+                    metaWin.minimize(global.get_current_time());
+            }
+        }
+        return false;
+    },
+
+    _updateWindowApps: function(metaWin, action) {
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - action = "+action);
+        if (action == 0) {
+            if (this._wsWindowApps) {
+                if (_DEBUG_) global.log("myWorkspaceThumbnail: _wsWindowApps exists");
+                let index = -1;
+                for (let i = 0; i < this._wsWindowAppsButtons.length; i++) {
+                    if (_DEBUG_) global.log("myWorkspaceThumbnail: window button at index "+i+" is "+this._wsWindowAppsButtons[i]);
+                    if (this._wsWindowAppsButtons[i] == metaWin) {
+                        if (_DEBUG_) global.log("myWorkspaceThumbnail: window button found at index = "+i);
+                        index = i;
+                        break;
+                    }
+                }
+                if (index < 0) {
+                    if (_DEBUG_) global.log("myWorkspaceThumbnail: window button not found .. add it");
+                    let tracker = Shell.WindowTracker.get_default();
+                    let app = tracker.get_window_app(metaWin);
+                    if (app) {
+                        if (_DEBUG_) global.log("myWorkspaceThumbnail: window button app = "+app.get_name());
+                        let icon = new AppDisplay.AppIcon(app, {setSizeManually: true, showLabel: false});
+                        icon.actor.add_style_class_name('workspacestodock-caption-windowapps-button-icon');
+                        icon.setIconSize(16);
+                        
+                        let button;
+                        if (this._gsCurrentVersion[1] < 6) {
+                            button = new St.Button({style_class:'workspacestodock-caption-windowapps-button'});
+                        } else {
+                            button = new St.Button({style_class:'app-well-app workspacestodock-caption-windowapps-button'});
+                        }
+                        button.set_child(icon.actor);
+                        button.connect('button-release-event', Lang.bind(this, this._onWindowAppsButtonClick, this, metaWin));
+                        
+                        //if (metaWin.has_focus())
+                        //    button.add_style_class_name('workspacestodock-caption-windowapps-button-active');
+                            
+                        this._wsWindowApps.add(button, {x_align: St.Align.START, y_align: St.Align.START});
+                        this._wsWindowAppsButtons.push(metaWin);
+                    }
+                }
+            }
+        }
+        if (action == 1) {
+            if (this._wsWindowApps) {
+                if (_DEBUG_) global.log("myWorkspaceThumbnail: _wsWindowApps exists");
+                
+                if (metaWin.minimized) {
+                    if (_DEBUG_) global.log("myWorkspaceThumbnail: metaWin minimized = "+metaWin);
+                    
+                } else {
+                    if (_DEBUG_) global.log("myWorkspaceThumbnail: metaWin closed = "+metaWin);
+                    let index = -1;
+                    if (_DEBUG_) global.log("myWorkspaceThumbnail: window buttons count = "+this._wsWindowAppsButtons.length);
+                    for (let i = 0; i < this._wsWindowAppsButtons.length; i++) {
+                        if (_DEBUG_) global.log("myWorkspaceThumbnail: window button at index "+i+" is "+this._wsWindowAppsButtons[i]);
+                        if (this._wsWindowAppsButtons[i] == metaWin) {
+                            if (_DEBUG_) global.log("myWorkspaceThumbnail: window button found at index = "+i);
+                            index = i;
+                            break;
+                        }
+                    }
+                    if (index > -1) {
+                        if (_DEBUG_) global.log("myWorkspaceThumbnail: Splicing _wsWindowAppsButtons at "+index);
+                        this._wsWindowAppsButtons.splice(index, 1);
+                        let button = this._wsWindowApps.get_child_at_index(index);
+                        if (_DEBUG_) global.log("myWorkspaceThumbnail: Removing button at index "+index+" is "+button);
+                        this._wsWindowApps.remove_actor(button);
+                        button.destroy();
+                    }
+                }
+            }
+        }
+    }
+    
+});
+
 
 const myThumbnailsBox = new Lang.Class({
     Name: 'workspacesToDock.myThumbnailsBox',
@@ -323,7 +459,7 @@ const myThumbnailsBox = new Lang.Class({
         let y = contentBox.y1;
 
         // passingthru67 - conditional for gnome shell 3.4/3.6/# differences
-        if (this._gsCurrentVersion < 6) {
+        if (this._gsCurrentVersion[1] < 6) {
             let indicatorY = this._indicatorY;
             // when not animating, the workspace position overrides this._indicatorY
             // passingthru67 - moved above
@@ -523,7 +659,8 @@ const myThumbnailsBox = new Lang.Class({
         if (_DEBUG_) global.log("mythumbnailsBox: addThumbnails");
         for (let k = start; k < start + count; k++) {
             let metaWorkspace = global.screen.get_workspace_by_index(k);
-            let thumbnail = new WorkspaceThumbnail.WorkspaceThumbnail(metaWorkspace);
+            //let thumbnail = new WorkspaceThumbnail.WorkspaceThumbnail(metaWorkspace);
+            let thumbnail = new myWorkspaceThumbnail(metaWorkspace, this._gsCurrentVersion);
             thumbnail.setPorthole(this._porthole.x, this._porthole.y,
                                   this._porthole.width, this._porthole.height);
             
@@ -562,6 +699,11 @@ const myThumbnailsBox = new Lang.Class({
                     text: '',
                     style_class: 'workspacestodock-caption-windowcount'
                 });
+                let wsWindowApps = new St.BoxLayout({
+                    name: 'workspacestodockCaptionWindowApps',
+                    reactive: false,
+                    style_class: 'workspacestodock-caption-windowapps'
+                });
                 let wsSpacer = new St.Label({
                     name: 'workspacestodockCaptionSpacer',
                     text: '',
@@ -594,6 +736,12 @@ const myThumbnailsBox = new Lang.Class({
                             wsCaption.add(wsWindowCount, {x_align: St.Align.END, expand: expandState});
                             wsWindowCount.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaption, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
                             break;
+                        case "windowapps":
+                            wsCaption.add(wsWindowApps, {x_align: St.Align.END, expand: expandState});
+                            wsWindowApps.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaption, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
+                            wsWindowApps.connect("realize", Lang.bind(this, this._initWindowApps, thumbnail));
+                            thumbnail._wsWindowApps = wsWindowApps;
+                            break;
                         case "spacer":
                             wsCaption.add(wsSpacer, {x_align: St.Align.END, expand: expandState});
                             wsSpacer.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaption, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
@@ -607,7 +755,6 @@ const myThumbnailsBox = new Lang.Class({
                 wsCaption.connect("realize", Lang.bind(this, this._initThumbnailCaptions));
                 thumbnail.actor.add_actor(wsCaptionContainer);
                                 
-
                 // Make thumbnail background transparent so that it doesn't show through
                 // on edges where border-radius is set on caption
                 thumbnail.actor.set_style("background-color: rgba(0,0,0,0.0)");
@@ -760,6 +907,45 @@ const myThumbnailsBox = new Lang.Class({
         for (let i = 0; i < children.length; i++) {
             let constraint = children[i].get_constraint('constraint');
             constraint.set_offset(childOffset);
+        }
+    },
+    
+    _initWindowApps: function(actor, thumbnail) {
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps wsp="+thumbnail.metaWorkspace);
+        // Create initial buttons for windows on workspace
+        let wsWindowApps = actor;
+        let windows = global.get_window_actors().filter(thumbnail._isWorkspaceWindow, thumbnail);
+        //let windows = global.get_window_actors();
+        //let workspace = global.screen.get_active_workspace();
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps - window count = "+windows.length);
+        for (let i = 0; i < windows.length; i++) {
+            if (thumbnail._isMyWindow(windows[i]) && thumbnail._isOverviewWindow(windows[i])) {
+                let metaWin = windows[i].get_meta_window();
+                if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps - add window buttons");
+                let tracker = Shell.WindowTracker.get_default();
+                let app = tracker.get_window_app(metaWin);
+                if (app) {
+                    if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps - window button app = "+app.get_name());
+                    let icon = new AppDisplay.AppIcon(app, {setSizeManually: true, showLabel: false});
+                    icon.actor.add_style_class_name('workspacestodock-caption-windowapps-button-icon');
+                    icon.setIconSize(16);
+                    
+                    let button;
+                    if (this._gsCurrentVersion[1] < 6) {
+                        button = new St.Button({style_class:'workspacestodock-caption-windowapps-button'});
+                    } else {
+                        button = new St.Button({style_class:'app-well-app workspacestodock-caption-windowapps-button'});
+                    }
+                    button.set_child(icon.actor);
+                    button.connect('button-release-event', Lang.bind(this, thumbnail._onWindowAppsButtonClick, thumbnail, metaWin));
+                    
+                    //if (metaWin.has_focus())
+                    //    button.add_style_class_name('workspacestodock-caption-windowapps-button-active');
+                    
+                    wsWindowApps.add_actor(button, {x_align: St.Align.START, y_align: St.Align.START});
+                    thumbnail._wsWindowAppsButtons.push(metaWin);
+                }
+            }
         }
     }
 
