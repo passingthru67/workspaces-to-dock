@@ -24,7 +24,8 @@ const Workspace = imports.ui.workspace;
 const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
 const Overview = imports.ui.overview;
 const Tweener = imports.ui.tweener;
-const AppDisplay = imports.ui.appDisplay;
+//const AppDisplay = imports.ui.appDisplay;
+const IconGrid = imports.ui.iconGrid;
 
 // The maximum size of a thumbnail is 1/8 the width and height of the screen
 let MAX_THUMBNAIL_SCALE = 1/8.;
@@ -131,10 +132,14 @@ const myWorkspaceThumbnail = new Lang.Class({
                     let app = tracker.get_window_app(metaWin);
                     if (app) {
                         if (_DEBUG_) global.log("myWorkspaceThumbnail: window button app = "+app.get_name());
-                        let icon = new AppDisplay.AppIcon(app, {setSizeManually: true, showLabel: false});
+                        //let icon = new AppDisplay.AppIcon(app, {setSizeManually: true, showLabel: false});
+                        let iconParams = {setSizeManually: true, showLabel: false};
+                        iconParams['createIcon'] = Lang.bind(this, function(iconSize){ return app.create_icon_texture(iconSize);});
+                        
+                        let icon = new IconGrid.BaseIcon(app.get_name(), iconParams);
                         icon.actor.add_style_class_name('workspacestodock-caption-windowapps-button-icon');
                         icon.setIconSize(16);
-                        
+
                         let button;
                         if (this._gsCurrentVersion[1] < 6) {
                             button = new St.Button({style_class:'workspacestodock-caption-windowapps-button'});
@@ -914,7 +919,15 @@ const myThumbnailsBox = new Lang.Class({
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps wsp="+thumbnail.metaWorkspace);
         // Create initial buttons for windows on workspace
         let wsWindowApps = actor;
-        let windows = global.get_window_actors().filter(thumbnail._isWorkspaceWindow, thumbnail);
+        let windows;
+        if (this._gsCurrentVersion[1] < 7) {
+            windows = global.get_window_actors().filter(thumbnail._isWorkspaceWindow, thumbnail);
+        } else {
+            windows = global.get_window_actors().filter(Lang.bind(this, function(actor) {
+                let win = actor.meta_window;
+                return win.located_on_workspace(thumbnail.metaWorkspace);
+            }));
+        }
         //let windows = global.get_window_actors();
         //let workspace = global.screen.get_active_workspace();
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps - window count = "+windows.length);
@@ -926,7 +939,11 @@ const myThumbnailsBox = new Lang.Class({
                 let app = tracker.get_window_app(metaWin);
                 if (app) {
                     if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps - window button app = "+app.get_name());
-                    let icon = new AppDisplay.AppIcon(app, {setSizeManually: true, showLabel: false});
+                    //let icon = new AppDisplay.AppIcon(app, {setSizeManually: true, showLabel: false});
+                    let iconParams = {setSizeManually: true, showLabel: false};
+                    iconParams['createIcon'] = Lang.bind(this, function(iconSize){ return app.create_icon_texture(iconSize);});
+                    
+                    let icon = new IconGrid.BaseIcon(app.get_name(), iconParams);
                     icon.actor.add_style_class_name('workspacestodock-caption-windowapps-button-icon');
                     icon.setIconSize(16);
                     
