@@ -6,7 +6,7 @@
   * ========================================================================================================
  */
 
-const _DEBUG_ = false;
+const _DEBUG_ = true;
 
 const Gio = imports.gi.Gio;
 const Clutter = imports.gi.Clutter;
@@ -112,6 +112,20 @@ const myWorkspaceThumbnail = new Lang.Class({
         return false;
     },
 
+    _onWindowAppsButtonEnter: function(actor, event, icon) {
+        //let icon = actor.get_child();
+        //icon._delegate.setIconSize(24);
+        icon.setIconSize(24);
+        icon.actor.add_style_pseudo_class('hover');
+    },
+
+    _onWindowAppsButtonLeave: function(actor, event, icon) {
+        //let icon = actor.get_child();
+        //icon._delegate.setIconSize(20);
+        icon.setIconSize(20);
+        icon.actor.remove_style_pseudo_class('hover');
+    },
+
     _updateWindowApps: function(metaWin, action) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - action = "+action);
         if (action == 0) {
@@ -138,7 +152,7 @@ const myWorkspaceThumbnail = new Lang.Class({
                         
                         let icon = new IconGrid.BaseIcon(app.get_name(), iconParams);
                         icon.actor.add_style_class_name('workspacestodock-caption-windowapps-button-icon');
-                        icon.setIconSize(16);
+                        icon.setIconSize(20);
 
                         let button;
                         if (this._gsCurrentVersion[1] < 6) {
@@ -148,9 +162,11 @@ const myWorkspaceThumbnail = new Lang.Class({
                         }
                         button.set_child(icon.actor);
                         button.connect('button-release-event', Lang.bind(this, this._onWindowAppsButtonClick, this, metaWin));
+                        button.connect('enter-event', Lang.bind(this, this._onWindowAppsButtonEnter, icon));
+                        button.connect('leave-event', Lang.bind(this, this._onWindowAppsButtonLeave, icon));
                         
-                        //if (metaWin.has_focus())
-                        //    button.add_style_class_name('workspacestodock-caption-windowapps-button-active');
+                        if (metaWin.has_focus())
+                            button.add_style_class_name('workspacestodock-caption-windowapps-button-active');
                             
                         this._wsWindowApps.add(button, {x_align: St.Align.START, y_align: St.Align.START});
                         this._wsWindowAppsButtons.push(metaWin);
@@ -400,10 +416,13 @@ const myThumbnailsBox = new Lang.Class({
 
         // passingthru67 - Caption area below thumbnail used to display thumbnail labels
         let captionHeight = 0;
-        if (this._mySettings.get_boolean('workspace-captions'))
-            captionHeight = 20; // was 19
+        let captionBackgroundHeight = 0;
+        if (this._mySettings.get_boolean('workspace-captions')) {
+            captionHeight = 30;
+            captionBackgroundHeight = 20;
+        }
         
-        spacing = spacing + captionHeight;
+        spacing = spacing + captionBackgroundHeight;
         
         // Compute the scale we'll need once everything is updated
         let nWorkspaces = global.screen.n_workspaces;
@@ -526,14 +545,14 @@ const myThumbnailsBox = new Lang.Class({
                 childBox.y1 = y1;
                 // passingthru67 - size needs to include caption area
                 //childBox.y2 = y1 + portholeHeight;
-                childBox.y2 = y1 + portholeHeight + (captionHeight/roundedVScale);
+                childBox.y2 = y1 + portholeHeight + (captionBackgroundHeight/roundedVScale);
 
                 thumbnail.actor.set_scale(roundedHScale, roundedVScale);
                 thumbnail.actor.allocate(childBox, flags);
 
                 // passingthru67 - set WorkspaceThumbnail labels
                 if (this._mySettings.get_boolean('workspace-captions'))
-                    this._setThumbnailCaption(thumbnail, i, captionHeight);
+                    this._setThumbnailCaption(thumbnail, i, captionHeight, captionBackgroundHeight);
 
                 // We round the collapsing portion so that we don't get thumbnails resizing
                 // during an animation due to differences in rounded, but leave the uncollapsed
@@ -551,7 +570,7 @@ const myThumbnailsBox = new Lang.Class({
             childBox.y1 = indicatorY;
             // passingthru67 - indicator needs to include caption
             //childBox.y2 = childBox.y1 + thumbnailHeight;
-            childBox.y2 = childBox.y1 + thumbnailHeight + captionHeight;
+            childBox.y2 = childBox.y1 + thumbnailHeight + captionBackgroundHeight;
             this._indicator.allocate(childBox, flags);
 
         } else {
@@ -624,7 +643,7 @@ const myThumbnailsBox = new Lang.Class({
                 childBox.y1 = y1;
                 // passingthru67 - size needs to include caption area
                 //childBox.y2 = y1 + portholeHeight;
-                childBox.y2 = y1 + portholeHeight + (captionHeight/roundedVScale);
+                childBox.y2 = y1 + portholeHeight + (captionBackgroundHeight/roundedVScale);
 
                 thumbnail.actor.set_scale(roundedHScale, roundedVScale);
                 thumbnail.actor.allocate(childBox, flags);
@@ -632,7 +651,7 @@ const myThumbnailsBox = new Lang.Class({
 
                 // passingthru67 - set WorkspaceThumbnail labels
                 if (this._mySettings.get_boolean('workspace-captions'))
-                    this._setThumbnailCaption(thumbnail, i, captionHeight);
+                    this._setThumbnailCaption(thumbnail, i, captionHeight, captionBackgroundHeight);
                 
                 // We round the collapsing portion so that we don't get thumbnails resizing
                 // during an animation due to differences in rounded, but leave the uncollapsed
@@ -652,7 +671,7 @@ const myThumbnailsBox = new Lang.Class({
             childBox.y1 = indicatorY1 - indicatorTopFullBorder;
             // passingthru67 - indicator needs to include caption
             //childBox.y2 = (indicatorY2 ? indicatorY2 : (indicatorY1 + thumbnailHeight)) + indicatorBottomFullBorder;
-            childBox.y2 = (indicatorY2 ? indicatorY2 + captionHeight : (indicatorY1 + thumbnailHeight + captionHeight)) + indicatorBottomFullBorder;
+            childBox.y2 = (indicatorY2 ? indicatorY2 + captionBackgroundHeight : (indicatorY1 + thumbnailHeight + captionBackgroundHeight)) + indicatorBottomFullBorder;
 
             this._indicator.allocate(childBox, flags);
             
@@ -677,11 +696,18 @@ const myThumbnailsBox = new Lang.Class({
                 let wsCaptionContainer = new St.Bin({
                     name: 'workspacestodockCaptionContainer',
                     reactive: false,
+                    style_class: 'workspacestodock-workspace-caption-container',
                     x_fill: true,
                     y_align: St.Align.END,
                     x_align: St.Align.START
                 });
 
+                let wsCaptionBackground = new St.Bin({
+                    name: 'workspacestodockCaptionBackground',
+                    reactive: false,
+                    style_class: 'workspacestodock-workspace-caption-background'
+                });
+                    
                 let wsCaption = new St.BoxLayout({
                     name: 'workspacestodockCaption',
                     reactive: false,
@@ -689,11 +715,21 @@ const myThumbnailsBox = new Lang.Class({
                     pack_start: true
                 });
 
+                let wsNumberBox = new St.BoxLayout({
+                   name: 'workspacestodockCaptionNumberBox',
+                   style_class: 'workspacestodock-caption-number-box',
+                   //x_fill: false,
+                   //y_fill: false,
+                   //x_align: St.Align.START,
+                   //y_align: St.Align.MIDDLE
+                });
                 let wsNumber = new St.Label({
                     name: 'workspacestodockCaptionNumber',
                     text: '',
                     style_class: 'workspacestodock-caption-number'
                 });
+                //wsNumberBox.add(wsNumber, {y_fill: false, y_align: St.Align.END});
+                
                 let wsName = new St.Label({
                     name: 'workspacestodockCaptionName',
                     text: '',
@@ -730,36 +766,38 @@ const myThumbnailsBox = new Lang.Class({
                     
                     switch (item) {
                         case "number":
-                            wsCaption.add(wsNumber, {x_align: St.Align.END, expand: expandState});
-                            wsNumber.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaption, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
+                            wsCaption.add(wsNumber, {x_align: St.Align.END, y_fill: false, y_align: St.Align.END, expand: expandState});
+                            //wsNumber.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaptionBackground, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
+                            //wsNumberBox.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaptionBackground, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
                             break;
                         case "name":
-                            wsCaption.add(wsName, {x_align: St.Align.END, expand: expandState});
-                            wsName.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaption, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
+                            wsCaption.add(wsName, {x_align: St.Align.END, y_fill: false, y_align: St.Align.END, expand: expandState});
+                            //wsName.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaptionBackground, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
                             break;
                         case "windowcount":
-                            wsCaption.add(wsWindowCount, {x_align: St.Align.END, expand: expandState});
-                            wsWindowCount.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaption, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
+                            wsCaption.add(wsWindowCount, {x_align: St.Align.END, y_fill: false, y_align: St.Align.END, expand: expandState});
+                            //wsWindowCount.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaptionBackground, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
                             break;
                         case "windowapps":
-                            wsCaption.add(wsWindowApps, {x_align: St.Align.END, expand: expandState});
-                            wsWindowApps.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaption, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
+                            wsCaption.add(wsWindowApps, {x_align: St.Align.END, y_fill: false, y_align: St.Align.END, expand: expandState});
+                            //wsWindowApps.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaptionBackground, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
                             wsWindowApps.connect("realize", Lang.bind(this, this._initWindowApps, thumbnail));
                             thumbnail._wsWindowApps = wsWindowApps;
                             break;
                         case "spacer":
-                            wsCaption.add(wsSpacer, {x_align: St.Align.END, expand: expandState});
-                            wsSpacer.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaption, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
+                            wsCaption.add(wsSpacer, {x_align: St.Align.END, y_fill: false, y_align: St.Align.END, expand: expandState});
+                            //wsSpacer.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaptionBackground, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
                             break;
                     }
                     
                 }
 
                 wsCaptionContainer.add_actor(wsCaption);
-                //wsCaption.set_style("border: 0px solid rgba(0,0,0,0.0)"); // container borders causes caption to push up requiring negative constraint offsets above that match border with (1px border = -1 offset)
-                wsCaption.connect("realize", Lang.bind(this, this._initThumbnailCaptions));
+                //thumbnail._wsCaption = wsCaption;
+                //wsCaption.connect("realize", Lang.bind(this, this._initThumbnailCaptions, k));
+                thumbnail.actor.add_actor(wsCaptionBackground);
                 thumbnail.actor.add_actor(wsCaptionContainer);
-                                
+                
                 // Make thumbnail background transparent so that it doesn't show through
                 // on edges where border-radius is set on caption
                 thumbnail.actor.set_style("background-color: rgba(0,0,0,0.0)");
@@ -841,34 +879,62 @@ const myThumbnailsBox = new Lang.Class({
         }
     },
     
-    _setThumbnailCaption: function(thumbnail, i, captionHeight) {
-        let wsCaptionContainer = thumbnail.actor.get_child_at_index(1);
-        
+    _setThumbnailCaption: function(thumbnail, i, captionHeight, captionBackgroundHeight) {
         let unscale = 1/this._scale;
-        wsCaptionContainer.set_scale(unscale, unscale);
-
         let containerWidth = this._porthole.width * this._scale;
         let containerHeight = this._porthole.height * this._scale;
-        wsCaptionContainer.set_size(containerWidth, containerHeight + captionHeight);
 
-        let wsCaption = wsCaptionContainer.get_child_at_index(0);
+        let wsCaptionBackground = thumbnail.actor.get_child_at_index(1);
+        if (!wsCaptionBackground)
+            return;
+            
+        wsCaptionBackground.set_scale(unscale, unscale);
+        //wsCaptionBackground.set_position(0, this._porthole.height + (6*unscale));
+        wsCaptionBackground.set_position(0, this._porthole.height);
+        wsCaptionBackground.set_size(containerWidth, captionBackgroundHeight);
+
+        let wsCaptionContainer = thumbnail.actor.get_child_at_index(2);
+        if (!wsCaptionContainer)
+            return;
+
+        wsCaptionContainer.set_scale(unscale, unscale);
+        wsCaptionContainer.set_size(containerWidth, containerHeight + captionBackgroundHeight);
+        //wsCaptionContainer.set_position(0, this._porthole.height);
+        //wsCaptionContainer.set_size(containerWidth, captionBackgroundHeight);
+
+        let wsCaption = wsCaptionContainer.find_child_by_name("workspacestodockCaption");
+        if (!wsCaption)
+            return;
+            
         wsCaption.height = captionHeight; // constrains height to caption height
-
-        let wsNumber = wsCaption.find_child_by_name("workspacestodockCaptionNumber");
-        if (wsNumber)
-            wsNumber.set_text(""+(i+1));
         
+        let wsNumber = wsCaption.find_child_by_name("workspacestodockCaptionNumber");
+        if (wsNumber) {
+            wsNumber.set_text(""+(i+1));
+            wsNumber.height = captionBackgroundHeight - 2; // subtract 1px for workspacestodockCaptionContainer border and 1px for background border
+            // TODO: check workspacestodockCaptionContainer theme for border values
+            // TODO: check workspacestodockCaptionBackground theme for border values
+        }
         let wsName = wsCaption.find_child_by_name("workspacestodockCaptionName");
-        if (wsName)
+        if (wsName) {
             wsName.set_text(Meta.prefs_get_workspace_name(i));
+            wsName.height = captionBackgroundHeight - 2; // subtract 1px for workspacestodockCaptionContainer border and 1px for background border
+            // TODO: check workspacestodockCaptionContainer theme for border values
+            // TODO: check workspacestodockCaptionBackground theme for border values
+        }
 
         let wsWindowCount = wsCaption.find_child_by_name("workspacestodockCaptionWindowCount");
-        if (wsWindowCount)
+        if (wsWindowCount) {
             this._updateWindowCount(wsWindowCount, i);
+            wsWindowCount.height = captionBackgroundHeight - 2; // subtract 1px for workspacestodockCaptionContainer border and 1px for background border
+            // TODO: check workspacestodockCaptionContainer theme for border values
+            // TODO: check workspacestodockCaptionBackground theme for border values
+        }
         
         let wsSpacer = wsCaption.find_child_by_name("workspacestodockCaptionSpacer");    
 
         if (i == global.screen.get_active_workspace_index()) {
+            if (wsCaptionBackground) wsCaptionBackground.add_style_class_name('workspacestodock-workspace-caption-background-current');
             if (wsCaption) wsCaption.add_style_class_name('workspacestodock-workspace-caption-current');
             if (wsNumber) wsNumber.add_style_class_name('workspacestodock-caption-number-current');
             if (wsName) wsName.add_style_class_name('workspacestodock-caption-name-current');
@@ -881,6 +947,7 @@ const myThumbnailsBox = new Lang.Class({
             }
             if (wsSpacer) wsSpacer.add_style_class_name('workspacestodock-caption-spacer-current');
         } else {
+            if (wsCaptionBackground) wsCaptionBackground.remove_style_class_name('workspacestodock-workspace-caption-background-current');
             if (wsCaption) wsCaption.remove_style_class_name('workspacestodock-workspace-caption-current');
             if (wsNumber) wsNumber.remove_style_class_name('workspacestodock-caption-number-current');
             if (wsName) wsName.remove_style_class_name('workspacestodock-caption-name-current');
@@ -896,7 +963,8 @@ const myThumbnailsBox = new Lang.Class({
 
     },
     
-    _initThumbnailCaptions: function(actor) {
+    _initThumbnailCaptions: function(actor, wkspIndex) {
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: _initThumbnailCaptions");
         let caption = actor;
         let themeNode = caption.get_theme_node();
         
@@ -906,13 +974,36 @@ const myThumbnailsBox = new Lang.Class({
         
         // Set constraint offsets of caption items to negative
         // a negative constraint offset acts as bottom padding to align items with bottom border of caption
-        let childOffset = (topBorderWidth + bottomBorderWidth) * -1;
+        //let childOffset = (topBorderWidth + bottomBorderWidth) * -1;
         
-        let children = caption.get_children();
-        for (let i = 0; i < children.length; i++) {
-            let constraint = children[i].get_constraint('constraint');
-            constraint.set_offset(childOffset);
+        //let children = caption.get_children();
+        //for (let i = 0; i < children.length; i++) {
+            //if (_DEBUG_) global.log("child["+i+"] name = "+children[i].get_name());
+            //let constraint = children[i].get_constraint('constraint');
+            //if (children[i].get_name() == "workspacestodockCaptionWindowApps") {
+            //    if (_DEBUG_) global.log("found");
+            //    //constraint.set_offset(-2);
+            //} else {
+            //    constraint.set_offset(childOffset);
+            //}
+        //}
+
+        let i = wkspIndex;
+
+        let wsNumber = caption.find_child_by_name("workspacestodockCaptionNumber");
+        if (wsNumber) {
+            wsNumber.set_text(""+i);
         }
+        let wsName = caption.find_child_by_name("workspacestodockCaptionName");
+        if (wsName) {
+            wsName.set_text(Meta.prefs_get_workspace_name(i));
+        }
+
+        let wsWindowCount = caption.find_child_by_name("workspacestodockCaptionWindowCount");
+        if (wsWindowCount) {
+            this._updateWindowCount(wsWindowCount, i);
+        }
+        
     },
     
     _initWindowApps: function(actor, thumbnail) {
@@ -945,8 +1036,8 @@ const myThumbnailsBox = new Lang.Class({
                     
                     let icon = new IconGrid.BaseIcon(app.get_name(), iconParams);
                     icon.actor.add_style_class_name('workspacestodock-caption-windowapps-button-icon');
-                    icon.setIconSize(16);
-                    
+                    icon.setIconSize(20);
+
                     let button;
                     if (this._gsCurrentVersion[1] < 6) {
                         button = new St.Button({style_class:'workspacestodock-caption-windowapps-button'});
@@ -955,9 +1046,11 @@ const myThumbnailsBox = new Lang.Class({
                     }
                     button.set_child(icon.actor);
                     button.connect('button-release-event', Lang.bind(this, thumbnail._onWindowAppsButtonClick, thumbnail, metaWin));
+                    button.connect('enter-event', Lang.bind(this, thumbnail._onWindowAppsButtonEnter, icon));
+                    button.connect('leave-event', Lang.bind(this, thumbnail._onWindowAppsButtonLeave, icon));
                     
-                    //if (metaWin.has_focus())
-                    //    button.add_style_class_name('workspacestodock-caption-windowapps-button-active');
+                    if (metaWin.has_focus())
+                        button.add_style_class_name('workspacestodock-caption-windowapps-button-active');
                     
                     wsWindowApps.add_actor(button, {x_align: St.Align.START, y_align: St.Align.START});
                     thumbnail._wsWindowAppsButtons.push(metaWin);

@@ -1,32 +1,48 @@
-/* GS36 can override gnome shell's .overview-icon class */
-#workspacestodockCaptionWindowApps .app-well-app > .overview-icon {
-    padding: 0px 1px;
-    border-radius: 1px;
-    border: 1px solid rgba(180,180,180,0.5);
-}
-#workspacestodockCaptionWindowApps .app-well-app {
-    padding: 0px 1px;
+.workspacestodock-workspace-caption-container {
+    padding: 1px;
 }
 
-/* GS34 can't override overview-icon class .. therefore set background stuff */
-.workspacestodock-caption-windowapps-button {
-    /*padding: 0px 1px;*/
+/* GS36 can override gnome shell's .app-well-app & .overview-icon class */
+#workspacestodockCaptionWindowApps .app-well-app {
+    padding: 2px 2px;
 }
+
+#workspacestodockCaptionWindowApps .app-well-app:hover {
+    padding: 0px 0px;
+}
+
+#workspacestodockCaptionWindowApps .app-well-app > .overview-icon {
+    padding: 0px 1px;
+    border: 1px solid rgba(180,180,180,0.5);
+    border-radius: 1px;
+}
+
+/* ------------------------------------------------------------ */
+/* GS34 can't override overview-icon class .. set these instead */
+.workspacestodock-caption-windowapps-button {
+    padding: 2px 2px;
+}
+
 .workspacestodock-caption-windowapps-button:hover {
+    padding: 0px 0px;
+}
+
+.workspacestodock-caption-windowapps-button-icon {
+    padding: 0px 1px;
+    border: 1px solid rgba(180,180,180,0.5);
+    border-radius: 1px;
+
     background-gradient-start: rgba(255,255,255,0.2);
     background-gradient-end: rgba(255,255,255,0.3);
     background-gradient-direction: vertical;
 }
-.workspacestodock-caption-windowapps-button-icon {
-/*
-    padding: 0px 1px;
-    border: 1px solid rgba(180,180,180,0.5);
-    border-radius: 1px;
-*/
+/* ------------------------------------------------------------ */
+
+.workspacestodock-workspace-caption {
+    /*border: 1px solid rgba(255,255,255,0.7);*/
 }
 
-/* workspace caption container */
-.workspacestodock-workspace-caption {
+.workspacestodock-workspace-caption-background {
     background-gradient-start: rgba(10,10,10,0.4);
     background-gradient-end: rgba(10,10,10,0.4);
     border: 1px solid rgba(10,10,10,0.4);
@@ -100,11 +116,13 @@
 
 /* The classes below are used in conjuction with the above classes
  * They provide additional theming for the current workspace caption */
-.workspacestodock-workspace-caption-current {
+.workspacestodock-workspace-caption-background-current {
+/*
     background-gradient-start: rgba(0,0,0,0.5);
     background-gradient-end: rgba(0,0,0,0.5);
     background-gradient-direction: vertical;
     border: 1px solid rgba(0,0,0,0.4);
+*/
 }
 .workspacestodock-caption-number-current {
     color: rgba(0,0,0,0.9);
