@@ -107,11 +107,13 @@ const myWorkspaceThumbnail = new Lang.Class({
             let button = this._wsWindowApps.get_child_at_index(index);
             if (metaWin.appears_focused) {
                 global.log("button app is focused");
-                button.add_style_class_name('popup-menu-item');
+                if (this._gsCurrentVersion[1] > 4)
+                    button.add_style_class_name('popup-menu-item');
                 button.add_style_pseudo_class('active');
             } else {
                 global.log("button app is not focused");
-                button.remove_style_class_name('popup-menu-item');
+                if (this._gsCurrentVersion[1] > 4)
+                    button.remove_style_class_name('popup-menu-item');
                 button.remove_style_pseudo_class('active');
             }
         }
@@ -193,9 +195,9 @@ const myWorkspaceThumbnail = new Lang.Class({
                         button.connect('leave-event', Lang.bind(this, this._onWindowAppsButtonLeave, icon));
                         
                         if (metaWin.has_focus()) {
-                        //if (metaWin.appears_focused) {
-                            global.log("metaWin appears focus");
-                            button.add_style_class_name('workspacestodock-caption-windowapps-button-active');
+                            if (this._gsCurrentVersion[1] > 4)
+                                button.add_style_class_name('popup-menu-item');
+                            button.add_style_pseudo_class('active');
                         }
                             
                         this._wsWindowApps.add(button, {x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
@@ -1086,8 +1088,11 @@ const myThumbnailsBox = new Lang.Class({
                     button.connect('enter-event', Lang.bind(this, thumbnail._onWindowAppsButtonEnter, icon));
                     button.connect('leave-event', Lang.bind(this, thumbnail._onWindowAppsButtonLeave, icon));
                     
-                    if (metaWin.has_focus())
-                        button.add_style_class_name('workspacestodock-caption-windowapps-button-active');
+                    if (metaWin.has_focus()) {
+                        if (this._gsCurrentVersion[1] > 4)
+                            button.add_style_class_name('popup-menu-item');
+                        button.add_style_pseudo_class('active');
+                    }
                     
                     let winInfo = {};
                     winInfo.metaWin = metaWin;
