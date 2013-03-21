@@ -42,6 +42,11 @@ const WORKSPACE_KEEP_ALIVE_TIME = 100;
 
 const OVERRIDE_SCHEMA = 'org.gnome.shell.overrides';
 
+const CAPTION_HEIGHT = 30; // NOTE: Must be larger than CAPTION_APP_ICON_HOVER_SIZE + css icon padding + css icon border
+const CAPTION_BACKGROUND_HEIGHT = 20;
+const CAPTION_APP_ICON_SIZE = 16;
+const CAPTION_APP_ICON_HOVER_SIZE = 24;
+
 
 const ThumbnailState = {
     NEW: 0,
@@ -70,7 +75,7 @@ const myWorkspaceThumbnail = new Lang.Class({
                                                            Lang.bind(this, this._onAfterWindowRemoved));
     },
 
-    workspaceRemoved : function() {
+    workspaceRemoved: function() {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: workspaceRemoved w="+this.metaWorkspace);
         this.metaWorkspace.disconnect(this._afterWindowAddedId);
         this.metaWorkspace.disconnect(this._afterWindowRemovedId);
@@ -78,18 +83,40 @@ const myWorkspaceThumbnail = new Lang.Class({
         this.parent();
     },
 
-    _onAfterWindowAdded : function(metaWorkspace, metaWin) {
+    _onAfterWindowAdded: function(metaWorkspace, metaWin) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _onAfterWindowAdded wsp="+this.metaWorkspace);
         // Add window button to WindowApps of thumbnail caption
         this._updateWindowApps(metaWin, 0);
     },
 
-    _onAfterWindowRemoved : function(metaWorkspace, metaWin) {
+    _onAfterWindowRemoved: function(metaWorkspace, metaWin) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _onAfterWindowRemoved wsp="+this.metaWorkspace);
         // Remove window button from WindowApps of thumbnail caption
         this._updateWindowApps(metaWin, 1);
     },
 
+    _onWindowChanged: function(metaWin) {
+        let index = -1;
+        for (let i = 0; i < this._wsWindowAppsButtons.length; i++) {
+            if (this._wsWindowAppsButtons[i].metaWin == metaWin) {
+                index = i;
+                break;
+            }
+        }
+        if (index > -1) {
+            let button = this._wsWindowApps.get_child_at_index(index);
+            if (metaWin.appears_focused) {
+                global.log("button app is focused");
+                button.add_style_class_name('popup-menu-item');
+                button.add_style_pseudo_class('active');
+            } else {
+                global.log("button app is not focused");
+                button.remove_style_class_name('popup-menu-item');
+                button.remove_style_pseudo_class('active');
+            }
+        }
+    },
+    
     _onWindowAppsButtonClick: function(actor, event, thumbnail, metaWin) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _onWindowAppsButtonClick");
         let mouseButton = event.get_button();
@@ -115,15 +142,15 @@ const myWorkspaceThumbnail = new Lang.Class({
     _onWindowAppsButtonEnter: function(actor, event, icon) {
         //let icon = actor.get_child();
         //icon._delegate.setIconSize(24);
-        icon.setIconSize(24);
-        icon.actor.add_style_pseudo_class('hover');
+        icon.setIconSize(CAPTION_APP_ICON_HOVER_SIZE);
+        //icon.actor.add_style_pseudo_class('hover');
     },
 
     _onWindowAppsButtonLeave: function(actor, event, icon) {
         //let icon = actor.get_child();
         //icon._delegate.setIconSize(20);
-        icon.setIconSize(20);
-        icon.actor.remove_style_pseudo_class('hover');
+        icon.setIconSize(CAPTION_APP_ICON_SIZE);
+        //icon.actor.remove_style_pseudo_class('hover');
     },
 
     _updateWindowApps: function(metaWin, action) {
@@ -134,7 +161,7 @@ const myWorkspaceThumbnail = new Lang.Class({
                 let index = -1;
                 for (let i = 0; i < this._wsWindowAppsButtons.length; i++) {
                     if (_DEBUG_) global.log("myWorkspaceThumbnail: window button at index "+i+" is "+this._wsWindowAppsButtons[i]);
-                    if (this._wsWindowAppsButtons[i] == metaWin) {
+                    if (this._wsWindowAppsButtons[i].metaWin == metaWin) {
                         if (_DEBUG_) global.log("myWorkspaceThumbnail: window button found at index = "+i);
                         index = i;
                         break;
@@ -152,7 +179,7 @@ const myWorkspaceThumbnail = new Lang.Class({
                         
                         let icon = new IconGrid.BaseIcon(app.get_name(), iconParams);
                         icon.actor.add_style_class_name('workspacestodock-caption-windowapps-button-icon');
-                        icon.setIconSize(20);
+                        icon.setIconSize(CAPTION_APP_ICON_SIZE);
 
                         let button;
                         if (this._gsCurrentVersion[1] < 6) {
@@ -165,11 +192,20 @@ const myWorkspaceThumbnail = new Lang.Class({
                         button.connect('enter-event', Lang.bind(this, this._onWindowAppsButtonEnter, icon));
                         button.connect('leave-event', Lang.bind(this, this._onWindowAppsButtonLeave, icon));
                         
-                        if (metaWin.has_focus())
+                        if (metaWin.has_focus()) {
+                        //if (metaWin.appears_focused) {
+                            global.log("metaWin appears focus");
                             button.add_style_class_name('workspacestodock-caption-windowapps-button-active');
+                        }
                             
-                        this._wsWindowApps.add(button, {x_align: St.Align.START, y_align: St.Align.START});
-                        this._wsWindowAppsButtons.push(metaWin);
+                        this._wsWindowApps.add(button, {x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
+                        //this._wsWindowAppsButtons.push(metaWin);
+
+                        let winInfo = {};
+                        winInfo.metaWin = metaWin;
+                        winInfo.signalFocusedId = metaWin.connect('notify::appears-focused', Lang.bind(this, this._onWindowChanged, metaWin));
+                        this._wsWindowAppsButtons.push(winInfo);
+                        
                     }
                 }
             }
@@ -187,7 +223,7 @@ const myWorkspaceThumbnail = new Lang.Class({
                     if (_DEBUG_) global.log("myWorkspaceThumbnail: window buttons count = "+this._wsWindowAppsButtons.length);
                     for (let i = 0; i < this._wsWindowAppsButtons.length; i++) {
                         if (_DEBUG_) global.log("myWorkspaceThumbnail: window button at index "+i+" is "+this._wsWindowAppsButtons[i]);
-                        if (this._wsWindowAppsButtons[i] == metaWin) {
+                        if (this._wsWindowAppsButtons[i].metaWin == metaWin) {    
                             if (_DEBUG_) global.log("myWorkspaceThumbnail: window button found at index = "+i);
                             index = i;
                             break;
@@ -195,6 +231,9 @@ const myWorkspaceThumbnail = new Lang.Class({
                     }
                     if (index > -1) {
                         if (_DEBUG_) global.log("myWorkspaceThumbnail: Splicing _wsWindowAppsButtons at "+index);
+                        // Disconnect window focused signal
+                        metaWin.disconnect(this._wsWindowAppsButtons[index].signalFocusedId);
+                        // Remove button from windowAppsButtons list
                         this._wsWindowAppsButtons.splice(index, 1);
                         let button = this._wsWindowApps.get_child_at_index(index);
                         if (_DEBUG_) global.log("myWorkspaceThumbnail: Removing button at index "+index+" is "+button);
@@ -418,8 +457,8 @@ const myThumbnailsBox = new Lang.Class({
         let captionHeight = 0;
         let captionBackgroundHeight = 0;
         if (this._mySettings.get_boolean('workspace-captions')) {
-            captionHeight = 30;
-            captionBackgroundHeight = 20;
+            captionHeight = CAPTION_HEIGHT;
+            captionBackgroundHeight = CAPTION_BACKGROUND_HEIGHT;
         }
         
         spacing = spacing + captionBackgroundHeight;
@@ -715,14 +754,6 @@ const myThumbnailsBox = new Lang.Class({
                     pack_start: true
                 });
 
-                let wsNumberBox = new St.BoxLayout({
-                   name: 'workspacestodockCaptionNumberBox',
-                   style_class: 'workspacestodock-caption-number-box',
-                   //x_fill: false,
-                   //y_fill: false,
-                   //x_align: St.Align.START,
-                   //y_align: St.Align.MIDDLE
-                });
                 let wsNumber = new St.Label({
                     name: 'workspacestodockCaptionNumber',
                     text: '',
@@ -930,6 +961,12 @@ const myThumbnailsBox = new Lang.Class({
             // TODO: check workspacestodockCaptionContainer theme for border values
             // TODO: check workspacestodockCaptionBackground theme for border values
         }
+
+        let wsWindowApps = wsCaption.find_child_by_name("workspacestodockCaptionWindowApps");
+        if (wsWindowApps) {
+            wsWindowApps.height = captionHeight;
+        }
+
         
         let wsSpacer = wsCaption.find_child_by_name("workspacestodockCaptionSpacer");    
 
@@ -1036,7 +1073,7 @@ const myThumbnailsBox = new Lang.Class({
                     
                     let icon = new IconGrid.BaseIcon(app.get_name(), iconParams);
                     icon.actor.add_style_class_name('workspacestodock-caption-windowapps-button-icon');
-                    icon.setIconSize(20);
+                    icon.setIconSize(CAPTION_APP_ICON_SIZE);
 
                     let button;
                     if (this._gsCurrentVersion[1] < 6) {
@@ -1052,8 +1089,11 @@ const myThumbnailsBox = new Lang.Class({
                     if (metaWin.has_focus())
                         button.add_style_class_name('workspacestodock-caption-windowapps-button-active');
                     
-                    wsWindowApps.add_actor(button, {x_align: St.Align.START, y_align: St.Align.START});
-                    thumbnail._wsWindowAppsButtons.push(metaWin);
+                    let winInfo = {};
+                    winInfo.metaWin = metaWin;
+                    winInfo.signalFocusedId = metaWin.connect('notify::appears-focused', Lang.bind(this, this._onWindowChanged, metaWin));
+                    wsWindowApps.add(button, {x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
+                    thumbnail._wsWindowAppsButtons.push(winInfo);
                 }
             }
         }

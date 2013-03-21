@@ -2,32 +2,17 @@
     padding: 1px;
 }
 
-/* GS36 can override gnome shell's .app-well-app & .overview-icon class */
-#workspacestodockCaptionWindowApps .app-well-app {
-    padding: 2px 2px;
+.workspacestodock-workspace-caption-windowapps {
+    padding: 0px;
 }
 
-#workspacestodockCaptionWindowApps .app-well-app:hover {
-    padding: 0px 0px;
+/* ------------------------------------------------------------------------------- */
+/* GS36+ can override gnome shell classes - app-well-app, overview-icon, etc       */
+#workspacestodockCaptionWindowApps .app-well-app {
+    padding: 0px 1px;
 }
 
 #workspacestodockCaptionWindowApps .app-well-app > .overview-icon {
-    padding: 0px 1px;
-    border: 1px solid rgba(180,180,180,0.5);
-    border-radius: 1px;
-}
-
-/* ------------------------------------------------------------ */
-/* GS34 can't override overview-icon class .. set these instead */
-.workspacestodock-caption-windowapps-button {
-    padding: 2px 2px;
-}
-
-.workspacestodock-caption-windowapps-button:hover {
-    padding: 0px 0px;
-}
-
-.workspacestodock-caption-windowapps-button-icon {
     padding: 0px 1px;
     border: 1px solid rgba(180,180,180,0.5);
     border-radius: 1px;
@@ -36,7 +21,51 @@
     background-gradient-end: rgba(255,255,255,0.3);
     background-gradient-direction: vertical;
 }
-/* ------------------------------------------------------------ */
+
+#workspacestodockCaptionWindowApps .app-well-app:hover {
+}
+
+#workspacestodockCaptionWindowApps .app-well-app:hover > .overview-icon {
+    border-radius: 1px;
+}
+
+#workspacestodockCaptionWindowApps .popup-menu-item:active {
+    padding: 0px;
+    border-radius: 1px;
+}
+
+/* ------------------------------------------------------------------------------- */
+/* GS34 can't override gnome shell classes .. fallback to these classes instead    */
+/* Or use these classes to enhance and compliment gnome shell classes in GS36+     */
+/* compliments app-well-app */
+.workspacestodock-caption-windowapps-button {
+    /*padding: 0px 1px;*/
+}
+/* compliments overview-icon */
+.workspacestodock-caption-windowapps-button-icon {
+/*
+    padding: 0px 1px;
+    border: 1px solid rgba(180,180,180,0.5);
+    border-radius: 1px;
+
+    background-gradient-start: rgba(255,255,255,0.2);
+    background-gradient-end: rgba(255,255,255,0.3);
+    background-gradient-direction: vertical;
+*/
+}
+/* compliments app-well-app:hover > overview-icon */
+.workspacestodock-caption-windowapps-button:hover > .workspacestodock-caption-windowapps-button-icon {
+}
+/* compliments popup-menu-item:active */
+.workspacestodock-caption-windowapps-button:active > .workspacestodock-caption-windowapps-button-icon {
+/*
+    background-gradient-start: rgba(255,255,255,0.2);
+    background-gradient-end: rgba(255,255,255,0.3);
+    background-gradient-direction: vertical;
+    background-color: green;
+*/
+}
+/* ------------------------------------------------------------------------------- */
 
 .workspacestodock-workspace-caption {
     /*border: 1px solid rgba(255,255,255,0.7);*/
@@ -48,6 +77,7 @@
     border: 1px solid rgba(10,10,10,0.4);
     border-radius: 0px 0px 2px 2px;
 }
+
 
 /* caption workspace number */
 .workspacestodock-caption-number {
