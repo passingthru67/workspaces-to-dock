@@ -13,7 +13,7 @@
 }
 
 #workspacestodockCaptionWindowApps .app-well-app > .overview-icon {
-    padding: 0px 1px;
+    padding: 1px 1px;
     border: 1px solid rgba(180,180,180,0.5);
     border-radius: 1px;
 

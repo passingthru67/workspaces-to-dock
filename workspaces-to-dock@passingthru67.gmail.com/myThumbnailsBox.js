@@ -43,7 +43,7 @@ const WORKSPACE_KEEP_ALIVE_TIME = 100;
 const OVERRIDE_SCHEMA = 'org.gnome.shell.overrides';
 
 const CAPTION_HEIGHT = 30; // NOTE: Must be larger than CAPTION_APP_ICON_HOVER_SIZE + css icon padding + css icon border
-const CAPTION_BACKGROUND_HEIGHT = 20;
+const CAPTION_BACKGROUND_HEIGHT = 22;
 const CAPTION_APP_ICON_SIZE = 16;
 const CAPTION_APP_ICON_HOVER_SIZE = 24;
 
@@ -200,7 +200,7 @@ const myWorkspaceThumbnail = new Lang.Class({
                             button.add_style_pseudo_class('active');
                         }
                             
-                        this._wsWindowApps.add(button, {x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
+                        this._wsWindowApps.add(button, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
                         //this._wsWindowAppsButtons.push(metaWin);
 
                         let winInfo = {};
@@ -761,28 +761,40 @@ const myThumbnailsBox = new Lang.Class({
                     text: '',
                     style_class: 'workspacestodock-caption-number'
                 });
-                //wsNumberBox.add(wsNumber, {y_fill: false, y_align: St.Align.END});
+                wsNumberBox = new St.BoxLayout({name: 'workspacestodockCaptionNumberBox'});
+                wsNumberBox.add(wsNumber, {x_fill: false, x_align: St.Align.MIDDLE, y_fill: false, y_align: St.Align.MIDDLE});
                 
                 let wsName = new St.Label({
                     name: 'workspacestodockCaptionName',
                     text: '',
                     style_class: 'workspacestodock-caption-name'
                 });
+                wsNameBox = new St.BoxLayout({name: 'workspacestodockCaptionNameBox'});
+                wsNameBox.add(wsName, {x_fill: false, x_align: St.Align.MIDDLE, y_fill: false, y_align: St.Align.MIDDLE});
+                
                 let wsWindowCount = new St.Label({
                     name: 'workspacestodockCaptionWindowCount',
                     text: '',
                     style_class: 'workspacestodock-caption-windowcount'
                 });
+                wsWindowCountBox = new St.BoxLayout({name: 'workspacestodockCaptionWindowCountBox'});
+                wsWindowCountBox.add(wsWindowCount, {x_fill: false, x_align: St.Align.MIDDLE, y_fill: false, y_align: St.Align.MIDDLE});
+
                 let wsWindowApps = new St.BoxLayout({
                     name: 'workspacestodockCaptionWindowApps',
                     reactive: false,
                     style_class: 'workspacestodock-caption-windowapps'
                 });
+                //wsWindowAppsBox = new St.BoxLayout({name: 'workspacestodockCaptionWindowAppsBox'});
+                //wsWindowAppsBox.add(wsWindowApps, {x_fill: false, x_align: St.Align.MIDDLE, y_fill: false, y_align: St.Align.MIDDLE});
+
                 let wsSpacer = new St.Label({
                     name: 'workspacestodockCaptionSpacer',
                     text: '',
                     style_class: 'workspacestodock-caption-spacer'
                 });
+                wsSpacerBox = new St.BoxLayout({name: 'workspacestodockCaptionSpacerBox'});
+                wsSpacerBox.add(wsSpacer, {x_fill: false, x_align: St.Align.MIDDLE, y_fill: false, y_align: St.Align.MIDDLE});
 
                 if (this._mySettings.get_boolean('workspace-caption-windowcount-image')) {
                     wsWindowCount.remove_style_class_name("workspacestodock-caption-windowcount");
@@ -799,26 +811,26 @@ const myThumbnailsBox = new Lang.Class({
                     
                     switch (item) {
                         case "number":
-                            wsCaption.add(wsNumber, {x_align: St.Align.END, y_fill: false, y_align: St.Align.END, expand: expandState});
+                            wsCaption.add(wsNumberBox, {x_fill: false, x_align: St.Align.END, y_fill: false, y_align: St.Align.END, expand: expandState});
                             //wsNumber.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaptionBackground, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
                             //wsNumberBox.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaptionBackground, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
                             break;
                         case "name":
-                            wsCaption.add(wsName, {x_align: St.Align.END, y_fill: false, y_align: St.Align.END, expand: expandState});
+                            wsCaption.add(wsNameBox, {x_fill: false, x_align: St.Align.END, y_fill: false, y_align: St.Align.END, expand: expandState});
                             //wsName.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaptionBackground, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
                             break;
                         case "windowcount":
-                            wsCaption.add(wsWindowCount, {x_align: St.Align.END, y_fill: false, y_align: St.Align.END, expand: expandState});
+                            wsCaption.add(wsWindowCountBox, {x_fill: false, x_align: St.Align.END, y_fill: false, y_align: St.Align.END, expand: expandState});
                             //wsWindowCount.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaptionBackground, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
                             break;
                         case "windowapps":
-                            wsCaption.add(wsWindowApps, {x_align: St.Align.END, y_fill: false, y_align: St.Align.END, expand: expandState});
+                            wsCaption.add(wsWindowApps, {x_fill: false, x_align: St.Align.END, y_fill: false, y_align: St.Align.END, expand: expandState});
                             //wsWindowApps.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaptionBackground, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
                             wsWindowApps.connect("realize", Lang.bind(this, this._initWindowApps, thumbnail));
                             thumbnail._wsWindowApps = wsWindowApps;
                             break;
                         case "spacer":
-                            wsCaption.add(wsSpacer, {x_align: St.Align.END, y_fill: false, y_align: St.Align.END, expand: expandState});
+                            wsCaption.add(wsSpacerBox, {x_fill: false, x_align: St.Align.END, y_fill: false, y_align: St.Align.END, expand: expandState});
                             //wsSpacer.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaptionBackground, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
                             break;
                     }
@@ -944,30 +956,43 @@ const myThumbnailsBox = new Lang.Class({
         let wsNumber = wsCaption.find_child_by_name("workspacestodockCaptionNumber");
         if (wsNumber) {
             wsNumber.set_text(""+(i+1));
-            wsNumber.height = captionBackgroundHeight - 2; // subtract 1px for workspacestodockCaptionContainer border and 1px for background border
+            //wsNumber.height = captionBackgroundHeight - 2; // subtract 1px for workspacestodockCaptionContainer border and 1px for background border
             // TODO: check workspacestodockCaptionContainer theme for border values
             // TODO: check workspacestodockCaptionBackground theme for border values
         }
+        let wsNumberBox = wsCaption.find_child_by_name("workspacestodockCaptionNumberBox");
+        if (wsNumberBox)
+            wsNumberBox.height = captionBackgroundHeight - 2;
+
         let wsName = wsCaption.find_child_by_name("workspacestodockCaptionName");
         if (wsName) {
             wsName.set_text(Meta.prefs_get_workspace_name(i));
-            wsName.height = captionBackgroundHeight - 2; // subtract 1px for workspacestodockCaptionContainer border and 1px for background border
+            //wsName.height = captionBackgroundHeight - 2; // subtract 1px for workspacestodockCaptionContainer border and 1px for background border
             // TODO: check workspacestodockCaptionContainer theme for border values
             // TODO: check workspacestodockCaptionBackground theme for border values
         }
+        let wsNameBox = wsCaption.find_child_by_name("workspacestodockCaptionNameBox");
+        if (wsNameBox)
+            wsNameBox.height = captionBackgroundHeight - 2;
 
         let wsWindowCount = wsCaption.find_child_by_name("workspacestodockCaptionWindowCount");
         if (wsWindowCount) {
             this._updateWindowCount(wsWindowCount, i);
-            wsWindowCount.height = captionBackgroundHeight - 2; // subtract 1px for workspacestodockCaptionContainer border and 1px for background border
+            //wsWindowCount.height = captionBackgroundHeight - 2; // subtract 1px for workspacestodockCaptionContainer border and 1px for background border
             // TODO: check workspacestodockCaptionContainer theme for border values
             // TODO: check workspacestodockCaptionBackground theme for border values
         }
+        let wsWindowCountBox = wsCaption.find_child_by_name("workspacestodockCaptionWindowCountBox");
+        if (wsWindowCountBox)
+            wsWindowCountBox.height = captionBackgroundHeight - 2;
 
         let wsWindowApps = wsCaption.find_child_by_name("workspacestodockCaptionWindowApps");
         if (wsWindowApps) {
             wsWindowApps.height = captionHeight;
         }
+        //let wsWindowAppsBox = wsCaption.find_child_by_name("workspacestodockCaptionWindowAppsBox");
+        //if (wsWindowAppsBox)
+        //    wsWindowAppsBox.height = captionHeight;
 
         
         let wsSpacer = wsCaption.find_child_by_name("workspacestodockCaptionSpacer");    
@@ -1097,7 +1122,7 @@ const myThumbnailsBox = new Lang.Class({
                     let winInfo = {};
                     winInfo.metaWin = metaWin;
                     winInfo.signalFocusedId = metaWin.connect('notify::appears-focused', Lang.bind(this, this._onWindowChanged, metaWin));
-                    wsWindowApps.add(button, {x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
+                    wsWindowApps.add(button, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
                     thumbnail._wsWindowAppsButtons.push(winInfo);
                 }
             }
