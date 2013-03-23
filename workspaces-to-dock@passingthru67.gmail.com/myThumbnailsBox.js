@@ -42,10 +42,10 @@ const WORKSPACE_KEEP_ALIVE_TIME = 100;
 
 const OVERRIDE_SCHEMA = 'org.gnome.shell.overrides';
 
-const CAPTION_HEIGHT = 30; // NOTE: Must be larger than CAPTION_APP_ICON_HOVER_SIZE + css icon padding + css icon border
-const CAPTION_BACKGROUND_HEIGHT = 22;
-const CAPTION_APP_ICON_SIZE = 16;
-const CAPTION_APP_ICON_HOVER_SIZE = 24;
+const CAPTION_HEIGHT = 40; // NOTE: Must be larger than CAPTION_APP_ICON_HOVER_SIZE + css icon padding + css icon border
+const CAPTION_BACKGROUND_HEIGHT = 20;
+const CAPTION_APP_ICON_SIZE = 24;
+const CAPTION_APP_ICON_HOVER_SIZE = 32;
 
 
 const ThumbnailState = {
@@ -758,42 +758,48 @@ const myThumbnailsBox = new Lang.Class({
 
                 let wsNumber = new St.Label({
                     name: 'workspacestodockCaptionNumber',
-                    text: '',
+                    text: ''
+                });
+                wsNumberBox = new St.BoxLayout({
+                    name: 'workspacestodockCaptionNumberBox',
                     style_class: 'workspacestodock-caption-number'
                 });
-                wsNumberBox = new St.BoxLayout({name: 'workspacestodockCaptionNumberBox'});
                 wsNumberBox.add(wsNumber, {x_fill: false, x_align: St.Align.MIDDLE, y_fill: false, y_align: St.Align.MIDDLE});
                 
                 let wsName = new St.Label({
                     name: 'workspacestodockCaptionName',
-                    text: '',
+                    text: ''
+                });
+                wsNameBox = new St.BoxLayout({
+                    name: 'workspacestodockCaptionNameBox',
                     style_class: 'workspacestodock-caption-name'
                 });
-                wsNameBox = new St.BoxLayout({name: 'workspacestodockCaptionNameBox'});
                 wsNameBox.add(wsName, {x_fill: false, x_align: St.Align.MIDDLE, y_fill: false, y_align: St.Align.MIDDLE});
                 
                 let wsWindowCount = new St.Label({
                     name: 'workspacestodockCaptionWindowCount',
-                    text: '',
+                    text: ''
+                });
+                wsWindowCountBox = new St.BoxLayout({
+                    name: 'workspacestodockCaptionWindowCountBox',
                     style_class: 'workspacestodock-caption-windowcount'
                 });
-                wsWindowCountBox = new St.BoxLayout({name: 'workspacestodockCaptionWindowCountBox'});
                 wsWindowCountBox.add(wsWindowCount, {x_fill: false, x_align: St.Align.MIDDLE, y_fill: false, y_align: St.Align.MIDDLE});
 
-                let wsWindowApps = new St.BoxLayout({
+                let wsWindowAppsBox = new St.BoxLayout({
                     name: 'workspacestodockCaptionWindowApps',
                     reactive: false,
                     style_class: 'workspacestodock-caption-windowapps'
                 });
-                //wsWindowAppsBox = new St.BoxLayout({name: 'workspacestodockCaptionWindowAppsBox'});
-                //wsWindowAppsBox.add(wsWindowApps, {x_fill: false, x_align: St.Align.MIDDLE, y_fill: false, y_align: St.Align.MIDDLE});
 
                 let wsSpacer = new St.Label({
                     name: 'workspacestodockCaptionSpacer',
-                    text: '',
+                    text: ''
+                });
+                wsSpacerBox = new St.BoxLayout({
+                    name: 'workspacestodockCaptionSpacerBox',
                     style_class: 'workspacestodock-caption-spacer'
                 });
-                wsSpacerBox = new St.BoxLayout({name: 'workspacestodockCaptionSpacerBox'});
                 wsSpacerBox.add(wsSpacer, {x_fill: false, x_align: St.Align.MIDDLE, y_fill: false, y_align: St.Align.MIDDLE});
 
                 if (this._mySettings.get_boolean('workspace-caption-windowcount-image')) {
@@ -824,10 +830,10 @@ const myThumbnailsBox = new Lang.Class({
                             //wsWindowCount.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaptionBackground, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
                             break;
                         case "windowapps":
-                            wsCaption.add(wsWindowApps, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END, expand: expandState});
+                            wsCaption.add(wsWindowAppsBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END, expand: expandState});
                             //wsWindowApps.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaptionBackground, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
-                            wsWindowApps.connect("realize", Lang.bind(this, this._initWindowApps, thumbnail));
-                            thumbnail._wsWindowApps = wsWindowApps;
+                            wsWindowAppsBox.connect("realize", Lang.bind(this, this._initWindowApps, thumbnail));
+                            thumbnail._wsWindowApps = wsWindowAppsBox;
                             break;
                         case "spacer":
                             wsCaption.add(wsSpacerBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END, expand: expandState});
@@ -986,89 +992,85 @@ const myThumbnailsBox = new Lang.Class({
         if (wsWindowCountBox)
             wsWindowCountBox.height = captionBackgroundHeight - 2;
 
-        let wsWindowApps = wsCaption.find_child_by_name("workspacestodockCaptionWindowApps");
-        if (wsWindowApps) {
-            wsWindowApps.height = captionHeight;
+        let wsWindowAppsBox = wsCaption.find_child_by_name("workspacestodockCaptionWindowApps");
+        if (wsWindowAppsBox) {
+            wsWindowAppsBox.height = captionHeight;
         }
-        //let wsWindowAppsBox = wsCaption.find_child_by_name("workspacestodockCaptionWindowAppsBox");
-        //if (wsWindowAppsBox)
-        //    wsWindowAppsBox.height = captionHeight;
-
         
         let wsSpacer = wsCaption.find_child_by_name("workspacestodockCaptionSpacer");    
 
         if (i == global.screen.get_active_workspace_index()) {
             if (wsCaptionBackground) wsCaptionBackground.add_style_class_name('workspacestodock-workspace-caption-background-current');
             if (wsCaption) wsCaption.add_style_class_name('workspacestodock-workspace-caption-current');
-            if (wsNumber) wsNumber.add_style_class_name('workspacestodock-caption-number-current');
-            if (wsName) wsName.add_style_class_name('workspacestodock-caption-name-current');
-            if (wsWindowCount) {
+            if (wsNumberBox) wsNumberBox.add_style_class_name('workspacestodock-caption-number-current');
+            if (wsNameBox) wsNameBox.add_style_class_name('workspacestodock-caption-name-current');
+            if (wsWindowCountBox) {
                 if (this._mySettings.get_boolean('workspace-caption-windowcount-image')) {
-                    wsWindowCount.add_style_class_name('workspacestodock-caption-windowcount-image-current');
+                    wsWindowCountBox.add_style_class_name('workspacestodock-caption-windowcount-image-current');
                 } else {
-                    wsWindowCount.add_style_class_name('workspacestodock-caption-windowcount-current');
+                    wsWindowCountBox.add_style_class_name('workspacestodock-caption-windowcount-current');
                 }
             }
-            if (wsSpacer) wsSpacer.add_style_class_name('workspacestodock-caption-spacer-current');
+            if (wsSpacerBox) wsSpacerBox.add_style_class_name('workspacestodock-caption-spacer-current');
         } else {
             if (wsCaptionBackground) wsCaptionBackground.remove_style_class_name('workspacestodock-workspace-caption-background-current');
             if (wsCaption) wsCaption.remove_style_class_name('workspacestodock-workspace-caption-current');
-            if (wsNumber) wsNumber.remove_style_class_name('workspacestodock-caption-number-current');
-            if (wsName) wsName.remove_style_class_name('workspacestodock-caption-name-current');
-            if (wsWindowCount) {
+            if (wsNumberBox) wsNumberBox.remove_style_class_name('workspacestodock-caption-number-current');
+            if (wsNameBox) wsNameBox.remove_style_class_name('workspacestodock-caption-name-current');
+            if (wsWindowCountBox) {
                 if (this._mySettings.get_boolean('workspace-caption-windowcount-image')) {
-                    wsWindowCount.remove_style_class_name('workspacestodock-caption-windowcount-image-current');
+                    wsWindowCountBox.remove_style_class_name('workspacestodock-caption-windowcount-image-current');
                 } else {
-                    wsWindowCount.remove_style_class_name('workspacestodock-caption-windowcount-current');
+                    wsWindowCountBox.remove_style_class_name('workspacestodock-caption-windowcount-current');
                 }
             }
-            if (wsSpacer) wsSpacer.remove_style_class_name('workspacestodock-caption-spacer-current');
+            if (wsSpacerBox) wsSpacerBox.remove_style_class_name('workspacestodock-caption-spacer-current');
         }
 
     },
     
-    _initThumbnailCaptions: function(actor, wkspIndex) {
-        if (_DEBUG_) global.log("myWorkspaceThumbnail: _initThumbnailCaptions");
-        let caption = actor;
-        let themeNode = caption.get_theme_node();
+    //_initThumbnailCaptions: function(actor, wkspIndex) {
+        //if (_DEBUG_) global.log("myWorkspaceThumbnail: _initThumbnailCaptions");
+        //let caption = actor;
+        //let themeNode = caption.get_theme_node();
         
-        // Get caption top and bottom border width
-        let topBorderWidth = themeNode.get_border_width(St.Side.TOP);
-        let bottomBorderWidth = themeNode.get_border_width(St.Side.BOTTOM);
+        //// Get caption top and bottom border width
+        //let topBorderWidth = themeNode.get_border_width(St.Side.TOP);
+        //let bottomBorderWidth = themeNode.get_border_width(St.Side.BOTTOM);
         
-        // Set constraint offsets of caption items to negative
-        // a negative constraint offset acts as bottom padding to align items with bottom border of caption
-        //let childOffset = (topBorderWidth + bottomBorderWidth) * -1;
+        //// Set constraint offsets of caption items to negative
+        //// a negative constraint offset acts as bottom padding to align items with bottom border of caption
+        ////let childOffset = (topBorderWidth + bottomBorderWidth) * -1;
         
-        //let children = caption.get_children();
-        //for (let i = 0; i < children.length; i++) {
-            //if (_DEBUG_) global.log("child["+i+"] name = "+children[i].get_name());
-            //let constraint = children[i].get_constraint('constraint');
-            //if (children[i].get_name() == "workspacestodockCaptionWindowApps") {
-            //    if (_DEBUG_) global.log("found");
-            //    //constraint.set_offset(-2);
-            //} else {
-            //    constraint.set_offset(childOffset);
-            //}
+        ////let children = caption.get_children();
+        ////for (let i = 0; i < children.length; i++) {
+            ////if (_DEBUG_) global.log("child["+i+"] name = "+children[i].get_name());
+            ////let constraint = children[i].get_constraint('constraint');
+            ////if (children[i].get_name() == "workspacestodockCaptionWindowApps") {
+            ////    if (_DEBUG_) global.log("found");
+            ////    //constraint.set_offset(-2);
+            ////} else {
+            ////    constraint.set_offset(childOffset);
+            ////}
+        ////}
+
+        //let i = wkspIndex;
+
+        //let wsNumber = caption.find_child_by_name("workspacestodockCaptionNumber");
+        //if (wsNumber) {
+            //wsNumber.set_text(""+i);
+        //}
+        //let wsName = caption.find_child_by_name("workspacestodockCaptionName");
+        //if (wsName) {
+            //wsName.set_text(Meta.prefs_get_workspace_name(i));
         //}
 
-        let i = wkspIndex;
-
-        let wsNumber = caption.find_child_by_name("workspacestodockCaptionNumber");
-        if (wsNumber) {
-            wsNumber.set_text(""+i);
-        }
-        let wsName = caption.find_child_by_name("workspacestodockCaptionName");
-        if (wsName) {
-            wsName.set_text(Meta.prefs_get_workspace_name(i));
-        }
-
-        let wsWindowCount = caption.find_child_by_name("workspacestodockCaptionWindowCount");
-        if (wsWindowCount) {
-            this._updateWindowCount(wsWindowCount, i);
-        }
+        //let wsWindowCount = caption.find_child_by_name("workspacestodockCaptionWindowCount");
+        //if (wsWindowCount) {
+            //this._updateWindowCount(wsWindowCount, i);
+        //}
         
-    },
+    //},
     
     _initWindowApps: function(actor, thumbnail) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps wsp="+thumbnail.metaWorkspace);

@@ -30,7 +30,7 @@
 }
 
 #workspacestodockCaptionWindowApps .popup-menu-item:active {
-    padding: 0px;
+    /*padding: 0px;*/
     border-radius: 1px;
 }
 
@@ -85,7 +85,7 @@
     background-gradient-start: rgba(255,255,255,0.2);
     background-gradient-end: rgba(255,255,255,0.3);
     background-gradient-direction: vertical;
-    font-family: cantarell, sans-serif;
+    /*font-family: cantarell, sans-serif;*/
     font-size: 12px;
     font-weight: bold;
     text-align: center;
@@ -97,7 +97,7 @@
 .workspacestodock-caption-name {
     color: rgba(150,150,150,0.8);
     color: rgba(255,255,255,0.3);
-    font-family: cantarell, sans-serif;
+    /*font-family: cantarell, sans-serif;*/
     font-size: 12px;
     font-weight: bold;
     text-align: center;
@@ -109,7 +109,7 @@
     min-width: 7px;
     color: rgba(150,150,150,0.8);
     background-color: rgba(10,10,10,0.2);
-    font-family: cantarell, sans-serif;
+    /*font-family: cantarell, sans-serif;*/
     font-size: 12px;
     font-weight: bold;
     text-align: center;
