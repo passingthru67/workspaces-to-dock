@@ -811,26 +811,26 @@ const myThumbnailsBox = new Lang.Class({
                     
                     switch (item) {
                         case "number":
-                            wsCaption.add(wsNumberBox, {x_fill: false, x_align: St.Align.END, y_fill: false, y_align: St.Align.END, expand: expandState});
+                            wsCaption.add(wsNumberBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END, expand: expandState});
                             //wsNumber.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaptionBackground, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
                             //wsNumberBox.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaptionBackground, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
                             break;
                         case "name":
-                            wsCaption.add(wsNameBox, {x_fill: false, x_align: St.Align.END, y_fill: false, y_align: St.Align.END, expand: expandState});
+                            wsCaption.add(wsNameBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END, expand: expandState});
                             //wsName.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaptionBackground, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
                             break;
                         case "windowcount":
-                            wsCaption.add(wsWindowCountBox, {x_fill: false, x_align: St.Align.END, y_fill: false, y_align: St.Align.END, expand: expandState});
+                            wsCaption.add(wsWindowCountBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END, expand: expandState});
                             //wsWindowCount.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaptionBackground, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
                             break;
                         case "windowapps":
-                            wsCaption.add(wsWindowApps, {x_fill: false, x_align: St.Align.END, y_fill: false, y_align: St.Align.END, expand: expandState});
+                            wsCaption.add(wsWindowApps, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END, expand: expandState});
                             //wsWindowApps.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaptionBackground, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
                             wsWindowApps.connect("realize", Lang.bind(this, this._initWindowApps, thumbnail));
                             thumbnail._wsWindowApps = wsWindowApps;
                             break;
                         case "spacer":
-                            wsCaption.add(wsSpacerBox, {x_fill: false, x_align: St.Align.END, y_fill: false, y_align: St.Align.END, expand: expandState});
+                            wsCaption.add(wsSpacerBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END, expand: expandState});
                             //wsSpacer.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaptionBackground, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
                             break;
                     }
@@ -1121,7 +1121,7 @@ const myThumbnailsBox = new Lang.Class({
                     
                     let winInfo = {};
                     winInfo.metaWin = metaWin;
-                    winInfo.signalFocusedId = metaWin.connect('notify::appears-focused', Lang.bind(this, this._onWindowChanged, metaWin));
+                    winInfo.signalFocusedId = metaWin.connect('notify::appears-focused', Lang.bind(this, thumbnail._onWindowChanged, metaWin));
                     wsWindowApps.add(button, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
                     thumbnail._wsWindowAppsButtons.push(winInfo);
                 }
