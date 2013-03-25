@@ -754,6 +754,15 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             }
         }));
 
+        let wsCaptionWindowAppsUseLargeIcons =  new Gtk.CheckButton({
+            label: _("Large icons"),
+            hexpand: true
+        });
+        wsCaptionWindowAppsUseLargeIcons.set_active(this.settings.get_boolean('workspace-caption-large-icons'));
+        wsCaptionWindowAppsUseLargeIcons.connect('toggled', Lang.bind(this, function(check) {
+            this.settings.set_boolean('workspace-caption-large-icons', check.get_active());
+        }));
+
         let wsCaptionWindowAppsExpand =  new Gtk.CheckButton({
             label: _("Expand"),
             hexpand: true
@@ -844,6 +853,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         workspaceCaptionsGrid.attach(wsCaptionWindowCount_MoveRightButton, 4, 4, 1, 1);
 
         workspaceCaptionsGrid.attach(wsCaptionWindowApps, 0, 5, 1, 1);
+        workspaceCaptionsGrid.attach(wsCaptionWindowAppsUseLargeIcons, 1, 5, 1, 1);
         workspaceCaptionsGrid.attach(wsCaptionWindowAppsExpand, 2, 5, 1, 1);
         workspaceCaptionsGrid.attach(wsCaptionWindowApps_MoveLeftButton, 3, 5, 1, 1);
         workspaceCaptionsGrid.attach(wsCaptionWindowApps_MoveRightButton, 4, 5, 1, 1);

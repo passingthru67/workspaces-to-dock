@@ -42,10 +42,12 @@ const WORKSPACE_KEEP_ALIVE_TIME = 100;
 
 const OVERRIDE_SCHEMA = 'org.gnome.shell.overrides';
 
-const CAPTION_HEIGHT = 40; // NOTE: Must be larger than CAPTION_APP_ICON_HOVER_SIZE + css icon padding + css icon border
-const CAPTION_BACKGROUND_HEIGHT = 20;
-const CAPTION_APP_ICON_SIZE = 24;
-const CAPTION_APP_ICON_HOVER_SIZE = 32;
+const CAPTION_HEIGHT = 40; // NOTE: Must be larger than CAPTION_APP_ICON_SIZE_ZOOMED + css icon padding + css icon border
+const CAPTION_BACKGROUND_HEIGHT = 22;
+const CAPTION_APP_ICON_NORMAL_SIZE = 16;
+const CAPTION_APP_ICON_NORMAL_SIZE_ZOOMED = 24;
+const CAPTION_APP_ICON_LARGE_SIZE = 24;
+const CAPTION_APP_ICON_LARGE_SIZE_ZOOMED = 32;
 
 
 const ThumbnailState = {
@@ -64,10 +66,11 @@ const myWorkspaceThumbnail = new Lang.Class({
     Name: 'workspacesToDock.myWorkspaceThumbnail',
     Extends: WorkspaceThumbnail.WorkspaceThumbnail,
 
-    _init: function(metaWorkspace, gsCurrentVersion) {
+    _init: function(metaWorkspace, gsCurrentVersion, mySettings) {
         this.parent(metaWorkspace);
         
         this._gsCurrentVersion = gsCurrentVersion;
+        this._mySettings = mySettings;
         this._wsWindowAppsButtons = [];
         this._afterWindowAddedId = this.metaWorkspace.connect_after('window-added',
                                                           Lang.bind(this, this._onAfterWindowAdded));
@@ -144,14 +147,22 @@ const myWorkspaceThumbnail = new Lang.Class({
     _onWindowAppsButtonEnter: function(actor, event, icon) {
         //let icon = actor.get_child();
         //icon._delegate.setIconSize(24);
-        icon.setIconSize(CAPTION_APP_ICON_HOVER_SIZE);
+        if (this._mySettings.get_boolean('workspace-caption-large-icons')) {
+            icon.setIconSize(CAPTION_APP_ICON_LARGE_SIZE_ZOOMED);
+        } else {
+            icon.setIconSize(CAPTION_APP_ICON_NORMAL_SIZE_ZOOMED);
+        }
         //icon.actor.add_style_pseudo_class('hover');
     },
 
     _onWindowAppsButtonLeave: function(actor, event, icon) {
         //let icon = actor.get_child();
         //icon._delegate.setIconSize(20);
-        icon.setIconSize(CAPTION_APP_ICON_SIZE);
+        if (this._mySettings.get_boolean('workspace-caption-large-icons')) {
+            icon.setIconSize(CAPTION_APP_ICON_LARGE_SIZE);
+        } else {
+            icon.setIconSize(CAPTION_APP_ICON_NORMAL_SIZE);
+        }
         //icon.actor.remove_style_pseudo_class('hover');
     },
 
@@ -181,7 +192,12 @@ const myWorkspaceThumbnail = new Lang.Class({
                         
                         let icon = new IconGrid.BaseIcon(app.get_name(), iconParams);
                         icon.actor.add_style_class_name('workspacestodock-caption-windowapps-button-icon');
-                        icon.setIconSize(CAPTION_APP_ICON_SIZE);
+                        if (this._mySettings.get_boolean('workspace-caption-large-icons')) {
+                            icon.setIconSize(CAPTION_APP_ICON_LARGE_SIZE);
+                        } else {
+                            icon.setIconSize(CAPTION_APP_ICON_NORMAL_SIZE);
+                        }
+
 
                         let button;
                         if (this._gsCurrentVersion[1] < 6) {
@@ -725,7 +741,7 @@ const myThumbnailsBox = new Lang.Class({
         for (let k = start; k < start + count; k++) {
             let metaWorkspace = global.screen.get_workspace_by_index(k);
             //let thumbnail = new WorkspaceThumbnail.WorkspaceThumbnail(metaWorkspace);
-            let thumbnail = new myWorkspaceThumbnail(metaWorkspace, this._gsCurrentVersion);
+            let thumbnail = new myWorkspaceThumbnail(metaWorkspace, this._gsCurrentVersion, this._mySettings);
             thumbnail.setPorthole(this._porthole.x, this._porthole.y,
                                   this._porthole.width, this._porthole.height);
             
@@ -760,7 +776,7 @@ const myThumbnailsBox = new Lang.Class({
                     name: 'workspacestodockCaptionNumber',
                     text: ''
                 });
-                wsNumberBox = new St.BoxLayout({
+                let wsNumberBox = new St.BoxLayout({
                     name: 'workspacestodockCaptionNumberBox',
                     style_class: 'workspacestodock-caption-number'
                 });
@@ -770,7 +786,7 @@ const myThumbnailsBox = new Lang.Class({
                     name: 'workspacestodockCaptionName',
                     text: ''
                 });
-                wsNameBox = new St.BoxLayout({
+                let wsNameBox = new St.BoxLayout({
                     name: 'workspacestodockCaptionNameBox',
                     style_class: 'workspacestodock-caption-name'
                 });
@@ -780,7 +796,7 @@ const myThumbnailsBox = new Lang.Class({
                     name: 'workspacestodockCaptionWindowCount',
                     text: ''
                 });
-                wsWindowCountBox = new St.BoxLayout({
+                let wsWindowCountBox = new St.BoxLayout({
                     name: 'workspacestodockCaptionWindowCountBox',
                     style_class: 'workspacestodock-caption-windowcount'
                 });
@@ -796,15 +812,15 @@ const myThumbnailsBox = new Lang.Class({
                     name: 'workspacestodockCaptionSpacer',
                     text: ''
                 });
-                wsSpacerBox = new St.BoxLayout({
+                let wsSpacerBox = new St.BoxLayout({
                     name: 'workspacestodockCaptionSpacerBox',
                     style_class: 'workspacestodock-caption-spacer'
                 });
                 wsSpacerBox.add(wsSpacer, {x_fill: false, x_align: St.Align.MIDDLE, y_fill: false, y_align: St.Align.MIDDLE});
 
                 if (this._mySettings.get_boolean('workspace-caption-windowcount-image')) {
-                    wsWindowCount.remove_style_class_name("workspacestodock-caption-windowcount");
-                    wsWindowCount.add_style_class_name("workspacestodock-caption-windowcount-image");
+                    wsWindowCountBox.remove_style_class_name("workspacestodock-caption-windowcount");
+                    wsWindowCountBox.add_style_class_name("workspacestodock-caption-windowcount-image");
                 }
                 
                 
@@ -895,10 +911,13 @@ const myThumbnailsBox = new Lang.Class({
         }
 
         if (!this._mySettings.get_boolean('workspace-caption-windowcount-image')) {
-            // clear label images
-            for(let i = 1; i <= win_max; i++){
-                let className = 'workspacestodock-caption-windowcount-image-'+i;
-                label.remove_style_class_name(className);
+            // clear box images
+            let box = label.get_parent();
+            if (box) {
+                for(let i = 1; i <= win_max; i++){
+                    let className = 'workspacestodock-caption-windowcount-image-'+i;
+                    box.remove_style_class_name(className);
+                }
             }
             
             // Set label text
@@ -911,19 +930,21 @@ const myThumbnailsBox = new Lang.Class({
             }
         } else {
             // clear label text
-            label.set_text("");
+            if (label)
+                label.set_text("");
 
             // Set background image class
             if (win_count > win_max)
                 win_count = win_max;
 
-            if (label) {
+            let box = label.get_parent();
+            if (box) {
                 for(let i = 1; i <= win_max; i++){
                     let className = 'workspacestodock-caption-windowcount-image-'+i;
                     if (i != win_count) {
-                        label.remove_style_class_name(className);
+                        box.remove_style_class_name(className);
                     } else {
-                        label.add_style_class_name(className);
+                        box.add_style_class_name(className);
                     }
                 }
             }
@@ -997,7 +1018,7 @@ const myThumbnailsBox = new Lang.Class({
             wsWindowAppsBox.height = captionHeight;
         }
         
-        let wsSpacer = wsCaption.find_child_by_name("workspacestodockCaptionSpacer");    
+        let wsSpacerBox = wsCaption.find_child_by_name("workspacestodockCaptionSpacerBox");
 
         if (i == global.screen.get_active_workspace_index()) {
             if (wsCaptionBackground) wsCaptionBackground.add_style_class_name('workspacestodock-workspace-caption-background-current');
@@ -1102,7 +1123,11 @@ const myThumbnailsBox = new Lang.Class({
                     
                     let icon = new IconGrid.BaseIcon(app.get_name(), iconParams);
                     icon.actor.add_style_class_name('workspacestodock-caption-windowapps-button-icon');
-                    icon.setIconSize(CAPTION_APP_ICON_SIZE);
+                    if (this._mySettings.get_boolean('workspace-caption-large-icons')) {
+                        icon.setIconSize(CAPTION_APP_ICON_LARGE_SIZE);
+                    } else {
+                        icon.setIconSize(CAPTION_APP_ICON_NORMAL_SIZE);
+                    }
 
                     let button;
                     if (this._gsCurrentVersion[1] < 6) {

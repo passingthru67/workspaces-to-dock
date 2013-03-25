@@ -89,12 +89,17 @@
     <key type="as" name="workspace-caption-items">
       <default>['number:false', 'spacer:true', 'windowcount:false']</default>
       <summary>List of items placed in caption</summary>
-      <description>List of items placed in the caption - allowed items are number, name, windowcount, and spacer.</description>
+      <description>List of items placed in the caption - allowed items are number, name, windowcount, windowapps, and spacer.</description>
     </key>
     <key type="b" name="workspace-caption-windowcount-image">
       <default>true</default>
-      <summary>Show workspace window count labels</summary>
-      <description>Enable or disable workspace window count labels.</description>
+      <summary>Show workspace window count using images</summary>
+      <description>Enable or disable using images for workspace window count.</description>
+    </key>
+    <key type="b" name="workspace-caption-large-icons">
+      <default>false</default>
+      <summary>Show workspace window apps using large icons</summary>
+      <description>Enable or disable using large icons for workspace window apps (taskbar).</description>
     </key>
     <key type="b" name="toggle-overview">
       <default>true</default>

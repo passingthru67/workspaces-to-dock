@@ -17,7 +17,7 @@
 .workspacestodock-caption-windowapps-button-icon {
     padding: 1px 1px;
     border: 1px solid rgba(180,180,180,0.5);
-    border-radius: 1px;
+    border-radius: 2px;
 
     background-gradient-start: rgba(255,255,255,0.2);
     background-gradient-end: rgba(255,255,255,0.3);
@@ -28,8 +28,8 @@
 }
 /* compliments popup-menu-item:active */
 .workspacestodock-caption-windowapps-button:active > .workspacestodock-caption-windowapps-button-icon {
-    background-gradient-start: rgba(255,255,255,0.2);
-    background-gradient-end: rgba(255,255,255,0.3);
+    background-gradient-start: rgba(255,255,255,0.4);
+    background-gradient-end: rgba(255,255,255,0.5);
     background-gradient-direction: vertical;
 }
 /* ------------------------------------------------------------------------------- */
@@ -56,7 +56,7 @@
     font-size: 12px;
     font-weight: bold;
     text-align: center;
-    padding: 0px 8px;
+    padding: 0px 10px;
     border-radius: 1px;
 }
 
@@ -68,7 +68,7 @@
     font-size: 12px;
     font-weight: bold;
     text-align: center;
-    padding: 0px 8px;
+    padding: 0px 10px;
 }
 
 /* caption workspace windowcount */
@@ -80,7 +80,7 @@
     font-size: 12px;
     font-weight: bold;
     text-align: center;
-    padding: 0px 8px;
+    padding: 0px 10px;
     border-radius: 1px;
 }
 
