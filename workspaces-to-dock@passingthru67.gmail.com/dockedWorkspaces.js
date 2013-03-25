@@ -524,6 +524,16 @@ dockedWorkspaces.prototype = {
             }
         }));
 
+        this._settings.connect('changed::workspace-caption-large-icons', Lang.bind(this, function() {
+            if (this._gsCurrentVersion[1] < 7) {
+                this._thumbnailsBox.hide();
+                this._thumbnailsBox.show();
+            } else {
+                this._thumbnailsBox._destroyThumbnails();
+                this._thumbnailsBox._createThumbnails();
+            }
+        }));
+
         this._settings.connect('changed::workspace-captions-support', Lang.bind(this, function() {
             this._onThemeSupportChanged();
         }));
