@@ -9,7 +9,7 @@
  * ========================================================================================================
  */
 
-const _DEBUG_ = false;
+const _DEBUG_ = true;
 
 const GLib = imports.gi.GLib;
 
@@ -97,6 +97,7 @@ dockedWorkspaces.prototype = {
         });
         this.actor.connect("notify::hover", Lang.bind(this, this._hoverChanged));
         this.actor.connect("scroll-event", Lang.bind(this, this._onScrollEvent));
+        this.actor.connect("button-release-event", Lang.bind(this, this._onDockClicked));
         this._realizeId = this.actor.connect("realize", Lang.bind(this, this._initialize));
 
         // Sometimes Main.wm._workspaceSwitcherPopup is null when first loading the 
@@ -546,12 +547,62 @@ dockedWorkspaces.prototype = {
     // handler for mouse hover events
     _hoverChanged: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _hoverChanged");
+        if (this._settings.get_boolean('require-click-to-show')) {
+            // check if metaWin is maximized
+            let currentWorkspace = global.screen.get_active_workspace_index();
+            let maximized = false;
+            let windows = global.get_window_actors();
+            for (let i = windows.length-1; i >= 0; i--) {
+                let metaWin = windows[i].get_meta_window();
+                if(_DEBUG_) global.log("window being checked = "+metaWin.get_wm_class());
+                let metaWorkspace = metaWin.get_workspace().index();
+                if (_DEBUG_) global.log("window workspace = "+metaWorkspace+" currentWorkspace = "+currentWorkspace);
+                if (metaWorkspace != null && metaWorkspace == currentWorkspace) {
+                    if (_DEBUG_) global.log("window located in current workspace");
+                    if (metaWin.appears_focused && metaWin.maximized_horizontally) {
+                        maximized = true;
+                        if (_DEBUG_) global.log("window is focused and maximized");
+                        break;
+                    }
+                }
+            }
+            // set hovering flag if maximized
+            if (maximized) {
+                if (this.actor.hover) {
+                    this._hovering = true;
+                    return;
+                } else {
+                    this._hovering = false;
+                }
+            } else {
+                this._hovering = false;
+            }
+        }
+
         //Skip if dock is not in autohide mode for instance because it is shown by intellihide
         if (this._settings.get_boolean('autohide') && this._autohideStatus) {
             if (this.actor.hover) {
                 this._show();
             } else {
                 this._hide();
+            }
+        }
+    },
+
+    // handler for mouse click events - works in conjuction with hover event to show dock for maxmized windows
+    _onDockClicked: function() {
+        if (_DEBUG_) global.log("dockedWorkspaces: _onDockClicked");
+        if (this._settings.get_boolean('require-click-to-show')) {
+            if (this._hovering) {
+                //Skip if dock is not in autohide mode for instance because it is shown by intellihide
+                if (this._settings.get_boolean('autohide') && this._autohideStatus) {
+                    if (this.actor.hover) {
+                        this._show();
+                    } else {
+                        this._hide();
+                    }
+                }
+                this._hovering = false;
             }
         }
     },

@@ -100,7 +100,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         /* TIMINGS SETTINGS */
 
         let dockSettingsGrid1 = new Gtk.Grid({
-            row_homogeneous: true,
+            row_homogeneous: false,
             column_homogeneous: false
         });
 
@@ -161,10 +161,21 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             this.settings.set_double("hide-delay", s);
         }));
 
+        let showRequireClick = new Gtk.CheckButton({
+            label: _("Require click to show over max. windows"),
+            margin_left: 0,
+            margin_top: 10
+        });
+        showRequireClick.set_active(this.settings.get_boolean('require-click-to-show'));
+        showRequireClick.connect('toggled', Lang.bind(this, function(check) {
+            this.settings.set_boolean('require-click-to-show', check.get_active());
+        }));
+
+
         /* INTELLIHIDE AUTOHIDE SETTINGS */
 
         let dockSettingsGrid2 = new Gtk.Grid({
-            row_homogeneous: true,
+            row_homogeneous: false,
             column_homogeneous: false
         });
 
@@ -242,6 +253,8 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         dockSettingsGrid1.attach(showDelay, 1, 1, 1, 1);
         dockSettingsGrid1.attach(hideDelayLabel, 0, 2, 1, 1);
         dockSettingsGrid1.attach(hideDelay, 1, 2, 1, 1);
+        dockSettingsGrid1.attach(showRequireClick, 0, 3, 2, 1);
+        
 
         dockSettingsGrid2.attach(autohideLabel, 0, 0, 1, 1);
         dockSettingsGrid2.attach(autohide, 1, 0, 1, 1);

@@ -6,7 +6,7 @@
   * ========================================================================================================
  */
 
-const _DEBUG_ = true;
+const _DEBUG_ = false;
 
 const Gio = imports.gi.Gio;
 const Clutter = imports.gi.Clutter;
