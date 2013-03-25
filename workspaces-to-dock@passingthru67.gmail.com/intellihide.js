@@ -774,11 +774,16 @@ intellihide.prototype = {
     // handler for when Gnome Shell 3.6 overview page is changed
     // for example, when Applications button is clicked the workspaces dock is hidden
     // or when search is started the workspaces dock is hidden
-    _overviewPageChanged: function(source) {
+    _overviewPageChanged: function(source, page) {
         if (_DEBUG_) global.log("intellihide: _overviewPageChanged");
-        let activePage = Main.overview._viewSelector._activePage;
+        let newPage;
+        if (page)
+            newPage = page;
+        else
+            newPage = Main.overview._viewSelector._activePage;
+
         if (this._inOverview) {
-            if (activePage == Main.overview._viewSelector._workspacesPage) {
+            if (newPage == Main.overview._viewSelector._workspacesPage) {
                 this._show();
             } else {
                 this._hide();
