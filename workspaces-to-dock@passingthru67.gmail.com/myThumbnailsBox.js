@@ -311,6 +311,7 @@ const myThumbnailsBox = new Lang.Class({
             this._dropPlaceholderPos = -1;
             this._dropPlaceholder = new St.Bin({ style_class: 'placeholder' });
             this.actor.add_actor(this._dropPlaceholder);
+            this._spliceIndex = -1;
 
             this._targetScale = 0;
             this._scale = 0;
@@ -509,7 +510,6 @@ const myThumbnailsBox = new Lang.Class({
         }
 
         let thumbnailHeight = portholeHeight * this._scale;
-        
         let thumbnailWidth = Math.round(portholeWidth * this._scale);
         let roundedHScale = thumbnailWidth / portholeWidth;
 
@@ -534,9 +534,11 @@ const myThumbnailsBox = new Lang.Class({
         childBox.y2 = box.y2;
         this._background.allocate(childBox, flags);
 
+        // passingthru67 - moved here from below
         // when not animating, the workspace position overrides this._indicatorY
         let indicatorWorkspace = !this._animatingIndicator ? global.screen.get_active_workspace() : null;
 
+        // passingthru67 - move here from below
         let y = contentBox.y1;
 
         // passingthru67 - conditional for gnome shell 3.4/3.6/# differences
@@ -874,9 +876,8 @@ const myThumbnailsBox = new Lang.Class({
             this._thumbnails.push(thumbnail);
             this.actor.add_actor(thumbnail.actor);
             
-            
-
-            if (start > 0) { // not the initial fill
+            if (start > 0 && this._spliceIndex == -1) { 
+                // not the initial fill, and not splicing via DND
                 thumbnail.state = ThumbnailState.NEW;
                 thumbnail.slidePosition = 1; // start slid out
                 this._haveNewThumbnails = true;
@@ -891,6 +892,9 @@ const myThumbnailsBox = new Lang.Class({
 
         // The thumbnails indicator actually needs to be on top of the thumbnails
         this._indicator.raise_top();
+        
+        // Clear the splice index, we got the message
+        this._spliceIndex = -1;
     },
 
     _updateWindowCount: function(label, index) {
