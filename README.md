@@ -45,19 +45,13 @@ Main Settings:
 
 	**Animation time** - The time it takes the dock to slide from hidden to visible state and vise versa.
 
-	**Show delay** - The time delayed before sliding the dock to the visible state.
-		
-	**NOTE: Adjusting this delay higher (~ 500ms) can help prevent accidentally trigger the dock when using vertical scroll bars on maximized windows.**
+	**Show delay** - The time delayed before sliding the dock to the visible state. Adjusting this delay higher (500ms-700ms) can help prevent accidentally trigger the dock when using vertical scroll bars on maximized windows.
 
 	**Hide delay** - The time delayed before sliding the dock to the hidden state.
 
-    **Hover+click to show dock when window maximized** - Require a mouse click (in addition to hovering) to show the dock when the focused window is maximized.
-    
-    **NOTE: This option helps eliminate accidentally triggering the dock when using vertical scroll bars on maximized windows.**
+    **Hover+click to show dock when window maximized** - Require a mouse click (in addition to hovering) to show the dock when the focused window is maximized. This option helps eliminate accidentally triggering the dock when using vertical scroll bars on maximized windows.
 
-    **Leave dock edge visible when slid out** - Option to leave the dock edge visible when in the slid out or hidden state.
-    
-    **NOTE: This option makes the dock more easily accessible in dual monitor configurations where the second monitor is to the right.**
+    **Leave dock edge visible when slid out** - Option to leave the dock edge visible when in the slid out or hidden state. This option makes the dock more easily accessible in dual monitor configurations where the second monitor is to the right.
 
 - **Background:**
 
@@ -87,24 +81,19 @@ Additional Settings:
 
 	**Add captions to workspace thumbnails** - Adds captions to the workspace thumbnails.
 
-	**User theme supports workspaces-to-dock captions** - When enabled, user themes that support workspaces-to-dock captions will be used to style the captions.
-
-	**NOTE: Unfortunately, there is no built-in detection for when a theme supports workspaces-to-dock captions. Therefore, if this option is enabled, the default style will be disabled. We hope to provide auto-detection in a future release.**
+	**User theme supports workspaces-to-dock captions** - When enabled, user themes that support workspaces-to-dock captions will be used to style the captions. Unfortunately, there is no built-in detection for when a theme supports workspaces-to-dock captions. Therefore, if this option is enabled, the default style will be disabled. We hope to provide auto-detection in a future release.
 
 	**Show the workspace number** - When enabled, the workspace number is shown in the caption. It can be expanded to take up available space or its position can be adjusted using the arrow buttons.
 
-	**Show the workspace name** - When enabled, the workspace name is shown in the caption. It can be expanded to take up available space or its position can be adjusted using the arrow buttons.
-
-	**NOTE: Workspace names can be edited using the Workspace Indicator extension. We hope to provide this ability in a future release.**
+	**Show the workspace name** - When enabled, the workspace name is shown in the caption. It can be expanded to take up available space or its position can be adjusted using the arrow buttons. Workspace names can be edited using the Workspace Indicator extension. We hope to provide this ability in a future release.
 
 	**Show the workspace window count** - When enabled, the workspace window count is shown in the caption. It can be expanded to take up available space or its position can be adjusted using the arrow buttons. There is also an option to use images in place of text.
 
-    **Show the workspace taskbar (app icons)** - When enabled, the workspace taskbar is shown in the caption. The taskbar displays the icons of applications running on the workspace. It can be expanded to take up available space or its position can be adjusted using the arrow buttons. There is also an option to use large app icons.
-    
-    **NOTE: When the taskbar app icon is left-clicked, the application is brought into focus or minimized if it's already in focus. Right-clicking will bring up a context menu with an option to close the application.**
+    **Show the workspace taskbar (app icons)** - When enabled, the workspace taskbar is shown in the caption. The taskbar displays the icons of applications running on the workspace. It can be expanded to take up available space or its position can be adjusted using the arrow buttons. There is also an option to use large app icons. When the taskbar app icon is left-clicked, the application is brought into focus or minimized if it's already in focus. Right-clicking will bring up a context menu with an option to close the application.
     
 	**Show a spacer/filler** - When enabled, a spacer is inserted in the caption. It can be expanded to take up available space or its position can be adjusted using the arrow buttons.
 
+Below are examples of the workspace (thumbnail) caption in various configurations
 ![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Thumbnails.png)
 
 - **Custom Actions:**
@@ -113,9 +102,7 @@ Additional Settings:
 
 - **Dash Integration:**
 
-	**Show workspaces when hovering over Dash-To-Dock extension** - When enabled, hovering the mouse over the Dash-To-Dock extension will cause the workspaces dock to show.
-
-	**Note: This feature is extremely useful in cases where your workspaces dock is hidden and you want to open a new app from the dash. Rather than going into overview just to see your workspaces, hover over the dash-to-dock extension. The workspaces dock will show to the right. Use the dash-to-dock scroll to go to the appropriate workspace.**
+	**Show workspaces when hovering over Dash-To-Dock extension** - When enabled, hovering the mouse over the Dash-To-Dock extension will cause the workspaces dock to show. This feature is extremely useful in cases where your workspaces dock is hidden and you want to open a new app from the dash. Rather than going into overview just to see your workspaces, hover over the dash-to-dock extension. The workspaces dock will show to the right. Use the dash-to-dock scroll to go to the appropriate workspace.
 
 
 Workspace Caption Theming:
