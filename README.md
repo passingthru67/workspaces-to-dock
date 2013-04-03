@@ -29,9 +29,9 @@ Main Settings:
 
 ![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Prefs-Main.png)
 
-- **Visibility:**
+- **Behavior:**
 
-	**Dock is fixed and always visible** - The dock remains visible at all times.
+    **Dock is fixed and always visible** - The dock remains visible at all times.
 
 	**Autohide** - When enabled, the dock shows when the mouse touches the right edge of screen. When disabled, the dock remains hidden unless the intellihide option is on or overview mode is entered.
 
@@ -47,9 +47,17 @@ Main Settings:
 
 	**Show delay** - The time delayed before sliding the dock to the visible state.
 		
-	**NOTE: If you are having trouble with the mouse accidentally touching the right edge of the screen (usually due to using vertical scroll bars), adjust this delay higher (~ 700ms).**
+	**NOTE: Adjusting this delay higher (~ 500ms) can help prevent accidentally trigger the dock when using vertical scroll bars on maximized windows.**
 
 	**Hide delay** - The time delayed before sliding the dock to the hidden state.
+
+    **Hover+click to show dock when window maximized** - Require a mouse click (in addition to hovering) to show the dock when the focused window is maximized.
+    
+    **NOTE: This option helps eliminate accidentally triggering the dock when using vertical scroll bars on maximized windows.**
+
+    **Leave dock edge visible when slid out** - Option to leave the dock edge visible when in the slid out or hidden state.
+    
+    **NOTE: This option makes the dock more easily accessible in dual monitor configurations where the second monitor is to the right.**
 
 - **Background:**
 
@@ -91,7 +99,13 @@ Additional Settings:
 
 	**Show the workspace window count** - When enabled, the workspace window count is shown in the caption. It can be expanded to take up available space or its position can be adjusted using the arrow buttons. There is also an option to use images in place of text.
 
+    **Show the workspace taskbar (app icons)** - When enabled, the workspace taskbar is shown in the caption. The taskbar displays the icons of applications running on the workspace. It can be expanded to take up available space or its position can be adjusted using the arrow buttons. There is also an option to use large app icons.
+    
+    **NOTE: When the taskbar app icon is left-clicked, the application is brought into focus or minimized if it's already in focus. Right-clicking will bring up a context menu with an option to close the application.**
+    
 	**Show a spacer/filler** - When enabled, a spacer is inserted in the caption. It can be expanded to take up available space or its position can be adjusted using the arrow buttons.
+
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Thumbnails.png)
 
 - **Custom Actions:**
 
@@ -116,15 +130,14 @@ Support for languages is now provided with the editable translation files being 
 
 Features Planned:
 -----------------
-- Windowlist/Taskbar on the workspace caption.
 - Editing the workspace caption name.
-- Closing workspaces (and all associated windows) with mouse click
-- RTL support
+- Favorites panel.
+- RTL support.
 
 
 Known Issues:
 -------------
-- Dual monitor configurations where 2nd monitor is on the right side - workspaces-to-dock prevents mouse clicks from reaching the desktop of the right monitor in the region where the dock is slid out (even though the dock is hidden). A workaround (other than positioning the dock on the secondary monitor) is to enable application based intellihide using the workspaces-to-dock extension preferences.
+- **`FIXED in version 11`** Dual monitor configurations where 2nd monitor is on the right side - workspaces-to-dock prevents mouse clicks from reaching the desktop of the right monitor in the region where the dock is slid out (even though the dock is hidden there is a dead zone). A workaround (other than positioning the dock on the secondary monitor) is to enable application based intellihide using the workspaces-to-dock extension preferences.
 - Dual monitor configurations where workspaces-to-dock is positioned on the 2nd monitor, the dock overlaps window thumbnails when in overview mode.
 - Changes to Gsetting's dynamic workspaces setting or number of static workspaces requires a restart of the workspaces-to-dock extension.
 
