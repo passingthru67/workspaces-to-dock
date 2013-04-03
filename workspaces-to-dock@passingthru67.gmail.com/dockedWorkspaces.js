@@ -44,6 +44,8 @@ const _ = Gettext.gettext;
 const DashToDock_UUID = "dash-to-dock@micxgx.gmail.com";
 let DashToDock = null;
 
+const DOCK_HIDDEN_WIDTH = 2;
+const DOCK_EDGE_VISIBLE_WIDTH = 5;
 
 function dockedWorkspaces(settings, gsCurrentVersion) {
     this._gsCurrentVersion = gsCurrentVersion;
@@ -87,7 +89,7 @@ dockedWorkspaces.prototype = {
 		this._overrideGnomeShellFunctions();
 
         // Create a new thumbnailsbox object
-        this._thumbnailsBox = new MyThumbnailsBox.myThumbnailsBox(this._gsCurrentVersion, this._settings);
+        this._thumbnailsBox = new MyThumbnailsBox.myThumbnailsBox(this, this._gsCurrentVersion, this._settings);
 		
         // Create the main container, turn on track hover, add hoverChange signal
         this.actor = new St.BoxLayout({
@@ -497,6 +499,13 @@ dockedWorkspaces.prototype = {
         
         this._settings.connect('changed::preferred-monitor', Lang.bind(this, this._resetPosition));
         
+        this._settings.connect('changed::dock-edge-visible', Lang.bind(this, function() {
+            if (this._autohideStatus) {
+                this._animateIn(this._settings.get_double('animation-time'), 0);
+                this._animateOut(this._settings.get_double('animation-time'), 0);
+            }
+        }));
+        
         this._settings.connect('changed::workspace-captions', Lang.bind(this, function() {
             if (this._gsCurrentVersion[1] < 7) {
                 this._thumbnailsBox.hide();
@@ -744,13 +753,13 @@ dockedWorkspaces.prototype = {
 
     // autohide function to animate the show dock process
     _animateIn: function(time, delay) {
-        //let final_position = this.staticBox.x1;
         let final_position = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - 1;
 		if (_DEBUG_) global.log("dockedWorkspaces: _animateIN - currrent_position = "+ this.actor.x+" final_position = "+final_position);
         if (_DEBUG_) global.log("dockedWorkspaces: _animateIN - _thumbnailsBox width = "+this._thumbnailsBox.actor.width);
         if (_DEBUG_) global.log("dockedWorkspaces: _animateIN - actor width = "+this.actor.width);
 
         if (final_position !== this.actor.x) {
+            this._unsetHiddenWidth();
             this._animStatus.queue(true);
             Tweener.addTween(this.actor, {
                 x: final_position,
@@ -781,7 +790,13 @@ dockedWorkspaces.prototype = {
 
     // autohide function to animate the hide dock process
     _animateOut: function(time, delay) {
-        let final_position = this._monitor.x + this._monitor.width - 1;
+        let final_position;
+        if (this._settings.get_boolean('dock-edge-visible')) {
+            final_position = this._monitor.x + this._monitor.width - 1 - DOCK_EDGE_VISIBLE_WIDTH;
+        } else {
+            final_position = this._monitor.x + this._monitor.width - 1;
+        }
+
         if (_DEBUG_) global.log("dockedWorkspaces: _animateOUT currrent_position = "+ this.actor.x+" final_position = "+final_position);
         if (_DEBUG_) global.log("dockedWorkspaces: _animateOUT - _thumbnailsBox width = "+this._thumbnailsBox.actor.width);
         if (_DEBUG_) global.log("dockedWorkspaces: _animateOUT - actor width = "+this.actor.width);
@@ -804,6 +819,7 @@ dockedWorkspaces.prototype = {
                 }),
                 onComplete: Lang.bind(this, function() {
                     this._animStatus.end();
+                    this._setHiddenWidth();
                     if (_DEBUG_) global.log("dockedWorkspaces: _animateOut onComplete");
                 })
             });
@@ -812,6 +828,7 @@ dockedWorkspaces.prototype = {
 			if (_DEBUG_) global.log("dockedWorkspaces: _animateOut final_position == actor.x .. trigger animStatus");
             this._animStatus.queue(false);
 			this._animStatus.end();
+            this._setHiddenWidth();
 		}
     },
 
@@ -1018,6 +1035,22 @@ dockedWorkspaces.prototype = {
         this._updateClip();
     },
 
+    // set dock width in vinsible/hidden states
+    _setHiddenWidth: function() {
+        let width;
+        if (this._settings.get_boolean('dock-edge-visible')) {
+            width = 1 + DOCK_EDGE_VISIBLE_WIDTH + DOCK_HIDDEN_WIDTH;
+        } else {
+            width = 1 + DOCK_HIDDEN_WIDTH;
+        }
+        this.actor.set_size(width, this.actor.height);
+    },
+
+    _unsetHiddenWidth: function() {
+        let width = this._thumbnailsBox.actor.width + 1;
+        this.actor.set_size(width, this.actor.height);
+    },
+    
     // update the dock size
     _updateSize: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _updateSize");
@@ -1028,15 +1061,13 @@ dockedWorkspaces.prototype = {
             primary = true;
 
         let x = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - 1;
-        let x2 = this._monitor.x + this._monitor.width - 1;
-
-        let extend = this._settings.get_boolean('extend-height');
-        let topMargin = Math.floor(this._settings.get_double('top-margin') * this._monitor.height);
-        let bottomMargin = Math.floor(this._settings.get_double('bottom-margin') * this._monitor.height);
+        //let x2 = this._monitor.x + this._monitor.width - 1;
 
         let y;
         let height;
-        if (extend) {
+        if (this._settings.get_boolean('extend-height')) {
+            let topMargin = Math.floor(this._settings.get_double('top-margin') * this._monitor.height);
+            let bottomMargin = Math.floor(this._settings.get_double('bottom-margin') * this._monitor.height);
             if (primary) {
                 y = this._monitor.y + Main.panel.actor.height + topMargin;
                 height = this._monitor.height - Main.panel.actor.height - topMargin - bottomMargin;
@@ -1063,10 +1094,10 @@ dockedWorkspaces.prototype = {
                 }
             } else {
                 if (primary) {
-                    y = y = this._monitor.y + Main.panel.actor.height + Main.overview._searchEntryBin.y + Main.overview._searchEntryBin.height;
+                    y = this._monitor.y + Main.panel.actor.height + Main.overview._searchEntryBin.y + Main.overview._searchEntryBin.height;
                     height = this._monitor.height - (Main.overview._searchEntryBin.y + Main.overview._searchEntryBin.height + Main.messageTray.actor.height);
                 } else {
-                    y = y = this._monitor.y + Main.overview._viewSelector.actor.y;
+                    y = this._monitor.y + Main.overview._viewSelector.actor.y;
                     height = this._monitor.height - (Main.messageTray.actor.height);
                 }
             }
@@ -1097,13 +1128,18 @@ dockedWorkspaces.prototype = {
 
         this._updateSize();
 
-        // check if the dock is on the primary monitor
-        let primary = false;
-        if (this._monitor.x == Main.layoutManager.primaryMonitor.x && this._monitor.y == Main.layoutManager.primaryMonitor.y)
-            primary = true;
+        //// check if the dock is on the primary monitor
+        //let primary = false;
+        //if (this._monitor.x == Main.layoutManager.primaryMonitor.x && this._monitor.y == Main.layoutManager.primaryMonitor.y)
+        //    primary = true;
 
         let x = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - 1;
-        let x2 = this._monitor.x + this._monitor.width - 1;
+        let x2;
+        if (this._settings.get_boolean('dock-edge-visible')) {
+            x2 = this._monitor.x + this._monitor.width - 1 - DOCK_EDGE_VISIBLE_WIDTH;
+        } else {
+            x2 = this._monitor.x + this._monitor.width - 1;
+        }
 
         if (this._settings.get_boolean('dock-fixed')) {
             //position on the screen (right side) so that its initial show is not animated

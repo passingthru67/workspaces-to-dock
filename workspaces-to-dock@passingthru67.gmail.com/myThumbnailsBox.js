@@ -270,7 +270,8 @@ const myThumbnailsBox = new Lang.Class({
     Name: 'workspacesToDock.myThumbnailsBox',
     Extends: WorkspaceThumbnail.ThumbnailsBox,
 
-    _init: function(gsCurrentVersion, settings) {
+    _init: function(target, gsCurrentVersion, settings) {
+        this._target = target;    
         this._gsCurrentVersion = gsCurrentVersion;
         this._mySettings = settings;
         if (this._gsCurrentVersion[1] < 7) {
@@ -383,9 +384,29 @@ const myThumbnailsBox = new Lang.Class({
         this._updateSwitcherVisibility();
     },
 
-	// override _onButtonRelease to provide overview on right click
+	// override _onButtonRelease to provide customized click actions (i.e. overview on right click)
     _onButtonRelease: function(actor, event) {
         if (_DEBUG_) global.log("mythumbnailsBox: _onButtonRelease");
+        // ThumbnailsBox click events are passed on to dock handler if conditions are met
+        // Helpful in cases where the 'dock-edge-visible' option is enabled. It provides more
+        // area to click on to show the dock when the window is maximized.
+        // Skip if 'dock-edge-visible' && 'require-click-to-show' are not enabled
+        if (this._mySettings.get_boolean('dock-edge-visible') && this._mySettings.get_boolean('require-click-to-show')) {
+            // Skip if window is not maximized (_hovering only true if window is maximized)
+            if (this._target._hovering) {
+                // Skip if dock is not in autohide mode for instance because it is shown by intellihide
+                if (this._mySettings.get_boolean('autohide') && this._target._autohideStatus) {
+                    if (this._target.actor.hover) {
+                        // Skip if dock is showing-shown
+                        if (this._target._animStatus.hidden() || this._target._animStatus.hiding()) {
+                            // pass click event on to dock handler
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+
         if (this._mySettings.get_boolean('toggle-overview')) {
             let button = event.get_button();
             if (button == 3) { //right click
@@ -397,6 +418,7 @@ const myThumbnailsBox = new Lang.Class({
                 return false;
             }
         }
+        
         let [stageX, stageY] = event.get_coords();
         let [r, x, y] = this.actor.transform_stage_point(stageX, stageY);
 

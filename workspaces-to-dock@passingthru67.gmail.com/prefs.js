@@ -55,7 +55,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
 
         let dockSettingsTitle = new Gtk.Label({
-            label: _("<b>Visibility</b>"),
+            label: _("<b>Behavior</b>"),
             use_markup: true,
             xalign: 0,
             margin_top: 15,
@@ -65,7 +65,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         let dockSettingsMain1 = new Gtk.Box({
             spacing: 20,
             orientation: Gtk.Orientation.HORIZONTAL,
-            homogeneous: true,
+            homogeneous: false,
             margin_left: 20,
             margin_top: 10,
             margin_bottom: 10,
@@ -161,16 +161,26 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             this.settings.set_double("hide-delay", s);
         }));
 
-        let showRequireClick = new Gtk.CheckButton({
-            label: _("Require click to show over max. windows"),
+        /* VISIBILITY BEHAVIOR OPTIONS */
+        let requireClick = new Gtk.CheckButton({
+            label: _("Hover+click to show dock when window maximized"),
             margin_left: 0,
             margin_top: 10
         });
-        showRequireClick.set_active(this.settings.get_boolean('require-click-to-show'));
-        showRequireClick.connect('toggled', Lang.bind(this, function(check) {
+        requireClick.set_active(this.settings.get_boolean('require-click-to-show'));
+        requireClick.connect('toggled', Lang.bind(this, function(check) {
             this.settings.set_boolean('require-click-to-show', check.get_active());
         }));
 
+        let leaveVisible = new Gtk.CheckButton({
+            label: _("Leave dock edge visible when slid out"),
+            margin_left: 0,
+            margin_top: 2
+        });
+        leaveVisible.set_active(this.settings.get_boolean('dock-edge-visible'));
+        leaveVisible.connect('toggled', Lang.bind(this, function(check) {
+            this.settings.set_boolean('dock-edge-visible', check.get_active());
+        }));
 
         /* INTELLIHIDE AUTOHIDE SETTINGS */
 
@@ -210,7 +220,8 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         /* INTELLIHIDE OPTIONS */
         
         let intellihideNormal =  new Gtk.RadioButton({
-            label: _("Dodge all windows")
+            label: _("Dodge all windows"),
+            margin_top: 0
         });
         intellihideNormal.connect('toggled', Lang.bind(this, function(check){
             if (check.get_active()) this.settings.set_int('intellihide-option', 0);
@@ -218,7 +229,8 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
         let intellihideFocusApp =  new Gtk.RadioButton({
             label: _("Dodge all instances of focused app"),
-            group: intellihideNormal
+            group: intellihideNormal,
+            margin_top: 2
         });
         intellihideFocusApp.connect('toggled', Lang.bind(this, function(check){
             if (check.get_active()) this.settings.set_int('intellihide-option', 1);
@@ -226,7 +238,8 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
         let intellihideTopWindow =  new Gtk.RadioButton({
             label: _("Dodge only top instance of focused app"),
-            group: intellihideNormal
+            group: intellihideNormal,
+            margin_top: 2
         });
         intellihideTopWindow.connect('toggled', Lang.bind(this, function(check){
             if (check.get_active()) this.settings.set_int('intellihide-option', 2);
@@ -253,7 +266,8 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         dockSettingsGrid1.attach(showDelay, 1, 1, 1, 1);
         dockSettingsGrid1.attach(hideDelayLabel, 0, 2, 1, 1);
         dockSettingsGrid1.attach(hideDelay, 1, 2, 1, 1);
-        dockSettingsGrid1.attach(showRequireClick, 0, 3, 2, 1);
+        dockSettingsGrid1.attach(requireClick, 0, 3, 2, 1);
+        dockSettingsGrid1.attach(leaveVisible, 0, 4, 2, 1);
         
 
         dockSettingsGrid2.attach(autohideLabel, 0, 0, 1, 1);

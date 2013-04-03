@@ -43,8 +43,13 @@
     </key>
     <key type="b" name="require-click-to-show">
       <default>false</default>
-      <summary>Dock requires click to show over maximized windows</summary>
-      <description>Enable or disable requiring click to show dock over maximized windows</description>
+      <summary>Dock requires hover+click to show when window is maximized</summary>
+      <description>Enable or disable requiring hover+click to show dock when window is maximized</description>
+    </key>
+    <key type="b" name="dock-edge-visible">
+      <default>false</default>
+      <summary>Leave dock edge visible when slid out</summary>
+      <description>Enable or disable leaving dock edge visible when slid out</description>
     </key>
     <key type="b" name="opaque-background">
       <default>true</default>
