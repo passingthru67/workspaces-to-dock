@@ -6,7 +6,7 @@
   * ========================================================================================================
  */
 
-const _DEBUG_ = false;
+const _DEBUG_ = true;
 
 const Gio = imports.gi.Gio;
 const Clutter = imports.gi.Clutter;
@@ -24,8 +24,12 @@ const Workspace = imports.ui.workspace;
 const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
 const Overview = imports.ui.overview;
 const Tweener = imports.ui.tweener;
-//const AppDisplay = imports.ui.appDisplay;
 const IconGrid = imports.ui.iconGrid;
+const PopupMenu = imports.ui.popupMenu;
+
+const Me = imports.misc.extensionUtils.getCurrentExtension();
+const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
+const _ = Gettext.gettext;
 
 // The maximum size of a thumbnail is 1/8 the width and height of the screen
 let MAX_THUMBNAIL_SCALE = 1/8.;
@@ -61,44 +65,345 @@ const ThumbnailState = {
     DESTROYED: 7
 };
 
+const WindowAppsUpdateAction = {
+    ADD: 0,
+    REMOVE: 1,
+    CLEARALL: 2
+}
+
+const WindowAppIcon = new Lang.Class({
+    Name: 'workspacesToDock.windowAppIcon',
+    
+    _init: function(app, metaWin, thumbnail) {
+        this._thumbnail = thumbnail;
+        this._gsCurrentVersion = thumbnail._gsCurrentVersion;
+        this._mySettings = thumbnail._mySettings;
+        
+        this._app = app;
+        this._metaWin = metaWin;
+        
+        let iconParams = {setSizeManually: true, showLabel: false};
+        iconParams['createIcon'] = Lang.bind(this, function(iconSize){ return app.create_icon_texture(iconSize);});
+        
+        this._icon = new IconGrid.BaseIcon(app.get_name(), iconParams);
+        this._icon.actor.add_style_class_name('workspacestodock-caption-windowapps-button-icon');
+        if (this._mySettings.get_boolean('workspace-caption-large-icons')) {
+            this._icon.setIconSize(CAPTION_APP_ICON_LARGE_SIZE);
+        } else {
+            this._icon.setIconSize(CAPTION_APP_ICON_NORMAL_SIZE);
+        }
+
+        if (this._gsCurrentVersion[1] < 6) {
+            this.actor = new St.Button({style_class:'workspacestodock-caption-windowapps-button'});
+        } else {
+            this.actor = new St.Button({style_class:'app-well-app workspacestodock-caption-windowapps-button'});
+        }
+        this.actor.set_child(this._icon.actor);
+        this.actor._delegate = this;
+        
+        // Create menu and menuitems
+        this._menu = new PopupMenu.PopupMenu(this.actor, 0.5, St.Side.RIGHT);
+        this._menu.connect('open-state-changed', Lang.bind(this, function(menu, open) {
+            if (_DEBUG_) global.log("myWorkspaceThumbnail: _onWindowAppsButtonClick - menu open-state-changed - open = "+open);
+        }));
+        
+        let item1 = new PopupMenu.PopupMenuItem(_("Close window"));
+        item1.connect('activate', Lang.bind(this, thumbnail._closeMetaWindow, thumbnail, metaWin));
+        let item2 = new PopupMenu.PopupMenuItem(_("Close all windows"));
+        item2.connect('activate', Lang.bind(this, thumbnail._closeAllMetaWindows, thumbnail));
+
+        this._menu.addMenuItem(item1);
+        this._menu.addMenuItem(item2);
+        
+        // Add to chrome and hide
+        Main.layoutManager.addChrome(this._menu.actor);
+        this._menu.actor.hide();
+
+        // Add menu to menu manager
+        thumbnail._menuManager.addMenu(this._menu);
+
+        // Connect signals
+        this.actor.connect('button-release-event', Lang.bind(this, thumbnail._onWindowAppsButtonClick, thumbnail, metaWin));
+        this.actor.connect('enter-event', Lang.bind(this, thumbnail._onWindowAppsButtonEnter));
+        this.actor.connect('leave-event', Lang.bind(this, thumbnail._onWindowAppsButtonLeave));
+        this.actor.connect('destroy', Lang.bind(this, this._onDestroy));
+
+    },
+    
+    _onDestroy: function() {
+        if (_DEBUG_) global.log("WindowAppIcon: _onDestroy");
+        if (this._menu)
+            this._menu.destroy();
+    }
+    
+});
 
 const myWorkspaceThumbnail = new Lang.Class({
     Name: 'workspacesToDock.myWorkspaceThumbnail',
     Extends: WorkspaceThumbnail.WorkspaceThumbnail,
 
-    _init: function(metaWorkspace, gsCurrentVersion, mySettings) {
+    _init: function(metaWorkspace, thumbnailsBox) {
         this.parent(metaWorkspace);
         
-        this._gsCurrentVersion = gsCurrentVersion;
-        this._mySettings = mySettings;
+        this._thumbnailsBox = thumbnailsBox;
+        this._gsCurrentVersion = thumbnailsBox._gsCurrentVersion;
+        this._mySettings = thumbnailsBox._mySettings;
+        this._wsWindowApps = null;
         this._wsWindowAppsButtons = [];
         this._afterWindowAddedId = this.metaWorkspace.connect_after('window-added',
                                                           Lang.bind(this, this._onAfterWindowAdded));
         this._afterWindowRemovedId = this.metaWorkspace.connect_after('window-removed',
                                                            Lang.bind(this, this._onAfterWindowRemoved));
+
+        this._menu = null;
+        this._menuManager = new PopupMenu.PopupMenuManager(this);
+
+
+        this._initCaption();
+        this.actor.connect("realize", Lang.bind(this, this._initWindowApps));
     },
 
+    _onDestroy: function(actor) {
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: _onDestroy");
+        for (let i = 0; i < this._wsWindowAppsButtons.length; i++) {
+            this._wsWindowAppsButtons[i].metaWin.disconnect(this._wsWindowAppsButtons[i].signalFocusedId);
+        }
+        this._wsWindowAppsButtons = [];
+        this._wsWindowApps.destroy_all_children();
+        this._wsWindowApps = null;
+        this.parent(actor);
+    },
+
+    // this function initializes the WorkspaceThumbnails captions
+    _initCaption: function() {
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: _initCaption");
+        if (this._mySettings.get_boolean('workspace-captions')) {
+            
+            this._wsCaptionContainer = new St.Bin({
+                name: 'workspacestodockCaptionContainer',
+                reactive: false,
+                style_class: 'workspacestodock-workspace-caption-container',
+                x_fill: true,
+                y_align: St.Align.END,
+                x_align: St.Align.START
+            });
+
+            this._wsCaptionBackground = new St.Bin({
+                name: 'workspacestodockCaptionBackground',
+                reactive: false,
+                style_class: 'workspacestodock-workspace-caption-background'
+            });
+                
+            this._wsCaption = new St.BoxLayout({
+                name: 'workspacestodockCaption',
+                reactive: false,
+                style_class: 'workspacestodock-workspace-caption',
+                pack_start: true
+            });
+
+            let currentItems = this._mySettings.get_strv('workspace-caption-items');
+
+            for (let i = 0; i < currentItems.length; i++) {
+                let elements = currentItems[i].split(':');
+                let item = elements[0]
+                let expandState = (elements[1] == "true"? true: false);
+                
+                switch (item) {
+                    case "number":
+                        this._wsNumber = new St.Label({
+                            name: 'workspacestodockCaptionNumber',
+                            text: ''
+                        });
+                        this._wsNumberBox = new St.BoxLayout({
+                            name: 'workspacestodockCaptionNumberBox',
+                            style_class: 'workspacestodock-caption-number'
+                        });
+                        this._wsNumberBox.add(this._wsNumber, {x_fill: false, x_align: St.Align.MIDDLE, y_fill: false, y_align: St.Align.MIDDLE});
+                        this._wsCaption.add(this._wsNumberBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END, expand: expandState});
+                        break;
+                    case "name":
+                        this._wsName = new St.Label({
+                            name: 'workspacestodockCaptionName',
+                            text: ''
+                        });
+                        this._wsNameBox = new St.BoxLayout({
+                            name: 'workspacestodockCaptionNameBox',
+                            style_class: 'workspacestodock-caption-name'
+                        });
+                        this._wsNameBox.add(this._wsName, {x_fill: false, x_align: St.Align.MIDDLE, y_fill: false, y_align: St.Align.MIDDLE});
+                        this._wsCaption.add(this._wsNameBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END, expand: expandState});
+                        break;
+                    case "windowcount":
+                        this._wsWindowCount = new St.Label({
+                            name: 'workspacestodockCaptionWindowCount',
+                            text: ''
+                        });
+                        this._wsWindowCountBox = new St.BoxLayout({
+                            name: 'workspacestodockCaptionWindowCountBox',
+                            style_class: 'workspacestodock-caption-windowcount'
+                        });
+                        if (this._mySettings.get_boolean('workspace-caption-windowcount-image')) {
+                            this._wsWindowCountBox.remove_style_class_name("workspacestodock-caption-windowcount");
+                            this._wsWindowCountBox.add_style_class_name("workspacestodock-caption-windowcount-image");
+                        }
+                        this._wsWindowCountBox.add(this._wsWindowCount, {x_fill: false, x_align: St.Align.MIDDLE, y_fill: false, y_align: St.Align.MIDDLE});
+                        this._wsCaption.add(this._wsWindowCountBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END, expand: expandState});
+                        break;
+                    case "windowapps":
+                        this._wsWindowApps = new St.BoxLayout({
+                            name: 'workspacestodockCaptionWindowApps',
+                            reactive: false,
+                            style_class: 'workspacestodock-caption-windowapps'
+                        });
+                        this._wsCaption.add(this._wsWindowApps, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END, expand: expandState});
+                        break;
+                    case "spacer":
+                        this._wsSpacer = new St.Label({
+                            name: 'workspacestodockCaptionSpacer',
+                            text: ''
+                        });
+                        this._wsSpacerBox = new St.BoxLayout({
+                            name: 'workspacestodockCaptionSpacerBox',
+                            style_class: 'workspacestodock-caption-spacer'
+                        });
+                        this._wsSpacerBox.add(this._wsSpacer, {x_fill: false, x_align: St.Align.MIDDLE, y_fill: false, y_align: St.Align.MIDDLE});
+                        this._wsCaption.add(this._wsSpacerBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END, expand: expandState});
+                        break;
+                }
+                
+            }
+
+            // Add caption to thumbnail actor
+            this._wsCaptionContainer.add_actor(this._wsCaption);
+            this.actor.add_actor(this._wsCaptionBackground);
+            this.actor.add_actor(this._wsCaptionContainer);
+            
+            // Make thumbnail background transparent so that it doesn't show through
+            // on edges where border-radius is set on caption
+            this.actor.set_style("background-color: rgba(0,0,0,0.0)");
+        }
+
+    },
+    
+    // This function initializes the window app icons for the caption taskbar
+    _initWindowApps: function(refresh) {
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps");
+        if (!this._wsWindowApps)
+            return;
+
+        // Create initial buttons for windows on workspace
+        let windows;
+        if (this._gsCurrentVersion[1] < 7) {
+            windows = global.get_window_actors().filter(Lang.bind(this, function(actor) {
+                let win = actor;
+                return win.get_workspace() == this.metaWorkspace.index() ||
+                        (win.get_meta_window() && win.get_meta_window().is_on_all_workspaces());
+            }));
+        } else {
+            windows = global.get_window_actors().filter(Lang.bind(this, function(actor) {
+                let win = actor.meta_window;
+                return win.located_on_workspace(this.metaWorkspace);
+            }));
+        }
+        
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps - window count = "+windows.length);
+        for (let i = 0; i < windows.length; i++) {
+            //if (this._isMyWindow(windows[i]) && this._isOverviewWindow(windows[i])) {
+            //if (this._isMyWindow(windows[i])) {
+            let metaWin = windows[i].get_meta_window();
+            let activeWorkspace = global.screen.get_active_workspace();
+            if (this._isMyWindow(windows[i]) || (metaWin.is_on_all_workspaces() && this.metaWorkspace == activeWorkspace)) {
+
+				if (refresh) {
+		            let index = -1;
+		            for (let i = 0; i < this._wsWindowAppsButtons.length; i++) {
+		                if (this._wsWindowAppsButtons[i].metaWin == metaWin) {    
+		                    index = i;
+		                    break;
+		                }
+		            }
+		            if (index > -1)
+		                continue;
+				}
+
+                if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps - add window buttons");
+                let tracker = Shell.WindowTracker.get_default();
+                let app = tracker.get_window_app(metaWin);
+                if (app) {
+                    if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps - window button app = "+app.get_name());
+                    let button = new WindowAppIcon(app, metaWin, this);
+                    if (metaWin.has_focus()) {
+                        if (this._gsCurrentVersion[1] > 4)
+                            button.actor.add_style_class_name('popup-menu-item');
+                        button.actor.add_style_pseudo_class('active');
+                    }
+                    
+                    this._wsWindowApps.add(button.actor, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
+                                        
+                    let winInfo = {};
+                    winInfo.metaWin = metaWin;
+                    winInfo.signalFocusedId = metaWin.connect('notify::appears-focused', Lang.bind(this, this._onWindowChanged, metaWin));
+                    this._wsWindowAppsButtons.push(winInfo);
+                }
+            } else {
+                // This window shouldn't be showing on this workspace
+                if (refresh) {
+                    let index = -1;
+                    for (let i = 0; i < this._wsWindowAppsButtons.length; i++) {
+                        if (this._wsWindowAppsButtons[i].metaWin == metaWin) {    
+                            index = i;
+                            break;
+                        }
+                    }
+                    if (index > -1) {
+                        // Disconnect window focused signal
+                        metaWin.disconnect(this._wsWindowAppsButtons[index].signalFocusedId);
+                        
+                        // Remove button from windowAppsButtons list and windowApps container
+                        this._wsWindowAppsButtons.splice(index, 1);
+                        let buttonActor = this._wsWindowApps.get_child_at_index(index);
+                        this._wsWindowApps.remove_actor(buttonActor);
+                        buttonActor.destroy();
+                    }
+                }
+            }
+        }
+    },
+    
     workspaceRemoved: function() {
-        if (_DEBUG_) global.log("myWorkspaceThumbnail: workspaceRemoved w="+this.metaWorkspace);
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: workspaceRemoved");
         this.metaWorkspace.disconnect(this._afterWindowAddedId);
         this.metaWorkspace.disconnect(this._afterWindowRemovedId);
-
         this.parent();
     },
 
     _onAfterWindowAdded: function(metaWorkspace, metaWin) {
-        if (_DEBUG_) global.log("myWorkspaceThumbnail: _onAfterWindowAdded wsp="+this.metaWorkspace);
-        // Add window button to WindowApps of thumbnail caption
-        this._updateWindowApps(metaWin, 0);
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: _onAfterWindowAdded");
+        this._updateWindowApps(metaWin, WindowAppsUpdateAction.ADD);
     },
 
     _onAfterWindowRemoved: function(metaWorkspace, metaWin) {
-        if (_DEBUG_) global.log("myWorkspaceThumbnail: _onAfterWindowRemoved wsp="+this.metaWorkspace);
-        // Remove window button from WindowApps of thumbnail caption
-        this._updateWindowApps(metaWin, 1);
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: _onAfterWindowRemoved - metaWin = "+metaWin.get_wm_class()+" metaWorkspace = "+metaWorkspace.index());
+        if (metaWin.is_on_all_workspaces()) {
+            if (_DEBUG_) global.log("myWorkspaceThumbnail: _onAfterWindowRemoved - metaWin on all workspaces");
+            let activeWorkspace = global.screen.get_active_workspace_index();
+            if (activeWorkspace == metaWorkspace.index()) {
+                if (_DEBUG_) global.log("myWorkspaceThumbnail: _onAfterWindowRemoved - metaWin registered in current active workspace");
+                this._updateWindowApps(metaWin, WindowAppsUpdateAction.REMOVE);
+            } else {
+                if (_DEBUG_) global.log("myWorkspaceThumbnail: _onAfterWindowRemoved - metaWin registered elsewhere");
+                this._thumbnailsBox.removeWindowApp(metaWin);
+            }
+        } else {
+            this._updateWindowApps(metaWin, WindowAppsUpdateAction.REMOVE);
+        }
     },
 
     _onWindowChanged: function(metaWin) {
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: _onWindowChanged");
+        if (!this._wsWindowApps)
+            return;
+
         let index = -1;
         for (let i = 0; i < this._wsWindowAppsButtons.length; i++) {
             if (this._wsWindowAppsButtons[i].metaWin == metaWin) {
@@ -107,17 +412,17 @@ const myWorkspaceThumbnail = new Lang.Class({
             }
         }
         if (index > -1) {
-            let button = this._wsWindowApps.get_child_at_index(index);
+            let buttonActor = this._wsWindowApps.get_child_at_index(index);
             if (metaWin.appears_focused) {
-                global.log("button app is focused");
+                if (_DEBUG_) global.log("myWorkspaceThumbnail: _onWindowChanged - button app is focused");
                 if (this._gsCurrentVersion[1] > 4)
-                    button.add_style_class_name('popup-menu-item');
-                button.add_style_pseudo_class('active');
+                    buttonActor.add_style_class_name('popup-menu-item');
+                buttonActor.add_style_pseudo_class('active');
             } else {
-                global.log("button app is not focused");
+                if (_DEBUG_) global.log("myWorkspaceThumbnail: _onWindowChanged - button app is not focused");
                 if (this._gsCurrentVersion[1] > 4)
-                    button.remove_style_class_name('popup-menu-item');
-                button.remove_style_pseudo_class('active');
+                    buttonActor.remove_style_class_name('popup-menu-item');
+                buttonActor.remove_style_pseudo_class('active');
             }
         }
     },
@@ -127,10 +432,10 @@ const myWorkspaceThumbnail = new Lang.Class({
         let mouseButton = event.get_button();
         if (mouseButton == 1) {
             let activeWorkspace = global.screen.get_active_workspace();
-            if (_DEBUG_) global.log("_onWindowAppsButtonClick: activeWorkspace = "+activeWorkspace);
-            if (_DEBUG_) global.log("_onWindowAppsButtonClick: metaWorkspace = "+thumbnail.metaWorkspace);
+            if (_DEBUG_) global.log("_myWorkspaceThumbnail: _onWindowAppsButtonClick - activeWorkspace = "+activeWorkspace);
+            if (_DEBUG_) global.log("_myWorkspaceThumbnail: _onWindowAppsButtonClick - metaWorkspace = "+thumbnail.metaWorkspace);
             if (activeWorkspace != thumbnail.metaWorkspace) {
-                if (_DEBUG_) global.log("_onWindowAppsButtonClick: activeWorkspace is metaWorkspace");
+                if (_DEBUG_) global.log("_myWorkspaceThumbnail: _onWindowAppsButtonClick - activeWorkspace is metaWorkspace");
                 thumbnail.activate(event.get_time());
                 metaWin.activate(global.get_current_time());
             } else {
@@ -140,84 +445,108 @@ const myWorkspaceThumbnail = new Lang.Class({
                 else 
                     metaWin.minimize(global.get_current_time());
             }
+        } else if (mouseButton == 3) {
+            actor._delegate._menu.open();
+            return true;
         }
         return false;
     },
 
-    _onWindowAppsButtonEnter: function(actor, event, icon) {
-        //let icon = actor.get_child();
-        //icon._delegate.setIconSize(24);
+    _onWindowAppsButtonEnter: function(actor, event) {
+        let icon = actor._delegate._icon;
         if (this._mySettings.get_boolean('workspace-caption-large-icons')) {
             icon.setIconSize(CAPTION_APP_ICON_LARGE_SIZE_ZOOMED);
         } else {
             icon.setIconSize(CAPTION_APP_ICON_NORMAL_SIZE_ZOOMED);
         }
-        //icon.actor.add_style_pseudo_class('hover');
     },
 
-    _onWindowAppsButtonLeave: function(actor, event, icon) {
-        //let icon = actor.get_child();
-        //icon._delegate.setIconSize(20);
+    _onWindowAppsButtonLeave: function(actor, event) {
+        let icon = actor._delegate._icon;
         if (this._mySettings.get_boolean('workspace-caption-large-icons')) {
             icon.setIconSize(CAPTION_APP_ICON_LARGE_SIZE);
         } else {
             icon.setIconSize(CAPTION_APP_ICON_NORMAL_SIZE);
         }
-        //icon.actor.remove_style_pseudo_class('hover');
     },
 
+    _closeMetaWindow: function(menuItem, event, thumbnail, metaWin) {
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: _closeMetaWindow");
+        let metaWindow = metaWin;
+        let index = -1;
+        for (let i = 0; i < thumbnail._wsWindowAppsButtons.length; i++) {
+            if (thumbnail._wsWindowAppsButtons[i].metaWin == metaWindow) {    
+                index = i;
+                break;
+            }
+        }
+        if (index > -1) {
+            // Disconnect window focused signal
+            metaWin.disconnect(thumbnail._wsWindowAppsButtons[index].signalFocusedId);
+
+            // Remove button from windowAppsButtons list and windowApps container
+            thumbnail._wsWindowAppsButtons.splice(index, 1);
+            let buttonActor = thumbnail._wsWindowApps.get_child_at_index(index);
+            thumbnail._wsWindowApps.remove_actor(buttonActor);
+            buttonActor.destroy();
+            
+            // Delete metaWindow
+            metaWindow.delete(global.get_current_time());
+        }
+    },
+
+    _closeAllMetaWindows: function(menuItem, event, thumbnail) {
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: _closeAllMetaWindows");
+        for (let i = 0; i < thumbnail._wsWindowAppsButtons.length; i++) {
+            // Disconnect window focused signal
+            thumbnail._wsWindowAppsButtons[i].metaWin.disconnect(thumbnail._wsWindowAppsButtons[i].signalFocusedId);
+            
+            // Delete metaWindow
+            thumbnail._wsWindowAppsButtons[i].metaWin.delete(global.get_current_time());
+        }
+        thumbnail._wsWindowAppsButtons = [];
+        
+        // Destroy all button actors
+        thumbnail._wsWindowApps.destroy_all_children();
+    },
+
+    refreshWindowApps: function() {
+        if (this.state == ThumbnailState.NORMAL || this.state == ThumbnailState.NEW || this.state == ThumbnailState.ANIMATING_IN) {
+            if (_DEBUG_) global.log("myWorkspaceThumbnail: refreshWindowApps - thumbnail state IS NORMAL,NEW, OR ANIMATING_IN");
+            this._initWindowApps(true);
+        } else {
+            if (_DEBUG_) global.log("myWorkspaceThumbnail: refreshWindowApps - thumbnail state NOT NORMAL");
+        }
+    },
+    
     _updateWindowApps: function(metaWin, action) {
-        if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - action = "+action);
-        if (action == 0) {
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps");
+        if (action == WindowAppsUpdateAction.ADD) {
             if (this._wsWindowApps) {
-                if (_DEBUG_) global.log("myWorkspaceThumbnail: _wsWindowApps exists");
+                if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - wsWindowApps exists");
                 let index = -1;
                 for (let i = 0; i < this._wsWindowAppsButtons.length; i++) {
-                    if (_DEBUG_) global.log("myWorkspaceThumbnail: window button at index "+i+" is "+this._wsWindowAppsButtons[i]);
+                    if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button at index "+i+" is "+this._wsWindowAppsButtons[i]);
                     if (this._wsWindowAppsButtons[i].metaWin == metaWin) {
-                        if (_DEBUG_) global.log("myWorkspaceThumbnail: window button found at index = "+i);
+                        if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button found at index = "+i);
                         index = i;
                         break;
                     }
                 }
                 if (index < 0) {
-                    if (_DEBUG_) global.log("myWorkspaceThumbnail: window button not found .. add it");
+                    if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button not found .. add it");
                     let tracker = Shell.WindowTracker.get_default();
                     let app = tracker.get_window_app(metaWin);
                     if (app) {
-                        if (_DEBUG_) global.log("myWorkspaceThumbnail: window button app = "+app.get_name());
-                        //let icon = new AppDisplay.AppIcon(app, {setSizeManually: true, showLabel: false});
-                        let iconParams = {setSizeManually: true, showLabel: false};
-                        iconParams['createIcon'] = Lang.bind(this, function(iconSize){ return app.create_icon_texture(iconSize);});
-                        
-                        let icon = new IconGrid.BaseIcon(app.get_name(), iconParams);
-                        icon.actor.add_style_class_name('workspacestodock-caption-windowapps-button-icon');
-                        if (this._mySettings.get_boolean('workspace-caption-large-icons')) {
-                            icon.setIconSize(CAPTION_APP_ICON_LARGE_SIZE);
-                        } else {
-                            icon.setIconSize(CAPTION_APP_ICON_NORMAL_SIZE);
-                        }
-
-
-                        let button;
-                        if (this._gsCurrentVersion[1] < 6) {
-                            button = new St.Button({style_class:'workspacestodock-caption-windowapps-button'});
-                        } else {
-                            button = new St.Button({style_class:'app-well-app workspacestodock-caption-windowapps-button'});
-                        }
-                        button.set_child(icon.actor);
-                        button.connect('button-release-event', Lang.bind(this, this._onWindowAppsButtonClick, this, metaWin));
-                        button.connect('enter-event', Lang.bind(this, this._onWindowAppsButtonEnter, icon));
-                        button.connect('leave-event', Lang.bind(this, this._onWindowAppsButtonLeave, icon));
-                        
+                        if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button app = "+app.get_name());
+                        let button = new WindowAppIcon(app, metaWin, this);
                         if (metaWin.has_focus()) {
                             if (this._gsCurrentVersion[1] > 4)
-                                button.add_style_class_name('popup-menu-item');
-                            button.add_style_pseudo_class('active');
+                                button.actor.add_style_class_name('popup-menu-item');
+                            button.actor.add_style_pseudo_class('active');
                         }
                             
-                        this._wsWindowApps.add(button, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
-                        //this._wsWindowAppsButtons.push(metaWin);
+                        this._wsWindowApps.add(button.actor, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
 
                         let winInfo = {};
                         winInfo.metaWin = metaWin;
@@ -228,35 +557,38 @@ const myWorkspaceThumbnail = new Lang.Class({
                 }
             }
         }
-        if (action == 1) {
+        if (action == WindowAppsUpdateAction.REMOVE) {
             if (this._wsWindowApps) {
-                if (_DEBUG_) global.log("myWorkspaceThumbnail: _wsWindowApps exists");
+                if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - wsWindowApps exists");
                 
                 if (metaWin.minimized) {
-                    if (_DEBUG_) global.log("myWorkspaceThumbnail: metaWin minimized = "+metaWin);
+                    if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - metaWin minimized = "+metaWin.get_wm_class());
                     
                 } else {
-                    if (_DEBUG_) global.log("myWorkspaceThumbnail: metaWin closed = "+metaWin);
+                    if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - metaWin closed = "+metaWin.get_wm_class());
                     let index = -1;
-                    if (_DEBUG_) global.log("myWorkspaceThumbnail: window buttons count = "+this._wsWindowAppsButtons.length);
+                    if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window buttons count = "+this._wsWindowAppsButtons.length);
                     for (let i = 0; i < this._wsWindowAppsButtons.length; i++) {
-                        if (_DEBUG_) global.log("myWorkspaceThumbnail: window button at index "+i+" is "+this._wsWindowAppsButtons[i]);
+                        if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button at index "+i+" is "+this._wsWindowAppsButtons[i].metaWin.get_wm_class());
                         if (this._wsWindowAppsButtons[i].metaWin == metaWin) {    
-                            if (_DEBUG_) global.log("myWorkspaceThumbnail: window button found at index = "+i);
+                            if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button found at index = "+i);
                             index = i;
                             break;
                         }
                     }
                     if (index > -1) {
-                        if (_DEBUG_) global.log("myWorkspaceThumbnail: Splicing _wsWindowAppsButtons at "+index);
+                        if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - Splicing wsWindowAppsButtons at "+index);
                         // Disconnect window focused signal
                         metaWin.disconnect(this._wsWindowAppsButtons[index].signalFocusedId);
-                        // Remove button from windowAppsButtons list
+                        // Remove button from windowAppsButtons list and windowApps container
                         this._wsWindowAppsButtons.splice(index, 1);
-                        let button = this._wsWindowApps.get_child_at_index(index);
-                        if (_DEBUG_) global.log("myWorkspaceThumbnail: Removing button at index "+index+" is "+button);
-                        this._wsWindowApps.remove_actor(button);
-                        button.destroy();
+                        let buttonActor = this._wsWindowApps.get_child_at_index(index);
+                        if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - Removing button at index "+index);
+                        this._wsWindowApps.remove_actor(buttonActor);
+                        buttonActor.destroy();
+
+                    } else {
+                        if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - button not found in wsWindowAppsButtons");
                     }
                 }
             }
@@ -270,10 +602,10 @@ const myThumbnailsBox = new Lang.Class({
     Name: 'workspacesToDock.myThumbnailsBox',
     Extends: WorkspaceThumbnail.ThumbnailsBox,
 
-    _init: function(target, gsCurrentVersion, settings) {
-        this._target = target;    
-        this._gsCurrentVersion = gsCurrentVersion;
-        this._mySettings = settings;
+    _init: function(dock) {
+        this._dock = dock;    
+        this._gsCurrentVersion = dock._gsCurrentVersion;
+        this._mySettings = dock._settings;
         if (this._gsCurrentVersion[1] < 7) {
             this.parent();
         } else {
@@ -393,12 +725,12 @@ const myThumbnailsBox = new Lang.Class({
         // Skip if 'dock-edge-visible' && 'require-click-to-show' are not enabled
         if (this._mySettings.get_boolean('dock-edge-visible') && this._mySettings.get_boolean('require-click-to-show')) {
             // Skip if window is not maximized (_hovering only true if window is maximized)
-            if (this._target._hovering) {
+            if (this._dock._hovering) {
                 // Skip if dock is not in autohide mode for instance because it is shown by intellihide
-                if (this._mySettings.get_boolean('autohide') && this._target._autohideStatus) {
-                    if (this._target.actor.hover) {
+                if (this._mySettings.get_boolean('autohide') && this._dock._autohideStatus) {
+                    if (this._dock.actor.hover) {
                         // Skip if dock is showing-shown
-                        if (this._target._animStatus.hidden() || this._target._animStatus.hiding()) {
+                        if (this._dock._animStatus.hidden() || this._dock._animStatus.hiding()) {
                             // pass click event on to dock handler
                             return false;
                         }
@@ -435,51 +767,186 @@ const myThumbnailsBox = new Lang.Class({
 
     },
 
-    // override _activeWorkspaceChanged to eliminate errors thrown
-    _activeWorkspaceChanged: function(wm, from, to, direction) {
-        if (_DEBUG_) global.log("mythumbnailsBox: _activeWorkspaceChanged");
-        let thumbnail;
-        let activeWorkspace = global.screen.get_active_workspace();
+    // override addThumbnails to provide workspace thumbnail labels
+    addThumbnails: function(start, count) {
+        if (_DEBUG_) global.log("mythumbnailsBox: addThumbnails");
+        for (let k = start; k < start + count; k++) {
+            let metaWorkspace = global.screen.get_workspace_by_index(k);
+            //let thumbnail = new WorkspaceThumbnail.WorkspaceThumbnail(metaWorkspace);
+            let thumbnail = new myWorkspaceThumbnail(metaWorkspace, this);
+            thumbnail.setPorthole(this._porthole.x, this._porthole.y,
+                                  this._porthole.width, this._porthole.height);
+            
+            this._thumbnails.push(thumbnail);
+            this.actor.add_actor(thumbnail.actor);
+            
+            if (start > 0 && this._spliceIndex == -1) { 
+                // not the initial fill, and not splicing via DND
+                thumbnail.state = ThumbnailState.NEW;
+                thumbnail.slidePosition = 1; // start slid out
+                this._haveNewThumbnails = true;
+            } else {
+                thumbnail.state = ThumbnailState.NORMAL;
+            }
+
+            this._stateCounts[thumbnail.state]++;
+        }
+
+        this._queueUpdateStates();
+
+        // The thumbnails indicator actually needs to be on top of the thumbnails
+        this._indicator.raise_top();
+        
+        // Clear the splice index, we got the message
+        this._spliceIndex = -1;
+    },
+
+    removeWindowApp: function(metaWin) {
+        if (_DEBUG_) global.log("mythumbnailsBox: removeWindowApp");
         for (let i = 0; i < this._thumbnails.length; i++) {
-            if (this._thumbnails[i].metaWorkspace == activeWorkspace) {
-                thumbnail = this._thumbnails[i];
-                break;
+            let thumbnail = this._thumbnails[i];
+            thumbnail._updateWindowApps(metaWin, WindowAppsUpdateAction.REMOVE);
+        }
+
+    },
+    
+    _updateWindowCount: function(label, index) {
+        if (_DEBUG_) global.log("mythumbnailsBox: _updateWindowCount");
+        let windows = global.get_window_actors();
+        let tracker = Shell.WindowTracker.get_default();
+
+        let className = "";
+        let win_count = 0;
+        let win_max = 4;
+        for (let i = 0; i < windows.length; i++) {
+            let win = windows[i].get_meta_window();
+            if (tracker.is_window_interesting(win)) {
+                let wksp_index = win.get_workspace().index();
+                if (wksp_index == index && win.showing_on_its_workspace()) {
+                    win_count ++;
+                }
             }
         }
 
-        // passingthru67 - needed in case thumbnail is null outside of overview
-        if (thumbnail == null)
-            return
-        
-        // passingthru67 - needed in case thumbnail.actor is null outside of overview    
-        if (thumbnail.actor == null)
-            return
-
-        // passingthru67 - conditional for gnome shell 3.4/3.6/# differences
-        if (this._gsCurrentVersion[1] < 6) {
-            this._animatingIndicator = true;
-            this.indicatorY = this._indicator.allocation.y1;
+        if (!this._mySettings.get_boolean('workspace-caption-windowcount-image')) {
+            // clear box images
+            let box = label.get_parent();
+            if (box) {
+                for(let i = 1; i <= win_max; i++){
+                    let className = 'workspacestodock-caption-windowcount-image-'+i;
+                    box.remove_style_class_name(className);
+                }
+            }
+            
+            // Set label text
+            if (label) {
+                if (win_count > 0) {
+                    label.set_text(""+win_count);
+                } else {
+                    label.set_text("");
+                }
+            }
         } else {
-            this._animatingIndicator = true;
-            let indicatorThemeNode = this._indicator.get_theme_node();
-            let indicatorTopFullBorder = indicatorThemeNode.get_padding(St.Side.TOP) + indicatorThemeNode.get_border_width(St.Side.TOP);
-            this.indicatorY = this._indicator.allocation.y1 + indicatorTopFullBorder;
-        }
+            // clear label text
+            if (label)
+                label.set_text("");
 
-        Tweener.addTween(this,
-                         { indicatorY: thumbnail.actor.allocation.y1,
-                           time: WorkspacesView.WORKSPACE_SWITCH_TIME,
-                           transition: 'easeOutQuad',
-                           onComplete: function() {
-                               this._animatingIndicator = false;
-                               this._queueUpdateStates();
-                           },
-                           onCompleteScope: this
-                         });
+            // Set background image class
+            if (win_count > win_max)
+                win_count = win_max;
+
+            let box = label.get_parent();
+            if (box) {
+                for(let i = 1; i <= win_max; i++){
+                    let className = 'workspacestodock-caption-windowcount-image-'+i;
+                    if (i != win_count) {
+                        box.remove_style_class_name(className);
+                    } else {
+                        box.add_style_class_name(className);
+                    }
+                }
+            }
+        }
     },
     
+    _updateThumbnailCaption: function(thumbnail, i, captionHeight, captionBackgroundHeight) {
+        let unscale = 1/this._scale;
+        let containerWidth = this._porthole.width * this._scale;
+        let containerHeight = this._porthole.height * this._scale;
 
-    // override _allocate to provide workspaceThumbnail captions
+        if (!thumbnail._wsCaptionBackground)
+            return;
+            
+        thumbnail._wsCaptionBackground.set_scale(unscale, unscale);
+        thumbnail._wsCaptionBackground.set_position(0, this._porthole.height);
+        thumbnail._wsCaptionBackground.set_size(containerWidth, captionBackgroundHeight);
+
+        if (!thumbnail._wsCaptionContainer)
+            return;
+            
+        thumbnail._wsCaptionContainer.set_scale(unscale, unscale);
+        thumbnail._wsCaptionContainer.set_size(containerWidth, containerHeight + captionBackgroundHeight);
+
+
+        if (!thumbnail._wsCaption)
+            return;
+
+        thumbnail._wsCaption.height = captionHeight; // constrains height to caption height
+        
+        if (thumbnail._wsNumber)
+            thumbnail._wsNumber.set_text(""+(i+1));
+
+        if (thumbnail._wsNumberBox)
+            thumbnail._wsNumberBox.height = captionBackgroundHeight - 2;
+
+        if (thumbnail._wsName)
+            thumbnail._wsName.set_text(Meta.prefs_get_workspace_name(i));
+        
+        if (thumbnail._wsNameBox)
+            thumbnail._wsNameBox.height = captionBackgroundHeight - 2;
+
+        if(thumbnail._wsWindowCount)
+            this._updateWindowCount(thumbnail._wsWindowCount, i);
+
+        if (thumbnail._wsWindowCountBox)
+            thumbnail._wsWindowCountBox.height = captionBackgroundHeight - 2;
+
+        if (thumbnail._wsWindowAppsBox)
+            thumbnail._wsWindowAppsBox.height = captionHeight;
+        
+
+        if (i == global.screen.get_active_workspace_index()) {
+            if (thumbnail._wsCaptionBackground) thumbnail._wsCaptionBackground.add_style_class_name('workspacestodock-workspace-caption-background-current');
+            if (thumbnail._wsCaption) thumbnail._wsCaption.add_style_class_name('workspacestodock-workspace-caption-current');
+            if (thumbnail._wsNumberBox) thumbnail._wsNumberBox.add_style_class_name('workspacestodock-caption-number-current');
+            if (thumbnail._wsNameBox) thumbnail._wsNameBox.add_style_class_name('workspacestodock-caption-name-current');
+            if (thumbnail._wsWindowCountBox) {
+                if (this._mySettings.get_boolean('workspace-caption-windowcount-image')) {
+                    thumbnail._wsWindowCountBox.add_style_class_name('workspacestodock-caption-windowcount-image-current');
+                } else {
+                    thumbnail._wsWindowCountBox.add_style_class_name('workspacestodock-caption-windowcount-current');
+                }
+            }
+            if (thumbnail._wsSpacerBox) thumbnail._wsSpacerBox.add_style_class_name('workspacestodock-caption-spacer-current');
+        } else {
+            if (thumbnail._wsCaptionBackground) thumbnail._wsCaptionBackground.remove_style_class_name('workspacestodock-workspace-caption-background-current');
+            if (thumbnail._wsCaption) thumbnail._wsCaption.remove_style_class_name('workspacestodock-workspace-caption-current');
+            if (thumbnail._wsNumberBox) thumbnail._wsNumberBox.remove_style_class_name('workspacestodock-caption-number-current');
+            if (thumbnail._wsNameBox) thumbnail._wsNameBox.remove_style_class_name('workspacestodock-caption-name-current');
+            if (thumbnail._wsWindowCountBox) {
+                if (this._mySettings.get_boolean('workspace-caption-windowcount-image')) {
+                    thumbnail._wsWindowCountBox.remove_style_class_name('workspacestodock-caption-windowcount-image-current');
+                } else {
+                    thumbnail._wsWindowCountBox.remove_style_class_name('workspacestodock-caption-windowcount-current');
+                }
+            }
+            if (thumbnail._wsSpacerBox) thumbnail._wsSpacerBox.remove_style_class_name('workspacestodock-caption-spacer-current');
+        }
+
+    },
+
+    // override _allocate to provide area for workspaceThumbnail captions
+    // also serves to update caption items
     _allocate: function(actor, box, flags) {
         let rtl = (Clutter.get_default_text_direction () == Clutter.TextDirection.RTL);
 
@@ -633,7 +1100,7 @@ const myThumbnailsBox = new Lang.Class({
 
                 // passingthru67 - set WorkspaceThumbnail labels
                 if (this._mySettings.get_boolean('workspace-captions'))
-                    this._setThumbnailCaption(thumbnail, i, captionHeight, captionBackgroundHeight);
+                    this._updateThumbnailCaption(thumbnail, i, captionHeight, captionBackgroundHeight);
 
                 // We round the collapsing portion so that we don't get thumbnails resizing
                 // during an animation due to differences in rounded, but leave the uncollapsed
@@ -732,7 +1199,7 @@ const myThumbnailsBox = new Lang.Class({
 
                 // passingthru67 - set WorkspaceThumbnail labels
                 if (this._mySettings.get_boolean('workspace-captions'))
-                    this._setThumbnailCaption(thumbnail, i, captionHeight, captionBackgroundHeight);
+                    this._updateThumbnailCaption(thumbnail, i, captionHeight, captionBackgroundHeight);
                 
                 // We round the collapsing portion so that we don't get thumbnails resizing
                 // during an animation due to differences in rounded, but leave the uncollapsed
@@ -759,428 +1226,50 @@ const myThumbnailsBox = new Lang.Class({
         }
     },
 
-    // override addThumbnails to provide workspace thumbnail labels
-    addThumbnails: function(start, count) {
-        if (_DEBUG_) global.log("mythumbnailsBox: addThumbnails");
-        for (let k = start; k < start + count; k++) {
-            let metaWorkspace = global.screen.get_workspace_by_index(k);
-            //let thumbnail = new WorkspaceThumbnail.WorkspaceThumbnail(metaWorkspace);
-            let thumbnail = new myWorkspaceThumbnail(metaWorkspace, this._gsCurrentVersion, this._mySettings);
-            thumbnail.setPorthole(this._porthole.x, this._porthole.y,
-                                  this._porthole.width, this._porthole.height);
-            
-            
-            // passingthru67 - workspace thumbnail labels
-            // the following code adds captions to WorkspaceThumbnails
-            if (this._mySettings.get_boolean('workspace-captions')) {
-                
-                let wsCaptionContainer = new St.Bin({
-                    name: 'workspacestodockCaptionContainer',
-                    reactive: false,
-                    style_class: 'workspacestodock-workspace-caption-container',
-                    x_fill: true,
-                    y_align: St.Align.END,
-                    x_align: St.Align.START
-                });
-
-                let wsCaptionBackground = new St.Bin({
-                    name: 'workspacestodockCaptionBackground',
-                    reactive: false,
-                    style_class: 'workspacestodock-workspace-caption-background'
-                });
-                    
-                let wsCaption = new St.BoxLayout({
-                    name: 'workspacestodockCaption',
-                    reactive: false,
-                    style_class: 'workspacestodock-workspace-caption',
-                    pack_start: true
-                });
-
-                let wsNumber = new St.Label({
-                    name: 'workspacestodockCaptionNumber',
-                    text: ''
-                });
-                let wsNumberBox = new St.BoxLayout({
-                    name: 'workspacestodockCaptionNumberBox',
-                    style_class: 'workspacestodock-caption-number'
-                });
-                wsNumberBox.add(wsNumber, {x_fill: false, x_align: St.Align.MIDDLE, y_fill: false, y_align: St.Align.MIDDLE});
-                
-                let wsName = new St.Label({
-                    name: 'workspacestodockCaptionName',
-                    text: ''
-                });
-                let wsNameBox = new St.BoxLayout({
-                    name: 'workspacestodockCaptionNameBox',
-                    style_class: 'workspacestodock-caption-name'
-                });
-                wsNameBox.add(wsName, {x_fill: false, x_align: St.Align.MIDDLE, y_fill: false, y_align: St.Align.MIDDLE});
-                
-                let wsWindowCount = new St.Label({
-                    name: 'workspacestodockCaptionWindowCount',
-                    text: ''
-                });
-                let wsWindowCountBox = new St.BoxLayout({
-                    name: 'workspacestodockCaptionWindowCountBox',
-                    style_class: 'workspacestodock-caption-windowcount'
-                });
-                wsWindowCountBox.add(wsWindowCount, {x_fill: false, x_align: St.Align.MIDDLE, y_fill: false, y_align: St.Align.MIDDLE});
-
-                let wsWindowAppsBox = new St.BoxLayout({
-                    name: 'workspacestodockCaptionWindowApps',
-                    reactive: false,
-                    style_class: 'workspacestodock-caption-windowapps'
-                });
-
-                let wsSpacer = new St.Label({
-                    name: 'workspacestodockCaptionSpacer',
-                    text: ''
-                });
-                let wsSpacerBox = new St.BoxLayout({
-                    name: 'workspacestodockCaptionSpacerBox',
-                    style_class: 'workspacestodock-caption-spacer'
-                });
-                wsSpacerBox.add(wsSpacer, {x_fill: false, x_align: St.Align.MIDDLE, y_fill: false, y_align: St.Align.MIDDLE});
-
-                if (this._mySettings.get_boolean('workspace-caption-windowcount-image')) {
-                    wsWindowCountBox.remove_style_class_name("workspacestodock-caption-windowcount");
-                    wsWindowCountBox.add_style_class_name("workspacestodock-caption-windowcount-image");
-                }
-                
-                
-                let currentItems = this._mySettings.get_strv('workspace-caption-items');
-
-                for (let i = 0; i < currentItems.length; i++) {
-                    let elements = currentItems[i].split(':');
-                    let item = elements[0]
-                    let expandState = (elements[1] == "true"? true: false);
-                    
-                    switch (item) {
-                        case "number":
-                            wsCaption.add(wsNumberBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END, expand: expandState});
-                            //wsNumber.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaptionBackground, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
-                            //wsNumberBox.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaptionBackground, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
-                            break;
-                        case "name":
-                            wsCaption.add(wsNameBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END, expand: expandState});
-                            //wsName.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaptionBackground, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
-                            break;
-                        case "windowcount":
-                            wsCaption.add(wsWindowCountBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END, expand: expandState});
-                            //wsWindowCount.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaptionBackground, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
-                            break;
-                        case "windowapps":
-                            wsCaption.add(wsWindowAppsBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END, expand: expandState});
-                            //wsWindowApps.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaptionBackground, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
-                            wsWindowAppsBox.connect("realize", Lang.bind(this, this._initWindowApps, thumbnail));
-                            thumbnail._wsWindowApps = wsWindowAppsBox;
-                            break;
-                        case "spacer":
-                            wsCaption.add(wsSpacerBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END, expand: expandState});
-                            //wsSpacer.add_constraint(new Clutter.BindConstraint({name: 'constraint', source: wsCaptionBackground, coordinate: Clutter.BindCoordinate.HEIGHT, offset: 0}));
-                            break;
-                    }
-                    
-                }
-
-                wsCaptionContainer.add_actor(wsCaption);
-                //thumbnail._wsCaption = wsCaption;
-                //wsCaption.connect("realize", Lang.bind(this, this._initThumbnailCaptions, k));
-                thumbnail.actor.add_actor(wsCaptionBackground);
-                thumbnail.actor.add_actor(wsCaptionContainer);
-                
-                // Make thumbnail background transparent so that it doesn't show through
-                // on edges where border-radius is set on caption
-                thumbnail.actor.set_style("background-color: rgba(0,0,0,0.0)");
+    // override _activeWorkspaceChanged to eliminate errors thrown
+    _activeWorkspaceChanged: function(wm, from, to, direction) {
+        if (_DEBUG_) global.log("mythumbnailsBox: _activeWorkspaceChanged - thumbnail count = "+this._thumbnails.length);
+        let thumbnail;
+        let activeWorkspace = global.screen.get_active_workspace();
+        for (let i = 0; i < this._thumbnails.length; i++) {
+            this._thumbnails[i].refreshWindowApps();
+            if (this._thumbnails[i].metaWorkspace == activeWorkspace) {
+                thumbnail = this._thumbnails[i];
+                //break;
             }
-
-
-            this._thumbnails.push(thumbnail);
-            this.actor.add_actor(thumbnail.actor);
-            
-            if (start > 0 && this._spliceIndex == -1) { 
-                // not the initial fill, and not splicing via DND
-                thumbnail.state = ThumbnailState.NEW;
-                thumbnail.slidePosition = 1; // start slid out
-                this._haveNewThumbnails = true;
-            } else {
-                thumbnail.state = ThumbnailState.NORMAL;
-            }
-
-            this._stateCounts[thumbnail.state]++;
         }
 
-        this._queueUpdateStates();
-
-        // The thumbnails indicator actually needs to be on top of the thumbnails
-        this._indicator.raise_top();
+        // passingthru67 - needed in case thumbnail is null outside of overview
+        if (thumbnail == null)
+            return
         
-        // Clear the splice index, we got the message
-        this._spliceIndex = -1;
-    },
+        // passingthru67 - needed in case thumbnail.actor is null outside of overview    
+        if (thumbnail.actor == null)
+            return
 
-    _updateWindowCount: function(label, index) {
-        let windows = global.get_window_actors();
-        let tracker = Shell.WindowTracker.get_default();
-
-        let className = "";
-        let win_count = 0;
-        let win_max = 4;
-        for (let i = 0; i < windows.length; i++) {
-            let win = windows[i].get_meta_window();
-            if (tracker.is_window_interesting(win)) {
-                let wksp_index = win.get_workspace().index();
-                if (wksp_index == index && win.showing_on_its_workspace()) {
-                    win_count ++;
-                }
-            }
-        }
-
-        if (!this._mySettings.get_boolean('workspace-caption-windowcount-image')) {
-            // clear box images
-            let box = label.get_parent();
-            if (box) {
-                for(let i = 1; i <= win_max; i++){
-                    let className = 'workspacestodock-caption-windowcount-image-'+i;
-                    box.remove_style_class_name(className);
-                }
-            }
-            
-            // Set label text
-            if (label) {
-                if (win_count > 0) {
-                    label.set_text(""+win_count);
-                } else {
-                    label.set_text("");
-                }
-            }
+        // passingthru67 - conditional for gnome shell 3.4/3.6/# differences
+        if (this._gsCurrentVersion[1] < 6) {
+            this._animatingIndicator = true;
+            this.indicatorY = this._indicator.allocation.y1;
         } else {
-            // clear label text
-            if (label)
-                label.set_text("");
-
-            // Set background image class
-            if (win_count > win_max)
-                win_count = win_max;
-
-            let box = label.get_parent();
-            if (box) {
-                for(let i = 1; i <= win_max; i++){
-                    let className = 'workspacestodock-caption-windowcount-image-'+i;
-                    if (i != win_count) {
-                        box.remove_style_class_name(className);
-                    } else {
-                        box.add_style_class_name(className);
-                    }
-                }
-            }
-        }
-    },
-    
-    _setThumbnailCaption: function(thumbnail, i, captionHeight, captionBackgroundHeight) {
-        let unscale = 1/this._scale;
-        let containerWidth = this._porthole.width * this._scale;
-        let containerHeight = this._porthole.height * this._scale;
-
-        let wsCaptionBackground = thumbnail.actor.get_child_at_index(1);
-        if (!wsCaptionBackground)
-            return;
-            
-        wsCaptionBackground.set_scale(unscale, unscale);
-        //wsCaptionBackground.set_position(0, this._porthole.height + (6*unscale));
-        wsCaptionBackground.set_position(0, this._porthole.height);
-        wsCaptionBackground.set_size(containerWidth, captionBackgroundHeight);
-
-        let wsCaptionContainer = thumbnail.actor.get_child_at_index(2);
-        if (!wsCaptionContainer)
-            return;
-
-        wsCaptionContainer.set_scale(unscale, unscale);
-        wsCaptionContainer.set_size(containerWidth, containerHeight + captionBackgroundHeight);
-        //wsCaptionContainer.set_position(0, this._porthole.height);
-        //wsCaptionContainer.set_size(containerWidth, captionBackgroundHeight);
-
-        let wsCaption = wsCaptionContainer.find_child_by_name("workspacestodockCaption");
-        if (!wsCaption)
-            return;
-            
-        wsCaption.height = captionHeight; // constrains height to caption height
-        
-        let wsNumber = wsCaption.find_child_by_name("workspacestodockCaptionNumber");
-        if (wsNumber) {
-            wsNumber.set_text(""+(i+1));
-            //wsNumber.height = captionBackgroundHeight - 2; // subtract 1px for workspacestodockCaptionContainer border and 1px for background border
-            // TODO: check workspacestodockCaptionContainer theme for border values
-            // TODO: check workspacestodockCaptionBackground theme for border values
-        }
-        let wsNumberBox = wsCaption.find_child_by_name("workspacestodockCaptionNumberBox");
-        if (wsNumberBox)
-            wsNumberBox.height = captionBackgroundHeight - 2;
-
-        let wsName = wsCaption.find_child_by_name("workspacestodockCaptionName");
-        if (wsName) {
-            wsName.set_text(Meta.prefs_get_workspace_name(i));
-            //wsName.height = captionBackgroundHeight - 2; // subtract 1px for workspacestodockCaptionContainer border and 1px for background border
-            // TODO: check workspacestodockCaptionContainer theme for border values
-            // TODO: check workspacestodockCaptionBackground theme for border values
-        }
-        let wsNameBox = wsCaption.find_child_by_name("workspacestodockCaptionNameBox");
-        if (wsNameBox)
-            wsNameBox.height = captionBackgroundHeight - 2;
-
-        let wsWindowCount = wsCaption.find_child_by_name("workspacestodockCaptionWindowCount");
-        if (wsWindowCount) {
-            this._updateWindowCount(wsWindowCount, i);
-            //wsWindowCount.height = captionBackgroundHeight - 2; // subtract 1px for workspacestodockCaptionContainer border and 1px for background border
-            // TODO: check workspacestodockCaptionContainer theme for border values
-            // TODO: check workspacestodockCaptionBackground theme for border values
-        }
-        let wsWindowCountBox = wsCaption.find_child_by_name("workspacestodockCaptionWindowCountBox");
-        if (wsWindowCountBox)
-            wsWindowCountBox.height = captionBackgroundHeight - 2;
-
-        let wsWindowAppsBox = wsCaption.find_child_by_name("workspacestodockCaptionWindowApps");
-        if (wsWindowAppsBox) {
-            wsWindowAppsBox.height = captionHeight;
-        }
-        
-        let wsSpacerBox = wsCaption.find_child_by_name("workspacestodockCaptionSpacerBox");
-
-        if (i == global.screen.get_active_workspace_index()) {
-            if (wsCaptionBackground) wsCaptionBackground.add_style_class_name('workspacestodock-workspace-caption-background-current');
-            if (wsCaption) wsCaption.add_style_class_name('workspacestodock-workspace-caption-current');
-            if (wsNumberBox) wsNumberBox.add_style_class_name('workspacestodock-caption-number-current');
-            if (wsNameBox) wsNameBox.add_style_class_name('workspacestodock-caption-name-current');
-            if (wsWindowCountBox) {
-                if (this._mySettings.get_boolean('workspace-caption-windowcount-image')) {
-                    wsWindowCountBox.add_style_class_name('workspacestodock-caption-windowcount-image-current');
-                } else {
-                    wsWindowCountBox.add_style_class_name('workspacestodock-caption-windowcount-current');
-                }
-            }
-            if (wsSpacerBox) wsSpacerBox.add_style_class_name('workspacestodock-caption-spacer-current');
-        } else {
-            if (wsCaptionBackground) wsCaptionBackground.remove_style_class_name('workspacestodock-workspace-caption-background-current');
-            if (wsCaption) wsCaption.remove_style_class_name('workspacestodock-workspace-caption-current');
-            if (wsNumberBox) wsNumberBox.remove_style_class_name('workspacestodock-caption-number-current');
-            if (wsNameBox) wsNameBox.remove_style_class_name('workspacestodock-caption-name-current');
-            if (wsWindowCountBox) {
-                if (this._mySettings.get_boolean('workspace-caption-windowcount-image')) {
-                    wsWindowCountBox.remove_style_class_name('workspacestodock-caption-windowcount-image-current');
-                } else {
-                    wsWindowCountBox.remove_style_class_name('workspacestodock-caption-windowcount-current');
-                }
-            }
-            if (wsSpacerBox) wsSpacerBox.remove_style_class_name('workspacestodock-caption-spacer-current');
+            this._animatingIndicator = true;
+            let indicatorThemeNode = this._indicator.get_theme_node();
+            let indicatorTopFullBorder = indicatorThemeNode.get_padding(St.Side.TOP) + indicatorThemeNode.get_border_width(St.Side.TOP);
+            this.indicatorY = this._indicator.allocation.y1 + indicatorTopFullBorder;
         }
 
-    },
-    
-    //_initThumbnailCaptions: function(actor, wkspIndex) {
-        //if (_DEBUG_) global.log("myWorkspaceThumbnail: _initThumbnailCaptions");
-        //let caption = actor;
-        //let themeNode = caption.get_theme_node();
-        
-        //// Get caption top and bottom border width
-        //let topBorderWidth = themeNode.get_border_width(St.Side.TOP);
-        //let bottomBorderWidth = themeNode.get_border_width(St.Side.BOTTOM);
-        
-        //// Set constraint offsets of caption items to negative
-        //// a negative constraint offset acts as bottom padding to align items with bottom border of caption
-        ////let childOffset = (topBorderWidth + bottomBorderWidth) * -1;
-        
-        ////let children = caption.get_children();
-        ////for (let i = 0; i < children.length; i++) {
-            ////if (_DEBUG_) global.log("child["+i+"] name = "+children[i].get_name());
-            ////let constraint = children[i].get_constraint('constraint');
-            ////if (children[i].get_name() == "workspacestodockCaptionWindowApps") {
-            ////    if (_DEBUG_) global.log("found");
-            ////    //constraint.set_offset(-2);
-            ////} else {
-            ////    constraint.set_offset(childOffset);
-            ////}
-        ////}
-
-        //let i = wkspIndex;
-
-        //let wsNumber = caption.find_child_by_name("workspacestodockCaptionNumber");
-        //if (wsNumber) {
-            //wsNumber.set_text(""+i);
-        //}
-        //let wsName = caption.find_child_by_name("workspacestodockCaptionName");
-        //if (wsName) {
-            //wsName.set_text(Meta.prefs_get_workspace_name(i));
-        //}
-
-        //let wsWindowCount = caption.find_child_by_name("workspacestodockCaptionWindowCount");
-        //if (wsWindowCount) {
-            //this._updateWindowCount(wsWindowCount, i);
-        //}
-        
-    //},
-    
-    _initWindowApps: function(actor, thumbnail) {
-        if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps wsp="+thumbnail.metaWorkspace);
-        // Create initial buttons for windows on workspace
-        let wsWindowApps = actor;
-        let windows;
-        if (this._gsCurrentVersion[1] < 7) {
-            windows = global.get_window_actors().filter(thumbnail._isWorkspaceWindow, thumbnail);
-        } else {
-            windows = global.get_window_actors().filter(Lang.bind(this, function(actor) {
-                let win = actor.meta_window;
-                return win.located_on_workspace(thumbnail.metaWorkspace);
-            }));
-        }
-        //let windows = global.get_window_actors();
-        //let workspace = global.screen.get_active_workspace();
-        if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps - window count = "+windows.length);
-        for (let i = 0; i < windows.length; i++) {
-            if (thumbnail._isMyWindow(windows[i]) && thumbnail._isOverviewWindow(windows[i])) {
-                let metaWin = windows[i].get_meta_window();
-                if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps - add window buttons");
-                let tracker = Shell.WindowTracker.get_default();
-                let app = tracker.get_window_app(metaWin);
-                if (app) {
-                    if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps - window button app = "+app.get_name());
-                    //let icon = new AppDisplay.AppIcon(app, {setSizeManually: true, showLabel: false});
-                    let iconParams = {setSizeManually: true, showLabel: false};
-                    iconParams['createIcon'] = Lang.bind(this, function(iconSize){ return app.create_icon_texture(iconSize);});
-                    
-                    let icon = new IconGrid.BaseIcon(app.get_name(), iconParams);
-                    icon.actor.add_style_class_name('workspacestodock-caption-windowapps-button-icon');
-                    if (this._mySettings.get_boolean('workspace-caption-large-icons')) {
-                        icon.setIconSize(CAPTION_APP_ICON_LARGE_SIZE);
-                    } else {
-                        icon.setIconSize(CAPTION_APP_ICON_NORMAL_SIZE);
-                    }
-
-                    let button;
-                    if (this._gsCurrentVersion[1] < 6) {
-                        button = new St.Button({style_class:'workspacestodock-caption-windowapps-button'});
-                    } else {
-                        button = new St.Button({style_class:'app-well-app workspacestodock-caption-windowapps-button'});
-                    }
-                    button.set_child(icon.actor);
-                    button.connect('button-release-event', Lang.bind(this, thumbnail._onWindowAppsButtonClick, thumbnail, metaWin));
-                    button.connect('enter-event', Lang.bind(this, thumbnail._onWindowAppsButtonEnter, icon));
-                    button.connect('leave-event', Lang.bind(this, thumbnail._onWindowAppsButtonLeave, icon));
-                    
-                    if (metaWin.has_focus()) {
-                        if (this._gsCurrentVersion[1] > 4)
-                            button.add_style_class_name('popup-menu-item');
-                        button.add_style_pseudo_class('active');
-                    }
-                    
-                    let winInfo = {};
-                    winInfo.metaWin = metaWin;
-                    winInfo.signalFocusedId = metaWin.connect('notify::appears-focused', Lang.bind(this, thumbnail._onWindowChanged, metaWin));
-                    wsWindowApps.add(button, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
-                    thumbnail._wsWindowAppsButtons.push(winInfo);
-                }
-            }
-        }
+        Tweener.addTween(this,
+                         { indicatorY: thumbnail.actor.allocation.y1,
+                           time: WorkspacesView.WORKSPACE_SWITCH_TIME,
+                           transition: 'easeOutQuad',
+                           onComplete: function() {
+                               this._animatingIndicator = false;
+                               this._queueUpdateStates();
+                           },
+                           onCompleteScope: this
+                         });
     }
 
+    
     
 });
