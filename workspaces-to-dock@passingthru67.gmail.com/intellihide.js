@@ -57,27 +57,27 @@ const OVERVIEW_MODE = IntellihideMode.SHOW;
 
 /*
  * A rough and ugly implementation of the intellihide behaviour.
- * Intallihide object: call show()/hide() function based on the overlap with the
- * the target actor object;
+ * Intellihide object: call show()/hide() function based on the overlap with the
+ * the dock staticBox object;
  * 
- * Target object has to contain a Clutter.ActorBox object named staticBox and 
+ * Dock object has to contain a Clutter.ActorBox object named staticBox and 
  * emit a 'box-changed' signal when this changes.
  * 
 */
 
-let intellihide = function(target, settings, gsCurrentVersion) {
+let intellihide = function(dock, settings, gsCurrentVersion) {
     this._gsCurrentVersion = gsCurrentVersion;
     
     // Define gnome shell 3.6+ grabHelper
     if (this._gsCurrentVersion[1] > 4)
         GrabHelper = imports.ui.grabHelper;
         
-    this._init(target, settings);
+    this._init(dock, settings);
 }
 
 intellihide.prototype = {
 
-    _init: function(target, settings) {
+    _init: function(dock, settings) {
 		// temporarily disable intellihide until initialized (prevents connected signals from trying to update dock visibility)
 		this._disableIntellihide = true;
 		if (_DEBUG_) global.log("intellihide: init - disaableIntellihide");
@@ -97,8 +97,9 @@ intellihide.prototype = {
         // initial intellihide status is null
         this.status = null;
 
-        // Target object
-        this._target = target;
+        // Dock object
+        this._dock = dock;
+        
         // Keep track of the current overview mode (I mean if it is on/off)
         this._inOverview = false;
         
@@ -111,9 +112,9 @@ intellihide.prototype = {
 
         // Connect global signals
         this._signalHandler.push(
-            // call updateVisibility when target actor changes
+            // call updateVisibility when dock actor changes
             [
-                this._target,
+                this._dock,
                 'box-changed',
                 Lang.bind(this, this._onDockSettingsChanged)
             ],
@@ -178,6 +179,22 @@ intellihide.prototype = {
                 Main.overview,
                 'window-drag-end',
                 Lang.bind(this,this._onWindowDragEnd)
+            ],
+            // item-drag-events emitted from app display icon dragging action
+            [
+                Main.overview,
+                'item-drag-begin',
+                Lang.bind(this,this._onItemDragBegin)
+            ],
+            [
+                Main.overview,
+                'item-drag-cancelled',
+                Lang.bind(this,this._onItemDragCancelled)
+            ],
+            [
+                Main.overview,
+                'item-drag-end',
+                Lang.bind(this,this._onItemDragEnd)
             ],
             // update when monitor changes, for instance in multimonitor when monitors are attached
             [
@@ -718,12 +735,14 @@ intellihide.prototype = {
 
     // handler for when thumbnail windows dragging started
     _onWindowDragBegin: function() {
+        if (_DEBUG_) global.log("intellihide: _onWindowDragBegin");
         Main.overview.show();
         this._toggledOverviewOnDrag = true;
     },
     
     // handler for when thumbnail windows dragging cancelled
     _onWindowDragCancelled: function() {
+        if (_DEBUG_) global.log("intellihide: _onWindowDragCancelled");
         if (this._toggledOverviewOnDrag) {
             this._toggledOverviewOnDrag = false;
             Main.overview.hide();
@@ -732,6 +751,35 @@ intellihide.prototype = {
 
     // handler for when thumbnail windows dragging ended
     _onWindowDragEnd: function() {
+        if (_DEBUG_) global.log("intellihide: _onWindowDragEnd");
+        if (this._toggledOverviewOnDrag) {
+            this._toggledOverviewOnDrag = false;
+            Main.overview.hide();
+        }
+    },
+
+    // handler for when app icon dragging started
+    _onItemDragBegin: function() {
+        if (_DEBUG_) global.log("intellihide: _onItemDragBegin");
+        Main.overview.show();
+        this._toggledOverviewOnDrag = true;
+        if (Main.overview._viewSelector._activeTab.id == "windows") {
+            this._show();
+        }
+    },
+
+    // handler for when app icon dragging cancelled
+    _onItemDragCancelled: function() {
+        if (_DEBUG_) global.log("intellihide: _onItemDragCancelled");
+        if (this._toggledOverviewOnDrag) {
+            this._toggledOverviewOnDrag = false;
+            Main.overview.hide();
+        }
+    },
+
+    // handler for when app icon dragging ended
+    _onItemDragEnd: function() {
+        if (_DEBUG_) global.log("intellihide: _onWindowDragEnd");
         if (this._toggledOverviewOnDrag) {
             this._toggledOverviewOnDrag = false;
             Main.overview.hide();
@@ -743,7 +791,6 @@ intellihide.prototype = {
         if (_DEBUG_) global.log("intellihide: _overviewExit");
         this._inOverview = false;
         this._updateDockVisibility();
-
     },
 
     // handler for when overview mode entered
@@ -820,7 +867,7 @@ intellihide.prototype = {
         }
 		let [rx, ry] = focusedActor.get_transformed_position();
         let [rwidth, rheight] = focusedActor.get_size();
-        let test = (rx < this._target.staticBox.x2) && (rx + rwidth > this._target.staticBox.x1) && (ry < this._target.staticBox.y2) && (ry + rheight > this._target.staticBox.y1);
+        let test = (rx < this._dock.staticBox.x2) && (rx + rwidth > this._dock.staticBox.x1) && (ry < this._dock.staticBox.y2) && (ry + rheight > this._dock.staticBox.y1);
         if (_DEBUG_) global.log("intellihide: onPanelFocusGrabbed actor = "+focusedActor+"  position = "+focusedActor.get_transformed_position()+" size = "+focusedActor.get_size()+" test = "+test);
         if (test) {
             this._disableIntellihide = true;
@@ -854,7 +901,7 @@ intellihide.prototype = {
         }
 		let [rx, ry] = focusedActor.get_transformed_position();
         let [rwidth, rheight] = focusedActor.get_size();
-        let test = (rx < this._target.staticBox.x2) && (rx + rwidth > this._target.staticBox.x1) && (ry - rheight < this._target.staticBox.y2) && (ry > this._target.staticBox.y1);
+        let test = (rx < this._dock.staticBox.x2) && (rx + rwidth > this._dock.staticBox.x1) && (ry - rheight < this._dock.staticBox.y2) && (ry > this._dock.staticBox.y1);
         if (_DEBUG_) global.log("intellihide: onTrayFocusGrabbed actor = "+focusedActor+"  position = "+focusedActor.get_transformed_position()+" size = "+focusedActor.get_size()+" test = "+test);
         if (test) {
             this._disableIntellihide = true;
@@ -883,7 +930,7 @@ intellihide.prototype = {
             if (_DEBUG_) global.log("intellihide: _onPanelMenuStateChange - open");
             let [rx, ry] = menu.actor.get_transformed_position();
             let [rwidth, rheight] = menu.actor.get_size();
-            let test = (rx < this._target.staticBox.x2) && (rx + rwidth > this._target.staticBox.x1) && (ry < this._target.staticBox.y2) && (ry + rheight > this._target.staticBox.y1);
+            let test = (rx < this._dock.staticBox.x2) && (rx + rwidth > this._dock.staticBox.x1) && (ry < this._dock.staticBox.y2) && (ry + rheight > this._dock.staticBox.y1);
             if (test) {
                 this._disableIntellihide = true;
                 this._hide();
@@ -952,14 +999,14 @@ intellihide.prototype = {
                 if (_DEBUG_) global.log("intellihide: _show - fadeInDock");
 				if (this.status == null) {
                     // do slow fade in when first showing dock
-                    this._target.fadeInDock(this._settings.get_double('animation-time'), 0);
+                    this._dock.fadeInDock(this._settings.get_double('animation-time'), 0);
                 } else {
                     // do a quick fade in afterward .. don't know why but slow animation sometimes leaves the fixed dock barely visible
-                    this._target.fadeInDock(.05, 0);
+                    this._dock.fadeInDock(.05, 0);
                 }
             } else {
 				if (_DEBUG_) global.log("intellihide: _show - disableAutoHide");
-				this._target.disableAutoHide();
+				this._dock.disableAutoHide();
             }
             this.status = true;
 		}
@@ -973,13 +1020,13 @@ intellihide.prototype = {
                 if (_DEBUG_) global.log("intellihide: _hide - fadeOutDock");
                 if (nonreactive) {
                     // hide and make stage nonreactive so meta popup windows receive hover and clicks
-                    this._target.fadeOutDock(this._settings.get_double('animation-time'), 0, true);
+                    this._dock.fadeOutDock(this._settings.get_double('animation-time'), 0, true);
                 } else {
-                    this._target.fadeOutDock(this._settings.get_double('animation-time'), 0, false);
+                    this._dock.fadeOutDock(this._settings.get_double('animation-time'), 0, false);
                 }
             } else {
 				if (_DEBUG_) global.log("intellihide: _hide - enableAutoHide");
-                this._target.enableAutoHide();
+                this._dock.enableAutoHide();
             }
         }
     },
@@ -1041,7 +1088,7 @@ intellihide.prototype = {
                         let win = windows[i].get_meta_window();
                         if (win) {
                             let rect = win.get_outer_rect();
-                            let test = (rect.x < this._target.staticBox.x2) && (rect.x + rect.width > this._target.staticBox.x1) && (rect.y < this._target.staticBox.y2) && (rect.y + rect.height > this._target.staticBox.y1);
+                            let test = (rect.x < this._dock.staticBox.x2) && (rect.x + rect.width > this._dock.staticBox.x1) && (rect.y < this._dock.staticBox.y2) && (rect.y + rect.height > this._dock.staticBox.y1);
                             if (test) {
                                 overlaps = true;
                                 break;
