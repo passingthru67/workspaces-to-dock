@@ -89,7 +89,7 @@ dockedWorkspaces.prototype = {
 		this._overrideGnomeShellFunctions();
 
         // Create a new thumbnailsbox object
-        this._thumbnailsBox = new MyThumbnailsBox.myThumbnailsBox(this, this._gsCurrentVersion, this._settings);
+        this._thumbnailsBox = new MyThumbnailsBox.myThumbnailsBox(this);
 		
         // Create the main container, turn on track hover, add hoverChange signal
         this.actor = new St.BoxLayout({
@@ -294,7 +294,7 @@ dockedWorkspaces.prototype = {
         this._restoreGnomeShellFunctions();
     },
 
-    // function called during init to override gnome shell 3.4/3.6/#
+    // function called during init to override gnome shell 3.4/3.6/3.8
     _overrideGnomeShellFunctions: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _overrideGnomeShellFunctions");
         // Override the WorkspaceClone onButtonRelease function to allow right click events to bubble up
@@ -345,7 +345,7 @@ dockedWorkspaces.prototype = {
 
     },
     
-    // function called during destroy to restore gnome shell 3.4/3.6/#
+    // function called during destroy to restore gnome shell 3.4/3.6/3.8
     _restoreGnomeShellFunctions: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _restoreGnomeShellFunctions");
         // Restore normal WindowClone onButtonRelease function
@@ -558,24 +558,23 @@ dockedWorkspaces.prototype = {
         if (_DEBUG_) global.log("dockedWorkspaces: _hoverChanged");
         if (this._settings.get_boolean('require-click-to-show')) {
             // check if metaWin is maximized
-            let currentWorkspace = global.screen.get_active_workspace_index();
+            let activeWorkspace = global.screen.get_active_workspace_index();
             let maximized = false;
             let windows = global.get_window_actors();
             for (let i = windows.length-1; i >= 0; i--) {
-                let metaWin = windows[i].get_meta_window();
-                if(_DEBUG_) global.log("window being checked = "+metaWin.get_wm_class());
-                let metaWorkspace = metaWin.get_workspace().index();
-                if (_DEBUG_) global.log("window workspace = "+metaWorkspace+" currentWorkspace = "+currentWorkspace);
-                if (metaWorkspace != null && metaWorkspace == currentWorkspace) {
-                    if (_DEBUG_) global.log("window located in current workspace");
+                if (windows[i].get_workspace() == activeWorkspace) {
+                    if(_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - window is on active workspace");
+                    let metaWin = windows[i].get_meta_window();
+                    if(_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - window class = "+metaWin.get_wm_class());
                     if (metaWin.appears_focused && metaWin.maximized_horizontally) {
                         maximized = true;
-                        if (_DEBUG_) global.log("window is focused and maximized");
+                        if (_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - window is focused and maximized");
                         break;
                     }
                 }
             }
             // set hovering flag if maximized
+            // used by the _onDockClicked function (hover+click)
             if (maximized) {
                 if (this.actor.hover) {
                     this._hovering = true;
@@ -1035,7 +1034,8 @@ dockedWorkspaces.prototype = {
         this._updateClip();
     },
 
-    // set dock width in vinsible/hidden states
+    // set dock width in vinsible/hidden states (called when animateOut completes)
+    // this fixes long-standing issue of dead zone preventing mouse clicks on secondary monitor to the right
     _setHiddenWidth: function() {
         let width;
         if (this._settings.get_boolean('dock-edge-visible')) {
@@ -1046,6 +1046,7 @@ dockedWorkspaces.prototype = {
         this.actor.set_size(width, this.actor.height);
     },
 
+    // unset dock width (called before animateIn starts)
     _unsetHiddenWidth: function() {
         let width = this._thumbnailsBox.actor.width + 1;
         this.actor.set_size(width, this.actor.height);
@@ -1061,7 +1062,6 @@ dockedWorkspaces.prototype = {
             primary = true;
 
         let x = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - 1;
-        //let x2 = this._monitor.x + this._monitor.width - 1;
 
         let y;
         let height;
@@ -1128,11 +1128,6 @@ dockedWorkspaces.prototype = {
 
         this._updateSize();
 
-        //// check if the dock is on the primary monitor
-        //let primary = false;
-        //if (this._monitor.x == Main.layoutManager.primaryMonitor.x && this._monitor.y == Main.layoutManager.primaryMonitor.y)
-        //    primary = true;
-
         let x = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - 1;
         let x2;
         if (this._settings.get_boolean('dock-edge-visible')) {
@@ -1143,11 +1138,9 @@ dockedWorkspaces.prototype = {
 
         if (this._settings.get_boolean('dock-fixed')) {
             //position on the screen (right side) so that its initial show is not animated
-            //this.actor.set_position(x, y);
             this.actor.set_position(x, this.actor.y);
         } else {
             //position out of the screen (right side) so that its initial show is animated
-            //this.actor.set_position(x2, y);
             this.actor.set_position(x2, this.actor.y);
         }
 
