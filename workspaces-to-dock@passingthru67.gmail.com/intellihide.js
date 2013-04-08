@@ -763,9 +763,16 @@ intellihide.prototype = {
         if (_DEBUG_) global.log("intellihide: _onItemDragBegin");
         Main.overview.show();
         this._toggledOverviewOnDrag = true;
-        if (Main.overview._viewSelector._activeTab.id == "windows") {
-            this._show();
-        }
+        // TODO:
+        // commented below code because GS38 doesn't switch overview back to workspaces page when item is dragged.
+        // Possibly a bug in GS38 or possibly by design. Workspaces dock currently forced to show overtop scrollbar
+        // in GS38's all-app display overview mode.
+        //if (this._gsCurrentVersion[1] < 6) {
+            //if (Main.overview._viewSelector._activeTab.id == "windows") this._show();
+        //} else {
+            //if (Main.overview._viewSelector._activePage == Main.overview._viewSelector._workspacesPage) this._show();
+        //}
+        this._show();
     },
 
     // handler for when app icon dragging cancelled
