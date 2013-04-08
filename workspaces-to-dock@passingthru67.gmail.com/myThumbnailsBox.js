@@ -132,8 +132,10 @@ const WindowAppIcon = new Lang.Class({
     
     _onDestroy: function() {
         if (_DEBUG_) global.log("WindowAppIcon: _onDestroy");
-        if (this._menu)
+        if (this._menu) {
+            this._menu.close();
             this._menu.destroy();
+        }
     }
     
 });
@@ -155,9 +157,8 @@ const myWorkspaceThumbnail = new Lang.Class({
         this._afterWindowRemovedId = this.metaWorkspace.connect_after('window-removed',
                                                            Lang.bind(this, this._onAfterWindowRemoved));
 
-        this._menu = null;
-        this._menuManager = new PopupMenu.PopupMenuManager(this);
 
+        this._menuManager = new PopupMenu.PopupMenuManager(this);
 
         this._initCaption();
         this.actor.connect("realize", Lang.bind(this, this._initWindowApps));
