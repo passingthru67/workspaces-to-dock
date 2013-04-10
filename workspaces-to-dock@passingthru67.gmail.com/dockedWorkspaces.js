@@ -80,6 +80,9 @@ dockedWorkspaces.prototype = {
         // initialize animation status object
         this._animStatus = new animationStatus(true);
 
+        // initialize popup menu flag
+        this._popupMenuShowing = false;
+
         // initialize colors with generic values
         this._defaultBackground = {red:0, green:0, blue:0};
         this._customBackground = {red:0, green:0, blue:0};
@@ -750,6 +753,17 @@ dockedWorkspaces.prototype = {
         }
     },
 
+    setPopupMenuFlag: function(showing) {
+        this._popupMenuShowing = showing;
+        if (!showing) {
+            if (this.actor.hover == true) {
+                this.actor.sync_hover();
+            } else {
+                this._hide();
+            }
+        }
+    },
+    
     // autohide function to animate the show dock process
     _animateIn: function(time, delay) {
         let final_position = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - 1;
@@ -789,6 +803,9 @@ dockedWorkspaces.prototype = {
 
     // autohide function to animate the hide dock process
     _animateOut: function(time, delay) {
+        if (this._popupMenuShowing)
+            return;
+
         let final_position;
         if (this._settings.get_boolean('dock-edge-visible')) {
             final_position = this._monitor.x + this._monitor.width - 1 - DOCK_EDGE_VISIBLE_WIDTH;

@@ -2,8 +2,51 @@
     padding: 1px;
 }
 
-.workspacestodock-workspace-caption-windowapps {
+.workspacestodock-workspace-caption-background {
+    background-gradient-start: rgba(10,10,10,0.4);
+    background-gradient-end: rgba(10,10,10,0.4);
+    border: 1px solid rgba(10,10,10,0.4);
+    border-radius: 0px 0px 2px 2px;
+}
+
+.workspacestodock-workspace-caption {
+    /*border: 1px solid rgba(255,255,255,0.7);*/
+    -boxpointer-gap: 14px;
+}
+
+
+
+
+.workspacestodock-caption-windowapps {
     padding: 0px;
+}
+
+.workspacestodock-caption-windowapps-menu {
+    -boxpointer-gap: 12px;
+}
+
+.workspacestodock-caption-windowapps-menu-item {
+}
+
+.workspacestodock-caption-windowapps-menu-icon {
+}
+
+.workspacestodock-caption-windowapps-menu-label {
+    padding: 0px 10px 0px 10px;
+}
+
+.workspacestodock-caption-windowapps-menu-close {
+    padding: 2px;
+    background-gradient-start: rgba(255,255,255,0.2);
+    background-gradient-end: rgba(255,255,255,0.3);
+    background-gradient-direction: vertical;
+    border-radius: 4px;
+}
+
+.workspacestodock-caption-windowapps-menu-close:hover {
+    background-gradient-start: rgba(255,255,255,0.3);
+    background-gradient-end: rgba(255,255,255,0.4);
+    background-gradient-direction: vertical;
 }
 
 /* ------------------------------------------------------------------------------- */
@@ -33,18 +76,6 @@
     background-gradient-direction: vertical;
 }
 /* ------------------------------------------------------------------------------- */
-
-.workspacestodock-workspace-caption {
-    /*border: 1px solid rgba(255,255,255,0.7);*/
-}
-
-.workspacestodock-workspace-caption-background {
-    background-gradient-start: rgba(10,10,10,0.4);
-    background-gradient-end: rgba(10,10,10,0.4);
-    border: 1px solid rgba(10,10,10,0.4);
-    border-radius: 0px 0px 2px 2px;
-}
-
 
 /* caption workspace number */
 .workspacestodock-caption-number {
