@@ -108,28 +108,6 @@ const WindowAppIcon = new Lang.Class({
         this.actor.connect('leave-event', Lang.bind(this, this._onButtonLeave));
     },
 
-    //_onButtonClick: function(actor, event, thumbnail, metaWin) {
-        //if (_DEBUG_) global.log("windowAppIcon: _onButtonClick");
-        //let mouseButton = event.get_button();
-        //if (mouseButton == 1) {
-            //let activeWorkspace = global.screen.get_active_workspace();
-            //if (_DEBUG_) global.log("windowAppIcon: _onButtonClick - activeWorkspace = "+activeWorkspace);
-            //if (_DEBUG_) global.log("windowAppIcon: _onButtonClick - metaWorkspace = "+thumbnail.metaWorkspace);
-            //if (activeWorkspace != thumbnail.metaWorkspace) {
-                //if (_DEBUG_) global.log("windowAppIcon: _onButtonClick - activeWorkspace is metaWorkspace");
-                //thumbnail.activate(event.get_time());
-                //metaWin.activate(global.get_current_time());
-            //} else {
-                //metaWin.activate(global.get_current_time());
-                //if (!metaWin.has_focus())
-                    //metaWin.activate(global.get_current_time());
-                //else 
-                    //metaWin.minimize(global.get_current_time());
-            //}
-        //}
-        //return false;
-    //},
-
     _onButtonEnter: function(actor, event) {
         if (_DEBUG_) global.log("windowAppIcon: _onButtonEnter");
         let icon = actor._delegate._icon;
@@ -152,37 +130,6 @@ const WindowAppIcon = new Lang.Class({
 
 });
 
-//const WindowAppMenuList = new Lang.Class({
-   //Name: 'workspacesToDock.windowAppMenuList',
-   
-    //_init: function(thumbnail) {
-        //this.actor = new St.BoxLayout({vertical: true});
-        //this.actor._delegate = this;
-        //for (let i=0; i < thumbnail._wsWindowAppsButtons.length; i++) {
-            //let metaWin = thumbnail._wsWindowAppsButtons[i].metaWin;
-            //let app = thumbnail._wsWindowAppsButtons[i].app;
-            //let item = new WindowAppMenuItem(app, metaWin, thumbnail);
-            //this.actor.add(item.actor);
-        //}
-    //},
-   
-    //removeItem: function(item) {
-        //if (_DEBUG_) global.log("windowAppMenuList: removeItem "+item);
-        //this.actor.remove_actor(item.actor);
-        //item.destroy();
-        ////let children = this.actor.get_children();
-        ////for (let i = 0; i < children.length; i++) {
-            ////if (children[i] == item) {
-                //////children[i]._delegate.destroy();
-                ////this.actor.remove_actor(children[i]);
-                ////children[i].destroy();
-            ////}
-        ////}
-    //}
-   
-  
-//});
-
 const WindowAppMenuItem = new Lang.Class({
     Name: 'workspacesToDock.windowAppMenuItem',
    
@@ -198,13 +145,10 @@ const WindowAppMenuItem = new Lang.Class({
         this._buttonBox = new St.BoxLayout({style_class:'workspacestodock-caption-windowapps-menu-button'});
         this._buttonBox.add(this._icon.actor, {x_fill: false, y_fill: false, x_align: St.Align.START, y_align: St.Align.MIDDLE});
         this._buttonBox.add(this._label, {x_fill: true, y_fill: false, x_align: St.Align.START, y_align: St.Align.MIDDLE, expand: true});
-        //this._button = new St.Button({style_class:'workspacestodock-workspace-caption-windowapps-menu-button'});
-        //this._button.set_child(this._buttonBox);
 
         this._closeIcon = new St.Icon({ icon_name: 'window-close-symbolic', style_class: 'popup-menu-icon' });
 
         this._closeButton = new St.Button({style_class:'workspacestodock-caption-windowapps-menu-close'});
-        //this._closeButton = new St.Button({style_class:'window-close workspacestodock-caption-windowapps-menu-close'});
         this._closeButton.set_child(this._closeIcon);
 
         this.actor = new St.BoxLayout({reactive: true, style_class: 'popup-menu-item workspacestodock-caption-windowapps-menu-item'});
@@ -213,34 +157,12 @@ const WindowAppMenuItem = new Lang.Class({
         this.actor.add(this._buttonBox, {x_fill: false, y_fill: false, x_align: St.Align.START, y_align: St.Align.MIDDLE, expand: true});
         this.actor.add(this._closeButton, {x_fill: true, y_fill: true, x_align: St.Align.END, y_align: St.Align.MIDDLE});
 
-        //this._button.connect('button-release-event', Lang.bind(this, this._onButtonClick, thumbnail, metaWin));
+        // Connect signals
         this._closeButton.connect('button-release-event', Lang.bind(this, thumbnail.closeMetaWindow, thumbnail, metaWin, this));
         this.actor.connect('button-release-event', Lang.bind(this, thumbnail.activateMetaWindow, thumbnail, metaWin));
         this.actor.connect('enter-event', Lang.bind(this, this._onItemEnter));
         this.actor.connect('leave-event', Lang.bind(this, this._onItemLeave));
     },
-
-    //_onItemClick: function(actor, event, thumbnail, metaWin) {
-        //if (_DEBUG_) global.log("windowAppMenuItem: _onButtonClick");
-        //let mouseButton = event.get_button();
-        //if (mouseButton == 1) {
-            //let activeWorkspace = global.screen.get_active_workspace();
-            //if (_DEBUG_) global.log("windowAppMenuItem: _onButtonClick - activeWorkspace = "+activeWorkspace);
-            //if (_DEBUG_) global.log("windowAppMenuItem: _onButtonClick - metaWorkspace = "+thumbnail.metaWorkspace);
-            //if (activeWorkspace != thumbnail.metaWorkspace) {
-                //if (_DEBUG_) global.log("windowAppMenuItem: _onButtonClick - activeWorkspace is metaWorkspace");
-                //thumbnail.activate(event.get_time());
-                //metaWin.activate(global.get_current_time());
-            //} else {
-                //metaWin.activate(global.get_current_time());
-                //if (!metaWin.has_focus())
-                    //metaWin.activate(global.get_current_time());
-                //else 
-                    //metaWin.minimize(global.get_current_time());
-            //}
-        //}
-        //return false;
-    //},
 
     _onItemEnter: function(actor, event) {
         if (_DEBUG_) global.log("windowAppMenuItem: _onButtonEnter");
@@ -264,8 +186,8 @@ const myWorkspaceThumbnail = new Lang.Class({
         this._thumbnailsBox = thumbnailsBox;
         this._gsCurrentVersion = thumbnailsBox._gsCurrentVersion;
         this._mySettings = thumbnailsBox._mySettings;
-        this._wsWindowApps = null;
-        this._wsWindowAppsButtons = [];
+        this._wsWindowApps = [];
+        this._wsWindowAppsBox = null;
         this._windowAppsMenuListBox = null;
         
         this._afterWindowAddedId = this.metaWorkspace.connect_after('window-added',
@@ -282,12 +204,12 @@ const myWorkspaceThumbnail = new Lang.Class({
 
     _onDestroy: function(actor) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _onDestroy");
-        for (let i = 0; i < this._wsWindowAppsButtons.length; i++) {
-            this._wsWindowAppsButtons[i].metaWin.disconnect(this._wsWindowAppsButtons[i].signalFocusedId);
+        for (let i = 0; i < this._wsWindowApps.length; i++) {
+            this._wsWindowApps[i].metaWin.disconnect(this._wsWindowApps[i].signalFocusedId);
         }
-        this._wsWindowAppsButtons = [];
-        this._wsWindowApps.destroy_all_children();
-        this._wsWindowApps = null;
+        this._wsWindowApps = [];
+        this._wsWindowAppsBox.destroy_all_children();
+        this._wsWindowAppsBox = null;
         if (this._menu) {
             this._menu.close();
             this._menu.destroy();
@@ -371,12 +293,12 @@ const myWorkspaceThumbnail = new Lang.Class({
                         this._wsCaption.add(this._wsWindowCountBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END, expand: expandState});
                         break;
                     case "windowapps":
-                        this._wsWindowApps = new St.BoxLayout({
+                        this._wsWindowAppsBox = new St.BoxLayout({
                             name: 'workspacestodockCaptionWindowApps',
                             reactive: false,
                             style_class: 'workspacestodock-caption-windowapps'
                         });
-                        this._wsCaption.add(this._wsWindowApps, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END, expand: expandState});
+                        this._wsCaption.add(this._wsWindowAppsBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END, expand: expandState});
                         break;
                     case "spacer":
                         this._wsSpacer = new St.Label({
@@ -412,8 +334,8 @@ const myWorkspaceThumbnail = new Lang.Class({
                     // Set popup menu flag so that dock knows not to hide
                     this._thumbnailsBox.setPopupMenuFlag(true);
 
-                    // Set windowApps button icons back to normal (not zoomed)
-                    let children = this._wsWindowApps.get_children();
+                    // Set windowAppsBox icons back to normal (not zoomed)
+                    let children = this._wsWindowAppsBox.get_children();
                     for (let i=0; i < children.length; i++) {
                         if (this._mySettings.get_boolean('workspace-caption-large-icons')) {
                             children[i]._delegate._icon.setIconSize(CAPTION_APP_ICON_LARGE_SIZE);
@@ -424,16 +346,6 @@ const myWorkspaceThumbnail = new Lang.Class({
                 } else {
                     // Unset popup menu flag
                     this._thumbnailsBox.setPopupMenuFlag(false);
-
-                    //// Set windowApps button icons back to normal (not zoomed)
-                    //let children = this._wsWindowApps.get_children();
-                    //for (let i=0; i < children.length; i++) {
-                        //if (this._mySettings.get_boolean('workspace-caption-large-icons')) {
-                            //children[i]._delegate._icon.setIconSize(CAPTION_APP_ICON_LARGE_SIZE);
-                        //} else {
-                            //children[i]._delegate._icon.setIconSize(CAPTION_APP_ICON_NORMAL_SIZE);
-                        //}
-                    //}
                 }
             }));
             
@@ -450,8 +362,6 @@ const myWorkspaceThumbnail = new Lang.Class({
 
             // Connect signals
             this._wsCaption.connect('button-release-event', Lang.bind(this, this._onWorkspaceCaptionClick, this));
-            
-            
         }
 
     },
@@ -476,16 +386,14 @@ const myWorkspaceThumbnail = new Lang.Class({
         
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps - window count = "+windows.length);
         for (let i = 0; i < windows.length; i++) {
-            //if (this._isMyWindow(windows[i]) && this._isOverviewWindow(windows[i])) {
-            //if (this._isMyWindow(windows[i])) {
             let metaWin = windows[i].get_meta_window();
             let activeWorkspace = global.screen.get_active_workspace();
             if (this._isMyWindow(windows[i]) || (metaWin.is_on_all_workspaces() && this.metaWorkspace == activeWorkspace)) {
 
 				if (refresh) {
 		            let index = -1;
-		            for (let i = 0; i < this._wsWindowAppsButtons.length; i++) {
-		                if (this._wsWindowAppsButtons[i].metaWin == metaWin) {    
+		            for (let i = 0; i < this._wsWindowApps.length; i++) {
+		                if (this._wsWindowApps[i].metaWin == metaWin) {    
 		                    index = i;
 		                    break;
 		                }
@@ -501,39 +409,40 @@ const myWorkspaceThumbnail = new Lang.Class({
                     if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps - window button app = "+app.get_name());
                     let button = new WindowAppIcon(app, metaWin, this);
                     if (metaWin.has_focus()) {
-                        if (this._gsCurrentVersion[1] > 4)
+                        if (this._gsCurrentVersion[1] > 4) {
                             button.actor.add_style_class_name('popup-menu-item');
+                        }
                         button.actor.add_style_pseudo_class('active');
                     }
                     
-                    if (this._wsWindowApps)
-                        this._wsWindowApps.add(button.actor, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
+                    if (this._wsWindowAppsBox)
+                        this._wsWindowAppsBox.add(button.actor, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
                                         
                     let winInfo = {};
                     winInfo.app = app;
                     winInfo.metaWin = metaWin;
                     winInfo.signalFocusedId = metaWin.connect('notify::appears-focused', Lang.bind(this, this._onWindowChanged, metaWin));
-                    this._wsWindowAppsButtons.push(winInfo);
+                    this._wsWindowApps.push(winInfo);
                 }
             } else {
                 // This window shouldn't be showing on this workspace
                 if (refresh) {
                     let index = -1;
-                    for (let i = 0; i < this._wsWindowAppsButtons.length; i++) {
-                        if (this._wsWindowAppsButtons[i].metaWin == metaWin) {    
+                    for (let i = 0; i < this._wsWindowApps.length; i++) {
+                        if (this._wsWindowApps[i].metaWin == metaWin) {    
                             index = i;
                             break;
                         }
                     }
                     if (index > -1) {
                         // Disconnect window focused signal
-                        metaWin.disconnect(this._wsWindowAppsButtons[index].signalFocusedId);
+                        metaWin.disconnect(this._wsWindowApps[index].signalFocusedId);
                         
-                        // Remove button from windowAppsButtons list and windowApps container
-                        this._wsWindowAppsButtons.splice(index, 1);
-                        if (this._wsWindowApps) {
-                            let buttonActor = this._wsWindowApps.get_child_at_index(index);
-                            this._wsWindowApps.remove_actor(buttonActor);
+                        // Remove button from windowApps list and windowAppsBox container
+                        this._wsWindowApps.splice(index, 1);
+                        if (this._wsWindowAppsBox) {
+                            let buttonActor = this._wsWindowAppsBox.get_child_at_index(index);
+                            this._wsWindowAppsBox.remove_actor(buttonActor);
                             buttonActor.destroy();
                         }
                     }
@@ -577,27 +486,29 @@ const myWorkspaceThumbnail = new Lang.Class({
 
     _onWindowChanged: function(metaWin) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _onWindowChanged");
-        if (!this._wsWindowApps)
+        if (!this._wsWindowAppsBox)
             return;
 
         let index = -1;
-        for (let i = 0; i < this._wsWindowAppsButtons.length; i++) {
-            if (this._wsWindowAppsButtons[i].metaWin == metaWin) {
+        for (let i = 0; i < this._wsWindowApps.length; i++) {
+            if (this._wsWindowApps[i].metaWin == metaWin) {
                 index = i;
                 break;
             }
         }
         if (index > -1) {
-            let buttonActor = this._wsWindowApps.get_child_at_index(index);
+            let buttonActor = this._wsWindowAppsBox.get_child_at_index(index);
             if (metaWin.appears_focused) {
                 if (_DEBUG_) global.log("myWorkspaceThumbnail: _onWindowChanged - button app is focused");
-                if (this._gsCurrentVersion[1] > 4)
+                if (this._gsCurrentVersion[1] > 4) {
                     buttonActor.add_style_class_name('popup-menu-item');
+                }
                 buttonActor.add_style_pseudo_class('active');
             } else {
                 if (_DEBUG_) global.log("myWorkspaceThumbnail: _onWindowChanged - button app is not focused");
-                if (this._gsCurrentVersion[1] > 4)
+                if (this._gsCurrentVersion[1] > 4) {
                     buttonActor.remove_style_class_name('popup-menu-item');
+                }
                 buttonActor.remove_style_pseudo_class('active');
             }
         }
@@ -610,20 +521,20 @@ const myWorkspaceThumbnail = new Lang.Class({
             thumbnail._menu.removeAll();
 
             this._windowAppsMenuListBox = new St.BoxLayout({vertical: true});
-            for (let i=0; i < thumbnail._wsWindowAppsButtons.length; i++) {
-                let metaWin = thumbnail._wsWindowAppsButtons[i].metaWin;
-                let app = thumbnail._wsWindowAppsButtons[i].app;
+            for (let i=0; i < thumbnail._wsWindowApps.length; i++) {
+                let metaWin = thumbnail._wsWindowApps[i].metaWin;
+                let app = thumbnail._wsWindowApps[i].app;
                 let item = new WindowAppMenuItem(app, metaWin, thumbnail);
                 this._windowAppsMenuListBox.add_actor(item.actor);
             }
 
             let windowAppsListsection = new PopupMenu.PopupMenuSection();
             windowAppsListsection.actor.add_actor(this._windowAppsMenuListBox);
-            if (thumbnail._wsWindowAppsButtons.length > 0) {
+            if (thumbnail._wsWindowApps.length > 0) {
                 this._menu.addMenuItem(windowAppsListsection);
             }
             
-            if (thumbnail._wsWindowAppsButtons.length > 1) {
+            if (thumbnail._wsWindowApps.length > 1) {
                 let item1 = new PopupMenu.PopupMenuItem(_('Close All Applications'));
                 item1.connect('activate', Lang.bind(this, this._closeAllMetaWindows, this));
                 this._menu.addMenuItem(item1);
@@ -670,20 +581,20 @@ const myWorkspaceThumbnail = new Lang.Class({
         if (_DEBUG_) global.log("myWorkspaceThumbnail: closeMetaWindow");
         let metaWindow = metaWin;
         let index = -1;
-        for (let i = 0; i < thumbnail._wsWindowAppsButtons.length; i++) {
-            if (thumbnail._wsWindowAppsButtons[i].metaWin == metaWindow) {    
+        for (let i = 0; i < thumbnail._wsWindowApps.length; i++) {
+            if (thumbnail._wsWindowApps[i].metaWin == metaWindow) {    
                 index = i;
                 break;
             }
         }
         if (index > -1) {
             // Disconnect window focused signal
-            metaWin.disconnect(thumbnail._wsWindowAppsButtons[index].signalFocusedId);
+            metaWin.disconnect(thumbnail._wsWindowApps[index].signalFocusedId);
 
-            // Remove button from windowAppsButtons list and windowApps container
-            thumbnail._wsWindowAppsButtons.splice(index, 1);
-            let buttonActor = thumbnail._wsWindowApps.get_child_at_index(index);
-            thumbnail._wsWindowApps.remove_actor(buttonActor);
+            // Remove button from windowApps list and windowAppsBox container
+            thumbnail._wsWindowApps.splice(index, 1);
+            let buttonActor = thumbnail._wsWindowAppsBox.get_child_at_index(index);
+            thumbnail._wsWindowAppsBox.remove_actor(buttonActor);
             buttonActor.destroy();
             
             // Delete metaWindow
@@ -698,17 +609,17 @@ const myWorkspaceThumbnail = new Lang.Class({
 
     _closeAllMetaWindows: function(menuItem, event, thumbnail) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _closeAllMetaWindows");
-        for (let i = 0; i < thumbnail._wsWindowAppsButtons.length; i++) {
+        for (let i = 0; i < thumbnail._wsWindowApps.length; i++) {
             // Disconnect window focused signal
-            thumbnail._wsWindowAppsButtons[i].metaWin.disconnect(thumbnail._wsWindowAppsButtons[i].signalFocusedId);
+            thumbnail._wsWindowApps[i].metaWin.disconnect(thumbnail._wsWindowApps[i].signalFocusedId);
             
             // Delete metaWindow
-            thumbnail._wsWindowAppsButtons[i].metaWin.delete(global.get_current_time());
+            thumbnail._wsWindowApps[i].metaWin.delete(global.get_current_time());
         }
-        thumbnail._wsWindowAppsButtons = [];
+        thumbnail._wsWindowApps = [];
         
         // Destroy all button actors
-        thumbnail._wsWindowApps.destroy_all_children();
+        thumbnail._wsWindowAppsBox.destroy_all_children();
     },
 
     refreshWindowApps: function() {
@@ -724,9 +635,9 @@ const myWorkspaceThumbnail = new Lang.Class({
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps");
         if (action == WindowAppsUpdateAction.ADD) {
             let index = -1;
-            for (let i = 0; i < this._wsWindowAppsButtons.length; i++) {
-                if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button at index "+i+" is "+this._wsWindowAppsButtons[i]);
-                if (this._wsWindowAppsButtons[i].metaWin == metaWin) {
+            for (let i = 0; i < this._wsWindowApps.length; i++) {
+                if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button at index "+i+" is "+this._wsWindowApps[i]);
+                if (this._wsWindowApps[i].metaWin == metaWin) {
                     if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button found at index = "+i);
                     index = i;
                     break;
@@ -740,24 +651,24 @@ const myWorkspaceThumbnail = new Lang.Class({
                     if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button app = "+app.get_name());
                     let button = new WindowAppIcon(app, metaWin, this);
                     if (metaWin.has_focus()) {
-                        if (this._gsCurrentVersion[1] > 4)
+                        if (this._gsCurrentVersion[1] > 4) {
                             button.actor.add_style_class_name('popup-menu-item');
-                        
+                        }
                         button.actor.add_style_pseudo_class('active');
                     }
                         
-                    if (this._wsWindowApps)
-                        this._wsWindowApps.add(button.actor, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
+                    if (this._wsWindowAppsBox)
+                        this._wsWindowAppsBox.add(button.actor, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
 
                     let winInfo = {};
                     winInfo.app = app;
                     winInfo.metaWin = metaWin;
                     winInfo.signalFocusedId = metaWin.connect('notify::appears-focused', Lang.bind(this, this._onWindowChanged, metaWin));
-                    this._wsWindowAppsButtons.push(winInfo);
+                    this._wsWindowApps.push(winInfo);
                 }
             }
         } else if (action == WindowAppsUpdateAction.REMOVE) {
-            if (this._wsWindowApps) {
+            if (this._wsWindowAppsBox) {
                 if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - wsWindowApps exists");
                 
                 if (metaWin.minimized) {
@@ -766,10 +677,10 @@ const myWorkspaceThumbnail = new Lang.Class({
                 } else {
                     if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - metaWin closed = "+metaWin.get_wm_class());
                     let index = -1;
-                    if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window buttons count = "+this._wsWindowAppsButtons.length);
-                    for (let i = 0; i < this._wsWindowAppsButtons.length; i++) {
-                        if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button at index "+i+" is "+this._wsWindowAppsButtons[i].metaWin.get_wm_class());
-                        if (this._wsWindowAppsButtons[i].metaWin == metaWin) {    
+                    if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window buttons count = "+this._wsWindowApps.length);
+                    for (let i = 0; i < this._wsWindowApps.length; i++) {
+                        if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button at index "+i+" is "+this._wsWindowApps[i].metaWin.get_wm_class());
+                        if (this._wsWindowApps[i].metaWin == metaWin) {    
                             if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button found at index = "+i);
                             index = i;
                             break;
@@ -778,14 +689,14 @@ const myWorkspaceThumbnail = new Lang.Class({
                     if (index > -1) {
                         if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - Splicing wsWindowAppsButtons at "+index);
                         // Disconnect window focused signal
-                        metaWin.disconnect(this._wsWindowAppsButtons[index].signalFocusedId);
+                        metaWin.disconnect(this._wsWindowApps[index].signalFocusedId);
                         
-                        // Remove button from windowAppsButtons list and windowApps container
-                        this._wsWindowAppsButtons.splice(index, 1);
-                        if (this._wsWindowApps) {
-                            let buttonActor = this._wsWindowApps.get_child_at_index(index);
+                        // Remove button from windowApps list and windowAppsBox container
+                        this._wsWindowApps.splice(index, 1);
+                        if (this._wsWindowAppsBox) {
+                            let buttonActor = this._wsWindowAppsBox.get_child_at_index(index);
                             if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - Removing button at index "+index);
-                            this._wsWindowApps.remove_actor(buttonActor);
+                            this._wsWindowAppsBox.remove_actor(buttonActor);
                             buttonActor.destroy();
                         }
                     } else {
@@ -805,7 +716,7 @@ const myWorkspaceThumbnail = new Lang.Class({
             return;
 
         let className = "";
-        let win_count = this._wsWindowAppsButtons.length;
+        let win_count = this._wsWindowApps.length;
         let win_max = 4;
 
         if (!this._mySettings.get_boolean('workspace-caption-windowcount-image')) {
@@ -975,7 +886,7 @@ const myThumbnailsBox = new Lang.Class({
                 // Skip if dock is not in autohide mode for instance because it is shown by intellihide
                 if (this._mySettings.get_boolean('autohide') && this._dock._autohideStatus) {
                     if (this._dock.actor.hover) {
-                        // Skip if dock is showing-shown
+                        // Skip if dock is showing or shown
                         if (this._dock._animStatus.hidden() || this._dock._animStatus.hiding()) {
                             // pass click event on to dock handler
                             return false;
@@ -993,6 +904,7 @@ const myThumbnailsBox = new Lang.Class({
                 } else {
                     Main.overview.show(); // force overview mode
                 }
+                // pass right-click event on allowing it to bubble up
                 return false;
             }
         }
@@ -1018,7 +930,6 @@ const myThumbnailsBox = new Lang.Class({
         if (_DEBUG_) global.log("mythumbnailsBox: addThumbnails");
         for (let k = start; k < start + count; k++) {
             let metaWorkspace = global.screen.get_workspace_by_index(k);
-            //let thumbnail = new WorkspaceThumbnail.WorkspaceThumbnail(metaWorkspace);
             let thumbnail = new myWorkspaceThumbnail(metaWorkspace, this);
             thumbnail.setPorthole(this._porthole.x, this._porthole.y,
                                   this._porthole.width, this._porthole.height);
@@ -1061,65 +972,6 @@ const myThumbnailsBox = new Lang.Class({
         this._dock.setPopupMenuFlag(showing);
     },
 
-    //_updateWindowCount: function(label, index) {
-        //if (_DEBUG_) global.log("mythumbnailsBox: _updateWindowCount");
-        //let windows = global.get_window_actors();
-        //let tracker = Shell.WindowTracker.get_default();
-
-        //let className = "";
-        //let win_count = 0;
-        //let win_max = 4;
-        //for (let i = 0; i < windows.length; i++) {
-            //let win = windows[i].get_meta_window();
-            //if (tracker.is_window_interesting(win)) {
-                //let wksp_index = win.get_workspace().index();
-                //if (wksp_index == index && win.showing_on_its_workspace()) {
-                    //win_count ++;
-                //}
-            //}
-        //}
-
-        //if (!this._mySettings.get_boolean('workspace-caption-windowcount-image')) {
-            //// clear box images
-            //let box = label.get_parent();
-            //if (box) {
-                //for(let i = 1; i <= win_max; i++){
-                    //let className = 'workspacestodock-caption-windowcount-image-'+i;
-                    //box.remove_style_class_name(className);
-                //}
-            //}
-            
-            //// Set label text
-            //if (label) {
-                //if (win_count > 0) {
-                    //label.set_text(""+win_count);
-                //} else {
-                    //label.set_text("");
-                //}
-            //}
-        //} else {
-            //// clear label text
-            //if (label)
-                //label.set_text("");
-
-            //// Set background image class
-            //if (win_count > win_max)
-                //win_count = win_max;
-
-            //let box = label.get_parent();
-            //if (box) {
-                //for(let i = 1; i <= win_max; i++){
-                    //let className = 'workspacestodock-caption-windowcount-image-'+i;
-                    //if (i != win_count) {
-                        //box.remove_style_class_name(className);
-                    //} else {
-                        //box.add_style_class_name(className);
-                    //}
-                //}
-            //}
-        //}
-    //},
-    
     _updateThumbnailCaption: function(thumbnail, i, captionHeight, captionBackgroundHeight) {
         let unscale = 1/this._scale;
         let containerWidth = this._porthole.width * this._scale;
@@ -1155,9 +1007,6 @@ const myThumbnailsBox = new Lang.Class({
         
         if (thumbnail._wsNameBox)
             thumbnail._wsNameBox.height = captionBackgroundHeight - 2;
-
-        //if(thumbnail._wsWindowCount)
-            //this._updateWindowCount(thumbnail._wsWindowCount, i);
 
         if (thumbnail._wsWindowCountBox)
             thumbnail._wsWindowCountBox.height = captionBackgroundHeight - 2;
@@ -1483,9 +1332,16 @@ const myThumbnailsBox = new Lang.Class({
         let thumbnail;
         let activeWorkspace = global.screen.get_active_workspace();
         for (let i = 0; i < this._thumbnails.length; i++) {
+
+            // passingthru67: refresh thumbnail window apps .. this is needed so that
+            // windows that show in all workspaces can to be removed/added
             this._thumbnails[i].refreshWindowApps();
+
             if (this._thumbnails[i].metaWorkspace == activeWorkspace) {
                 thumbnail = this._thumbnails[i];
+                
+                // passingthru67: commented out the break below because we want to 
+                // itterate through all the thumbnails to refresh window apps
                 //break;
             }
         }
