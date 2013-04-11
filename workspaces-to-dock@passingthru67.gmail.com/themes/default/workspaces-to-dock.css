@@ -25,6 +25,12 @@
     -boxpointer-gap: 12px;
 }
 
+.workspacestodock-caption-windowapps-menu .window-close {
+    background-size: 24px;
+    height: 24px;
+    width: 24px;
+}
+
 .workspacestodock-caption-windowapps-menu-item {
 }
 
@@ -36,17 +42,21 @@
 }
 
 .workspacestodock-caption-windowapps-menu-close {
+/*
     padding: 2px;
     background-gradient-start: rgba(255,255,255,0.2);
     background-gradient-end: rgba(255,255,255,0.3);
     background-gradient-direction: vertical;
     border-radius: 4px;
+*/
 }
 
 .workspacestodock-caption-windowapps-menu-close:hover {
+/*
     background-gradient-start: rgba(255,255,255,0.3);
     background-gradient-end: rgba(255,255,255,0.4);
     background-gradient-direction: vertical;
+*/
 }
 
 /* ------------------------------------------------------------------------------- */

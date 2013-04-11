@@ -52,6 +52,7 @@ const CAPTION_APP_ICON_NORMAL_SIZE = 16;
 const CAPTION_APP_ICON_NORMAL_SIZE_ZOOMED = 24;
 const CAPTION_APP_ICON_LARGE_SIZE = 24;
 const CAPTION_APP_ICON_LARGE_SIZE_ZOOMED = 32;
+const CAPTION_APP_ICON_MENU_SIZE = 20;
 
 const PREFS_DIALOG = 'gnome-shell-extension-prefs workspaces-to-dock@passingthru67.gmail.com';
 
@@ -139,17 +140,17 @@ const WindowAppMenuItem = new Lang.Class({
         
         this._icon = new IconGrid.BaseIcon(app.get_name(), iconParams);
         this._icon.actor.add_style_class_name('workspacestodock-caption-windowapps-menu-icon');
-        this._icon.setIconSize(CAPTION_APP_ICON_NORMAL_SIZE);
+        this._icon.setIconSize(CAPTION_APP_ICON_MENU_SIZE);
         this._label = new St.Label({ text: app.get_name(), style_class: 'workspacestodock-caption-windowapps-menu-label' });
         
         this._buttonBox = new St.BoxLayout({style_class:'workspacestodock-caption-windowapps-menu-button'});
         this._buttonBox.add(this._icon.actor, {x_fill: false, y_fill: false, x_align: St.Align.START, y_align: St.Align.MIDDLE});
         this._buttonBox.add(this._label, {x_fill: true, y_fill: false, x_align: St.Align.START, y_align: St.Align.MIDDLE, expand: true});
 
-        this._closeIcon = new St.Icon({ icon_name: 'window-close-symbolic', style_class: 'popup-menu-icon' });
+        //this._closeIcon = new St.Icon({ icon_name: 'window-close-symbolic', style_class: 'popup-menu-icon' });
 
-        this._closeButton = new St.Button({style_class:'workspacestodock-caption-windowapps-menu-close'});
-        this._closeButton.set_child(this._closeIcon);
+        this._closeButton = new St.Button({style_class:'window-close workspacestodock-caption-windowapps-menu-close'});
+        //this._closeButton.set_child(this._closeIcon);
 
         this.actor = new St.BoxLayout({reactive: true, style_class: 'popup-menu-item workspacestodock-caption-windowapps-menu-item'});
         this.actor._delegate = this;       
