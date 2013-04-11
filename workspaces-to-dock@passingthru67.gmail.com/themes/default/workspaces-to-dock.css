@@ -25,12 +25,6 @@
     -boxpointer-gap: 12px;
 }
 
-.workspacestodock-caption-windowapps-menu .window-close {
-    background-size: 24px;
-    height: 24px;
-    width: 24px;
-}
-
 .workspacestodock-caption-windowapps-menu-item {
 }
 
@@ -41,14 +35,16 @@
     padding: 0px 10px 0px 10px;
 }
 
+/* GS36+ can override gnome shell classes - window-close */
+.workspacestodock-caption-windowapps-menu .window-close {
+    background-size: 20px;
+    height: 20px;
+    width: 20px;
+}
+
+/* GS34 can't override gnome shell classes .. fallback to this class instead */
 .workspacestodock-caption-windowapps-menu-close {
-/*
-    padding: 2px;
-    background-gradient-start: rgba(255,255,255,0.2);
-    background-gradient-end: rgba(255,255,255,0.3);
-    background-gradient-direction: vertical;
-    border-radius: 4px;
-*/
+
 }
 
 .workspacestodock-caption-windowapps-menu-close:hover {

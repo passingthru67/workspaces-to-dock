@@ -149,7 +149,12 @@ const WindowAppMenuItem = new Lang.Class({
 
         //this._closeIcon = new St.Icon({ icon_name: 'window-close-symbolic', style_class: 'popup-menu-icon' });
 
-        this._closeButton = new St.Button({style_class:'window-close workspacestodock-caption-windowapps-menu-close'});
+        if (thumbnail._gsCurrentVersion[1] < 6) {
+            this._closeButton = new St.Button({style_class:'workspacestodock-caption-windowapps-menu-close'});            
+        } else {
+            this._closeButton = new St.Button({style_class:'window-close workspacestodock-caption-windowapps-menu-close'});
+        }
+        this._closeButton.set_size(CAPTION_APP_ICON_MENU_SIZE, CAPTION_APP_ICON_MENU_SIZE);
         //this._closeButton.set_child(this._closeIcon);
 
         this.actor = new St.BoxLayout({reactive: true, style_class: 'popup-menu-item workspacestodock-caption-windowapps-menu-item'});
