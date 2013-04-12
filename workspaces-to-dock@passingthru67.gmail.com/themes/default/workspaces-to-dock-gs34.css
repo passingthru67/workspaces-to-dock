@@ -1,86 +1,52 @@
 .workspacestodock-workspace-caption-container {
     padding: 1px;
 }
-
 .workspacestodock-workspace-caption-background {
     background-gradient-start: rgba(10,10,10,0.4);
     background-gradient-end: rgba(10,10,10,0.4);
     border: 1px solid rgba(10,10,10,0.4);
     border-radius: 0px 0px 2px 2px;
 }
-
 .workspacestodock-workspace-caption {
-    /*border: 1px solid rgba(255,255,255,0.7);*/
-
 }
 
-
-
-
+/* caption window apps (taskbar) */
 .workspacestodock-caption-windowapps {
     padding: 0px;
 }
-
 .workspacestodock-caption-windowapps-menu {
     -boxpointer-gap: 12px;
 }
-
 .workspacestodock-caption-windowapps-menu-item {
 }
-
 .workspacestodock-caption-windowapps-menu-icon {
 }
-
 .workspacestodock-caption-windowapps-menu-label {
     padding: 0px 10px 0px 10px;
 }
-
-/* GS36+ can override gnome shell classes - window-close */
-.workspacestodock-caption-windowapps-menu .window-close {
-    background-size: 20px;
-    height: 20px;
-    width: 20px;
-}
-
-/* GS34 can't override gnome shell classes .. fallback to this class instead */
+/* GS34 can't override gnome shell 'window-close' .. fallback class */
 .workspacestodock-caption-windowapps-menu-close {
     background-image: url("close-window.svg");
     background-size: 24px;
     height: 20px;
     width: 20px;
 }
-
-.workspacestodock-caption-windowapps-menu-close:hover {
-
-}
-
-/* ------------------------------------------------------------------------------- */
-/* GS34 can't override gnome shell classes .. fallback to these classes instead    */
-/* Or use these classes to enhance and compliment gnome shell classes in GS36+     */
-/* compliments app-well-app */
+/* GS34 can't override gnome shell 'app-well-app' .. fallback class   */
 .workspacestodock-caption-windowapps-button {
     padding: 0px 1px;
 }
-/* compliments overview-icon */
+/* GS34 can't override gnome shell 'overview-icon' .. fallback class   */
 .workspacestodock-caption-windowapps-button-icon {
     padding: 1px 1px;
-    border: 1px solid rgba(180,180,180,0.5);
-    border-radius: 2px;
-
-    background-gradient-start: rgba(255,255,255,0.2);
-    background-gradient-end: rgba(255,255,255,0.3);
-    background-gradient-direction: vertical;
+    border: 1px solid rgba(180,180,180,0.3);
+    border-radius: 3px;
 }
-/* compliments app-well-app:hover > overview-icon */
-.workspacestodock-caption-windowapps-button:hover > .workspacestodock-caption-windowapps-button-icon {
-}
-/* compliments popup-menu-item:active */
-.workspacestodock-caption-windowapps-button:active > .workspacestodock-caption-windowapps-button-icon {
-    background-gradient-start: rgba(255,255,255,0.4);
+/* GS34 can't override gnome shell 'app-well-app.running' .. fallback class   */
+.workspacestodock-caption-windowapps-button.running > .workspacestodock-caption-windowapps-button-icon {
+    background-gradient-start: rgba(255,255,255,0.1);
     background-gradient-end: rgba(255,255,255,0.5);
     background-gradient-direction: vertical;
 }
-/* ------------------------------------------------------------------------------- */
 
 /* caption workspace number */
 .workspacestodock-caption-number {
@@ -150,12 +116,10 @@
 /* The classes below are used in conjuction with the above classes
  * They provide additional theming for the current workspace caption */
 .workspacestodock-workspace-caption-background-current {
-/*
     background-gradient-start: rgba(0,0,0,0.5);
     background-gradient-end: rgba(0,0,0,0.5);
     background-gradient-direction: vertical;
     border: 1px solid rgba(0,0,0,0.4);
-*/
 }
 .workspacestodock-caption-number-current {
     color: rgba(0,0,0,0.9);

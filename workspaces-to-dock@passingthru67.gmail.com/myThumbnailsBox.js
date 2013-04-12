@@ -95,10 +95,9 @@ const WindowAppIcon = new Lang.Class({
             this._icon.setIconSize(CAPTION_APP_ICON_NORMAL_SIZE);
         }
 
-        if (this._gsCurrentVersion[1] < 6) {
-            this.actor = new St.Button({style_class:'workspacestodock-caption-windowapps-button'});
-        } else {
-            this.actor = new St.Button({style_class:'app-well-app workspacestodock-caption-windowapps-button'});
+        this.actor = new St.Button({style_class:'workspacestodock-caption-windowapps-button'});
+        if (this._gsCurrentVersion[1] > 4) {
+            this.actor.add_style_class_name('app-well-app');
         }
         this.actor.set_child(this._icon.actor);
         this.actor._delegate = this;
@@ -149,12 +148,11 @@ const WindowAppMenuItem = new Lang.Class({
 
         //this._closeIcon = new St.Icon({ icon_name: 'window-close-symbolic', style_class: 'popup-menu-icon' });
 
-        if (thumbnail._gsCurrentVersion[1] < 6) {
-            this._closeButton = new St.Button({style_class:'workspacestodock-caption-windowapps-menu-close'});            
-        } else {
-            this._closeButton = new St.Button({style_class:'window-close workspacestodock-caption-windowapps-menu-close'});
+        this._closeButton = new St.Button({style_class:'workspacestodock-caption-windowapps-menu-close'});
+        if (thumbnail._gsCurrentVersion[1] > 4) {
+            this._closeButton.add_style_class_name('window-close');
         }
-        this._closeButton.set_size(CAPTION_APP_ICON_MENU_SIZE, CAPTION_APP_ICON_MENU_SIZE);
+        //this._closeButton.set_size(CAPTION_APP_ICON_MENU_SIZE, CAPTION_APP_ICON_MENU_SIZE);
         //this._closeButton.set_child(this._closeIcon);
 
         this.actor = new St.BoxLayout({reactive: true, style_class: 'popup-menu-item workspacestodock-caption-windowapps-menu-item'});
@@ -415,10 +413,7 @@ const myWorkspaceThumbnail = new Lang.Class({
                     if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps - window button app = "+app.get_name());
                     let button = new WindowAppIcon(app, metaWin, this);
                     if (metaWin.has_focus()) {
-                        if (this._gsCurrentVersion[1] > 4) {
-                            button.actor.add_style_class_name('popup-menu-item');
-                        }
-                        button.actor.add_style_pseudo_class('active');
+                        button.actor.add_style_class_name('running');
                     }
                     
                     if (this._wsWindowAppsBox)
@@ -506,16 +501,10 @@ const myWorkspaceThumbnail = new Lang.Class({
             let buttonActor = this._wsWindowAppsBox.get_child_at_index(index);
             if (metaWin.appears_focused) {
                 if (_DEBUG_) global.log("myWorkspaceThumbnail: _onWindowChanged - button app is focused");
-                if (this._gsCurrentVersion[1] > 4) {
-                    buttonActor.add_style_class_name('popup-menu-item');
-                }
-                buttonActor.add_style_pseudo_class('active');
+                buttonActor.add_style_class_name('running');
             } else {
                 if (_DEBUG_) global.log("myWorkspaceThumbnail: _onWindowChanged - button app is not focused");
-                if (this._gsCurrentVersion[1] > 4) {
-                    buttonActor.remove_style_class_name('popup-menu-item');
-                }
-                buttonActor.remove_style_pseudo_class('active');
+                buttonActor.remove_style_class_name('running');
             }
         }
     },
@@ -657,12 +646,9 @@ const myWorkspaceThumbnail = new Lang.Class({
                     if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button app = "+app.get_name());
                     let button = new WindowAppIcon(app, metaWin, this);
                     if (metaWin.has_focus()) {
-                        if (this._gsCurrentVersion[1] > 4) {
-                            button.actor.add_style_class_name('popup-menu-item');
-                        }
-                        button.actor.add_style_pseudo_class('active');
+                        button.actor.add_style_class_name('running');
                     }
-                        
+                    
                     if (this._wsWindowAppsBox)
                         this._wsWindowAppsBox.add(button.actor, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
 
