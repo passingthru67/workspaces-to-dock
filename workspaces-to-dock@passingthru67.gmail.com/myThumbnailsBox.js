@@ -212,8 +212,10 @@ const myWorkspaceThumbnail = new Lang.Class({
             this._wsWindowApps[i].metaWin.disconnect(this._wsWindowApps[i].signalFocusedId);
         }
         this._wsWindowApps = [];
-        this._wsWindowAppsBox.destroy_all_children();
-        this._wsWindowAppsBox = null;
+        if (this._wsWindowAppsBox) {
+            this._wsWindowAppsBox.destroy_all_children();
+            this._wsWindowAppsBox = null;
+        }
         if (this._menu) {
             this._menu.close();
             this._menu.destroy();
@@ -339,12 +341,14 @@ const myWorkspaceThumbnail = new Lang.Class({
                     this._thumbnailsBox.setPopupMenuFlag(true);
 
                     // Set windowAppsBox icons back to normal (not zoomed)
-                    let children = this._wsWindowAppsBox.get_children();
-                    for (let i=0; i < children.length; i++) {
-                        if (this._mySettings.get_boolean('workspace-caption-large-icons')) {
-                            children[i]._delegate._icon.setIconSize(CAPTION_APP_ICON_LARGE_SIZE);
-                        } else {
-                            children[i]._delegate._icon.setIconSize(CAPTION_APP_ICON_NORMAL_SIZE);
+                    if (this._wsWindowAppsBox) {
+                        let children = this._wsWindowAppsBox.get_children();
+                        for (let i=0; i < children.length; i++) {
+                            if (this._mySettings.get_boolean('workspace-caption-large-icons')) {
+                                children[i]._delegate._icon.setIconSize(CAPTION_APP_ICON_LARGE_SIZE);
+                            } else {
+                                children[i]._delegate._icon.setIconSize(CAPTION_APP_ICON_NORMAL_SIZE);
+                            }
                         }
                     }
                 } else {
@@ -588,9 +592,13 @@ const myWorkspaceThumbnail = new Lang.Class({
 
             // Remove button from windowApps list and windowAppsBox container
             thumbnail._wsWindowApps.splice(index, 1);
-            let buttonActor = thumbnail._wsWindowAppsBox.get_child_at_index(index);
-            thumbnail._wsWindowAppsBox.remove_actor(buttonActor);
-            buttonActor.destroy();
+            if (thumbnail._wsWindowAppsBox) {
+                let buttonActor = thumbnail._wsWindowAppsBox.get_child_at_index(index);
+                if (thumbnail._wsWindowAppsBox) {
+                    thumbnail._wsWindowAppsBox.remove_actor(buttonActor);
+                    buttonActor.destroy();
+                }
+            }
             
             // Delete metaWindow
             metaWindow.delete(global.get_current_time());
@@ -614,7 +622,8 @@ const myWorkspaceThumbnail = new Lang.Class({
         thumbnail._wsWindowApps = [];
         
         // Destroy all button actors
-        thumbnail._wsWindowAppsBox.destroy_all_children();
+        if (thumbnail._wsWindowAppsBox)
+            thumbnail._wsWindowAppsBox.destroy_all_children();
     },
 
     refreshWindowApps: function() {
@@ -660,40 +669,36 @@ const myWorkspaceThumbnail = new Lang.Class({
                 }
             }
         } else if (action == WindowAppsUpdateAction.REMOVE) {
-            if (this._wsWindowAppsBox) {
-                if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - wsWindowApps exists");
-                
-                if (metaWin.minimized) {
-                    if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - metaWin minimized = "+metaWin.get_wm_class());
+            if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - wsWindowApps exists");
+            if (metaWin.minimized) {
+                if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - metaWin minimized = "+metaWin.get_wm_class());
+            } else {
+                if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - metaWin closed = "+metaWin.get_wm_class());
+                let index = -1;
+                if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window buttons count = "+this._wsWindowApps.length);
+                for (let i = 0; i < this._wsWindowApps.length; i++) {
+                    if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button at index "+i+" is "+this._wsWindowApps[i].metaWin.get_wm_class());
+                    if (this._wsWindowApps[i].metaWin == metaWin) {    
+                        if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button found at index = "+i);
+                        index = i;
+                        break;
+                    }
+                }
+                if (index > -1) {
+                    if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - Splicing wsWindowAppsButtons at "+index);
+                    // Disconnect window focused signal
+                    metaWin.disconnect(this._wsWindowApps[index].signalFocusedId);
                     
+                    // Remove button from windowApps list and windowAppsBox container
+                    this._wsWindowApps.splice(index, 1);
+                    if (this._wsWindowAppsBox) {
+                        let buttonActor = this._wsWindowAppsBox.get_child_at_index(index);
+                        if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - Removing button at index "+index);
+                        this._wsWindowAppsBox.remove_actor(buttonActor);
+                        buttonActor.destroy();
+                    }
                 } else {
-                    if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - metaWin closed = "+metaWin.get_wm_class());
-                    let index = -1;
-                    if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window buttons count = "+this._wsWindowApps.length);
-                    for (let i = 0; i < this._wsWindowApps.length; i++) {
-                        if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button at index "+i+" is "+this._wsWindowApps[i].metaWin.get_wm_class());
-                        if (this._wsWindowApps[i].metaWin == metaWin) {    
-                            if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button found at index = "+i);
-                            index = i;
-                            break;
-                        }
-                    }
-                    if (index > -1) {
-                        if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - Splicing wsWindowAppsButtons at "+index);
-                        // Disconnect window focused signal
-                        metaWin.disconnect(this._wsWindowApps[index].signalFocusedId);
-                        
-                        // Remove button from windowApps list and windowAppsBox container
-                        this._wsWindowApps.splice(index, 1);
-                        if (this._wsWindowAppsBox) {
-                            let buttonActor = this._wsWindowAppsBox.get_child_at_index(index);
-                            if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - Removing button at index "+index);
-                            this._wsWindowAppsBox.remove_actor(buttonActor);
-                            buttonActor.destroy();
-                        }
-                    } else {
-                        if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - button not found in wsWindowAppsButtons");
-                    }
+                    if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - button not found in wsWindowAppsButtons");
                 }
             }
         }
