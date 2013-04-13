@@ -96,9 +96,9 @@ const WindowAppIcon = new Lang.Class({
         }
 
         this.actor = new St.Button({style_class:'workspacestodock-caption-windowapps-button'});
-        if (this._gsCurrentVersion[1] > 4) {
-            this.actor.add_style_class_name('app-well-app');
-        }
+        //if (this._gsCurrentVersion[1] > 4) {
+            //this.actor.add_style_class_name('app-well-app');
+        //}
         this.actor.set_child(this._icon.actor);
         this.actor._delegate = this;
         
