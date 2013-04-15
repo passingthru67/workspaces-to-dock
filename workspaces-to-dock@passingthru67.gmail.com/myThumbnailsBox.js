@@ -378,25 +378,15 @@ const myWorkspaceThumbnail = new Lang.Class({
     _initWindowApps: function(refresh) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps");
         // Create initial buttons for windows on workspace
-        let windows;
-        if (this._gsCurrentVersion[1] < 7) {
-            windows = global.get_window_actors().filter(Lang.bind(this, function(actor) {
-                let win = actor;
-                return win.get_workspace() == this.metaWorkspace.index() ||
-                        (win.get_meta_window() && win.get_meta_window().is_on_all_workspaces());
-            }));
-        } else {
-            windows = global.get_window_actors().filter(Lang.bind(this, function(actor) {
-                let win = actor.meta_window;
-                return win.located_on_workspace(this.metaWorkspace);
-            }));
-        }
-        
+        let windows = global.get_window_actors();
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps - window count = "+windows.length);
         for (let i = 0; i < windows.length; i++) {
             let metaWin = windows[i].get_meta_window();
+            if (!metaWin)
+                continue
+                
             let activeWorkspace = global.screen.get_active_workspace();
-            if (this._isMyWindow(windows[i]) || (metaWin.is_on_all_workspaces() && this.metaWorkspace == activeWorkspace)) {
+            if ((windows[i].get_workspace() == this.metaWorkspace.index()) || (metaWin.is_on_all_workspaces() && this.metaWorkspace == activeWorkspace)) {
 
 				if (refresh) {
 		            let index = -1;
