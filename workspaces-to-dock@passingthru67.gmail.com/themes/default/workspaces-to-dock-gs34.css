@@ -36,15 +36,15 @@
 }
 .workspacestodock-caption-windowapps-button-icon {
     padding: 1px 1px;
-    border: 1px solid rgba(180,180,180,0.7);
+    border: 1px solid rgba(180,180,180,0.5);
     border-radius: 3px;
-    background-gradient-start: rgba(200,200,200,0.3);
-    background-gradient-end: rgba(200,200,200,0.1);
+    background-gradient-start: rgba(255,255,255,0.2);
+    background-gradient-end: rgba(255,255,255,0.1);
     background-gradient-direction: vertical;
 }
 .workspacestodock-caption-windowapps-button.running > .workspacestodock-caption-windowapps-button-icon {
-    border: 1px solid rgba(255,255,255,0.7);
-    background-gradient-start: rgba(255,255,255,0.2);
+    /*border: 1px solid rgba(255,255,255,0.5);*/
+    background-gradient-start: rgba(255,255,255,0.1);
     background-gradient-end: rgba(255,255,255,0.5);
     background-gradient-direction: vertical;
 }
