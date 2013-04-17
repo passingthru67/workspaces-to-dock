@@ -407,7 +407,7 @@ const myWorkspaceThumbnail = new Lang.Class({
                     if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps - window button app = "+app.get_name());
                     let button = new WindowAppIcon(app, metaWin, this);
                     if (metaWin.has_focus()) {
-                        button.actor.add_style_class_name('running');
+                        button.actor.add_style_pseudo_class('active');
                     }
                     
                     if (this._wsWindowAppsBox)
@@ -495,10 +495,10 @@ const myWorkspaceThumbnail = new Lang.Class({
             let buttonActor = this._wsWindowAppsBox.get_child_at_index(index);
             if (metaWin.appears_focused) {
                 if (_DEBUG_) global.log("myWorkspaceThumbnail: _onWindowChanged - button app is focused");
-                buttonActor.add_style_class_name('running');
+                buttonActor.add_style_pseudo_class('active');
             } else {
                 if (_DEBUG_) global.log("myWorkspaceThumbnail: _onWindowChanged - button app is not focused");
-                buttonActor.remove_style_class_name('running');
+                buttonActor.remove_style_pseudo_class('active');
             }
         }
     },
@@ -645,7 +645,7 @@ const myWorkspaceThumbnail = new Lang.Class({
                     if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button app = "+app.get_name());
                     let button = new WindowAppIcon(app, metaWin, this);
                     if (metaWin.has_focus()) {
-                        button.actor.add_style_class_name('running');
+                        button.actor.add_style_pseudo_class('active');
                     }
                     
                     if (this._wsWindowAppsBox)
