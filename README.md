@@ -12,7 +12,7 @@ The easiest way to install Workspaces-to-Dock is from https://extensions.gnome.o
 
 If you would rather install it manually, download the releases branch on Github (https://github.com/passingthru67/workspaces-to-dock/tree/releases) and locate the appropriate release zip file. The release zip file contains the same non-debug version of the extension as https://extensions.gnome.org. The zip file can be extracted manually to the extensions folder or installed by using Gnome Tweak tool.
 
-    $unzip workspaces-to-dock@passingthru67@gmail.com.zip -d ~/.local/share/gnome-shell/extensions/workspaces-to-dock@passingthru67@gmail.com
+    $unzip workspaces-to-dock@passingthru67.gmail.com.zip -d ~/.local/share/gnome-shell/extensions/workspaces-to-dock@passingthru67.gmail.com
 
 or
      
@@ -45,7 +45,7 @@ Main Settings:
 
 	**Animation time** - The time it takes the dock to slide from hidden to visible state and vise versa.
 
-	**Show delay** - The time delayed before sliding the dock to the visible state. Adjusting this delay higher (500ms-700ms) can help prevent accidentally trigger the dock when using vertical scroll bars on maximized windows.
+	**Show delay** - The time delayed before sliding the dock to the visible state. Adjusting this delay higher (500ms-700ms) can help prevent accidentally triggering the dock when using vertical scroll bars on maximized windows.
 
 	**Hide delay** - The time delayed before sliding the dock to the hidden state.
 
@@ -91,9 +91,9 @@ Additional Settings:
 
 	**Show the workspace name** - When enabled, the workspace name is shown in the caption. It can be expanded to take up available space or its position can be adjusted using the arrow buttons. Workspace names can be edited using the Workspace Indicator extension. We hope to provide this ability in a future release.
 
-	**Show the workspace window count** - When enabled, the workspace window count is shown in the caption. It can be expanded to take up available space or its position can be adjusted using the arrow buttons. There is also an option to use images in place of text.
+	**Show the workspace window count** - When enabled, the workspace window count is shown in the caption. It can be expanded to take up available space or its position can be adjusted using the arrow buttons. There is also an option to use images in place of numeric text.
 
-    **Show the workspace taskbar (app icons)** - When enabled, the workspace taskbar is shown in the caption. The taskbar displays the icons of applications running on the workspace. It can be expanded to take up available space or its position can be adjusted using the arrow buttons. There is also an option to use large app icons. When the taskbar app icon is left-clicked, the application is brought into focus or minimized if it's already in focus. Right-clicking will bring up a context menu with an option to close the application.
+    **Show the workspace taskbar (app icons)** - When enabled, the workspace taskbar is shown in the caption. The taskbar displays the icons of applications running on the workspace. It can be expanded to take up available space or its position can be adjusted using the arrow buttons. There is also an option to use large app icons. When the taskbar app icon is left-clicked, the application is brought into focus or minimized if it's already in focus. Right-clicking will bring up the caption popup menu shown above.
     
 	**Show a spacer/filler** - When enabled, a spacer is inserted in the caption. It can be expanded to take up available space or its position can be adjusted using the arrow buttons.
 
@@ -162,12 +162,13 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
-**version 11 (Apr 18, 2013)**
+**version 11 (Apr 19, 2013)**
 
+- Support for Gnome Shell 3.8
 - Option to display workspace taskbar (app icons) in the caption (feature)
 - Option to require mouse click (in addition to hovering) to show dock when focused window is maximized (feature)
 - Option to leave the dock edge visible when slid out (feature)
-- Bug fixes for longstanding issues in dual monitor configurations
+- Bug fixes for longstanding issues with dual monitor configurations
 
 **version 10 (Feb 27, 2013)**
 
