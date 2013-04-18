@@ -6,7 +6,7 @@
   * ========================================================================================================
  */
 
-const _DEBUG_ = true;
+const _DEBUG_ = false;
 
 const Gio = imports.gi.Gio;
 const Clutter = imports.gi.Clutter;
@@ -620,8 +620,6 @@ const myWorkspaceThumbnail = new Lang.Class({
         if (this.state == ThumbnailState.NORMAL || this.state == ThumbnailState.NEW || this.state == ThumbnailState.ANIMATING_IN) {
             if (_DEBUG_) global.log("myWorkspaceThumbnail: refreshWindowApps - thumbnail state IS NORMAL,NEW, OR ANIMATING_IN");
             this._initWindowApps(true);
-        } else {
-            if (_DEBUG_) global.log("myWorkspaceThumbnail: refreshWindowApps - thumbnail state NOT NORMAL");
         }
     },
     
@@ -662,6 +660,7 @@ const myWorkspaceThumbnail = new Lang.Class({
             if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - wsWindowApps exists");
             if (metaWin.minimized) {
                 if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - metaWin minimized = "+metaWin.get_wm_class());
+                // Don't remove minimized windows
             } else {
                 if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - metaWin closed = "+metaWin.get_wm_class());
                 let index = -1;
@@ -687,8 +686,6 @@ const myWorkspaceThumbnail = new Lang.Class({
                         this._wsWindowAppsBox.remove_actor(buttonActor);
                         buttonActor.destroy();
                     }
-                } else {
-                    if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - button not found in wsWindowAppsButtons");
                 }
             }
         }
