@@ -1,17 +1,13 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Workspaces-To-Dock\n"
-"Report-Msgid-Bugs-To: \n"
+"Project-Id-Version: \n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2013-02-21 22:22+0100\n"
+"PO-Revision-Date: \n"
 "Last-Translator: Jonatan Zeidler <jonatan_zeidler@hotmail.de>\n"
-"Language-Team: German <jonatan_zeidler@gmx.de>\n"
-"Language: de\n"
+"Language-Team: \n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Poedit-Language: German\n"
-"X-Poedit-Country: GERMANY\n"
 
 #: extension.js, dockedWorkspaces.js
 msgid "Unknown version number"
@@ -21,8 +17,8 @@ msgstr "Unbekannte Versionsnummer"
 msgid "Main Settings"
 msgstr "Grundeinstellungen"
 
-msgid "<b>Visibility</b>"
-msgstr "<b>Sichtbarkeit</b>"
+msgid "<b>Behavior</b>"
+msgstr "<b>Verhalten</b>"
 
 msgid "Dock is fixed and always visible"
 msgstr "Die Dock hat eine feste Position und ist immer sichtbar"
@@ -31,10 +27,16 @@ msgid "Animation time [ms]"
 msgstr "Animationsdauer [ms]"
 
 msgid "Show delay [ms]"
-msgstr "EinblendeverzÃ¶gerung [ms]"
+msgstr "Einblendeverzögerung [ms]"
 
 msgid "Hide delay [ms]"
-msgstr "AusblendeverzÃ¶gerung [ms]"
+msgstr "Ausblendeverzögerung [ms]"
+
+msgid "Hover+click to show dock when window maximized"
+msgstr "Mit der Maus drüberfahren und klicken, um Dock anzuzeigen, wenn Fenster maximiert ist"
+
+msgid "Leave dock edge visible when slid out"
+msgstr "Dock-Kante sichtbar lassen beim Ausblenden"
 
 msgid "Autohide"
 msgstr "Autoverstecken"
@@ -85,7 +87,7 @@ msgid "4"
 msgstr "4"
 
 msgid "Extend the height of the dock to fill the screen"
-msgstr "Die HÃ¶he auf die BildschirmhÃ¶he ausdehnen"
+msgstr "Die Höhe auf die Bildschirmhöhe ausdehnen"
 
 msgid "Top Margin"
 msgstr "Oberer Rand"
@@ -97,28 +99,34 @@ msgid "Additional Settings"
 msgstr "Weitere Einstellungen"
 
 msgid "<b>Workspace Captions</b>"
-msgstr "<b>ArbeitsflÃ¤chenbeschriftungen</b>"
+msgstr "<b>Arbeitsflächenbeschriftungen</b>"
 
 msgid "User theme supports workspaces-to-dock captions"
-msgstr ""
+msgstr "Nutzerthema unterstützt workspaces-to-dock-Beschriftungen"
 
 msgid "Add captions to workspace thumbnails"
-msgstr "Beschriftung auf ArbeitsflÃ¤chenvorschau anzeigen"
+msgstr "Beschriftung auf Arbeitsflächenvorschau anzeigen"
 
 msgid "Show the workspace number"
-msgstr "ArbeitsflÃ¤chennummer"
+msgstr "Arbeitsflächennummer"
 
 msgid "Show the workspace name"
-msgstr "ArbeitsflÃ¤chennamen"
+msgstr "Arbeitsflächennamen"
 
 msgid "Show the workspace window count"
 msgstr "Fensteranzahl"
+
+msgid "Show the workspace taskbar (app icons)"
+msgstr "Zeige Arbeitsflächen-Task-Leiste (Programmsymbole)"
 
 msgid "Show a spacer/filler"
 msgstr "Platzhalter"
 
 msgid "Use image"
 msgstr "Nutze Bild"
+
+msgid "Large icons"
+msgstr "Große Symbole"
 
 msgid "Expand"
 msgstr "Ausdehnen"
@@ -127,11 +135,16 @@ msgid "<b>Custom Actions</b>"
 msgstr "Aktionen anpassen"
 
 msgid "Toggle overview mode with right click"
-msgstr "Mit Rechtsklick zur Ãœbersicht wechseln"
+msgstr "Mit Rechtsklick zur Übersicht wechseln"
 
 msgid "<b>Dash Integration</b>"
 msgstr "<b>Dash-Integration</b>"
 
 msgid "Show workspaces when hovering over Dash-To-Dock extension"
-msgstr "Zeige ArbeitsflÃ¤chen, wenn sich die Maus Ã¼ber der Dash-To-Dock-Erweiterung befindet"
+msgstr "Zeige Arbeitsflächen, wenn sich die Maus über der Dash-To-Dock-Erweiterung befindet"
 
+msgid "Close all applications"
+msgstr "Alle Anwendungen schließen"
+
+msgid "Extension preferences"
+msgstr "Erweiterungseinstellungen"

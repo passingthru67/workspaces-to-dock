@@ -16,11 +16,10 @@ msgid "Unknown version number"
 msgstr ""
 
 #: prefs.js
-
 msgid "Main Settings"
 msgstr ""
 
-msgid "<b>Visibility</b>"
+msgid "<b>Behavior</b>"
 msgstr ""
 
 msgid "Dock is fixed and always visible"
@@ -33,6 +32,12 @@ msgid "Show delay [ms]"
 msgstr ""
 
 msgid "Hide delay [ms]"
+msgstr ""
+
+msgid "Hover+click to show dock when window maximized"
+msgstr ""
+
+msgid "Leave dock edge visible when slid out"
 msgstr ""
 
 msgid "Autohide"
@@ -117,10 +122,16 @@ msgstr ""
 msgid "Show the workspace window count"
 msgstr ""
 
+msgid "Show the workspace taskbar (app icons)"
+msgstr ""
+
 msgid "Show a spacer/filler"
 msgstr ""
 
 msgid "Use image"
+msgstr ""
+
+msgid "Large icons"
 msgstr ""
 
 msgid "Expand"
@@ -138,3 +149,9 @@ msgstr ""
 msgid "Show workspaces when hovering over Dash-To-Dock extension"
 msgstr ""
 
+#: myThumbnailsBox.js
+msgid "Close all applications"
+msgstr ""
+
+msgid "Extension preferences"
+msgstr ""
