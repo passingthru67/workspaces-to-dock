@@ -81,9 +81,11 @@ Additional Settings:
 
 	**Add captions to workspace thumbnails** - Adds captions to the workspace thumbnails. Right clicking on the workspace caption displays a popup menu with options to close applications or show the extension preferences dialog. (See image below)
 
+	**User theme supports workspaces-to-dock captions** - When enabled, user themes that support workspaces-to-dock captions will be used to style the captions. Unfortunately, there is no built-in detection for when a theme supports workspaces-to-dock captions. Therefore, if this option is enabled, the default style will be disabled. We hope to provide auto-detection in a future release.
+
 ![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Popup.png)
 
-	**User theme supports workspaces-to-dock captions** - When enabled, user themes that support workspaces-to-dock captions will be used to style the captions. Unfortunately, there is no built-in detection for when a theme supports workspaces-to-dock captions. Therefore, if this option is enabled, the default style will be disabled. We hope to provide auto-detection in a future release.
+- **Caption Items:**
 
 	**Show the workspace number** - When enabled, the workspace number is shown in the caption. It can be expanded to take up available space or its position can be adjusted using the arrow buttons.
 
@@ -160,13 +162,15 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
-**version 11**
+**version 11 (Apr 18, 2013)**
+
 - Option to display workspace taskbar (app icons) in the caption (feature)
 - Option to require mouse click (in addition to hovering) to show dock when focused window is maximized (feature)
 - Option to leave the dock edge visible when slid out (feature)
 - Bug fixes for longstanding issues in dual monitor configurations
 
 **version 10 (Feb 27, 2013)**
+
 - Removed auto detection of user theme support (buggy?)
 
 **version 9 (Feb 25, 2013)**
