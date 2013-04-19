@@ -494,6 +494,15 @@ dockedWorkspaces.prototype = {
             } else {
                 this.emit('box-changed');
             }
+
+            // hide and show thumbnailsBox to reset workspace apps in caption
+            if (this._gsCurrentVersion[1] < 7) {
+                this._thumbnailsBox.hide();
+                this._thumbnailsBox.show();
+            } else {
+                this._thumbnailsBox._destroyThumbnails();
+                this._thumbnailsBox._createThumbnails();
+            }
         }));
 
         this._settings.connect('changed::autohide', Lang.bind(this, function() {
@@ -510,6 +519,7 @@ dockedWorkspaces.prototype = {
         }));
         
         this._settings.connect('changed::workspace-captions', Lang.bind(this, function() {
+            // hide and show thumbnailsBox to reset workspace apps in caption
             if (this._gsCurrentVersion[1] < 7) {
                 this._thumbnailsBox.hide();
                 this._thumbnailsBox.show();
@@ -519,6 +529,7 @@ dockedWorkspaces.prototype = {
             }
         }));
         this._settings.connect('changed::workspace-caption-items', Lang.bind(this, function() {
+            // hide and show thumbnailsBox to reset workspace apps in caption
             if (this._gsCurrentVersion[1] < 7) {
                 this._thumbnailsBox.hide();
                 this._thumbnailsBox.show();
@@ -528,6 +539,7 @@ dockedWorkspaces.prototype = {
             }
         }));
         this._settings.connect('changed::workspace-caption-windowcount-image', Lang.bind(this, function() {
+            // hide and show thumbnailsBox to reset workspace apps in caption
             if (this._gsCurrentVersion[1] < 7) {
                 this._thumbnailsBox.hide();
                 this._thumbnailsBox.show();
@@ -538,6 +550,7 @@ dockedWorkspaces.prototype = {
         }));
 
         this._settings.connect('changed::workspace-caption-large-icons', Lang.bind(this, function() {
+            // hide and show thumbnailsBox to reset workspace apps in caption
             if (this._gsCurrentVersion[1] < 7) {
                 this._thumbnailsBox.hide();
                 this._thumbnailsBox.show();
