@@ -138,7 +138,7 @@ dockedWorkspaces.prototype = {
                 Lang.bind(this, this._updateYPosition)
             ],
             [
-                this._thumbnailsBox.actor,
+                this._thumbnailsBox._background,
                 'notify::width',
                 Lang.bind(this, this._thumbnailsBoxResized)
             ],
@@ -1072,6 +1072,10 @@ dockedWorkspaces.prototype = {
     // update the dock size
     _updateSize: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _updateSize");
+        // Sometimes thumbnailsBox actor is wider than thumbnailsBox background
+        // This happens when thumbnail count grows and thumbnails have to be resized
+        // Manually set thumbnailsBox actor width equal to background width so there's no gap
+        this._thumbnailsBox.actor.width = this._thumbnailsBox._background.width;
 
         // check if the dock is on the primary monitor
         let primary = false;
