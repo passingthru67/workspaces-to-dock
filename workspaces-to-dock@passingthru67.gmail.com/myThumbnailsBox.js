@@ -199,6 +199,9 @@ const myWorkspaceThumbnail = new Lang.Class({
         this._afterWindowRemovedId = this.metaWorkspace.connect_after('window-removed',
                                                            Lang.bind(this, this._onAfterWindowRemoved));
 
+        this._switchWorkspaceNotifyId = 
+            global.window_manager.connect('switch-workspace',
+                                          Lang.bind(this, this._activeWorkspaceChanged));
 
         this._menuManager = new PopupMenu.PopupMenuManager(this);
 
@@ -208,6 +211,10 @@ const myWorkspaceThumbnail = new Lang.Class({
 
     _onDestroy: function(actor) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _onDestroy");
+        if (this._switchWorkspaceNotifyId > 0) {
+            global.window_manager.disconnect(this._switchWorkspaceNotifyId);
+            this._switchWorkspaceNotifyId = 0;
+        }
         for (let i = 0; i < this._wsWindowApps.length; i++) {
             this._wsWindowApps[i].metaWin.disconnect(this._wsWindowApps[i].signalFocusedId);
         }
@@ -223,7 +230,7 @@ const myWorkspaceThumbnail = new Lang.Class({
         this.parent(actor);
     },
 
-    // this function initializes the WorkspaceThumbnails captions
+    // function initializes the WorkspaceThumbnails captions
     _initCaption: function() {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _initCaption");
         if (this._mySettings.get_boolean('workspace-captions')) {
@@ -374,8 +381,8 @@ const myWorkspaceThumbnail = new Lang.Class({
 
     },
     
-    // This function initializes the window app icons for the caption taskbar
-    _initWindowApps: function(refresh) {
+    // function initializes the window app icons for the caption taskbar
+    _initWindowApps: function() {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps");
         // Create initial buttons for windows on workspace
         let windows = global.get_window_actors();
@@ -383,23 +390,10 @@ const myWorkspaceThumbnail = new Lang.Class({
         for (let i = 0; i < windows.length; i++) {
             let metaWin = windows[i].get_meta_window();
             if (!metaWin)
-                continue
+                continue;
                 
             let activeWorkspace = global.screen.get_active_workspace();
             if ((windows[i].get_workspace() == this.metaWorkspace.index()) || (metaWin.is_on_all_workspaces() && this.metaWorkspace == activeWorkspace)) {
-
-				if (refresh) {
-		            let index = -1;
-		            for (let i = 0; i < this._wsWindowApps.length; i++) {
-		                if (this._wsWindowApps[i].metaWin == metaWin) {    
-		                    index = i;
-		                    break;
-		                }
-		            }
-		            if (index > -1)
-		                continue;
-				}
-
                 if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps - add window buttons");
                 let tracker = Shell.WindowTracker.get_default();
                 let app = tracker.get_window_app(metaWin);
@@ -419,35 +413,11 @@ const myWorkspaceThumbnail = new Lang.Class({
                     winInfo.signalFocusedId = metaWin.connect('notify::appears-focused', Lang.bind(this, this._onWindowChanged, metaWin));
                     this._wsWindowApps.push(winInfo);
                 }
-            } else {
-                // This window shouldn't be showing on this workspace
-                if (refresh) {
-                    let index = -1;
-                    for (let i = 0; i < this._wsWindowApps.length; i++) {
-                        if (this._wsWindowApps[i].metaWin == metaWin) {    
-                            index = i;
-                            break;
-                        }
-                    }
-                    if (index > -1) {
-                        // Disconnect window focused signal
-                        metaWin.disconnect(this._wsWindowApps[index].signalFocusedId);
-                        
-                        // Remove button from windowApps list and windowAppsBox container
-                        this._wsWindowApps.splice(index, 1);
-                        if (this._wsWindowAppsBox) {
-                            let buttonActor = this._wsWindowAppsBox.get_child_at_index(index);
-                            this._wsWindowAppsBox.remove_actor(buttonActor);
-                            buttonActor.destroy();
-                        }
-                    }
-                }
             }
         }
 
         // Update window count
         this._updateWindowCount();
-
     },
     
     workspaceRemoved: function() {
@@ -457,6 +427,79 @@ const myWorkspaceThumbnail = new Lang.Class({
         this.parent();
     },
 
+    // function called when the active workspace is changed
+    // windows visible on all workspaces are moved to active workspace
+    _activeWorkspaceChanged: function() {
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: _activeWorkspaceChanged");
+        let windows = global.get_window_actors().filter(Lang.bind(this, function(actor) {
+                let win = actor;
+                return (win.get_meta_window() && win.get_meta_window().is_on_all_workspaces());
+            }));
+        
+        
+        for (let i = 0; i < windows.length; i++) {
+            let metaWin = windows[i].get_meta_window();
+            if (!metaWin)
+                continue;
+
+            let activeWorkspace = global.screen.get_active_workspace();
+            if (this.metaWorkspace == activeWorkspace) {
+	            // Show window on active workspace
+	            let index = -1;
+	            for (let i = 0; i < this._wsWindowApps.length; i++) {
+	                if (this._wsWindowApps[i].metaWin == metaWin) {    
+	                    index = i;
+	                    break;
+	                }
+	            }
+	            if (index > -1)
+	                continue;
+
+                let tracker = Shell.WindowTracker.get_default();
+                let app = tracker.get_window_app(metaWin);
+                if (app) {
+                    let button = new WindowAppIcon(app, metaWin, this);
+                    if (metaWin.has_focus()) {
+                        button.actor.add_style_pseudo_class('active');
+                    }
+                    
+                    if (this._wsWindowAppsBox)
+                        this._wsWindowAppsBox.add(button.actor, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
+                                        
+                    let winInfo = {};
+                    winInfo.app = app;
+                    winInfo.metaWin = metaWin;
+                    winInfo.signalFocusedId = metaWin.connect('notify::appears-focused', Lang.bind(this, this._onWindowChanged, metaWin));
+                    this._wsWindowApps.push(winInfo);
+                }
+            } else {
+                // Don't show window on active workspace
+                let index = -1;
+                for (let i = 0; i < this._wsWindowApps.length; i++) {
+                    if (this._wsWindowApps[i].metaWin == metaWin) {    
+                        index = i;
+                        break;
+                    }
+                }
+                if (index > -1) {
+                    // Disconnect window focused signal
+                    metaWin.disconnect(this._wsWindowApps[index].signalFocusedId);
+                    
+                    // Remove button from windowApps list and windowAppsBox container
+                    this._wsWindowApps.splice(index, 1);
+                    if (this._wsWindowAppsBox) {
+                        let buttonActor = this._wsWindowAppsBox.get_child_at_index(index);
+                        this._wsWindowAppsBox.remove_actor(buttonActor);
+                        buttonActor.destroy();
+                    }
+                }
+            }
+        }
+
+        // Update window count
+        this._updateWindowCount();
+    },
+    
     _onAfterWindowAdded: function(metaWorkspace, metaWin) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _onAfterWindowAdded");
         this._updateWindowApps(metaWin, WindowAppsUpdateAction.ADD);
@@ -616,13 +659,6 @@ const myWorkspaceThumbnail = new Lang.Class({
             thumbnail._wsWindowAppsBox.destroy_all_children();
     },
 
-    refreshWindowApps: function() {
-        if (this.state == ThumbnailState.NORMAL || this.state == ThumbnailState.NEW || this.state == ThumbnailState.ANIMATING_IN) {
-            if (_DEBUG_) global.log("myWorkspaceThumbnail: refreshWindowApps - thumbnail state IS NORMAL,NEW, OR ANIMATING_IN");
-            this._initWindowApps(true);
-        }
-    },
-    
     _updateWindowApps: function(metaWin, action) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps");
         if (action == WindowAppsUpdateAction.ADD) {
@@ -1058,12 +1094,12 @@ const myThumbnailsBox = new Lang.Class({
         // Compute the scale we'll need once everything is updated
         let nWorkspaces = global.screen.n_workspaces;
         
-        // passingthru67 - add 4px to totalSpacing calculation
+        // passingthru67 - add 8px to totalSpacing calculation
         // otherwise newScale doesn't kick in soon enough and total thumbnails height is greater than height of dock
-        // why is 4px needed? spacing was already adjusted in gnome-shell.css from 7px to 27px (GS36 11px to ?)
+        // why is 8px needed? spacing was already adjusted in gnome-shell.css from 7px to 27px (GS36 11px to ?)
         // does it have anything to do with a border added by St.Bin in WorkspaceThumbnails _background?
         //let totalSpacing = (nWorkspaces - 1) * spacing;
-        let totalSpacing = (nWorkspaces - 1) * (spacing + 4);
+        let totalSpacing = (nWorkspaces - 1) * (spacing + 8);
         let avail = (contentBox.y2 - contentBox.y1) - totalSpacing;
 
         let newScale = (avail / nWorkspaces) / portholeHeight;
@@ -1316,17 +1352,9 @@ const myThumbnailsBox = new Lang.Class({
         let thumbnail;
         let activeWorkspace = global.screen.get_active_workspace();
         for (let i = 0; i < this._thumbnails.length; i++) {
-
-            // passingthru67: refresh thumbnail window apps .. this is needed so that
-            // windows that show in all workspaces can to be removed/added
-            this._thumbnails[i].refreshWindowApps();
-
             if (this._thumbnails[i].metaWorkspace == activeWorkspace) {
                 thumbnail = this._thumbnails[i];
-                
-                // passingthru67: commented out the break below because we want to 
-                // itterate through all the thumbnails to refresh window apps
-                //break;
+                break;
             }
         }
 
