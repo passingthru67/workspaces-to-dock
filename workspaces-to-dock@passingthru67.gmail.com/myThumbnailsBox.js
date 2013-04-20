@@ -612,51 +612,25 @@ const myWorkspaceThumbnail = new Lang.Class({
     closeMetaWindow: function(actor, event, thumbnail, metaWin) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: closeMetaWindow");
         let metaWindow = metaWin;
-        let index = -1;
         for (let i = 0; i < thumbnail._wsWindowApps.length; i++) {
             if (thumbnail._wsWindowApps[i].metaWin == metaWindow) {    
-                index = i;
-                break;
+                // Delete metaWindow
+                metaWindow.delete(global.get_current_time());
             }
-        }
-        if (index > -1) {
-            // Disconnect window focused signal
-            metaWin.disconnect(thumbnail._wsWindowApps[index].signalFocusedId);
-
-            // Remove button from windowApps list and windowAppsBox container
-            thumbnail._wsWindowApps.splice(index, 1);
-            if (thumbnail._wsWindowAppsBox) {
-                let buttonActor = thumbnail._wsWindowAppsBox.get_child_at_index(index);
-                if (thumbnail._wsWindowAppsBox) {
-                    thumbnail._wsWindowAppsBox.remove_actor(buttonActor);
-                    buttonActor.destroy();
-                }
-            }
-            
-            // Delete metaWindow
-            metaWindow.delete(global.get_current_time());
-            
-            // Remove menuItem
-            let menuItemActor = actor.get_parent();
-            thumbnail._windowAppsMenuListBox.remove_actor(menuItemActor);
-            menuItemActor.destroy();
         }
     },
 
     _closeAllMetaWindows: function(menuItem, event, thumbnail) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _closeAllMetaWindows");
         for (let i = 0; i < thumbnail._wsWindowApps.length; i++) {
-            // Disconnect window focused signal
-            thumbnail._wsWindowApps[i].metaWin.disconnect(thumbnail._wsWindowApps[i].signalFocusedId);
-            
             // Delete metaWindow
             thumbnail._wsWindowApps[i].metaWin.delete(global.get_current_time());
+            
+            // NOTE: bug quiting all GIMP windows
+            // even tried thumbnail._wsWindowApps[i].app.request_quit();
+            // Gnome Shell has same issue .. selecting quit from panel app menu only closes current Gimp window
+            // Unity has same issue .. https://bugs.launchpad.net/ubuntu/+source/unity/+bug/1123593
         }
-        thumbnail._wsWindowApps = [];
-        
-        // Destroy all button actors
-        if (thumbnail._wsWindowAppsBox)
-            thumbnail._wsWindowAppsBox.destroy_all_children();
     },
 
     _updateWindowApps: function(metaWin, action) {
@@ -722,6 +696,14 @@ const myWorkspaceThumbnail = new Lang.Class({
                         this._wsWindowAppsBox.remove_actor(buttonActor);
                         buttonActor.destroy();
                     }
+
+                    // Remove menuItem
+                    if (this._windowAppsMenuListBox) {
+                        let menuItemActor = this._windowAppsMenuListBox.get_child_at_index(index);
+                        this._windowAppsMenuListBox.remove_actor(menuItemActor);
+                        menuItemActor.destroy();
+                    }
+
                 }
             }
         }
@@ -1094,12 +1076,12 @@ const myThumbnailsBox = new Lang.Class({
         // Compute the scale we'll need once everything is updated
         let nWorkspaces = global.screen.n_workspaces;
         
-        // passingthru67 - add 8px to totalSpacing calculation
+        // passingthru67 - add 5px to totalSpacing calculation
         // otherwise newScale doesn't kick in soon enough and total thumbnails height is greater than height of dock
-        // why is 8px needed? spacing was already adjusted in gnome-shell.css from 7px to 27px (GS36 11px to ?)
+        // why is 5px needed? spacing was already adjusted in gnome-shell.css from 7px to 27px (GS36 11px to ?)
         // does it have anything to do with a border added by St.Bin in WorkspaceThumbnails _background?
         //let totalSpacing = (nWorkspaces - 1) * spacing;
-        let totalSpacing = (nWorkspaces - 1) * (spacing + 8);
+        let totalSpacing = (nWorkspaces - 1) * (spacing + 5);
         let avail = (contentBox.y2 - contentBox.y1) - totalSpacing;
 
         let newScale = (avail / nWorkspaces) / portholeHeight;
