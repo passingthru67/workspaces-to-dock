@@ -59,19 +59,19 @@ const OVERVIEW_MODE = IntellihideMode.SHOW;
  * A rough and ugly implementation of the intellihide behaviour.
  * Intellihide object: call show()/hide() function based on the overlap with the
  * the dock staticBox object;
- * 
- * Dock object has to contain a Clutter.ActorBox object named staticBox and 
+ *
+ * Dock object has to contain a Clutter.ActorBox object named staticBox and
  * emit a 'box-changed' signal when this changes.
- * 
+ *
 */
 
 let intellihide = function(dock, settings, gsCurrentVersion) {
     this._gsCurrentVersion = gsCurrentVersion;
-    
+
     // Define gnome shell 3.6+ grabHelper
     if (this._gsCurrentVersion[1] > 4)
         GrabHelper = imports.ui.grabHelper;
-        
+
     this._init(dock, settings);
 }
 
@@ -81,10 +81,10 @@ intellihide.prototype = {
 		// temporarily disable intellihide until initialized (prevents connected signals from trying to update dock visibility)
 		this._disableIntellihide = true;
 		if (_DEBUG_) global.log("intellihide: init - disaableIntellihide");
-		
+
 		// Override Gnome Shell functions
 		this._overrideGnomeShellFunctions();
-		
+
         // Load settings
         this._settings = settings;
         this._bindSettingsChanges();
@@ -99,14 +99,14 @@ intellihide.prototype = {
 
         // Dock object
         this._dock = dock;
-        
+
         // Keep track of the current overview mode (I mean if it is on/off)
         this._inOverview = false;
-        
+
         // Flag set when overview mode is toggled by window drag event
         this._toggledOverviewOnDrag = false;
 
-        // Main id of the timeout controlling timeout for updateDockVisibility function 
+        // Main id of the timeout controlling timeout for updateDockVisibility function
         // when windows are dragged around (move and resize)
         this._windowChangedTimeout = 0;
 
@@ -133,7 +133,7 @@ intellihide.prototype = {
             // direct maximize/unmazimize are not included in grab-operations
             [
                 global.window_manager,
-                'maximize', 
+                'maximize',
                 Lang.bind(this, this._onWindowMaximized)
             ],
             [
@@ -229,16 +229,16 @@ intellihide.prototype = {
             for (let i = 0; i < Main.panel._menus._menus.length; i++) {
                 this._signalHandler.push([Main.panel._menus._menus[i].menu, 'open-state-changed', Lang.bind(this, this._onPanelMenuStateChange)]);
             }
-            
+
             // Detect viewSelector Tab signals in overview mode
             for (let i = 0; i < Main.overview._viewSelector._tabs.length; i++) {
                 this._signalHandler.push([Main.overview._viewSelector._tabs[i], 'activated', Lang.bind(this, this._overviewTabChanged)]);
             }
-            
+
             // Detect Search started and cancelled
             this._signalHandler.push([Main.overview._viewSelector._searchTab, 'activated', Lang.bind(this, this._searchStarted)]);
             this._signalHandler.push([Main.overview._viewSelector._searchTab, 'search-cancelled', Lang.bind(this, this._searchCancelled)]);
-            
+
         } else if (this._gsCurrentVersion[1] == 6) {
             // Gnome Shell 3.6 signals
             this._signalHandler.push(
@@ -311,7 +311,7 @@ intellihide.prototype = {
             );
         }
 		if (_DEBUG_) global.log("intellihide: init - signals being captured");
-        
+
         // Start main loop and bind initialize function
         Mainloop.idle_add(Lang.bind(this, this._initialize));
     },
@@ -321,11 +321,11 @@ intellihide.prototype = {
         // enable intellihide now
         this._disableIntellihide = false;
         if (_DEBUG_) global.log("intellihide: initialize - turn on intellihide");
-        
+
         // updte dock visibility
         this._updateDockVisibility();
     },
-    
+
     destroy: function() {
         if (_DEBUG_) global.log("intellihide: destroying");
         // Disconnect global signals
@@ -343,7 +343,7 @@ intellihide.prototype = {
         if (this._gsCurrentVersion[1] == 4) {
             this._overrideGnomeShell34Functions();
         } else if (this._gsCurrentVersion[1] == 6) {
-            this._overrideGnomeShell36Functions();            
+            this._overrideGnomeShell36Functions();
         } else {
             this._overrideGnomeShell38Functions();
         }
@@ -355,12 +355,12 @@ intellihide.prototype = {
         if (this._gsCurrentVersion[1] == 4) {
             this._restoreGnomeShell34Functions();
         } else if (this._gsCurrentVersion[1] == 6) {
-            this._restoreGnomeShell36Functions();            
+            this._restoreGnomeShell36Functions();
         } else {
             this._restoreGnomeShell38Functions();
         }
     },
-    
+
     // gnome shell 3.4 function overrides
     _overrideGnomeShell34Functions: function() {
         // Override the PopupMenuManager addMenu function to emit a signal when new menus are added
@@ -388,12 +388,12 @@ intellihide.prototype = {
                 this._menus.push(menudata);
             else
                 this._menus.splice(position, 0, menudata);
-            
+
             this.emit("menu-added", menu);
         };
         Signals.addSignalMethods(PopupMenu.PopupMenuManager.prototype);
     },
-    
+
     // gnome shell 3.6 function overrides
 	_overrideGnomeShell36Functions: function() {
         // Override the ViewSelector showPage function to emit a signal when overview page changes
@@ -622,7 +622,7 @@ intellihide.prototype = {
             if (!this.grabbed && this._capturedEventId > 0) {
                 global.stage.disconnect(this._capturedEventId);
                 this._capturedEventId = 0;
-                
+
                 this._ignoreRelease = false;
             }
 
@@ -639,14 +639,14 @@ intellihide.prototype = {
 
         Signals.addSignalMethods(GrabHelper.GrabHelper.prototype);
 	},
-	
+
     // gnome shell 3.4 function restores
 	_restoreGnomeShell34Functions: function() {
         // Restore normal PopupMenuManager addMenu function
         let p = PopupMenu.PopupMenuManager.prototype;
         p.addMenu = this.saved_PopupMenuManager_addMenu;
     },
-    
+
     // gnome shell 3.6 function restores
     _restoreGnomeShell36Functions: function() {
 		// Restore normal ViewSelector showPage function
@@ -656,22 +656,22 @@ intellihide.prototype = {
         // Restore normal PopupMenuManager addMenu function
         let p = PopupMenu.PopupMenuManager.prototype;
         p.addMenu = this.saved_PopupMenuManager_addMenu;
-        
+
         // Restore normal GrabHelper grab function
         let p = GrabHelper.GrabHelper.prototype;
         p.grab = this.saved_GrabHelper_grab;
-        
+
         // Restore normal GrabHelper ungrab function
         let p = GrabHelper.GrabHelper.prototype;
         p.ungrab = this.saved_GrabHelper_ungrab;
 	},
-	
+
     // gnome shell 3.8 function restores
     _restoreGnomeShell38Functions: function() {
         // Restore normal GrabHelper grab function
         let p = GrabHelper.GrabHelper.prototype;
         p.grab = this.saved_GrabHelper_grab;
-        
+
         // Restore normal GrabHelper ungrab function
         let p = GrabHelper.GrabHelper.prototype;
         p.ungrab = this.saved_GrabHelper_ungrab;
@@ -708,25 +708,25 @@ intellihide.prototype = {
 		if (_DEBUG_) global.log("intellihide: _onDockSettingsChanged");
 		this._updateDockVisibility();
 	},
-	
+
     // handler for when window is maximized
 	_onWindowMaximized: function() {
 		if (_DEBUG_) global.log("intellihide: _onWindowMaximized");
 		this._updateDockVisibility();
 	},
-	
+
     // handler for when window is unmaximized
 	_onWindowUnmaximized: function() {
 		if (_DEBUG_) global.log("intellihide: _onWindowUnmaximized");
 		this._updateDockVisibility();
 	},
-	
+
     // handler for when screen is restacked
 	_onScreenRestacked: function() {
 		if (_DEBUG_) global.log("intellihide: _onScreenRestacked");
 		this._updateDockVisibility();
 	},
-	
+
     // handler for when monitor changes
 	_onMonitorsChanged: function() {
 		if (_DEBUG_) global.log("intellihide: _onMonitorsChanged");
@@ -739,7 +739,7 @@ intellihide.prototype = {
         Main.overview.show();
         this._toggledOverviewOnDrag = true;
     },
-    
+
     // handler for when thumbnail windows dragging cancelled
     _onWindowDragCancelled: function() {
         if (_DEBUG_) global.log("intellihide: _onWindowDragCancelled");
@@ -977,8 +977,8 @@ intellihide.prototype = {
 
             if (this._windowChangedTimeout > 0)
                 Mainloop.source_remove(this._windowChangedTimeout); // Just to be sure
-            
-            this._windowChangedTimeout = Mainloop.timeout_add(INTERVAL, 
+
+            this._windowChangedTimeout = Mainloop.timeout_add(INTERVAL,
                 Lang.bind(this, function() {
                     this._updateDockVisibility();
                     return true; // to make the loop continue
@@ -1048,8 +1048,8 @@ intellihide.prototype = {
         if (this._disableIntellihide)
             return;
 
-        // If we are in overview mode and the dock is set to be visible prevent 
-        // it to be hidden by window events(window create, workspace change, 
+        // If we are in overview mode and the dock is set to be visible prevent
+        // it to be hidden by window events(window create, workspace change,
         // window close...)
         if (this._inOverview) {
             if (OVERVIEW_MODE !== IntellihideMode.INTELLIHIDE) {
@@ -1065,7 +1065,7 @@ intellihide.prototype = {
                 let windows = global.get_window_actors();
 
                 if (windows.length > 0) {
-                    
+
                     // SANITY CHECK
                     //global.log("===============================================================");
                     //for (let i = windows.length-1; i >= 0; i--) {
@@ -1078,7 +1078,7 @@ intellihide.prototype = {
                         //global.log(msg);
                     //}
                     //global.log("---------------------------------------------------------------");
-                    
+
                     // This is the default window on top of all others
                     this._topWindow = windows[windows.length-1].get_meta_window();
 
@@ -1108,7 +1108,7 @@ intellihide.prototype = {
                         }
                     }
                 }
-                
+
                 if (_DEBUG_) global.log("intellihide: updateDockVisiblity - overlaps = "+overlaps);
                 if (overlaps) {
                     this._hide(true); // hide and make stage nonreactive so meta popup windows receive hover and clicks
@@ -1134,15 +1134,15 @@ intellihide.prototype = {
         if (!this._handledWindowType(meta_win))
             return false;
 
-        let wksp = meta_win.get_workspace();        
+        let wksp = meta_win.get_workspace();
         if (!wksp)
             return false;
 
         let wksp_index = wksp.index();
 
         // check intellihide-option for windows of focused app
-        if (this._settings.get_int('intellihide-option') == 1) { 
-            
+        if (this._settings.get_int('intellihide-option') == 1) {
+
             // TEST1: ignore if meta_win is a popup window
             if (meta_win.get_window_type() != Meta.WindowType.POPUP_MENU) {
                 // TEST2: ignore if meta_win is not same class as the focused window (not same app)
@@ -1153,10 +1153,10 @@ intellihide.prototype = {
 
         // check intellihide-option for top-level windows of  focused app
         if (this._settings.get_int('intellihide-option') == 2) {
-            
+
             // TEST1: ignore if meta_win is a popup window
             if (meta_win.get_window_type() != Meta.WindowType.POPUP_MENU) {
-                
+
                 // TEST2: ignore if meta_win is not same class as the focused window (not same app)
                 if (this._focusedWin.get_wm_class() != meta_win.get_wm_class())
                     return false;
@@ -1215,7 +1215,7 @@ intellihide.prototype = {
                 }
             }
         }
-        
+
         return false;
     }
 
