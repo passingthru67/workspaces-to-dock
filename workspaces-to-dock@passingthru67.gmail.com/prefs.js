@@ -28,17 +28,18 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         let self = this;
         this.parent(params);
         this.settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
+        this._rtl = Gtk.Widget.get_default_direction() == Gtk.TextDirection.RTL;
 
         let notebook = new Gtk.Notebook();
-        
-        
+
         /* ================================================*/
         /* NOTEBOOK - MAIN SETTINGS PAGE */
         /* ------------------------------------------------*/
 
         let notebookMainSettings = new Gtk.Box({
             orientation: Gtk.Orientation.VERTICAL,
-            margin_left: 10
+            margin_left: 10,
+            margin_right: 10
         });
         let notebookMainSettingsTitle = new Gtk.Label({
             label: _("Main Settings"),
@@ -218,7 +219,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }));
 
         /* INTELLIHIDE OPTIONS */
-        
+
         let intellihideNormal =  new Gtk.RadioButton({
             label: _("Dodge all windows"),
             margin_top: 0
@@ -268,7 +269,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         dockSettingsGrid1.attach(hideDelay, 1, 2, 1, 1);
         dockSettingsGrid1.attach(requireClick, 0, 3, 2, 1);
         dockSettingsGrid1.attach(leaveVisible, 0, 4, 2, 1);
-        
+
 
         dockSettingsGrid2.attach(autohideLabel, 0, 0, 1, 1);
         dockSettingsGrid2.attach(autohide, 1, 0, 1, 1);
@@ -277,7 +278,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         dockSettingsGrid2.attach(intellihideNormal, 0, 2, 2, 1);
         dockSettingsGrid2.attach(intellihideFocusApp, 0, 3, 2, 1);
         dockSettingsGrid2.attach(intellihideTopWindow, 0, 4, 2, 1);
-        
+
         dockSettingsMain1.add(dockSettingsGrid1);
         dockSettingsMain1.add(dockSettingsGrid2);
 
@@ -285,7 +286,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         this.settings.bind('intellihide', intellihideNormal, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
         this.settings.bind('intellihide', intellihideFocusApp, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
         this.settings.bind('intellihide', intellihideTopWindow, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
-        
+
         dockSettings.add(dockSettingsTitle);
         dockSettings.add(dockSettingsControl1);
         dockSettings.add(dockSettingsMain1);
@@ -379,7 +380,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         background.add(backgroundTitle);
         background.add(opaqueLayerControl);
         background.add(opaqueLayerMain);
-        
+
         notebookMainSettings.add(background);
 
         /* DOCK POSITION */
@@ -411,7 +412,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             dockMonitorCombo.append_text(_('2'));
             dockMonitorCombo.append_text(_('3'));
             dockMonitorCombo.append_text(_('4'));
-            
+
         let active = this.settings.get_int('preferred-monitor');
         if (active<0)
             active = 0;
@@ -509,7 +510,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
 
         this.settings.bind('extend-height', dockHeightMargins, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
-        
+
         dockHeightMargins.add(topMarginLabel);
         dockHeightMargins.add(topMargin);
         dockHeightMargins.add(bottomMarginLabel);
@@ -531,7 +532,8 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         /* ------------------------------------------------*/
         let notebookAdditionalSettings = new Gtk.Box({
             orientation: Gtk.Orientation.VERTICAL,
-            margin_left: 10
+            margin_left: 10,
+            margin_right: 10
         });
         let notebookAdditionalSettingsTitle = new Gtk.Label({
             label: _("Additional Settings"),
@@ -542,7 +544,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
 
 
-        
+
         /* WORKSPACE CAPTIONS */
 
         let workspaceCaptions = new Gtk.Box({
@@ -556,7 +558,16 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             margin_top: 15,
             margin_bottom: 5
         });
-        
+
+        let icon_previous, icon_next;
+        if (this._rtl) {
+            icon_previous = "go-next";
+            icon_next = "go-previous";
+        } else {
+            icon_previous = "go-previous";
+            icon_next = "go-next";
+        }
+
         // Workspace Captions - Enable/Disable Controller
         let workspaceCaptionsControl = new Gtk.Box({
             margin_top: 10,
@@ -634,7 +645,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
         let wsCaptionNumber_MoveLeftButton = new Gtk.Button({
             image: new Gtk.Image({
-                icon_name: 'go-previous'
+                icon_name: icon_previous
             })
         });
         wsCaptionNumber_MoveLeftButton.connect('clicked', function(){
@@ -642,7 +653,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
         let wsCaptionNumber_MoveRightButton = new Gtk.Button({
             image: new Gtk.Image({
-                icon_name: 'go-next'
+                icon_name: icon_next
             })
         });
         wsCaptionNumber_MoveRightButton.connect('clicked', function(){
@@ -683,7 +694,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
         let wsCaptionName_MoveLeftButton = new Gtk.Button({
             image: new Gtk.Image({
-                icon_name: 'go-previous'
+                icon_name: icon_previous
             })
         });
         wsCaptionName_MoveLeftButton.connect('clicked', function(){
@@ -691,7 +702,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
         let wsCaptionName_MoveRightButton = new Gtk.Button({
             image: new Gtk.Image({
-                icon_name: 'go-next'
+                icon_name: icon_next
             })
         });
         wsCaptionName_MoveRightButton.connect('clicked', function(){
@@ -743,7 +754,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
         let wsCaptionWindowCount_MoveLeftButton = new Gtk.Button({
             image: new Gtk.Image({
-                icon_name: 'go-previous'
+                icon_name: icon_previous
             })
         });
         wsCaptionWindowCount_MoveLeftButton.connect('clicked', function(){
@@ -751,7 +762,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
         let wsCaptionWindowCount_MoveRightButton = new Gtk.Button({
             image: new Gtk.Image({
-                icon_name: 'go-next'
+                icon_name: icon_next
             })
         });
         wsCaptionWindowCount_MoveRightButton.connect('clicked', function(){
@@ -801,7 +812,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
         let wsCaptionWindowApps_MoveLeftButton = new Gtk.Button({
             image: new Gtk.Image({
-                icon_name: 'go-previous'
+                icon_name: icon_previous
             })
         });
         wsCaptionWindowApps_MoveLeftButton.connect('clicked', function(){
@@ -809,7 +820,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
         let wsCaptionWindowApps_MoveRightButton = new Gtk.Button({
             image: new Gtk.Image({
-                icon_name: 'go-next'
+                icon_name: icon_next
             })
         });
         wsCaptionWindowApps_MoveRightButton.connect('clicked', function(){
@@ -843,7 +854,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
         let wsCaptionSpacer_MoveLeftButton = new Gtk.Button({
             image: new Gtk.Image({
-                icon_name: 'go-previous'
+                icon_name: icon_previous
             })
         });
         wsCaptionSpacer_MoveLeftButton.connect('clicked', function(){
@@ -851,7 +862,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
         let wsCaptionSpacer_MoveRightButton = new Gtk.Button({
             image: new Gtk.Image({
-                icon_name: 'go-next'
+                icon_name: icon_next
             })
         });
         wsCaptionSpacer_MoveRightButton.connect('clicked', function(){
@@ -861,18 +872,18 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
         this.settings.bind('workspace-captions', workspaceCaptionsGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
 
-        workspaceCaptionsGrid.attach(wsCaptionThemeSupport, 0, 1, 2, 1);        
+        workspaceCaptionsGrid.attach(wsCaptionThemeSupport, 0, 1, 2, 1);
 
         workspaceCaptionsGrid.attach(wsCaptionNumber, 0, 2, 1, 1);
         workspaceCaptionsGrid.attach(wsCaptionNumberExpand, 2, 2, 1, 1);
         workspaceCaptionsGrid.attach(wsCaptionNumber_MoveLeftButton, 3, 2, 1, 1);
         workspaceCaptionsGrid.attach(wsCaptionNumber_MoveRightButton, 4, 2, 1, 1);
-        
+
         workspaceCaptionsGrid.attach(wsCaptionName, 0, 3, 1, 1);
         workspaceCaptionsGrid.attach(wsCaptionNameExpand, 2, 3, 1, 1);
         workspaceCaptionsGrid.attach(wsCaptionName_MoveLeftButton, 3, 3, 1, 1);
         workspaceCaptionsGrid.attach(wsCaptionName_MoveRightButton, 4, 3, 1, 1);
-        
+
         workspaceCaptionsGrid.attach(wsCaptionWindowCount, 0, 4, 1, 1);
         workspaceCaptionsGrid.attach(wsCaptionWindowCountUseImage, 1, 4, 1, 1);
         workspaceCaptionsGrid.attach(wsCaptionWindowCountExpand, 2, 4, 1, 1);
@@ -884,19 +895,19 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         workspaceCaptionsGrid.attach(wsCaptionWindowAppsExpand, 2, 5, 1, 1);
         workspaceCaptionsGrid.attach(wsCaptionWindowApps_MoveLeftButton, 3, 5, 1, 1);
         workspaceCaptionsGrid.attach(wsCaptionWindowApps_MoveRightButton, 4, 5, 1, 1);
-        
+
         workspaceCaptionsGrid.attach(wsCaptionSpacer, 0, 6, 1, 1);
         workspaceCaptionsGrid.attach(wsCaptionSpacerExpand, 2, 6, 1, 1);
         workspaceCaptionsGrid.attach(wsCaptionSpacer_MoveLeftButton, 3, 6, 1, 1);
         workspaceCaptionsGrid.attach(wsCaptionSpacer_MoveRightButton, 4, 6, 1, 1);
 
-        
+
         workspaceCaptions.add(workspaceCaptionsTitle);
         workspaceCaptions.add(workspaceCaptionsControl);
         workspaceCaptions.add(wsCaptionThemeSupport);
         workspaceCaptions.add(workspaceCaptionsGrid);
         notebookAdditionalSettings.add(workspaceCaptions);
-        
+
 
         /* CUSTOM ACTIONS SETTINGS */
 
@@ -932,10 +943,10 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         toggleOverviewSwitch.connect('notify::active', Lang.bind(this, function(check) {
             this.settings.set_boolean('toggle-overview', check.get_active());
         }));
-        
+
         actionsMain.add(toggleOverviewLabel);
         actionsMain.add(toggleOverviewSwitch);
-        
+
         actions.add(actionsTitle);
         actions.add(actionsMain);
         notebookAdditionalSettings.add(actions);
@@ -977,28 +988,28 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             this.settings.set_boolean('dashtodock-hover', check.get_active());
         }));
 
-        
+
         dashIntegrationControl.add(dashToDockHoverLabel);
         dashIntegrationControl.add(dashToDockHover);
-        
+
         dashIntegration.add(dashIntegrationTitle);
         dashIntegration.add(dashIntegrationControl);
         notebookAdditionalSettings.add(dashIntegration);
 
         notebook.append_page(notebookAdditionalSettings, notebookAdditionalSettingsTitle);
-        
+
 
 
         this.add(notebook);
 
     },
-    
+
     _getItemExists: function(item) {
         let currentItems = this.settings.get_strv('workspace-caption-items');
         let items = currentItems.map(function(el) {
             return el.split(':')[0];
         });
-        
+
         let index = items.indexOf(item);
 
         if (index == -1)
@@ -1006,13 +1017,13 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
         return true;
     },
-    
+
     _getItemExpanded: function(item) {
         let currentItems = this.settings.get_strv('workspace-caption-items');
         let items = currentItems.map(function(el) {
             return el.split(':')[0];
         });
-        
+
         let index = items.indexOf(item);
 
         if (index == -1)
@@ -1020,19 +1031,19 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
         let currentItem = currentItems[index];
         let expandState = currentItem.split(':')[1];
-        
+
         if (expandState == "false")
             return false
-            
+
         return true;
     },
-    
+
     _setItemExpanded: function(item, expandState) {
         let currentItems = this.settings.get_strv('workspace-caption-items');
         let items = currentItems.map(function(el) {
             return el.split(':')[0];
         });
-        
+
         let index = items.indexOf(item);
 
         if (index == -1)
@@ -1048,7 +1059,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         let items = currentItems.map(function(el) {
             return el.split(':')[0];
         });
-        
+
         let index = items.indexOf(item);
 
         if (index != -1)
@@ -1060,29 +1071,29 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         this.settings.set_strv('workspace-caption-items', currentItems);
         return true;
     },
-    
+
     _removeItem: function(item) {
         let currentItems = this.settings.get_strv('workspace-caption-items');
         let items = currentItems.map(function(el) {
             return el.split(':')[0];
         });
-        
+
         let index = items.indexOf(item);
 
         if (index < 0)
             return false;
-        
+
         currentItems.splice(index, 1);
         this.settings.set_strv('workspace-caption-items', currentItems);
         return true;
     },
-    
+
     _moveItem: function(item, delta) {
         let currentItems = this.settings.get_strv('workspace-caption-items');
         let items = currentItems.map(function(el) {
             return el.split(':')[0];
         });
-        
+
         let index = items.indexOf(item);
 
         if (index < 0)
@@ -1113,4 +1124,3 @@ function buildPrefsWidget() {
 
     return widget;
 }
-

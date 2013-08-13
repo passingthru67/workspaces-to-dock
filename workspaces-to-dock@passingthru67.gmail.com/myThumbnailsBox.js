@@ -75,18 +75,18 @@ const WindowAppsUpdateAction = {
 
 const WindowAppIcon = new Lang.Class({
     Name: 'workspacesToDock.windowAppIcon',
-    
+
     _init: function(app, metaWin, thumbnail) {
         this._thumbnail = thumbnail;
         this._gsCurrentVersion = thumbnail._gsCurrentVersion;
         this._mySettings = thumbnail._mySettings;
-        
+
         this._app = app;
         this._metaWin = metaWin;
-        
+
         let iconParams = {setSizeManually: true, showLabel: false};
         iconParams['createIcon'] = Lang.bind(this, function(iconSize){ return app.create_icon_texture(iconSize);});
-        
+
         this._icon = new IconGrid.BaseIcon(app.get_name(), iconParams);
         this._icon.actor.add_style_class_name('workspacestodock-caption-windowapps-button-icon');
         if (this._mySettings.get_boolean('workspace-caption-large-icons')) {
@@ -101,7 +101,7 @@ const WindowAppIcon = new Lang.Class({
         //}
         this.actor.set_child(this._icon.actor);
         this.actor._delegate = this;
-        
+
         // Connect signals
         this.actor.connect('button-release-event', Lang.bind(this, thumbnail.activateMetaWindow, thumbnail, metaWin));
         this.actor.connect('enter-event', Lang.bind(this, this._onButtonEnter));
@@ -132,16 +132,16 @@ const WindowAppIcon = new Lang.Class({
 
 const WindowAppMenuItem = new Lang.Class({
     Name: 'workspacesToDock.windowAppMenuItem',
-   
+
     _init: function(app, metaWin, thumbnail) {
         let iconParams = {setSizeManually: true, showLabel: false};
         iconParams['createIcon'] = Lang.bind(this, function(iconSize){ return app.create_icon_texture(iconSize);});
-        
+
         this._icon = new IconGrid.BaseIcon(app.get_name(), iconParams);
         this._icon.actor.add_style_class_name('workspacestodock-caption-windowapps-menu-icon');
         this._icon.setIconSize(CAPTION_APP_ICON_MENU_SIZE);
         this._label = new St.Label({ text: app.get_name(), style_class: 'workspacestodock-caption-windowapps-menu-label' });
-        
+
         this._buttonBox = new St.BoxLayout({style_class:'workspacestodock-caption-windowapps-menu-button'});
         this._buttonBox.add(this._icon.actor, {x_fill: false, y_fill: false, x_align: St.Align.START, y_align: St.Align.MIDDLE});
         this._buttonBox.add(this._label, {x_fill: true, y_fill: false, x_align: St.Align.START, y_align: St.Align.MIDDLE, expand: true});
@@ -156,7 +156,7 @@ const WindowAppMenuItem = new Lang.Class({
         //this._closeButton.set_child(this._closeIcon);
 
         this.actor = new St.BoxLayout({reactive: true, style_class: 'popup-menu-item workspacestodock-caption-windowapps-menu-item'});
-        this.actor._delegate = this;       
+        this.actor._delegate = this;
 
         this.actor.add(this._buttonBox, {x_fill: false, y_fill: false, x_align: St.Align.START, y_align: St.Align.MIDDLE, expand: true});
         this.actor.add(this._closeButton, {x_fill: true, y_fill: true, x_align: St.Align.END, y_align: St.Align.MIDDLE});
@@ -177,7 +177,7 @@ const WindowAppMenuItem = new Lang.Class({
         if (_DEBUG_) global.log("windowAppMenuItem: _onButtonLeave");
         this.actor.remove_style_pseudo_class('active');
     }
-   
+
 });
 
 const myWorkspaceThumbnail = new Lang.Class({
@@ -186,20 +186,20 @@ const myWorkspaceThumbnail = new Lang.Class({
 
     _init: function(metaWorkspace, thumbnailsBox) {
         this.parent(metaWorkspace);
-        
+
         this._thumbnailsBox = thumbnailsBox;
         this._gsCurrentVersion = thumbnailsBox._gsCurrentVersion;
         this._mySettings = thumbnailsBox._mySettings;
         this._wsWindowApps = [];
         this._wsWindowAppsBox = null;
         this._windowAppsMenuListBox = null;
-        
+
         this._afterWindowAddedId = this.metaWorkspace.connect_after('window-added',
                                                           Lang.bind(this, this._onAfterWindowAdded));
         this._afterWindowRemovedId = this.metaWorkspace.connect_after('window-removed',
                                                            Lang.bind(this, this._onAfterWindowRemoved));
 
-        this._switchWorkspaceNotifyId = 
+        this._switchWorkspaceNotifyId =
             global.window_manager.connect('switch-workspace',
                                           Lang.bind(this, this._activeWorkspaceChanged));
 
@@ -234,7 +234,7 @@ const myWorkspaceThumbnail = new Lang.Class({
     _initCaption: function() {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _initCaption");
         if (this._mySettings.get_boolean('workspace-captions')) {
-            
+
             this._wsCaptionContainer = new St.Bin({
                 name: 'workspacestodockCaptionContainer',
                 reactive: false,
@@ -249,7 +249,7 @@ const myWorkspaceThumbnail = new Lang.Class({
                 reactive: false,
                 style_class: 'workspacestodock-workspace-caption-background'
             });
-                
+
             this._wsCaption = new St.BoxLayout({
                 name: 'workspacestodockCaption',
                 reactive: true,
@@ -263,7 +263,7 @@ const myWorkspaceThumbnail = new Lang.Class({
                 let elements = currentItems[i].split(':');
                 let item = elements[0]
                 let expandState = (elements[1] == "true"? true: false);
-                
+
                 switch (item) {
                     case "number":
                         this._wsNumber = new St.Label({
@@ -326,20 +326,25 @@ const myWorkspaceThumbnail = new Lang.Class({
                         this._wsCaption.add(this._wsSpacerBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END, expand: expandState});
                         break;
                 }
-                
+
             }
 
             // Add caption to thumbnail actor
             this._wsCaptionContainer.add_actor(this._wsCaption);
             this.actor.add_actor(this._wsCaptionBackground);
             this.actor.add_actor(this._wsCaptionContainer);
-            
+
             // Make thumbnail background transparent so that it doesn't show through
             // on edges where border-radius is set on caption
             this.actor.set_style("background-color: rgba(0,0,0,0.0)");
-            
+
             // Create menu and menuitems
-            this._menu = new PopupMenu.PopupMenu(this._wsCaptionBackground, 0.5, St.Side.RIGHT);
+            let rtl = Clutter.get_default_text_direction() == Clutter.TextDirection.RTL;
+            if (rtl) {
+                this._menu = new PopupMenu.PopupMenu(this._wsCaptionBackground, 0.5, St.Side.LEFT);
+            } else {
+                this._menu = new PopupMenu.PopupMenu(this._wsCaptionBackground, 0.5, St.Side.RIGHT);
+            }
             this._menu.actor.add_style_class_name('workspacestodock-caption-windowapps-menu');
             this._menu.connect('open-state-changed', Lang.bind(this, function(menu, open) {
                 if (_DEBUG_) global.log("myWorkspaceThumbnail: _onWindowAppsButtonClick - menu open-state-changed - open = "+open);
@@ -363,11 +368,11 @@ const myWorkspaceThumbnail = new Lang.Class({
                     this._thumbnailsBox.setPopupMenuFlag(false);
                 }
             }));
-            
+
             let item = new PopupMenu.PopupMenuItem(_("Extension Preferences"));
             item.connect('activate', Lang.bind(this, this._showExtensionPreferences));
             this._menu.addMenuItem(item);
-            
+
             // Add to chrome and hide
             Main.layoutManager.addChrome(this._menu.actor);
             this._menu.actor.hide();
@@ -380,7 +385,7 @@ const myWorkspaceThumbnail = new Lang.Class({
         }
 
     },
-    
+
     // function initializes the window app icons for the caption taskbar
     _initWindowApps: function() {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps");
@@ -391,7 +396,7 @@ const myWorkspaceThumbnail = new Lang.Class({
             let metaWin = windows[i].get_meta_window();
             if (!metaWin)
                 continue;
-                
+
             let activeWorkspace = global.screen.get_active_workspace();
             if ((windows[i].get_workspace() == this.metaWorkspace.index()) || (metaWin.is_on_all_workspaces() && this.metaWorkspace == activeWorkspace)) {
                 if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps - add window buttons");
@@ -403,10 +408,10 @@ const myWorkspaceThumbnail = new Lang.Class({
                     if (metaWin.has_focus()) {
                         button.actor.add_style_pseudo_class('active');
                     }
-                    
+
                     if (this._wsWindowAppsBox)
                         this._wsWindowAppsBox.add(button.actor, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
-                                        
+
                     let winInfo = {};
                     winInfo.app = app;
                     winInfo.metaWin = metaWin;
@@ -419,7 +424,7 @@ const myWorkspaceThumbnail = new Lang.Class({
         // Update window count
         this._updateWindowCount();
     },
-    
+
     workspaceRemoved: function() {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: workspaceRemoved");
         this.metaWorkspace.disconnect(this._afterWindowAddedId);
@@ -435,8 +440,8 @@ const myWorkspaceThumbnail = new Lang.Class({
                 let win = actor;
                 return (win.get_meta_window() && win.get_meta_window().is_on_all_workspaces());
             }));
-        
-        
+
+
         for (let i = 0; i < windows.length; i++) {
             let metaWin = windows[i].get_meta_window();
             if (!metaWin)
@@ -447,7 +452,7 @@ const myWorkspaceThumbnail = new Lang.Class({
 	            // Show window on active workspace
 	            let index = -1;
 	            for (let i = 0; i < this._wsWindowApps.length; i++) {
-	                if (this._wsWindowApps[i].metaWin == metaWin) {    
+	                if (this._wsWindowApps[i].metaWin == metaWin) {
 	                    index = i;
 	                    break;
 	                }
@@ -462,10 +467,10 @@ const myWorkspaceThumbnail = new Lang.Class({
                     if (metaWin.has_focus()) {
                         button.actor.add_style_pseudo_class('active');
                     }
-                    
+
                     if (this._wsWindowAppsBox)
                         this._wsWindowAppsBox.add(button.actor, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
-                                        
+
                     let winInfo = {};
                     winInfo.app = app;
                     winInfo.metaWin = metaWin;
@@ -476,7 +481,7 @@ const myWorkspaceThumbnail = new Lang.Class({
                 // Don't show window on active workspace
                 let index = -1;
                 for (let i = 0; i < this._wsWindowApps.length; i++) {
-                    if (this._wsWindowApps[i].metaWin == metaWin) {    
+                    if (this._wsWindowApps[i].metaWin == metaWin) {
                         index = i;
                         break;
                     }
@@ -484,7 +489,7 @@ const myWorkspaceThumbnail = new Lang.Class({
                 if (index > -1) {
                     // Disconnect window focused signal
                     metaWin.disconnect(this._wsWindowApps[index].signalFocusedId);
-                    
+
                     // Remove button from windowApps list and windowAppsBox container
                     this._wsWindowApps.splice(index, 1);
                     if (this._wsWindowAppsBox) {
@@ -499,7 +504,7 @@ const myWorkspaceThumbnail = new Lang.Class({
         // Update window count
         this._updateWindowCount();
     },
-    
+
     _onAfterWindowAdded: function(metaWorkspace, metaWin) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _onAfterWindowAdded");
         this._updateWindowApps(metaWin, WindowAppsUpdateAction.ADD);
@@ -545,7 +550,7 @@ const myWorkspaceThumbnail = new Lang.Class({
             }
         }
     },
-    
+
     _onWorkspaceCaptionClick: function(actor, event, thumbnail) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _onWorkspaceCaptionClick");
         let mouseButton = event.get_button();
@@ -565,7 +570,7 @@ const myWorkspaceThumbnail = new Lang.Class({
             if (thumbnail._wsWindowApps.length > 0) {
                 this._menu.addMenuItem(windowAppsListsection);
             }
-            
+
             if (thumbnail._wsWindowApps.length > 1) {
                 let item1 = new PopupMenu.PopupMenuItem(_('Close All Applications'));
                 item1.connect('activate', Lang.bind(this, this._closeAllMetaWindows, this));
@@ -576,7 +581,7 @@ const myWorkspaceThumbnail = new Lang.Class({
             let item2 = new PopupMenu.PopupMenuItem(_("Extension preferences"));
             item2.connect('activate', Lang.bind(this, this._showExtensionPreferences));
             this._menu.addMenuItem(item2);
-            
+
             thumbnail._menu.open();
             return true;
         }
@@ -598,7 +603,7 @@ const myWorkspaceThumbnail = new Lang.Class({
                 metaWin.activate(global.get_current_time());
                 if (!metaWin.has_focus())
                     metaWin.activate(global.get_current_time());
-                else 
+                else
                     metaWin.minimize(global.get_current_time());
             }
         }
@@ -608,12 +613,12 @@ const myWorkspaceThumbnail = new Lang.Class({
     _showExtensionPreferences: function(menuItem, event) {
         Main.Util.trySpawnCommandLine(PREFS_DIALOG);
     },
-    
+
     closeMetaWindow: function(actor, event, thumbnail, metaWin) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: closeMetaWindow");
         let metaWindow = metaWin;
         for (let i = 0; i < thumbnail._wsWindowApps.length; i++) {
-            if (thumbnail._wsWindowApps[i].metaWin == metaWindow) {    
+            if (thumbnail._wsWindowApps[i].metaWin == metaWindow) {
                 // Delete metaWindow
                 metaWindow.delete(global.get_current_time());
             }
@@ -625,7 +630,7 @@ const myWorkspaceThumbnail = new Lang.Class({
         for (let i = 0; i < thumbnail._wsWindowApps.length; i++) {
             // Delete metaWindow
             thumbnail._wsWindowApps[i].metaWin.delete(global.get_current_time());
-            
+
             // NOTE: bug quiting all GIMP windows
             // even tried thumbnail._wsWindowApps[i].app.request_quit();
             // Gnome Shell has same issue .. selecting quit from panel app menu only closes current Gimp window
@@ -655,7 +660,7 @@ const myWorkspaceThumbnail = new Lang.Class({
                     if (metaWin.has_focus()) {
                         button.actor.add_style_pseudo_class('active');
                     }
-                    
+
                     if (this._wsWindowAppsBox)
                         this._wsWindowAppsBox.add(button.actor, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
 
@@ -677,7 +682,7 @@ const myWorkspaceThumbnail = new Lang.Class({
                 if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window buttons count = "+this._wsWindowApps.length);
                 for (let i = 0; i < this._wsWindowApps.length; i++) {
                     if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button at index "+i+" is "+this._wsWindowApps[i].metaWin.get_wm_class());
-                    if (this._wsWindowApps[i].metaWin == metaWin) {    
+                    if (this._wsWindowApps[i].metaWin == metaWin) {
                         if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button found at index = "+i);
                         index = i;
                         break;
@@ -687,7 +692,7 @@ const myWorkspaceThumbnail = new Lang.Class({
                     if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - Splicing wsWindowAppsButtons at "+index);
                     // Disconnect window focused signal
                     metaWin.disconnect(this._wsWindowApps[index].signalFocusedId);
-                    
+
                     // Remove button from windowApps list and windowAppsBox container
                     this._wsWindowApps.splice(index, 1);
                     if (this._wsWindowAppsBox) {
@@ -727,7 +732,7 @@ const myWorkspaceThumbnail = new Lang.Class({
                 let className = 'workspacestodock-caption-windowcount-image-'+i;
                 this._wsWindowCountBox.remove_style_class_name(className);
             }
-            
+
             // Set label text
             if (win_count > 0) {
                 this._wsWindowCount.set_text(""+win_count);
@@ -753,7 +758,7 @@ const myWorkspaceThumbnail = new Lang.Class({
             }
         }
     }
-   
+
 });
 
 
@@ -762,7 +767,7 @@ const myThumbnailsBox = new Lang.Class({
     Extends: WorkspaceThumbnail.ThumbnailsBox,
 
     _init: function(dock) {
-        this._dock = dock;    
+        this._dock = dock;
         this._gsCurrentVersion = dock._gsCurrentVersion;
         this._mySettings = dock._settings;
         if (this._gsCurrentVersion[1] < 7) {
@@ -842,7 +847,7 @@ const myThumbnailsBox = new Lang.Class({
             this._settings = new Gio.Settings({ schema: OVERRIDE_SCHEMA });
             this._settings.connect('changed::dynamic-workspaces',
                 Lang.bind(this, this._updateSwitcherVisibility));
-        }    
+        }
     },
 
     // override GS38 _createThumbnails to remove global n-workspaces notification
@@ -910,7 +915,7 @@ const myThumbnailsBox = new Lang.Class({
                 return false;
             }
         }
-        
+
         let [stageX, stageY] = event.get_coords();
         let [r, x, y] = this.actor.transform_stage_point(stageX, stageY);
 
@@ -935,11 +940,11 @@ const myThumbnailsBox = new Lang.Class({
             let thumbnail = new myWorkspaceThumbnail(metaWorkspace, this);
             thumbnail.setPorthole(this._porthole.x, this._porthole.y,
                                   this._porthole.width, this._porthole.height);
-            
+
             this._thumbnails.push(thumbnail);
             this.actor.add_actor(thumbnail.actor);
-            
-            if (start > 0 && this._spliceIndex == -1) { 
+
+            if (start > 0 && this._spliceIndex == -1) {
                 // not the initial fill, and not splicing via DND
                 thumbnail.state = ThumbnailState.NEW;
                 thumbnail.slidePosition = 1; // start slid out
@@ -955,7 +960,7 @@ const myThumbnailsBox = new Lang.Class({
 
         // The thumbnails indicator actually needs to be on top of the thumbnails
         this._indicator.raise_top();
-        
+
         // Clear the splice index, we got the message
         this._spliceIndex = -1;
     },
@@ -968,7 +973,7 @@ const myThumbnailsBox = new Lang.Class({
         }
 
     },
-    
+
     setPopupMenuFlag: function(showing) {
         if (_DEBUG_) global.log("mythumbnailsBox: setPopupMenuFlag");
         this._dock.setPopupMenuFlag(showing);
@@ -981,14 +986,14 @@ const myThumbnailsBox = new Lang.Class({
 
         if (!thumbnail._wsCaptionBackground)
             return;
-            
+
         thumbnail._wsCaptionBackground.set_scale(unscale, unscale);
         thumbnail._wsCaptionBackground.set_position(0, this._porthole.height);
         thumbnail._wsCaptionBackground.set_size(containerWidth, captionBackgroundHeight);
 
         if (!thumbnail._wsCaptionContainer)
             return;
-            
+
         thumbnail._wsCaptionContainer.set_scale(unscale, unscale);
         thumbnail._wsCaptionContainer.set_size(containerWidth, containerHeight + captionBackgroundHeight);
 
@@ -997,7 +1002,7 @@ const myThumbnailsBox = new Lang.Class({
             return;
 
         thumbnail._wsCaption.height = captionHeight; // constrains height to caption height
-        
+
         if (thumbnail._wsNumber)
             thumbnail._wsNumber.set_text(""+(i+1));
 
@@ -1006,7 +1011,7 @@ const myThumbnailsBox = new Lang.Class({
 
         if (thumbnail._wsName)
             thumbnail._wsName.set_text(Meta.prefs_get_workspace_name(i));
-        
+
         if (thumbnail._wsNameBox)
             thumbnail._wsNameBox.height = captionBackgroundHeight - 2;
 
@@ -1015,7 +1020,7 @@ const myThumbnailsBox = new Lang.Class({
 
         if (thumbnail._wsWindowAppsBox)
             thumbnail._wsWindowAppsBox.height = captionHeight;
-        
+
 
         if (i == global.screen.get_active_workspace_index()) {
             if (thumbnail._wsCaptionBackground) thumbnail._wsCaptionBackground.add_style_class_name('workspacestodock-workspace-caption-background-current');
@@ -1070,12 +1075,12 @@ const myThumbnailsBox = new Lang.Class({
             captionHeight = CAPTION_HEIGHT;
             captionBackgroundHeight = CAPTION_BACKGROUND_HEIGHT;
         }
-        
+
         spacing = spacing + captionBackgroundHeight;
-        
+
         // Compute the scale we'll need once everything is updated
         let nWorkspaces = global.screen.n_workspaces;
-        
+
         // passingthru67 - add 5px to totalSpacing calculation
         // otherwise newScale doesn't kick in soon enough and total thumbnails height is greater than height of dock
         // why is 5px needed? spacing was already adjusted in gnome-shell.css from 7px to 27px (GS36 11px to ?)
@@ -1138,7 +1143,7 @@ const myThumbnailsBox = new Lang.Class({
             // when not animating, the workspace position overrides this._indicatorY
             // passingthru67 - moved above
             //let indicatorWorkspace = !this._animatingIndicator ? global.screen.get_active_workspace() : null;
-            
+
             // passingthru67 - moved above
             //let y = contentBox.y1;
 
@@ -1187,7 +1192,7 @@ const myThumbnailsBox = new Lang.Class({
                 if (thumbnail.metaWorkspace == indicatorWorkspace)
                     indicatorY = y1;
 
-                
+
                 // Allocating a scaled actor is funny - x1/y1 correspond to the origin
                 // of the actor, but x2/y2 are increased by the *unscaled* size.
                 childBox.x1 = x1;
@@ -1302,7 +1307,7 @@ const myThumbnailsBox = new Lang.Class({
                 // passingthru67 - set WorkspaceThumbnail labels
                 if (this._mySettings.get_boolean('workspace-captions'))
                     this._updateThumbnailCaption(thumbnail, i, captionHeight, captionBackgroundHeight);
-                
+
                 // We round the collapsing portion so that we don't get thumbnails resizing
                 // during an animation due to differences in rounded, but leave the uncollapsed
                 // portion unrounded so that non-animating we end up with the right total
@@ -1324,7 +1329,7 @@ const myThumbnailsBox = new Lang.Class({
             childBox.y2 = (indicatorY2 ? indicatorY2 + captionBackgroundHeight : (indicatorY1 + thumbnailHeight + captionBackgroundHeight)) + indicatorBottomFullBorder;
 
             this._indicator.allocate(childBox, flags);
-            
+
         }
     },
 
@@ -1343,8 +1348,8 @@ const myThumbnailsBox = new Lang.Class({
         // passingthru67 - needed in case thumbnail is null outside of overview
         if (thumbnail == null)
             return
-        
-        // passingthru67 - needed in case thumbnail.actor is null outside of overview    
+
+        // passingthru67 - needed in case thumbnail.actor is null outside of overview
         if (thumbnail.actor == null)
             return
 
@@ -1371,6 +1376,6 @@ const myThumbnailsBox = new Lang.Class({
                          });
     }
 
-    
-    
+
+
 });
