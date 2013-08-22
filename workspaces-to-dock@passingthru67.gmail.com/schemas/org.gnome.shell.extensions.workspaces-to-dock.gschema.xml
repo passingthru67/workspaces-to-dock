@@ -41,20 +41,35 @@
       <summary>Intellihide mode options</summary>
       <description>Select type of intellihide mode</description>
     </key>
-    <key type="b" name="require-pressure-to-show">
+    <key type="b" name="dock-edge-visible">
       <default>false</default>
-      <summary>Require pressure to show dock (GS38+ only)</summary>
-      <description>Enable or disable requiring pressure to show dock (GS38+ only)</description>
+      <summary>Leave dock edge visible when slid out</summary>
+      <description>Enable or disable leaving dock edge visible when slid out</description>
     </key>
     <key type="b" name="require-click-to-show">
       <default>false</default>
       <summary>Dock requires hover+click to show when window is maximized</summary>
       <description>Enable or disable requiring hover+click to show dock when window is maximized</description>
     </key>
-    <key type="b" name="dock-edge-visible">
+    <key type="b" name="require-pressure-to-show">
       <default>false</default>
-      <summary>Leave dock edge visible when slid out</summary>
-      <description>Enable or disable leaving dock edge visible when slid out</description>
+      <summary>Require pressure to show dock (GS38+ only)</summary>
+      <description>Enable or disable requiring pressure to show dock (GS38+ only)</description>
+    </key>
+    <key type="d" name="pressure-threshold">
+      <default>120</default>
+      <summary>Pressure threshold</summary>
+      <description>Sets how much pressure is needed to show the dock.</description>
+    </key>
+    <key type="b" name="use-keyboard-shortcut">
+      <default>false</default>
+      <summary>enable keyboard shortcut</summary>
+      <description>Enable keyboard shortcut to show the dock.</description>
+    </key>
+    <key type="as" name="keyboard-shortcut">
+      <default><![CDATA[['<Super>w']]]></default>
+      <summary>Keyboard shortcut</summary>
+      <description>Set the keyboard shortcut to show the dock.</description>
     </key>
     <key type="b" name="opaque-background">
       <default>true</default>

@@ -163,24 +163,34 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }));
 
         /* SENSITITIVY and VISIBILITY BEHAVIOR OPTIONS */
-        let requirePressure = new Gtk.CheckButton({
-            label: _("Require pressure to show dock (GS3.8+ only)"),
-            margin_left: 0,
-            margin_top: 10
-        });
-        requirePressure.set_active(this.settings.get_boolean('require-pressure-to-show'));
-        requirePressure.connect('toggled', Lang.bind(this, function(check) {
-            this.settings.set_boolean('require-pressure-to-show', check.get_active());
-        }));
 
-        let requireClick = new Gtk.CheckButton({
-            label: _("Require click to show dock when window maximized"),
+        let keyboardShortcut = new Gtk.CheckButton({
+            label: _("Show dock using shortcut key"),
             margin_left: 0,
             margin_top: 2
         });
-        requireClick.set_active(this.settings.get_boolean('require-click-to-show'));
-        requireClick.connect('toggled', Lang.bind(this, function(check) {
-            this.settings.set_boolean('require-click-to-show', check.get_active());
+        keyboardShortcut.set_active(this.settings.get_boolean('use-keyboard-shortcut'));
+        keyboardShortcut.connect('toggled', Lang.bind(this, function(check) {
+            this.settings.set_boolean('use-keyboard-shortcut', check.get_active());
+        }));
+
+        let keyboardShortcutEntry = new Gtk.Entry({
+            margin_top: 2,
+            halign: Gtk.Align.END
+        });
+        keyboardShortcutEntry.set_width_chars(13);
+        keyboardShortcutEntry.set_text(this.settings.get_strv('keyboard-shortcut')[0]);
+        keyboardShortcutEntry.connect('changed', Lang.bind(this, function(entry) {
+            let [key, mods] = Gtk.accelerator_parse(entry.get_text());
+            if(Gtk.accelerator_valid(key, mods)) {
+                keyboardShortcutEntry["secondary-icon-name"] = null;
+                keyboardShortcutEntry["secondary-icon-tooltip-text"] = null;
+                let shortcut = Gtk.accelerator_name(key, mods);
+                this.settings.set_strv('keyboard-shortcut', [shortcut]);
+            } else {
+                keyboardShortcutEntry["secondary-icon-name"] = "dialog-warning-symbolic";
+                keyboardShortcutEntry["secondary-icon-tooltip-text"] = _("Invalid accelerator. Try F12, <Super>space, <Ctrl><Alt><Shift>w, etc.");
+            }
         }));
 
         let leaveVisible = new Gtk.CheckButton({
@@ -191,6 +201,47 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         leaveVisible.set_active(this.settings.get_boolean('dock-edge-visible'));
         leaveVisible.connect('toggled', Lang.bind(this, function(check) {
             this.settings.set_boolean('dock-edge-visible', check.get_active());
+        }));
+
+        let requirePressure = new Gtk.CheckButton({
+            label: _("Require pressure to show dock (GS3.8+ only)"),
+            margin_left: 0,
+            margin_top: 2
+        });
+        requirePressure.set_active(this.settings.get_boolean('require-pressure-to-show'));
+        requirePressure.connect('toggled', Lang.bind(this, function(check) {
+            this.settings.set_boolean('require-pressure-to-show', check.get_active());
+        }));
+
+        let pressureThresholdLabel = new Gtk.Label({
+            label: _("Presure Threshold [px]"),
+            use_markup: true,
+            xalign: 0,
+            margin_top: 8,
+            hexpand: true
+        });
+
+        let pressureThreshold = new Gtk.SpinButton({
+            halign: Gtk.Align.END,
+            margin_top: 8
+        });
+        pressureThreshold.set_sensitive(true);
+        pressureThreshold.set_range(50, 250);
+        pressureThreshold.set_value(this.settings.get_double("pressure-threshold") * 1);
+        pressureThreshold.set_increments(5, 10);
+        pressureThreshold.connect("value-changed", Lang.bind(this, function(button) {
+            let s = button.get_value_as_int() / 1;
+            this.settings.set_double("pressure-threshold", s);
+        }));
+
+        let requireClick = new Gtk.CheckButton({
+            label: _("Require click to show dock when window maximized"),
+            margin_left: 0,
+            margin_top: 2
+        });
+        requireClick.set_active(this.settings.get_boolean('require-click-to-show'));
+        requireClick.connect('toggled', Lang.bind(this, function(check) {
+            this.settings.set_boolean('require-click-to-show', check.get_active());
         }));
 
         /* INTELLIHIDE AUTOHIDE SETTINGS */
@@ -277,9 +328,11 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         dockSettingsGrid1.attach(showDelay, 1, 1, 1, 1);
         dockSettingsGrid1.attach(hideDelayLabel, 0, 2, 1, 1);
         dockSettingsGrid1.attach(hideDelay, 1, 2, 1, 1);
-        dockSettingsGrid1.attach(requirePressure, 0, 3, 2, 1);
-        dockSettingsGrid1.attach(requireClick, 0, 4, 2, 1);
-        dockSettingsGrid1.attach(leaveVisible, 0, 5, 2, 1);
+        dockSettingsGrid1.attach(keyboardShortcut, 0, 3, 1, 1);
+        dockSettingsGrid1.attach(keyboardShortcutEntry, 1, 3, 1, 1);
+        dockSettingsGrid1.attach(leaveVisible, 0, 4, 2, 1);
+        dockSettingsGrid1.attach(requirePressure, 0, 5, 2, 1);
+        dockSettingsGrid1.attach(requireClick, 0, 6, 2, 1);
 
 
         dockSettingsGrid2.attach(autohideLabel, 0, 0, 1, 1);
@@ -289,6 +342,9 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         dockSettingsGrid2.attach(intellihideNormal, 0, 2, 2, 1);
         dockSettingsGrid2.attach(intellihideFocusApp, 0, 3, 2, 1);
         dockSettingsGrid2.attach(intellihideTopWindow, 0, 4, 2, 1);
+        dockSettingsGrid2.attach(pressureThresholdLabel, 0, 5, 1, 1);
+        dockSettingsGrid2.attach(pressureThreshold, 1, 5, 1, 1);
+
 
         dockSettingsMain1.add(dockSettingsGrid1);
         dockSettingsMain1.add(dockSettingsGrid2);
