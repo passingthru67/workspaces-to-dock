@@ -47,7 +47,6 @@ let DashToDock = null;
 
 const DOCK_HIDDEN_WIDTH = 2;
 const DOCK_EDGE_VISIBLE_WIDTH = 5;
-const PRESSURE_THRESHOLD = 120;
 const PRESSURE_TIMEOUT = 1000;
 
 function dockedWorkspaces(settings, gsCurrentVersion) {
@@ -208,7 +207,8 @@ dockedWorkspaces.prototype = {
         this._barrier = null;
         if (this._gsCurrentVersion[1] > 6) {
             this._canUsePressure = global.display.supports_extended_barriers();
-            this._pressureBarrier = new Layout.PressureBarrier(PRESSURE_THRESHOLD, PRESSURE_TIMEOUT,
+            let pressureThreshold = this._settings.get_double('pressure-threshold');
+            this._pressureBarrier = new Layout.PressureBarrier(pressureThreshold, PRESSURE_TIMEOUT,
                                 Shell.KeyBindingMode.NORMAL | Shell.KeyBindingMode.OVERVIEW);
             this._pressureBarrier.connect('trigger', function(barrier){
                 self._onPressureSensed();
