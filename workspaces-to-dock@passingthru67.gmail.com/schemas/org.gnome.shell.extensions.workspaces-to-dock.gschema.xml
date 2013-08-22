@@ -41,6 +41,11 @@
       <summary>Intellihide mode options</summary>
       <description>Select type of intellihide mode</description>
     </key>
+    <key type="b" name="require-pressure-to-show">
+      <default>false</default>
+      <summary>Require pressure to show dock (GS38+ only)</summary>
+      <description>Enable or disable requiring pressure to show dock (GS38+ only)</description>
+    </key>
     <key type="b" name="require-click-to-show">
       <default>false</default>
       <summary>Dock requires hover+click to show when window is maximized</summary>

@@ -162,11 +162,21 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             this.settings.set_double("hide-delay", s);
         }));
 
-        /* VISIBILITY BEHAVIOR OPTIONS */
-        let requireClick = new Gtk.CheckButton({
-            label: _("Hover+click to show dock when window maximized"),
+        /* SENSITITIVY and VISIBILITY BEHAVIOR OPTIONS */
+        let requirePressure = new Gtk.CheckButton({
+            label: _("Require pressure to show dock (GS3.8+ only)"),
             margin_left: 0,
             margin_top: 10
+        });
+        requirePressure.set_active(this.settings.get_boolean('require-pressure-to-show'));
+        requirePressure.connect('toggled', Lang.bind(this, function(check) {
+            this.settings.set_boolean('require-pressure-to-show', check.get_active());
+        }));
+
+        let requireClick = new Gtk.CheckButton({
+            label: _("Require click to show dock when window maximized"),
+            margin_left: 0,
+            margin_top: 2
         });
         requireClick.set_active(this.settings.get_boolean('require-click-to-show'));
         requireClick.connect('toggled', Lang.bind(this, function(check) {
@@ -267,8 +277,9 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         dockSettingsGrid1.attach(showDelay, 1, 1, 1, 1);
         dockSettingsGrid1.attach(hideDelayLabel, 0, 2, 1, 1);
         dockSettingsGrid1.attach(hideDelay, 1, 2, 1, 1);
-        dockSettingsGrid1.attach(requireClick, 0, 3, 2, 1);
-        dockSettingsGrid1.attach(leaveVisible, 0, 4, 2, 1);
+        dockSettingsGrid1.attach(requirePressure, 0, 3, 2, 1);
+        dockSettingsGrid1.attach(requireClick, 0, 4, 2, 1);
+        dockSettingsGrid1.attach(leaveVisible, 0, 5, 2, 1);
 
 
         dockSettingsGrid2.attach(autohideLabel, 0, 0, 1, 1);

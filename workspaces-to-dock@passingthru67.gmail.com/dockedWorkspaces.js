@@ -31,6 +31,7 @@ const Overview = imports.ui.overview;
 const Tweener = imports.ui.tweener;
 const WorkspaceSwitcherPopup = imports.ui.workspaceSwitcherPopup;
 let OverviewControls = null;
+let Layout = null;
 
 const ExtensionSystem = imports.ui.extensionSystem;
 const ExtensionUtils = imports.misc.extensionUtils;
@@ -46,13 +47,17 @@ let DashToDock = null;
 
 const DOCK_HIDDEN_WIDTH = 2;
 const DOCK_EDGE_VISIBLE_WIDTH = 5;
+const PRESSURE_THRESHOLD = 120;
+const PRESSURE_TIMEOUT = 1000;
 
 function dockedWorkspaces(settings, gsCurrentVersion) {
     this._gsCurrentVersion = gsCurrentVersion;
 
-    // Define gnome shell 3.8 OverviewControls
-    if (this._gsCurrentVersion[1] > 6)
+    // Define gnome shell 3.8 Controls
+    if (this._gsCurrentVersion[1] > 6) {
         OverviewControls = imports.ui.overviewControls;
+        Layout = imports.ui.layout;
+    }
 
     this._init(settings);
 }
@@ -60,6 +65,7 @@ function dockedWorkspaces(settings, gsCurrentVersion) {
 dockedWorkspaces.prototype = {
 
     _init: function(settings) {
+        let self = this;
         // temporarily disable redisplay until initialized (prevents connected signals from trying to update dock visibility)
         this._disableRedisplay = true;
         if (_DEBUG_) global.log("dockedWorkspaces: init - disableRediplay");
@@ -194,6 +200,21 @@ dockedWorkspaces.prototype = {
             );
         }
         if (_DEBUG_) global.log("dockedWorkspaces: init - signals being captured");
+
+        // Setup pressure barrier (GS38+ only)
+        this._canUsePressure = false;
+        this._pressureSensed = false;
+        this._pressureBarrier = null;
+        this._barrier = null;
+        if (this._gsCurrentVersion[1] > 6) {
+            this._canUsePressure = global.display.supports_extended_barriers();
+            this._pressureBarrier = new Layout.PressureBarrier(PRESSURE_THRESHOLD, PRESSURE_TIMEOUT,
+                                Shell.KeyBindingMode.NORMAL | Shell.KeyBindingMode.OVERVIEW);
+            this._pressureBarrier.connect('trigger', function(barrier){
+                self._onPressureSensed();
+            });
+            if (_DEBUG_) global.log("dockedWorkspaces: init - canUsePressure = "+this._canUsePressure);
+        }
 
         // Connect DashToDock hover signal if the extension is already loaded and enabled
         let extension = ExtensionUtils.extensions[DashToDock_UUID];
@@ -515,6 +536,10 @@ dockedWorkspaces.prototype = {
 
         this._settings.connect('changed::preferred-monitor', Lang.bind(this, this._resetPosition));
 
+        this._settings.connect('changed::require-pressure-to-show', Lang.bind(this, function() {
+            this._updateBarrier();
+        }));
+
         this._settings.connect('changed::dock-edge-visible', Lang.bind(this, function() {
             if (this._autohideStatus) {
                 this._animateIn(this._settings.get_double('animation-time'), 0);
@@ -575,7 +600,14 @@ dockedWorkspaces.prototype = {
 
     // handler for mouse hover events
     _hoverChanged: function() {
-        if (_DEBUG_) global.log("dockedWorkspaces: _hoverChanged");
+        if (_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - actor.hover = "+this.actor.hover);
+        if (this._settings.get_boolean('require-pressure-to-show') && this._canUsePressure) {
+            if (this._pressureSensed == false) {
+                if (_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - presureSensed = "+this._pressureSensed);
+                return;
+                }
+        }
+
         if (this._settings.get_boolean('require-click-to-show')) {
             // check if metaWin is maximized
             let activeWorkspace = global.screen.get_active_workspace_index();
@@ -615,6 +647,13 @@ dockedWorkspaces.prototype = {
                 this._hide();
             }
         }
+    },
+
+    // handler for mouse pressure sensed (GS38+ only)
+    _onPressureSensed: function() {
+        if (_DEBUG_) global.log("dockedWorkspaces: _onPressureSensed");
+        this._pressureSensed = true;
+        this._hoverChanged();
     },
 
     // handler for mouse click events - works in conjuction with hover event to show dock for maxmized windows
@@ -813,6 +852,10 @@ dockedWorkspaces.prototype = {
                 }),
                 onComplete: Lang.bind(this, function() {
                     this._animStatus.end();
+                    if (this._removeBarrierTimeoutId > 0) {
+                        Mainloop.source_remove(this._removeBarrierTimeoutId);
+                        }
+                    this._removeBarrierTimeoutId = Mainloop.timeout_add(300, Lang.bind(this, this._removeBarrier));
                     if (_DEBUG_) global.log("dockedWorkspaces: _animateIn onComplete");
                 })
             });
@@ -867,6 +910,7 @@ dockedWorkspaces.prototype = {
                 onComplete: Lang.bind(this, function() {
                     this._animStatus.end();
                     this._setHiddenWidth();
+                    this._updateBarrier();
                     if (_DEBUG_) global.log("dockedWorkspaces: _animateOut onComplete");
                 })
             });
@@ -1080,6 +1124,7 @@ dockedWorkspaces.prototype = {
 
         this._updateBackgroundOpacity();
         this._updateClip();
+        this._updateBarrier();
     },
 
     // set dock width in vinsible/hidden states (called when animateOut completes)
@@ -1273,6 +1318,7 @@ dockedWorkspaces.prototype = {
 
         this._updateBackgroundOpacity();
         this._updateClip();
+        this._updateBarrier();
     },
 
     // Retrieve the preferred monitor
@@ -1287,6 +1333,43 @@ dockedWorkspaces.prototype = {
         }
 
         return monitor;
+    },
+
+    // Remove pressure barrier (GS38+ only)
+    _removeBarrier: function() {
+        if (this._barrier) {
+            this._pressureBarrier.removeBarrier(this._barrier);
+            this._barrier.destroy();
+            this._barrier = null;
+        }
+    },
+
+    // Update pressure barrier size (GS38+ only)
+    _updateBarrier: function() {
+        if (_DEBUG_) global.log("dockedWorkspaces: _updateBarrier");
+        // Remove existing barrier
+        this._removeBarrier();
+
+        if (this._settings.get_boolean('require-pressure-to-show')) {
+            let x, direction;
+            if (this._rtl) {
+                x = this._monitor.x;
+                direction = Meta.BarrierDirection.POSITIVE_X;
+            } else {
+                x = this._monitor.x + this._monitor.width;
+                direction = Meta.BarrierDirection.NEGATIVE_X;
+            }
+
+            // Create barrier and add to pressureBarrier
+            this._barrier = new Meta.Barrier({display: global.display,
+                                x1: x, x2: x,
+                                y1: this.actor.y, y2: (this.actor.y + this.actor.height),
+                                directions: direction});
+            this._pressureBarrier.addBarrier(this._barrier);
+        }
+
+        // Reset pressureSensed flag
+        this._pressureSensed = false;
     },
 
     // Utility function to make the dock clipped to the primary monitor
