@@ -61,16 +61,6 @@
       <summary>Pressure threshold</summary>
       <description>Sets how much pressure is needed to show the dock.</description>
     </key>
-    <key type="b" name="use-keyboard-shortcut">
-      <default>false</default>
-      <summary>enable keyboard shortcut</summary>
-      <description>Enable keyboard shortcut to show the dock.</description>
-    </key>
-    <key type="as" name="keyboard-shortcut">
-      <default><![CDATA[['<Super>w']]]></default>
-      <summary>Keyboard shortcut</summary>
-      <description>Set the keyboard shortcut to show the dock.</description>
-    </key>
     <key type="b" name="opaque-background">
       <default>true</default>
       <summary>Workspaces background is opaque</summary>
@@ -135,6 +125,16 @@
       <default>true</default>
       <summary>Toggle overview mode</summary>
       <description>Toggle overview mode with right click</description>
+    </key>
+    <key type="b" name="toggle-dock-with-keyboard-shortcut">
+      <default>false</default>
+      <summary>Enable keyboard shortcut to toggle dock</summary>
+      <description>Enable keyboard shortcut to toggle the dock.</description>
+    </key>
+    <key type="as" name="dock-keyboard-shortcut">
+      <default><![CDATA[['<Super>w']]]></default>
+      <summary>Dock keyboard shortcut</summary>
+      <description>Set the keyboard shortcut to toggle the dock.</description>
     </key>
     <key type="b" name="dashtodock-hover">
       <default>false</default>

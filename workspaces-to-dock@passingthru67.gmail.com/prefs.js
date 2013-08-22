@@ -164,74 +164,14 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
         /* SENSITITIVY and VISIBILITY BEHAVIOR OPTIONS */
 
-        let keyboardShortcut = new Gtk.CheckButton({
-            label: _("Show dock using shortcut key"),
-            margin_left: 0,
-            margin_top: 2
-        });
-        keyboardShortcut.set_active(this.settings.get_boolean('use-keyboard-shortcut'));
-        keyboardShortcut.connect('toggled', Lang.bind(this, function(check) {
-            this.settings.set_boolean('use-keyboard-shortcut', check.get_active());
-        }));
-
-        let keyboardShortcutEntry = new Gtk.Entry({
-            margin_top: 2,
-            halign: Gtk.Align.END
-        });
-        keyboardShortcutEntry.set_width_chars(13);
-        keyboardShortcutEntry.set_text(this.settings.get_strv('keyboard-shortcut')[0]);
-        keyboardShortcutEntry.connect('changed', Lang.bind(this, function(entry) {
-            let [key, mods] = Gtk.accelerator_parse(entry.get_text());
-            if(Gtk.accelerator_valid(key, mods)) {
-                keyboardShortcutEntry["secondary-icon-name"] = null;
-                keyboardShortcutEntry["secondary-icon-tooltip-text"] = null;
-                let shortcut = Gtk.accelerator_name(key, mods);
-                this.settings.set_strv('keyboard-shortcut', [shortcut]);
-            } else {
-                keyboardShortcutEntry["secondary-icon-name"] = "dialog-warning-symbolic";
-                keyboardShortcutEntry["secondary-icon-tooltip-text"] = _("Invalid accelerator. Try F12, <Super>space, <Ctrl><Alt><Shift>w, etc.");
-            }
-        }));
-
         let leaveVisible = new Gtk.CheckButton({
             label: _("Leave dock edge visible when slid out"),
             margin_left: 0,
-            margin_top: 2
+            margin_top: 10
         });
         leaveVisible.set_active(this.settings.get_boolean('dock-edge-visible'));
         leaveVisible.connect('toggled', Lang.bind(this, function(check) {
             this.settings.set_boolean('dock-edge-visible', check.get_active());
-        }));
-
-        let requirePressure = new Gtk.CheckButton({
-            label: _("Require pressure to show dock (GS3.8+ only)"),
-            margin_left: 0,
-            margin_top: 2
-        });
-        requirePressure.set_active(this.settings.get_boolean('require-pressure-to-show'));
-        requirePressure.connect('toggled', Lang.bind(this, function(check) {
-            this.settings.set_boolean('require-pressure-to-show', check.get_active());
-        }));
-
-        let pressureThresholdLabel = new Gtk.Label({
-            label: _("Presure Threshold [px]"),
-            use_markup: true,
-            xalign: 0,
-            margin_top: 8,
-            hexpand: true
-        });
-
-        let pressureThreshold = new Gtk.SpinButton({
-            halign: Gtk.Align.END,
-            margin_top: 8
-        });
-        pressureThreshold.set_sensitive(true);
-        pressureThreshold.set_range(50, 250);
-        pressureThreshold.set_value(this.settings.get_double("pressure-threshold") * 1);
-        pressureThreshold.set_increments(5, 10);
-        pressureThreshold.connect("value-changed", Lang.bind(this, function(button) {
-            let s = button.get_value_as_int() / 1;
-            this.settings.set_double("pressure-threshold", s);
         }));
 
         let requireClick = new Gtk.CheckButton({
@@ -242,6 +182,37 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         requireClick.set_active(this.settings.get_boolean('require-click-to-show'));
         requireClick.connect('toggled', Lang.bind(this, function(check) {
             this.settings.set_boolean('require-click-to-show', check.get_active());
+        }));
+
+        let requirePressure = new Gtk.CheckButton({
+            label: _("Require pressure to show dock (GS3.8+ only)      - - >"),
+            margin_left: 0,
+            margin_top: 6
+        });
+        requirePressure.set_active(this.settings.get_boolean('require-pressure-to-show'));
+        requirePressure.connect('toggled', Lang.bind(this, function(check) {
+            this.settings.set_boolean('require-pressure-to-show', check.get_active());
+        }));
+
+        let pressureThresholdLabel = new Gtk.Label({
+            label: _("Presure Threshold [px]"),
+            use_markup: true,
+            xalign: 0,
+            margin_top: 6,
+            hexpand: true
+        });
+
+        let pressureThreshold = new Gtk.SpinButton({
+            halign: Gtk.Align.END,
+            margin_top: 6
+        });
+        pressureThreshold.set_sensitive(true);
+        pressureThreshold.set_range(50, 250);
+        pressureThreshold.set_value(this.settings.get_double("pressure-threshold") * 1);
+        pressureThreshold.set_increments(5, 10);
+        pressureThreshold.connect("value-changed", Lang.bind(this, function(button) {
+            let s = button.get_value_as_int() / 1;
+            this.settings.set_double("pressure-threshold", s);
         }));
 
         /* INTELLIHIDE AUTOHIDE SETTINGS */
@@ -328,11 +299,9 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         dockSettingsGrid1.attach(showDelay, 1, 1, 1, 1);
         dockSettingsGrid1.attach(hideDelayLabel, 0, 2, 1, 1);
         dockSettingsGrid1.attach(hideDelay, 1, 2, 1, 1);
-        dockSettingsGrid1.attach(keyboardShortcut, 0, 3, 1, 1);
-        dockSettingsGrid1.attach(keyboardShortcutEntry, 1, 3, 1, 1);
-        dockSettingsGrid1.attach(leaveVisible, 0, 4, 2, 1);
+        dockSettingsGrid1.attach(leaveVisible, 0, 3, 2, 1);
+        dockSettingsGrid1.attach(requireClick, 0, 4, 2, 1);
         dockSettingsGrid1.attach(requirePressure, 0, 5, 2, 1);
-        dockSettingsGrid1.attach(requireClick, 0, 6, 2, 1);
 
 
         dockSettingsGrid2.attach(autohideLabel, 0, 0, 1, 1);
@@ -1017,6 +986,72 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         actions.add(actionsTitle);
         actions.add(actionsMain);
         notebookAdditionalSettings.add(actions);
+
+        /* KEYBOARD SHORCUTS */
+
+        let shortcuts = new Gtk.Box({
+            orientation: Gtk.Orientation.VERTICAL
+        });
+
+        let shortcutsTitle = new Gtk.Label({
+            label: _("<b>Keyboard Shortcuts</b>"),
+            use_markup: true,
+            xalign: 0,
+            margin_top: 5,
+            margin_bottom: 5
+        });
+
+        let shortcutsMain = new Gtk.Box({
+            margin_left: 10,
+            margin_top: 10,
+            margin_bottom: 10,
+            margin_right: 10
+        });
+
+        let toggleDockLabel = new Gtk.Label({
+            label: _("Toggle dock with keyboard shortcut"),
+            xalign: 0,
+            hexpand: true
+        });
+
+        let toggleDockShortcutEntry = new Gtk.Entry({
+            margin_top: 2,
+            halign: Gtk.Align.END
+        });
+        toggleDockShortcutEntry.set_width_chars(20);
+        toggleDockShortcutEntry.set_text(this.settings.get_strv('dock-keyboard-shortcut')[0]);
+        toggleDockShortcutEntry.connect('changed', Lang.bind(this, function(entry) {
+            let [key, mods] = Gtk.accelerator_parse(entry.get_text());
+            if(Gtk.accelerator_valid(key, mods)) {
+                toggleDockShortcutEntry["secondary-icon-name"] = null;
+                toggleDockShortcutEntry["secondary-icon-tooltip-text"] = null;
+                let shortcut = Gtk.accelerator_name(key, mods);
+                this.settings.set_strv('dock-keyboard-shortcut', [shortcut]);
+            } else {
+                toggleDockShortcutEntry["secondary-icon-name"] = "dialog-warning-symbolic";
+                toggleDockShortcutEntry["secondary-icon-tooltip-text"] = _("Invalid accelerator. Try F12, <Super>space, <Ctrl><Alt><Shift>w, etc.");
+            }
+        }));
+
+        let toggleDockSwitch = new Gtk.Switch ({
+            halign: Gtk.Align.END
+        });
+        toggleDockSwitch.set_active(this.settings.get_boolean('toggle-dock-with-keyboard-shortcut'));
+        toggleDockSwitch.connect('notify::active', Lang.bind(this, function(check) {
+            this.settings.set_boolean('toggle-dock-with-keyboard-shortcut', check.get_active());
+        }));
+
+
+        shortcutsMain.add(toggleDockLabel);
+        shortcutsMain.add(toggleDockShortcutEntry);
+        shortcutsMain.add(toggleDockSwitch);
+
+        shortcuts.add(shortcutsTitle);
+        shortcuts.add(shortcutsMain);
+        notebookAdditionalSettings.add(shortcuts);
+
+
+
 
         /* DASH INTEGRATION SETTINGS */
 
