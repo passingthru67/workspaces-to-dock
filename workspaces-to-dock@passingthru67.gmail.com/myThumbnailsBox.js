@@ -449,16 +449,16 @@ const myWorkspaceThumbnail = new Lang.Class({
 
             let activeWorkspace = global.screen.get_active_workspace();
             if (this.metaWorkspace == activeWorkspace) {
-	            // Show window on active workspace
-	            let index = -1;
-	            for (let i = 0; i < this._wsWindowApps.length; i++) {
-	                if (this._wsWindowApps[i].metaWin == metaWin) {
-	                    index = i;
-	                    break;
-	                }
-	            }
-	            if (index > -1)
-	                continue;
+                // Show window on active workspace
+                let index = -1;
+                for (let i = 0; i < this._wsWindowApps.length; i++) {
+                    if (this._wsWindowApps[i].metaWin == metaWin) {
+                        index = i;
+                        break;
+                    }
+                }
+                if (index > -1)
+                    continue;
 
                 let tracker = Shell.WindowTracker.get_default();
                 let app = tracker.get_window_app(metaWin);
@@ -880,7 +880,7 @@ const myThumbnailsBox = new Lang.Class({
         this._updateSwitcherVisibility();
     },
 
-	// override _onButtonRelease to provide customized click actions (i.e. overview on right click)
+    // override _onButtonRelease to provide customized click actions (i.e. overview on right click)
     _onButtonRelease: function(actor, event) {
         if (_DEBUG_) global.log("mythumbnailsBox: _onButtonRelease");
         // ThumbnailsBox click events are passed on to dock handler if conditions are met

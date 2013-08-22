@@ -6,10 +6,10 @@
  * ========================================================================================================
  */
 
-/* 
+/*
  * Part of this file comes from gnome-shell-extensions:
  * http://git.gnome.org/browse/gnome-shell-extensions/
- * 
+ *
  */
 
 const Gettext = imports.gettext;
@@ -110,7 +110,7 @@ const globalSignalHandler = new Lang.Class({
         if (this._signals[label] == undefined) {
             this._signals[label] = new Array();
         }
-        for (let i = 0; i < elements.length; i++) { 
+        for (let i = 0; i < elements.length; i++) {
             let object = elements[i][0];
             let event = elements[i][1];
             let id = object.connect(event, elements[i][2]);

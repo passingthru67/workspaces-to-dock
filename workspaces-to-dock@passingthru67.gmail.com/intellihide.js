@@ -78,12 +78,12 @@ let intellihide = function(dock, settings, gsCurrentVersion) {
 intellihide.prototype = {
 
     _init: function(dock, settings) {
-		// temporarily disable intellihide until initialized (prevents connected signals from trying to update dock visibility)
-		this._disableIntellihide = true;
-		if (_DEBUG_) global.log("intellihide: init - disaableIntellihide");
+        // temporarily disable intellihide until initialized (prevents connected signals from trying to update dock visibility)
+        this._disableIntellihide = true;
+        if (_DEBUG_) global.log("intellihide: init - disaableIntellihide");
 
-		// Override Gnome Shell functions
-		this._overrideGnomeShellFunctions();
+        // Override Gnome Shell functions
+        this._overrideGnomeShellFunctions();
 
         // Load settings
         this._settings = settings;
@@ -310,14 +310,14 @@ intellihide.prototype = {
                 ]
             );
         }
-		if (_DEBUG_) global.log("intellihide: init - signals being captured");
+        if (_DEBUG_) global.log("intellihide: init - signals being captured");
 
         // Start main loop and bind initialize function
         Mainloop.idle_add(Lang.bind(this, this._initialize));
     },
 
     _initialize: function() {
-		if (_DEBUG_) global.log("intellihide: initializing");
+        if (_DEBUG_) global.log("intellihide: initializing");
         // enable intellihide now
         this._disableIntellihide = false;
         if (_DEBUG_) global.log("intellihide: initialize - turn on intellihide");
@@ -334,7 +334,7 @@ intellihide.prototype = {
         if (this._windowChangedTimeout > 0)
             Mainloop.source_remove(this._windowChangedTimeout); // Just to be sure
 
-		this._restoreGnomeShellFunctions();
+        this._restoreGnomeShellFunctions();
     },
 
     // main function called during init to override gnome shell 3.4/3.6/#
@@ -364,7 +364,7 @@ intellihide.prototype = {
     // gnome shell 3.4 function overrides
     _overrideGnomeShell34Functions: function() {
         // Override the PopupMenuManager addMenu function to emit a signal when new menus are added
-		// Copied from Gnome Shell .. emit 'menu-added' added
+        // Copied from Gnome Shell .. emit 'menu-added' added
         let p = PopupMenu.PopupMenuManager.prototype;
         this.saved_PopupMenuManager_addMenu = p.addMenu;
         p.addMenu = function(menu, position) {
@@ -395,39 +395,39 @@ intellihide.prototype = {
     },
 
     // gnome shell 3.6 function overrides
-	_overrideGnomeShell36Functions: function() {
+    _overrideGnomeShell36Functions: function() {
         // Override the ViewSelector showPage function to emit a signal when overview page changes
-		// Copied from Gnome Shell .. emit 'show-page' added
+        // Copied from Gnome Shell .. emit 'show-page' added
         let p = ViewSelector.ViewSelector.prototype;
         this.saved_ViewSelector_showPage = p._showPage;
-		p._showPage = function(page) {
-			if(page == this._activePage)
-				return;
+        p._showPage = function(page) {
+            if(page == this._activePage)
+                return;
 
-			if(this._activePage) {
-				Tweener.addTween(this._activePage,
-								 { opacity: 0,
-								   time: 0.1,
-								   transition: 'easeOutQuad',
-								   onComplete: Lang.bind(this,
-									   function() {
-										   this._activePage.hide();
-										   this._activePage = page;
-									   })
-								 });
-			}
+            if(this._activePage) {
+                Tweener.addTween(this._activePage,
+                                 { opacity: 0,
+                                   time: 0.1,
+                                   transition: 'easeOutQuad',
+                                   onComplete: Lang.bind(this,
+                                       function() {
+                                           this._activePage.hide();
+                                           this._activePage = page;
+                                       })
+                                 });
+            }
 
-			page.show();
-			this.emit('show-page', page);
-			Tweener.addTween(page,
-							 { opacity: 255,
-							   time: 0.1,
-							   transition: 'easeOutQuad'
-							 });
-		};
+            page.show();
+            this.emit('show-page', page);
+            Tweener.addTween(page,
+                             { opacity: 255,
+                               time: 0.1,
+                               transition: 'easeOutQuad'
+                             });
+        };
 
         // Override the PopupMenuManager addMenu function to emit a signal when new menus are added
-		// Copied from Gnome Shell .. emit 'menu-added' added
+        // Copied from Gnome Shell .. emit 'menu-added' added
         let p = PopupMenu.PopupMenuManager.prototype;
         this.saved_PopupMenuManager_addMenu = p.addMenu;
         p.addMenu = function(menu, position) {
@@ -460,10 +460,10 @@ intellihide.prototype = {
         Signals.addSignalMethods(PopupMenu.PopupMenuManager.prototype);
 
         // Override the GrabHelper grab function to emit a signal when focus is grabbed
-		// Copied from Gnome Shell .. emit 'focus-grabbed' added
+        // Copied from Gnome Shell .. emit 'focus-grabbed' added
         let p = GrabHelper.GrabHelper.prototype;
-		this.saved_GrabHelper_grab = p.grab;
-		p.grab = function(params) {
+        this.saved_GrabHelper_grab = p.grab;
+        p.grab = function(params) {
             params = Params.parse(params, { actor: null,
                                             modal: false,
                                             grabFocus: false,
@@ -490,13 +490,13 @@ intellihide.prototype = {
             this._grabStack.push(params);
             this.emit('focus-grabbed');
             return true;
-		};
+        };
 
         // Override the GrabHelper ungrab function to emit a signal when focus is ungrabbed
-		// Copied from Gnome Shell .. emit 'focus-ungrabbed' added
-		let p = GrabHelper.GrabHelper.prototype;
-		this.saved_GrabHelper_ungrab = p.ungrab;
-		p.ungrab = function(params) {
+        // Copied from Gnome Shell .. emit 'focus-ungrabbed' added
+        let p = GrabHelper.GrabHelper.prototype;
+        this.saved_GrabHelper_ungrab = p.ungrab;
+        p.ungrab = function(params) {
             params = Params.parse(params, { actor: this.currentGrab.actor });
 
             let grabStackIndex = this._findStackIndex(params.actor);
@@ -530,17 +530,17 @@ intellihide.prototype = {
             }
 
             this.emit('focus-ungrabbed');
-		};
-		Signals.addSignalMethods(GrabHelper.GrabHelper.prototype);
-	},
+        };
+        Signals.addSignalMethods(GrabHelper.GrabHelper.prototype);
+    },
 
     // gnome shell 3.8 function overrides
-	_overrideGnomeShell38Functions: function() {
+    _overrideGnomeShell38Functions: function() {
         // Override the GrabHelper grab function to emit a signal when focus is grabbed
-		// Copied from Gnome Shell .. emit 'focus-grabbed' added
+        // Copied from Gnome Shell .. emit 'focus-grabbed' added
         let p = GrabHelper.GrabHelper.prototype;
-		this.saved_GrabHelper_grab = p.grab;
-		p.grab = function(params) {
+        this.saved_GrabHelper_grab = p.grab;
+        p.grab = function(params) {
             params = Params.parse(params, { actor: null,
                                             modal: false,
                                             grabFocus: false,
@@ -579,10 +579,10 @@ intellihide.prototype = {
         };
 
         // Override the GrabHelper ungrab function to emit a signal when focus is ungrabbed
-		// Copied from Gnome Shell .. emit 'focus-ungrabbed' added
-		let p = GrabHelper.GrabHelper.prototype;
-		this.saved_GrabHelper_ungrab = p.ungrab;
-		p.ungrab = function(params) {
+        // Copied from Gnome Shell .. emit 'focus-ungrabbed' added
+        let p = GrabHelper.GrabHelper.prototype;
+        this.saved_GrabHelper_ungrab = p.ungrab;
+        p.ungrab = function(params) {
             params = Params.parse(params, { actor: this.currentGrab.actor,
                                             isUser: false });
 
@@ -635,13 +635,13 @@ intellihide.prototype = {
             this._isUngrabbingCount--;
 
             this.emit('focus-ungrabbed');
-		};
+        };
 
         Signals.addSignalMethods(GrabHelper.GrabHelper.prototype);
-	},
+    },
 
     // gnome shell 3.4 function restores
-	_restoreGnomeShell34Functions: function() {
+    _restoreGnomeShell34Functions: function() {
         // Restore normal PopupMenuManager addMenu function
         let p = PopupMenu.PopupMenuManager.prototype;
         p.addMenu = this.saved_PopupMenuManager_addMenu;
@@ -649,7 +649,7 @@ intellihide.prototype = {
 
     // gnome shell 3.6 function restores
     _restoreGnomeShell36Functions: function() {
-		// Restore normal ViewSelector showPage function
+        // Restore normal ViewSelector showPage function
         let p = ViewSelector.ViewSelector.prototype;
         p._showPage = this.saved_ViewSelector_showPage;
 
@@ -664,7 +664,7 @@ intellihide.prototype = {
         // Restore normal GrabHelper ungrab function
         let p = GrabHelper.GrabHelper.prototype;
         p.ungrab = this.saved_GrabHelper_ungrab;
-	},
+    },
 
     // gnome shell 3.8 function restores
     _restoreGnomeShell38Functions: function() {
@@ -675,7 +675,7 @@ intellihide.prototype = {
         // Restore normal GrabHelper ungrab function
         let p = GrabHelper.GrabHelper.prototype;
         p.ungrab = this.saved_GrabHelper_ungrab;
-	},
+    },
 
     // handler to bind settings when preferences changed
     _bindSettingsChanges: function() {
@@ -690,7 +690,7 @@ intellihide.prototype = {
         }));
 
         this._settings.connect('changed::dock-fixed', Lang.bind(this, function() {
-			if (_DEBUG_) global.log("intellihide: _bindSettingsChanges for dock-fixed");
+            if (_DEBUG_) global.log("intellihide: _bindSettingsChanges for dock-fixed");
             if (this._settings.get_boolean('dock-fixed')) {
                 this.status = true; // Since the dock is now shown
             } else {
@@ -704,34 +704,34 @@ intellihide.prototype = {
     },
 
     // handler for when dock size-position is changed
-	_onDockSettingsChanged: function() {
-		if (_DEBUG_) global.log("intellihide: _onDockSettingsChanged");
-		this._updateDockVisibility();
-	},
+    _onDockSettingsChanged: function() {
+        if (_DEBUG_) global.log("intellihide: _onDockSettingsChanged");
+        this._updateDockVisibility();
+    },
 
     // handler for when window is maximized
-	_onWindowMaximized: function() {
-		if (_DEBUG_) global.log("intellihide: _onWindowMaximized");
-		this._updateDockVisibility();
-	},
+    _onWindowMaximized: function() {
+        if (_DEBUG_) global.log("intellihide: _onWindowMaximized");
+        this._updateDockVisibility();
+    },
 
     // handler for when window is unmaximized
-	_onWindowUnmaximized: function() {
-		if (_DEBUG_) global.log("intellihide: _onWindowUnmaximized");
-		this._updateDockVisibility();
-	},
+    _onWindowUnmaximized: function() {
+        if (_DEBUG_) global.log("intellihide: _onWindowUnmaximized");
+        this._updateDockVisibility();
+    },
 
     // handler for when screen is restacked
-	_onScreenRestacked: function() {
-		if (_DEBUG_) global.log("intellihide: _onScreenRestacked");
-		this._updateDockVisibility();
-	},
+    _onScreenRestacked: function() {
+        if (_DEBUG_) global.log("intellihide: _onScreenRestacked");
+        this._updateDockVisibility();
+    },
 
     // handler for when monitor changes
-	_onMonitorsChanged: function() {
-		if (_DEBUG_) global.log("intellihide: _onMonitorsChanged");
-		this._updateDockVisibility();
-	},
+    _onMonitorsChanged: function() {
+        if (_DEBUG_) global.log("intellihide: _onMonitorsChanged");
+        this._updateDockVisibility();
+    },
 
     // handler for when thumbnail windows dragging started
     _onWindowDragBegin: function() {
@@ -872,7 +872,7 @@ intellihide.prototype = {
             let idx = source._grabStack.length - 1;
             focusedActor = source._grabStack[idx].actor;
         }
-		let [rx, ry] = focusedActor.get_transformed_position();
+        let [rx, ry] = focusedActor.get_transformed_position();
         let [rwidth, rheight] = focusedActor.get_size();
         let test = (rx < this._dock.staticBox.x2) && (rx + rwidth > this._dock.staticBox.x1) && (ry < this._dock.staticBox.y2) && (ry + rheight > this._dock.staticBox.y1);
         if (_DEBUG_) global.log("intellihide: onPanelFocusGrabbed actor = "+focusedActor+"  position = "+focusedActor.get_transformed_position()+" size = "+focusedActor.get_size()+" test = "+test);
@@ -911,7 +911,7 @@ intellihide.prototype = {
                 return;
             }
         }
-		let [rx, ry] = focusedActor.get_transformed_position();
+        let [rx, ry] = focusedActor.get_transformed_position();
         let [rwidth, rheight] = focusedActor.get_size();
         let test = (rx < this._dock.staticBox.x2) && (rx + rwidth > this._dock.staticBox.x1) && (ry - rheight < this._dock.staticBox.y2) && (ry > this._dock.staticBox.y1);
         if (_DEBUG_) global.log("intellihide: onTrayFocusGrabbed actor = "+focusedActor+"  position = "+focusedActor.get_transformed_position()+" size = "+focusedActor.get_size()+" test = "+test);
@@ -971,7 +971,7 @@ intellihide.prototype = {
 
     // handler for when window move begins
     _grabOpBegin: function() {
-		if (_DEBUG_) global.log("intellihide: _grabOpBegin");
+        if (_DEBUG_) global.log("intellihide: _grabOpBegin");
         if (this._settings.get_boolean('intellihide')) {
             let INTERVAL = 100; // A good compromise between reactivity and efficiency; to be tuned.
 
@@ -989,7 +989,7 @@ intellihide.prototype = {
 
     // handler for when window move ends
     _grabOpEnd: function() {
-		if (_DEBUG_) global.log("intellihide: _grabOpEnd");
+        if (_DEBUG_) global.log("intellihide: _grabOpEnd");
         if (this._settings.get_boolean('intellihide')) {
             if (this._windowChangedTimeout > 0)
                 Mainloop.source_remove(this._windowChangedTimeout);
@@ -1000,7 +1000,7 @@ intellihide.prototype = {
 
     // handler for when workspace is switched
     _switchWorkspace: function(shellwm, from, to, direction) {
-		if (_DEBUG_) global.log("intellihide: _switchWorkspace");
+        if (_DEBUG_) global.log("intellihide: _switchWorkspace");
         this._updateDockVisibility();
     },
 
@@ -1009,7 +1009,7 @@ intellihide.prototype = {
         if (this.status == null || this.status == false) {
             if (this._settings.get_boolean('dock-fixed')) {
                 if (_DEBUG_) global.log("intellihide: _show - fadeInDock");
-				if (this.status == null) {
+                if (this.status == null) {
                     // do slow fade in when first showing dock
                     this._dock.fadeInDock(this._settings.get_double('animation-time'), 0);
                 } else {
@@ -1017,11 +1017,11 @@ intellihide.prototype = {
                     this._dock.fadeInDock(.05, 0);
                 }
             } else {
-				if (_DEBUG_) global.log("intellihide: _show - disableAutoHide");
-				this._dock.disableAutoHide();
+                if (_DEBUG_) global.log("intellihide: _show - disableAutoHide");
+                this._dock.disableAutoHide();
             }
             this.status = true;
-		}
+        }
     },
 
     // intellihide function to hide dock
@@ -1037,7 +1037,7 @@ intellihide.prototype = {
                     this._dock.fadeOutDock(this._settings.get_double('animation-time'), 0, false);
                 }
             } else {
-				if (_DEBUG_) global.log("intellihide: _hide - enableAutoHide");
+                if (_DEBUG_) global.log("intellihide: _hide - enableAutoHide");
                 this._dock.enableAutoHide();
             }
         }

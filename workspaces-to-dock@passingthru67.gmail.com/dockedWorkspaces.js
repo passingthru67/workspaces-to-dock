@@ -66,7 +66,7 @@ dockedWorkspaces.prototype = {
 
         // set RTL value
         this._rtl = Clutter.get_default_text_direction() == Clutter.TextDirection.RTL;
-	    if (_DEBUG_) global.log("dockedWorkspaces: init - rtl = "+this._rtl);
+        if (_DEBUG_) global.log("dockedWorkspaces: init - rtl = "+this._rtl);
 
         // Load settings
         this._settings = settings;
@@ -92,8 +92,8 @@ dockedWorkspaces.prototype = {
         this._customBackground = {red:0, green:0, blue:0};
         this._cssStylesheet = null;
 
-		// Override Gnome Shell functions
-		this._overrideGnomeShellFunctions();
+        // Override Gnome Shell functions
+        this._overrideGnomeShellFunctions();
 
         // Create a new thumbnailsbox object
         this._thumbnailsBox = new MyThumbnailsBox.myThumbnailsBox(this);
@@ -173,33 +173,33 @@ dockedWorkspaces.prototype = {
             ]
         );
 
-		// Connect GS34 & GS36 global signals
-		if (this._gsCurrentVersion[1] < 7) {
-		    this._signalHandler.push(
-		        [
-		            Main.overview._viewSelector._pageArea,
-		            'notify::y',
-		            Lang.bind(this, this._updateYPosition)
-		        ],
-		        [
-		            global.screen,
-		            'restacked',
-		            Lang.bind(this, this._workspacesRestacked)
-		        ],
-		        [
-		            global.screen,
-		            'workspace-switched',
-		            Lang.bind(this, this._workspacesRestacked)
-		        ]
-			);
-		}
+        // Connect GS34 & GS36 global signals
+        if (this._gsCurrentVersion[1] < 7) {
+            this._signalHandler.push(
+                [
+                    Main.overview._viewSelector._pageArea,
+                    'notify::y',
+                    Lang.bind(this, this._updateYPosition)
+                ],
+                [
+                    global.screen,
+                    'restacked',
+                    Lang.bind(this, this._workspacesRestacked)
+                ],
+                [
+                    global.screen,
+                    'workspace-switched',
+                    Lang.bind(this, this._workspacesRestacked)
+                ]
+            );
+        }
         if (_DEBUG_) global.log("dockedWorkspaces: init - signals being captured");
 
         // Connect DashToDock hover signal if the extension is already loaded and enabled
         let extension = ExtensionUtils.extensions[DashToDock_UUID];
         if (extension) {
             if (extension.state == ExtensionSystem.ExtensionState.ENABLED) {
-                if (_DEBUG_) global.log("dockeWorkspaces.js: DashToDock extension is installed and enabled");
+                if (_DEBUG_) global.log("dockeWorkspaces: init - DashToDock extension is installed and enabled");
                 DashToDock = extension.imports.extension;
                 if (DashToDock && DashToDock.dock) {
                     // Connect DashToDock hover signal
@@ -258,11 +258,11 @@ dockedWorkspaces.prototype = {
         // Set initial position
         this._resetPosition();
 
-		if (!this._settings.get_boolean('dock-fixed')) {
+        if (!this._settings.get_boolean('dock-fixed')) {
             // Show the non-fixed dock (off screen from resetPosition)
             // note: fixed dock already on screen and will animate opacity to 255 when fadeInDock is called
             this.actor.set_opacity(255);
-		}
+        }
 
         this._disableRedisplay = false;
         if (_DEBUG_) global.log("dockedWorkspaces: initialize - turn on redisplay");
@@ -480,10 +480,10 @@ dockedWorkspaces.prototype = {
         this._settings.connect('changed::dock-fixed', Lang.bind(this, function() {
             if (_DEBUG_) global.log("dockedWorkspaces: _bindSettingsChanges for dock-fixed");
             Main.layoutManager.removeChrome(this.actor);
-			Main.layoutManager.addChrome(this.actor, {
-				affectsStruts: this._settings.get_boolean('dock-fixed'),
-				affectsInputRegion: true
-			});
+            Main.layoutManager.addChrome(this.actor, {
+                affectsStruts: this._settings.get_boolean('dock-fixed'),
+                affectsInputRegion: true
+            });
 
             // TODO: can we lower this.actor in gnome shell without causing problems?
             // gs3.4 problem - dock immediately hides when workspace is switched even when mouse is hovering
@@ -721,7 +721,7 @@ dockedWorkspaces.prototype = {
 
     // autohide function to start a delay loop when showing the workspaces.
     _startWorkspacesShowLoop: function() {
-		if (_DEBUG_) global.log("dockedWorkspaces: _startWorkspacesShowLoop");
+        if (_DEBUG_) global.log("dockedWorkspaces: _startWorkspacesShowLoop");
         // If a loop already exists clear it
         if (this._workspacesShowTimeout > 0)
             Mainloop.source_remove(this._workspacesShowTimeout);
@@ -783,14 +783,14 @@ dockedWorkspaces.prototype = {
 
     // autohide function to animate the show dock process
     _animateIn: function(time, delay) {
-        // Set final_position based on RTL so that dock ends up in proper position
+        // Set final_position
         let final_position;
         if (this._rtl) {
             final_position = this._monitor.x - 1;
         } else {
             final_position = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - 1;
         }
-	    if (_DEBUG_) global.log("dockedWorkspaces: _animateIN - currrent_position = "+ this.actor.x+" final_position = "+final_position);
+        if (_DEBUG_) global.log("dockedWorkspaces: _animateIN - currrent_position = "+ this.actor.x+" final_position = "+final_position);
         if (_DEBUG_) global.log("dockedWorkspaces: _animateIN - _thumbnailsBox width = "+this._thumbnailsBox.actor.width);
         if (_DEBUG_) global.log("dockedWorkspaces: _animateIN - actor width = "+this.actor.width);
 
@@ -813,15 +813,15 @@ dockedWorkspaces.prototype = {
                 }),
                 onComplete: Lang.bind(this, function() {
                     this._animStatus.end();
-					if (_DEBUG_) global.log("dockedWorkspaces: _animateIn onComplete");
+                    if (_DEBUG_) global.log("dockedWorkspaces: _animateIn onComplete");
                 })
             });
         } else {
-			// Still need to trigger animStatus states so that show/hide dock functions work properly
-			if (_DEBUG_) global.log("dockedWorkspaces: _animateIn final_position == actor.x .. trigger animStatus");
+            // Still need to trigger animStatus states so that show/hide dock functions work properly
+            if (_DEBUG_) global.log("dockedWorkspaces: _animateIn final_position == actor.x .. trigger animStatus");
             this._animStatus.queue(true);
-			this._animStatus.end();
-		}
+            this._animStatus.end();
+        }
     },
 
     // autohide function to animate the hide dock process
@@ -829,7 +829,7 @@ dockedWorkspaces.prototype = {
         if (this._popupMenuShowing)
             return;
 
-        // Set final_position based on RTL so that dock ends up in proper position
+        // Set final_position
         let final_position;
         if (this._rtl) {
             if (this._settings.get_boolean('dock-edge-visible')) {
@@ -871,12 +871,12 @@ dockedWorkspaces.prototype = {
                 })
             });
         } else {
-			// Still need to trigger animStatus states so that show/hide dock functions work properly
-			if (_DEBUG_) global.log("dockedWorkspaces: _animateOut final_position == actor.x .. trigger animStatus");
+            // Still need to trigger animStatus states so that show/hide dock functions work properly
+            if (_DEBUG_) global.log("dockedWorkspaces: _animateOut final_position == actor.x .. trigger animStatus");
             this._animStatus.queue(false);
-			this._animStatus.end();
+            this._animStatus.end();
             this._setHiddenWidth();
-		}
+        }
     },
 
     // autohide function to remove show-hide animations
@@ -1034,7 +1034,7 @@ dockedWorkspaces.prototype = {
             }
         }
 
-		if (this._gsCurrentVersion[1] < 7) {
+        if (this._gsCurrentVersion[1] < 7) {
             this._thumbnailsBox.hide();
             this._thumbnailsBox.show();
         } else {
@@ -1051,7 +1051,7 @@ dockedWorkspaces.prototype = {
 
     // resdiplay dock called if size-position changed due to dock resizing
     _redisplay: function() {
-		if (this._disableRedisplay)
+        if (this._disableRedisplay)
             return
 
         if (_DEBUG_) global.log("dockedWorkspaces: _redisplay");
@@ -1211,7 +1211,7 @@ dockedWorkspaces.prototype = {
             this.actor.set_position(x2, this.actor.y);
         }
 
-		this._updateBackgroundOpacity();
+        this._updateBackgroundOpacity();
         this._updateClip();
     },
 
@@ -1256,7 +1256,7 @@ dockedWorkspaces.prototype = {
 
     // Disable autohide effect, thus show workspaces
     disableAutoHide: function() {
-		if (_DEBUG_) global.log("dockedWorkspaces: disableAutoHide - autohideStatus = "+this._autohideStatus);
+        if (_DEBUG_) global.log("dockedWorkspaces: disableAutoHide - autohideStatus = "+this._autohideStatus);
         if (this._autohideStatus == true) {
             this._autohideStatus = false;
 
@@ -1275,7 +1275,7 @@ dockedWorkspaces.prototype = {
 
     // Enable autohide effect, hide workspaces
     enableAutoHide: function() {
-		if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - autohideStatus = "+this._autohideStatus);
+        if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - autohideStatus = "+this._autohideStatus);
         if (this._autohideStatus == false) {
             this._autohideStatus = true;
 

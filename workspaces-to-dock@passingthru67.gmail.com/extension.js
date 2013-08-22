@@ -27,9 +27,9 @@ function init() {
 
 function enable() {
     if (_DEBUG_) global.log("workspaces-to-dock: ENABLE");
-	// determine gnome shell version
+    // determine gnome shell version
     let gsCurrentVersion = Config.PACKAGE_VERSION.split('.');
-	if (gsCurrentVersion[0] != 3) throw new Error(_("Unknown version number") + " (extension.js).");
+    if (gsCurrentVersion[0] != 3) throw new Error(_("Unknown version number") + " (extension.js).");
 
     // enable the extension
     settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
