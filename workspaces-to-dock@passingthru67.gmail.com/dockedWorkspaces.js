@@ -786,7 +786,7 @@ dockedWorkspaces.prototype = {
         // Set final_position
         let final_position;
         if (this._rtl) {
-            final_position = this._monitor.x - 1;
+            final_position = this._monitor.x + this._thumbnailsBox.actor.width + 1;
         } else {
             final_position = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - 1;
         }
@@ -795,7 +795,6 @@ dockedWorkspaces.prototype = {
         if (_DEBUG_) global.log("dockedWorkspaces: _animateIN - actor width = "+this.actor.width);
 
         if (final_position !== this.actor.x) {
-            this._unsetHiddenWidth();
             this._animStatus.queue(true);
             Tweener.addTween(this.actor, {
                 x: final_position,
@@ -805,6 +804,7 @@ dockedWorkspaces.prototype = {
                 onUpdate: Lang.bind(this, this._updateClip),
                 onStart: Lang.bind(this, function() {
                     this._animStatus.start();
+                    this._unsetHiddenWidth();
                     if (_DEBUG_) global.log("dockedWorkspaces: _animateIn onStart");
                 }),
                 onOverwrite: Lang.bind(this, function() {
@@ -833,9 +833,9 @@ dockedWorkspaces.prototype = {
         let final_position;
         if (this._rtl) {
             if (this._settings.get_boolean('dock-edge-visible')) {
-                final_position = this._monitor.x - this._thumbnailsBox.actor.width + DOCK_EDGE_VISIBLE_WIDTH;
+                final_position = this._monitor.x + 1 + DOCK_EDGE_VISIBLE_WIDTH;
             } else {
-                final_position = this._monitor.x - this._thumbnailsBox.actor.width;
+                final_position = this._monitor.x + 1;
             }
         } else {
             if (this._settings.get_boolean('dock-edge-visible')) {
@@ -1086,18 +1086,58 @@ dockedWorkspaces.prototype = {
     // this fixes long-standing issue of dead zone preventing mouse clicks on secondary monitor to the right
     _setHiddenWidth: function() {
         let width;
+        let padding = 1;
         if (this._settings.get_boolean('dock-edge-visible')) {
             width = 1 + DOCK_EDGE_VISIBLE_WIDTH + DOCK_HIDDEN_WIDTH;
         } else {
             width = 1 + DOCK_HIDDEN_WIDTH;
         }
         this.actor.set_size(width, this.actor.height);
+
+        // New clip coordinates
+        let x1, x2;
+        if (this._rtl) {
+            this._thumbnailsBox.actor.set_position(this.actor.width-padding, 0);
+            x1 = width;
+            x2 = 0;
+        } else {
+            this._thumbnailsBox.actor.set_position(padding, 0);
+            x1 = 0;
+            x2 = width;
+        }
+        let y1= this._monitor.y;
+        let y2= this._monitor.y + this._monitor.height;
+
+        if (_DEBUG_) global.log("C.X1 = "+Math.round(x1)+" C.X2 = "+Math.round(x2)+" C.R = "+(x2-x1)+" ACTOR.X = "+Math.round(this.actor.x)+" ACTOR.W = "+this.actor.width);
+
+        // Apply the clip
+        this.actor.set_clip(x1, y1, x2 - x1, y2);
     },
 
     // unset dock width (called before animateIn starts)
     _unsetHiddenWidth: function() {
         let width = this._thumbnailsBox.actor.width + 1;
+        let padding = 1;
         this.actor.set_size(width, this.actor.height);
+
+        // New clip coordinates
+        let x1, x2;
+        if (this._rtl) {
+            this._thumbnailsBox.actor.set_position(this.actor.width-padding, 0);
+            x1 = width;
+            x2 = this._monitor.x + this._thumbnailsBox.actor.width + 1 - this.actor.x;
+        } else {
+            this._thumbnailsBox.actor.set_position(padding, 0);
+            x1 = 0;
+            x2 = this._monitor.x + this._monitor.width - this.actor.x;
+        }
+        let y1= this._monitor.y;
+        let y2= this._monitor.y + this._monitor.height;
+
+        if (_DEBUG_) global.log("C.X1 = "+Math.round(x1)+" C.X2 = "+Math.round(x2)+" C.R = "+(x2-x1)+" ACTOR.X = "+Math.round(this.actor.x)+" ACTOR.W = "+this.actor.width);
+
+        // Apply the clip
+        this.actor.set_clip(x1, y1, x2 - x1, y2);
     },
 
     // update the dock size
@@ -1114,11 +1154,11 @@ dockedWorkspaces.prototype = {
             primary = true;
 
         // x position needed because updating size resets position of staticBox (see code below)
-        let x;
+        let onScreenX;
         if (this._rtl) {
-            x = this._monitor.x - 1;
+            onScreenX = this._monitor.x;
         } else {
-            x = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - 1;
+            onScreenX = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - 1;
         }
 
         // Update height
@@ -1168,14 +1208,25 @@ dockedWorkspaces.prototype = {
         }
 
         // Updating size also resets the position of the staticBox (used to detect window overlaps)
-        this.staticBox.init_rect(x, y, this._thumbnailsBox.actor.width + 1, height);
+        this.staticBox.init_rect(onScreenX, y, this._thumbnailsBox.actor.width + 1, height);
 
         // Updating size shouldn't reset the x position of the actor box (used to detect hover)
         // especially if it's in the hidden slid out position
         this.actor.y = y;
         this.actor.set_size(this._thumbnailsBox.actor.width + 1, height);
 
-        this._thumbnailsBox.actor.set_position(1, 0); // position inside actor
+        let anchorPoint, boxPosition, padding;
+        let padding = 1;
+        if (this._rtl) {
+            anchorPoint = Clutter.Gravity.NORTH_EAST;
+            boxPosition = this.actor.width - padding;
+        } else {
+            anchorPoint = Clutter.Gravity.NORTH_WEST;
+            boxPosition = padding;
+        }
+        this.actor.move_anchor_point_from_gravity(anchorPoint);
+        this._thumbnailsBox.actor.move_anchor_point_from_gravity(anchorPoint);
+        this._thumbnailsBox.actor.set_position(boxPosition, 0);
         this._thumbnailsBox.actor.height = height;
     },
 
@@ -1186,29 +1237,38 @@ dockedWorkspaces.prototype = {
 
         this._updateSize();
 
-        let x, x2;
+        let onScreenX, offScreenX, anchorPoint, boxPosition;
+        let padding = 1;
         if (this._rtl) {
-            x = this._monitor.x - 1;
+            anchorPoint = Clutter.Gravity.NORTH_EAST;
+            boxPosition = this.actor.width - padding;
+            onScreenX = this._monitor.x;
             if (this._settings.get_boolean('dock-edge-visible')) {
-                x2 = this._monitor.x - this._thumbnailsBox.actor.width + DOCK_EDGE_VISIBLE_WIDTH;
+                offScreenX = this._monitor.x - this._thumbnailsBox.actor.width + DOCK_EDGE_VISIBLE_WIDTH + 1;
             } else {
-                x2 = this._monitor.x - this._thumbnailsBox.actor.width;
-            }
+                offScreenX = this._monitor.x - this._thumbnailsBox.actor.width + 1;
+                    }
         } else {
-            x = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - 1;
+            anchorPoint = Clutter.Gravity.NORTH_WEST;
+            boxPosition = padding;
+            onScreenX = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - 1;
             if (this._settings.get_boolean('dock-edge-visible')) {
-                x2 = this._monitor.x + this._monitor.width - 1 - DOCK_EDGE_VISIBLE_WIDTH;
+                offScreenX = this._monitor.x + this._monitor.width - 1 - DOCK_EDGE_VISIBLE_WIDTH;
             } else {
-                x2 = this._monitor.x + this._monitor.width - 1;
+                offScreenX = this._monitor.x + this._monitor.width - 1;
             }
         }
 
+        this.actor.move_anchor_point_from_gravity(anchorPoint);
+        this._thumbnailsBox.actor.move_anchor_point_from_gravity(anchorPoint);
+        this._thumbnailsBox.actor.set_position(boxPosition, 0);
+
         if (this._settings.get_boolean('dock-fixed')) {
             //position on the screen so that its initial show is not animated
-            this.actor.set_position(x, this.actor.y);
+            this.actor.set_position(onScreenX, this.actor.y);
         } else {
             //position off the screen so that its initial show is animated
-            this.actor.set_position(x2, this.actor.y);
+            this.actor.set_position(offScreenX, this.actor.y);
         }
 
         this._updateBackgroundOpacity();
@@ -1233,25 +1293,24 @@ dockedWorkspaces.prototype = {
     // clip dock to its original allocation along x and to the current monitor along y
     // the current monitor; inspired by dock@gnome-shell-extensions.gcampax.github.com
     _updateClip: function() {
-        // Here we implicitly assume that the stage and actor's parent
-        // share the same coordinate space
-        let clip = new Clutter.ActorBox({
-            x1: this._monitor.x,
-            y1: this._monitor.y,
-            x2: this._monitor.x + this._monitor.width,
-            y2: this._monitor.y + this._monitor.height
-        });
-
+        // Implicitly assume that the stage and actor's parent share the same coordinate space
         // Translate back into actor's coordinate space
         // While the actor moves, the clip has to move in the opposite direction
         // to mantain its position in respect to the screen.
-        clip.x1 -= this.actor.x;
-        clip.x2 -= this.actor.x;
-        clip.y1 -= this.actor.y;
-        clip.y2 -= this.actor.y;
+        let x1, x2;
+        if (this._rtl) {
+            x1 = this._thumbnailsBox.actor.width + 1;
+            x2 = this._monitor.x + this._thumbnailsBox.actor.width + 1 - this.actor.x;
+        } else {
+            x1 = 0;
+            x2 = this._monitor.x + this._monitor.width - this.actor.x;
+        }
+        let y1= this._monitor.y;
+        let y2= this._monitor.y + this._monitor.height;
+        if (_DEBUG_) global.log("C.X1 = "+Math.round(x1)+" C.X2 = "+Math.round(x2)+" C.R = "+(x2-x1)+" ACTOR.X = "+Math.round(this.actor.x)+" ACTOR.W = "+this.actor.width);
 
         // Apply the clip
-        this.actor.set_clip(clip.x1, clip.y1, clip.x2 - clip.x1, clip.y2 - clip.y1);
+        this.actor.set_clip(x1, y1, x2 - x1, y2);
     },
 
     // Disable autohide effect, thus show workspaces
