@@ -1006,40 +1006,36 @@ intellihide.prototype = {
 
     // intellihide function to show dock
     _show: function() {
-        if (this.status == null || this.status == false) {
-            if (this._settings.get_boolean('dock-fixed')) {
-                if (_DEBUG_) global.log("intellihide: _show - fadeInDock");
-                if (this.status == null) {
-                    // do slow fade in when first showing dock
-                    this._dock.fadeInDock(this._settings.get_double('animation-time'), 0);
-                } else {
-                    // do a quick fade in afterward .. don't know why but slow animation sometimes leaves the fixed dock barely visible
-                    this._dock.fadeInDock(.05, 0);
-                }
+        if (this._settings.get_boolean('dock-fixed')) {
+            if (_DEBUG_) global.log("intellihide: _show - fadeInDock");
+            if (this.status == null) {
+                // do slow fade in when first showing dock
+                this._dock.fadeInDock(this._settings.get_double('animation-time'), 0);
             } else {
-                if (_DEBUG_) global.log("intellihide: _show - disableAutoHide");
-                this._dock.disableAutoHide();
+                // do a quick fade in afterward .. don't know why but slow animation sometimes leaves the fixed dock barely visible
+                this._dock.fadeInDock(.05, 0);
             }
-            this.status = true;
+        } else {
+            if (_DEBUG_) global.log("intellihide: _show - disableAutoHide");
+            this._dock.disableAutoHide();
         }
+        this.status = true;
     },
 
     // intellihide function to hide dock
     _hide: function(nonreactive) {
-        if (this.status == null || this.status == true) {
-            this.status = false;
-            if (this._settings.get_boolean('dock-fixed')) {
-                if (_DEBUG_) global.log("intellihide: _hide - fadeOutDock");
-                if (nonreactive) {
-                    // hide and make stage nonreactive so meta popup windows receive hover and clicks
-                    this._dock.fadeOutDock(this._settings.get_double('animation-time'), 0, true);
-                } else {
-                    this._dock.fadeOutDock(this._settings.get_double('animation-time'), 0, false);
-                }
+        this.status = false;
+        if (this._settings.get_boolean('dock-fixed')) {
+            if (_DEBUG_) global.log("intellihide: _hide - fadeOutDock");
+            if (nonreactive) {
+                // hide and make stage nonreactive so meta popup windows receive hover and clicks
+                this._dock.fadeOutDock(this._settings.get_double('animation-time'), 0, true);
             } else {
-                if (_DEBUG_) global.log("intellihide: _hide - enableAutoHide");
-                this._dock.enableAutoHide();
+                this._dock.fadeOutDock(this._settings.get_double('animation-time'), 0, false);
             }
+        } else {
+            if (_DEBUG_) global.log("intellihide: _hide - enableAutoHide");
+            this._dock.enableAutoHide();
         }
     },
 

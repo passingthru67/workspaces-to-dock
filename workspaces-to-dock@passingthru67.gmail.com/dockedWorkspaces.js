@@ -200,6 +200,10 @@ dockedWorkspaces.prototype = {
         }
         if (_DEBUG_) global.log("dockedWorkspaces: init - signals being captured");
 
+        // Bind keyboard shortcuts
+        if (this._settings.get_boolean('toggle-dock-with-keyboard-shortcut'))
+            this._bindDockKeyboardShortcut();
+
         // Setup pressure barrier (GS38+ only)
         this._canUsePressure = false;
         this._pressureSensed = false;
@@ -307,6 +311,9 @@ dockedWorkspaces.prototype = {
 
         // Disconnect global signals
         this._signalHandler.disconnect();
+
+        // Unbind keyboard shortcuts
+        this._unbindDockKeyboardShortcut();
 
         // Clear loop used to ensure workspaces visibility update.
         if (this._workspacesShowTimeout > 0)
@@ -536,9 +543,7 @@ dockedWorkspaces.prototype = {
 
         this._settings.connect('changed::preferred-monitor', Lang.bind(this, this._resetPosition));
 
-        this._settings.connect('changed::require-pressure-to-show', Lang.bind(this, function() {
-            this._updateBarrier();
-        }));
+        this._settings.connect('changed::require-pressure-to-show', Lang.bind(this, this._updateBarrier));
 
         this._settings.connect('changed::dock-edge-visible', Lang.bind(this, function() {
             if (this._autohideStatus) {
@@ -596,16 +601,55 @@ dockedWorkspaces.prototype = {
         this._settings.connect('changed::extend-height', Lang.bind(this, this._updateSize));
         this._settings.connect('changed::top-margin', Lang.bind(this, this._updateSize));
         this._settings.connect('changed::bottom-margin', Lang.bind(this, this._updateSize));
+
+        this._settings.connect('changed::toggle-dock-with-keyboard-shortcut', Lang.bind(this, function(){
+            if (this._settings.get_boolean('toggle-dock-with-keyboard-shortcut'))
+                this._bindDockKeyboardShortcut();
+            else
+                this._unbindDockKeyboardShortcut();
+        }));
     },
 
+    _bindDockKeyboardShortcut: function() {
+        if (this._gsCurrentVersion[1] > 6) {
+            Main.wm.addKeybinding('dock-keyboard-shortcut', this._settings, Meta.KeyBindingFlags.NONE, Shell.KeyBindingMode.NORMAL,
+                Lang.bind(this, function() {
+                    if (this._autohideStatus && (this._animStatus.hidden() || this._animStatus.hiding())) {
+                        this._show();
+                    } else {
+                        this._hide();
+                    }
+                })
+            );
+        } else {
+            global.display.add_keybinding('dock-keyboard-shortcut', this._settings, Meta.KeyBindingFlags.NONE,
+                Lang.bind(this, function() {
+                    if (this._autohideStatus && (this._animStatus.hidden() || this._animStatus.hiding())) {
+                        this._show();
+                    } else {
+                        this._hide();
+                    }
+                })
+            );
+        }
+    },
+    
+    _unbindDockKeyboardShortcut: function() {
+        if (this._gsCurrentVersion[1] > 6) {
+            Main.wm.removeKeybinding('dock-keyboard-shortcut');
+        } else {
+            global.display.remove_keybinding('dock-keyboard-shortcut');
+        }
+    },
+    
     // handler for mouse hover events
     _hoverChanged: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - actor.hover = "+this.actor.hover);
-        if (this._settings.get_boolean('require-pressure-to-show') && this._canUsePressure) {
+        if (this._settings.get_boolean('require-pressure-to-show') && this._canUsePressure && this._barrier) {
             if (this._pressureSensed == false) {
                 if (_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - presureSensed = "+this._pressureSensed);
                 return;
-                }
+            }
         }
 
         if (this._settings.get_boolean('require-click-to-show')) {
@@ -1418,32 +1462,31 @@ dockedWorkspaces.prototype = {
     // Enable autohide effect, hide workspaces
     enableAutoHide: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - autohideStatus = "+this._autohideStatus);
-        if (this._autohideStatus == false) {
-            this._autohideStatus = true;
 
-            let delay = 0; // immediately fadein background if hide is blocked by mouseover, otherwise start fadein when dock is already hidden.
-            this._removeAnimations();
+        this._autohideStatus = true;
 
-            if (this.actor.hover == true) {
-                this.actor.sync_hover();
-            }
+        let delay = 0; // immediately fadein background if hide is blocked by mouseover, otherwise start fadein when dock is already hidden.
+        this._removeAnimations();
 
-            if (!this.actor.hover || !this._settings.get_boolean('autohide')) {
-                if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - mouse not hovering OR dock not using autohide, so animate out");
-                this._animateOut(this._settings.get_double('animation-time'), 0);
-                delay = this._settings.get_double('animation-time');
-            } else {
-                if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - mouse hovering AND dock using autohide, so startWorkspacesShowLoop instead of animate out");
-                // I'm enabling autohide and the workspaces keeps being showed because of mouse hover
-                // so i start the loop usualy started by _show()
-                this._startWorkspacesShowLoop();
+        if (this.actor.hover == true) {
+            this.actor.sync_hover();
+        }
 
-                delay = 0;
-            }
+        if (!this.actor.hover || !this._settings.get_boolean('autohide')) {
+            if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - mouse not hovering OR dock not using autohide, so animate out");
+            this._animateOut(this._settings.get_double('animation-time'), 0);
+            delay = this._settings.get_double('animation-time');
+        } else {
+            if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - mouse hovering AND dock using autohide, so startWorkspacesShowLoop instead of animate out");
+            // I'm enabling autohide and the workspaces keeps being showed because of mouse hover
+            // so i start the loop usualy started by _show()
+            this._startWorkspacesShowLoop();
 
-            if (this._settings.get_boolean('opaque-background') && !this._settings.get_boolean('opaque-background-always')) {
-                this._fadeInBackground(this._settings.get_double('animation-time'), delay);
-            }
+            delay = 0;
+        }
+
+        if (this._settings.get_boolean('opaque-background') && !this._settings.get_boolean('opaque-background-always')) {
+            this._fadeInBackground(this._settings.get_double('animation-time'), delay);
         }
     }
 
