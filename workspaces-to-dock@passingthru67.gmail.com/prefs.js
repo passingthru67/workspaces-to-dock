@@ -167,7 +167,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         let leaveVisible = new Gtk.CheckButton({
             label: _("Leave dock edge visible when slid out"),
             margin_left: 0,
-            margin_top: 10
+            margin_top: 8
         });
         leaveVisible.set_active(this.settings.get_boolean('dock-edge-visible'));
         leaveVisible.connect('toggled', Lang.bind(this, function(check) {
@@ -177,7 +177,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         let requireClick = new Gtk.CheckButton({
             label: _("Require click to show dock when window maximized"),
             margin_left: 0,
-            margin_top: 2
+            margin_top: 0
         });
         requireClick.set_active(this.settings.get_boolean('require-click-to-show'));
         requireClick.connect('toggled', Lang.bind(this, function(check) {
@@ -185,9 +185,9 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }));
 
         let requirePressure = new Gtk.CheckButton({
-            label: _("Require pressure to show dock (GS3.8+ only)      - - >"),
+            label: _("Require pressure to show dock (GS3.8+)"),
             margin_left: 0,
-            margin_top: 6
+            margin_top: 0
         });
         requirePressure.set_active(this.settings.get_boolean('require-pressure-to-show'));
         requirePressure.connect('toggled', Lang.bind(this, function(check) {
@@ -195,21 +195,21 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }));
 
         let pressureThresholdLabel = new Gtk.Label({
-            label: _("Presure Threshold [px]"),
+            label: _("Presure threshold [px] (GS3.8+)"),
             use_markup: true,
             xalign: 0,
-            margin_top: 6,
+            margin_top: 0,
             hexpand: true
         });
 
         let pressureThreshold = new Gtk.SpinButton({
             halign: Gtk.Align.END,
-            margin_top: 6
+            margin_top: 0
         });
         pressureThreshold.set_sensitive(true);
-        pressureThreshold.set_range(50, 250);
+        pressureThreshold.set_range(10, 1000);
         pressureThreshold.set_value(this.settings.get_double("pressure-threshold") * 1);
-        pressureThreshold.set_increments(5, 10);
+        pressureThreshold.set_increments(10, 20);
         pressureThreshold.connect("value-changed", Lang.bind(this, function(button) {
             let s = button.get_value_as_int() / 1;
             this.settings.set_double("pressure-threshold", s);
@@ -263,7 +263,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         let intellihideFocusApp =  new Gtk.RadioButton({
             label: _("Dodge all instances of focused app"),
             group: intellihideNormal,
-            margin_top: 2
+            margin_top: 0
         });
         intellihideFocusApp.connect('toggled', Lang.bind(this, function(check){
             if (check.get_active()) this.settings.set_int('intellihide-option', 1);
@@ -272,7 +272,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         let intellihideTopWindow =  new Gtk.RadioButton({
             label: _("Dodge only top instance of focused app"),
             group: intellihideNormal,
-            margin_top: 2
+            margin_top: 0
         });
         intellihideTopWindow.connect('toggled', Lang.bind(this, function(check){
             if (check.get_active()) this.settings.set_int('intellihide-option', 2);
@@ -302,7 +302,8 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         dockSettingsGrid1.attach(leaveVisible, 0, 3, 2, 1);
         dockSettingsGrid1.attach(requireClick, 0, 4, 2, 1);
         dockSettingsGrid1.attach(requirePressure, 0, 5, 2, 1);
-
+        dockSettingsGrid1.attach(pressureThresholdLabel, 0, 6, 1, 1);
+        dockSettingsGrid1.attach(pressureThreshold, 1, 6, 1, 1);
 
         dockSettingsGrid2.attach(autohideLabel, 0, 0, 1, 1);
         dockSettingsGrid2.attach(autohide, 1, 0, 1, 1);
@@ -311,9 +312,6 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         dockSettingsGrid2.attach(intellihideNormal, 0, 2, 2, 1);
         dockSettingsGrid2.attach(intellihideFocusApp, 0, 3, 2, 1);
         dockSettingsGrid2.attach(intellihideTopWindow, 0, 4, 2, 1);
-        dockSettingsGrid2.attach(pressureThresholdLabel, 0, 5, 1, 1);
-        dockSettingsGrid2.attach(pressureThreshold, 1, 5, 1, 1);
-
 
         dockSettingsMain1.add(dockSettingsGrid1);
         dockSettingsMain1.add(dockSettingsGrid2);
