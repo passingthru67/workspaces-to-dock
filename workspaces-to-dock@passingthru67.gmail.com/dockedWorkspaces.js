@@ -509,6 +509,9 @@ dockedWorkspaces.prototype = {
             if (this._gsCurrentVersion[1] > 4)
                 this.actor.lower(Main.layoutManager.trayBox);
 
+            // Add or remove barrier depending on if dock-fixed
+            this._updateBarrier();
+
             if (this._settings.get_boolean('dock-fixed')) {
                 // show dock immediately when setting changes
                 this._autohideStatus = true; // It could be false but the dock could be hidden
