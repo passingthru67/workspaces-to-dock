@@ -64,7 +64,6 @@ function dockedWorkspaces(settings, gsCurrentVersion) {
 dockedWorkspaces.prototype = {
 
     _init: function(settings) {
-        let self = this;
         // temporarily disable redisplay until initialized (prevents connected signals from trying to update dock visibility)
         this._disableRedisplay = true;
         if (_DEBUG_) global.log("dockedWorkspaces: init - disableRediplay");
@@ -209,16 +208,7 @@ dockedWorkspaces.prototype = {
         this._pressureSensed = false;
         this._pressureBarrier = null;
         this._barrier = null;
-        if (this._gsCurrentVersion[1] > 6) {
-            this._canUsePressure = global.display.supports_extended_barriers();
-            let pressureThreshold = this._settings.get_double('pressure-threshold');
-            this._pressureBarrier = new Layout.PressureBarrier(pressureThreshold, PRESSURE_TIMEOUT,
-                                Shell.KeyBindingMode.NORMAL | Shell.KeyBindingMode.OVERVIEW);
-            this._pressureBarrier.connect('trigger', function(barrier){
-                self._onPressureSensed();
-            });
-            if (_DEBUG_) global.log("dockedWorkspaces: init - canUsePressure = "+this._canUsePressure);
-        }
+        this._createPressureBarrier();
 
         // Connect DashToDock hover signal if the extension is already loaded and enabled
         let extension = ExtensionUtils.extensions[DashToDock_UUID];
@@ -543,14 +533,16 @@ dockedWorkspaces.prototype = {
 
         this._settings.connect('changed::preferred-monitor', Lang.bind(this, this._resetPosition));
 
-        this._settings.connect('changed::require-pressure-to-show', Lang.bind(this, this._updateBarrier));
-
         this._settings.connect('changed::dock-edge-visible', Lang.bind(this, function() {
             if (this._autohideStatus) {
                 this._animateIn(this._settings.get_double('animation-time'), 0);
                 this._animateOut(this._settings.get_double('animation-time'), 0);
             }
         }));
+
+        this._settings.connect('changed::require-pressure-to-show', Lang.bind(this, this._updateBarrier));
+        this._settings.connect('changed::pressure-threshold', Lang.bind(this, this._createPressureBarrier));
+
 
         this._settings.connect('changed::workspace-captions', Lang.bind(this, function() {
             // hide and show thumbnailsBox to reset workspace apps in caption
@@ -610,6 +602,37 @@ dockedWorkspaces.prototype = {
         }));
     },
 
+    _removePressureBarrier: function() {
+        if (this._pressureBarrier) {
+            this._pressureBarrier.destroy();
+            this._pressureBarrier = null;
+        }
+    },
+
+    _createPressureBarrier: function() {
+        let self = this;
+        if (this._gsCurrentVersion[1] > 6) {
+            this._canUsePressure = global.display.supports_extended_barriers();
+            let pressureThreshold = this._settings.get_double('pressure-threshold');
+
+            // Remove existing pressure barrier
+            this._removePressureBarrier();
+
+            // Create new pressure barrier based on pressure threshold setting
+            if (this._canUsePressure) {
+                this._pressureBarrier = new Layout.PressureBarrier(pressureThreshold, PRESSURE_TIMEOUT,
+                                    Shell.KeyBindingMode.NORMAL | Shell.KeyBindingMode.OVERVIEW);
+                this._pressureBarrier.connect('trigger', function(barrier){
+                    self._onPressureSensed();
+                });
+                if (_DEBUG_) global.log("dockedWorkspaces: init - canUsePressure = "+this._canUsePressure);
+            }
+
+            // Update barrier
+            this._updateBarrier();
+        }
+    },
+
     _bindDockKeyboardShortcut: function() {
         if (this._gsCurrentVersion[1] > 6) {
             Main.wm.addKeybinding('dock-keyboard-shortcut', this._settings, Meta.KeyBindingFlags.NONE, Shell.KeyBindingMode.NORMAL,
@@ -633,7 +656,7 @@ dockedWorkspaces.prototype = {
             );
         }
     },
-    
+
     _unbindDockKeyboardShortcut: function() {
         if (this._gsCurrentVersion[1] > 6) {
             Main.wm.removeKeybinding('dock-keyboard-shortcut');
@@ -641,11 +664,11 @@ dockedWorkspaces.prototype = {
             global.display.remove_keybinding('dock-keyboard-shortcut');
         }
     },
-    
+
     // handler for mouse hover events
     _hoverChanged: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - actor.hover = "+this.actor.hover);
-        if (this._settings.get_boolean('require-pressure-to-show') && this._canUsePressure && this._barrier) {
+        if (this._canUsePressure && this._settings.get_boolean('require-pressure-to-show') && this._barrier) {
             if (this._pressureSensed == false) {
                 if (_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - presureSensed = "+this._pressureSensed);
                 return;
@@ -1382,7 +1405,9 @@ dockedWorkspaces.prototype = {
     // Remove pressure barrier (GS38+ only)
     _removeBarrier: function() {
         if (this._barrier) {
-            this._pressureBarrier.removeBarrier(this._barrier);
+            if (this._pressureBarrier) {
+                this._pressureBarrier.removeBarrier(this._barrier);
+            }
             this._barrier.destroy();
             this._barrier = null;
         }
@@ -1394,7 +1419,8 @@ dockedWorkspaces.prototype = {
         // Remove existing barrier
         this._removeBarrier();
 
-        if (this._settings.get_boolean('require-pressure-to-show')) {
+        // Note: dock in fixed possition doesn't use pressure barrier
+        if (this._canUsePressure && this._settings.get_boolean('require-pressure-to-show') && !this._settings.get_boolean('dock-fixed')) {
             let x, direction;
             if (this._rtl) {
                 x = this._monitor.x;
@@ -1409,7 +1435,10 @@ dockedWorkspaces.prototype = {
                                 x1: x, x2: x,
                                 y1: this.actor.y, y2: (this.actor.y + this.actor.height),
                                 directions: direction});
-            this._pressureBarrier.addBarrier(this._barrier);
+
+            if (this._pressureBarrier) {
+                this._pressureBarrier.addBarrier(this._barrier);
+            }
         }
 
         // Reset pressureSensed flag
