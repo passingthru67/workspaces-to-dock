@@ -43,7 +43,7 @@ msgstr ""
 msgid "Require pressure to show dock (GS3.8+)"
 msgstr ""
 
-msgid "Presure threshold [px] (GS3.8+)"
+msgid "Pressure threshold [px] (GS3.8+)"
 msgstr ""
 
 msgid "Autohide"

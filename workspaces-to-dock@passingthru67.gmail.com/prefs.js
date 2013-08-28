@@ -195,7 +195,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }));
 
         let pressureThresholdLabel = new Gtk.Label({
-            label: _("Presure threshold [px] (GS3.8+)"),
+            label: _("Pressure threshold [px] (GS3.8+)"),
             use_markup: true,
             xalign: 0,
             margin_top: 0,
