@@ -705,8 +705,10 @@ const myWorkspaceThumbnail = new Lang.Class({
                     // Remove menuItem
                     if (this._windowAppsMenuListBox) {
                         let menuItemActor = this._windowAppsMenuListBox.get_child_at_index(index);
-                        this._windowAppsMenuListBox.remove_actor(menuItemActor);
-                        menuItemActor.destroy();
+                        if (menuItemActor) {
+                            this._windowAppsMenuListBox.remove_actor(menuItemActor);
+                            menuItemActor.destroy();
+                        }
                     }
 
                 }
