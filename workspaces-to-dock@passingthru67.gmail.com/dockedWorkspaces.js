@@ -45,6 +45,7 @@ const _ = Gettext.gettext;
 const DashToDock_UUID = "dash-to-dock@micxgx.gmail.com";
 let DashToDock = null;
 
+const DOCK_PADDING = 1;
 const DOCK_HIDDEN_WIDTH = 2;
 const DOCK_EDGE_VISIBLE_WIDTH = 5;
 const PRESSURE_TIMEOUT = 1000;
@@ -897,9 +898,9 @@ dockedWorkspaces.prototype = {
         // Set final_position
         let final_position;
         if (this._rtl) {
-            final_position = this._monitor.x + this._thumbnailsBox.actor.width + 1;
+            final_position = this._monitor.x + this._thumbnailsBox.actor.width + DOCK_PADDING;
         } else {
-            final_position = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - 1;
+            final_position = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - DOCK_PADDING;
         }
         if (_DEBUG_) global.log("dockedWorkspaces: _animateIN - currrent_position = "+ this.actor.x+" final_position = "+final_position);
         if (_DEBUG_) global.log("dockedWorkspaces: _animateIN - _thumbnailsBox width = "+this._thumbnailsBox.actor.width);
@@ -948,15 +949,15 @@ dockedWorkspaces.prototype = {
         let final_position;
         if (this._rtl) {
             if (this._settings.get_boolean('dock-edge-visible')) {
-                final_position = this._monitor.x + 1 + DOCK_EDGE_VISIBLE_WIDTH;
+                final_position = this._monitor.x + DOCK_PADDING + DOCK_EDGE_VISIBLE_WIDTH;
             } else {
-                final_position = this._monitor.x + 1;
+                final_position = this._monitor.x + DOCK_PADDING;
             }
         } else {
             if (this._settings.get_boolean('dock-edge-visible')) {
-                final_position = this._monitor.x + this._monitor.width - 1 - DOCK_EDGE_VISIBLE_WIDTH;
+                final_position = this._monitor.x + this._monitor.width - DOCK_PADDING - DOCK_EDGE_VISIBLE_WIDTH;
             } else {
-                final_position = this._monitor.x + this._monitor.width - 1;
+                final_position = this._monitor.x + this._monitor.width - DOCK_PADDING;
             }
         }
         if (_DEBUG_) global.log("dockedWorkspaces: _animateOUT currrent_position = "+ this.actor.x+" final_position = "+final_position);
@@ -1203,22 +1204,21 @@ dockedWorkspaces.prototype = {
     // this fixes long-standing issue of dead zone preventing mouse clicks on secondary monitor to the right
     _setHiddenWidth: function() {
         let width;
-        let padding = 1;
         if (this._settings.get_boolean('dock-edge-visible')) {
-            width = 1 + DOCK_EDGE_VISIBLE_WIDTH + DOCK_HIDDEN_WIDTH;
+            width = DOCK_PADDING + DOCK_EDGE_VISIBLE_WIDTH + DOCK_HIDDEN_WIDTH;
         } else {
-            width = 1 + DOCK_HIDDEN_WIDTH;
+            width = DOCK_PADDING + DOCK_HIDDEN_WIDTH;
         }
         this.actor.set_size(width, this.actor.height);
 
         // New clip coordinates
         let x1, x2;
         if (this._rtl) {
-            this._thumbnailsBox.actor.set_position(this.actor.width-padding, 0);
+            this._thumbnailsBox.actor.set_position(this.actor.width - DOCK_PADDING, 0);
             x1 = width;
             x2 = 0;
         } else {
-            this._thumbnailsBox.actor.set_position(padding, 0);
+            this._thumbnailsBox.actor.set_position(DOCK_PADDING, 0);
             x1 = 0;
             x2 = width;
         }
@@ -1233,18 +1233,17 @@ dockedWorkspaces.prototype = {
 
     // unset dock width (called before animateIn starts)
     _unsetHiddenWidth: function() {
-        let width = this._thumbnailsBox.actor.width + 1;
-        let padding = 1;
+        let width = this._thumbnailsBox.actor.width + DOCK_PADDING;
         this.actor.set_size(width, this.actor.height);
 
         // New clip coordinates
         let x1, x2;
         if (this._rtl) {
-            this._thumbnailsBox.actor.set_position(this.actor.width-padding, 0);
+            this._thumbnailsBox.actor.set_position(this.actor.width - DOCK_PADDING, 0);
             x1 = width;
-            x2 = this._monitor.x + this._thumbnailsBox.actor.width + 1 - this.actor.x;
+            x2 = this._monitor.x + this._thumbnailsBox.actor.width + DOCK_PADDING - this.actor.x;
         } else {
-            this._thumbnailsBox.actor.set_position(padding, 0);
+            this._thumbnailsBox.actor.set_position(DOCK_PADDING, 0);
             x1 = 0;
             x2 = this._monitor.x + this._monitor.width - this.actor.x;
         }
@@ -1275,7 +1274,7 @@ dockedWorkspaces.prototype = {
         if (this._rtl) {
             onScreenX = this._monitor.x;
         } else {
-            onScreenX = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - 1;
+            onScreenX = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - DOCK_PADDING;
         }
 
         // Update height
@@ -1319,27 +1318,26 @@ dockedWorkspaces.prototype = {
         }
 
         // skip updating if size is same
-        if ((this.actor.y == y) && (this.actor.width == this._thumbnailsBox.actor.width + 1) && (this.actor.height == height)) {
+        if ((this.actor.y == y) && (this.actor.width == this._thumbnailsBox.actor.width + DOCK_PADDING) && (this.actor.height == height)) {
             if (_DEBUG_) global.log("dockedWorkspaces: _updateSize not necessary .. size the same");
             return;
         }
 
         // Updating size also resets the position of the staticBox (used to detect window overlaps)
-        this.staticBox.init_rect(onScreenX, y, this._thumbnailsBox.actor.width + 1, height);
+        this.staticBox.init_rect(onScreenX, y, this._thumbnailsBox.actor.width + DOCK_PADDING, height);
 
         // Updating size shouldn't reset the x position of the actor box (used to detect hover)
         // especially if it's in the hidden slid out position
         this.actor.y = y;
-        this.actor.set_size(this._thumbnailsBox.actor.width + 1, height);
+        this.actor.set_size(this._thumbnailsBox.actor.width + DOCK_PADDING, height);
 
-        let anchorPoint, boxPosition, padding;
-        let padding = 1;
+        let anchorPoint, boxPosition;
         if (this._rtl) {
             anchorPoint = Clutter.Gravity.NORTH_EAST;
-            boxPosition = this.actor.width - padding;
+            boxPosition = this.actor.width - DOCK_PADDING;
         } else {
             anchorPoint = Clutter.Gravity.NORTH_WEST;
-            boxPosition = padding;
+            boxPosition = DOCK_PADDING;
         }
         this.actor.move_anchor_point_from_gravity(anchorPoint);
         this._thumbnailsBox.actor.move_anchor_point_from_gravity(anchorPoint);
@@ -1355,24 +1353,23 @@ dockedWorkspaces.prototype = {
         this._updateSize();
 
         let onScreenX, offScreenX, anchorPoint, boxPosition;
-        let padding = 1;
         if (this._rtl) {
             anchorPoint = Clutter.Gravity.NORTH_EAST;
-            boxPosition = this.actor.width - padding;
+            boxPosition = this.actor.width - DOCK_PADDING;
             onScreenX = this._monitor.x;
             if (this._settings.get_boolean('dock-edge-visible')) {
-                offScreenX = this._monitor.x - this._thumbnailsBox.actor.width + DOCK_EDGE_VISIBLE_WIDTH + 1;
+                offScreenX = this._monitor.x - this._thumbnailsBox.actor.width + DOCK_EDGE_VISIBLE_WIDTH + DOCK_PADDING;
             } else {
-                offScreenX = this._monitor.x - this._thumbnailsBox.actor.width + 1;
+                offScreenX = this._monitor.x - this._thumbnailsBox.actor.width + DOCK_PADDING;
                     }
         } else {
             anchorPoint = Clutter.Gravity.NORTH_WEST;
-            boxPosition = padding;
-            onScreenX = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - 1;
+            boxPosition = DOCK_PADDING;
+            onScreenX = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - DOCK_PADDING;
             if (this._settings.get_boolean('dock-edge-visible')) {
-                offScreenX = this._monitor.x + this._monitor.width - 1 - DOCK_EDGE_VISIBLE_WIDTH;
+                offScreenX = this._monitor.x + this._monitor.width - DOCK_PADDING - DOCK_EDGE_VISIBLE_WIDTH;
             } else {
-                offScreenX = this._monitor.x + this._monitor.width - 1;
+                offScreenX = this._monitor.x + this._monitor.width - DOCK_PADDING;
             }
         }
 
@@ -1460,8 +1457,8 @@ dockedWorkspaces.prototype = {
         // to mantain its position in respect to the screen.
         let x1, x2;
         if (this._rtl) {
-            x1 = this._thumbnailsBox.actor.width + 1;
-            x2 = this._monitor.x + this._thumbnailsBox.actor.width + 1 - this.actor.x;
+            x1 = this._thumbnailsBox.actor.width + DOCK_PADDING;
+            x2 = this._monitor.x + this._thumbnailsBox.actor.width + DOCK_PADDING - this.actor.x;
         } else {
             x1 = 0;
             x2 = this._monitor.x + this._monitor.width - this.actor.x;
