@@ -96,6 +96,12 @@ dockedWorkspaces.prototype = {
         this._customBackground = {red:0, green:0, blue:0};
         this._cssStylesheet = null;
 
+        // Initialize pressure barrier variables
+        this._canUsePressure = false;
+        this._pressureSensed = false;
+        this._pressureBarrier = null;
+        this._barrier = null;
+
         // Override Gnome Shell functions
         this._overrideGnomeShellFunctions();
 
@@ -203,13 +209,6 @@ dockedWorkspaces.prototype = {
         if (this._settings.get_boolean('toggle-dock-with-keyboard-shortcut'))
             this._bindDockKeyboardShortcut();
 
-        // Setup pressure barrier (GS38+ only)
-        this._canUsePressure = false;
-        this._pressureSensed = false;
-        this._pressureBarrier = null;
-        this._barrier = null;
-        this._createPressureBarrier();
-
         // Connect DashToDock hover signal if the extension is already loaded and enabled
         let extension = ExtensionUtils.extensions[DashToDock_UUID];
         if (extension) {
@@ -286,6 +285,9 @@ dockedWorkspaces.prototype = {
         // retrieve background color and set background opacity and load workspace caption css
         this._updateBackgroundOpacity();
         this._onThemeSupportChanged();
+
+        // Setup pressure barrier (GS38+ only)
+        this._createPressureBarrier();
 
         // Not really required because thumbnailsBox width signal will trigger a redisplay
         // Also found GS3.6 crashes returning from lock screen (Ubuntu GS Remix)
