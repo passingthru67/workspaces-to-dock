@@ -53,7 +53,9 @@ Main Settings:
 
     **Require click to show dock when window maximized** - Require a mouse click (in addition to hovering) to show the dock when the focused window is maximized. This option helps eliminate accidentally triggering the dock when using vertical scroll bars on maximized windows.
 
-    **Require pressure to show dock** - Require mouse pressure to show the dock. This feature requires Gnome Shell 3.8+ and an XServer installation that implements pressure barriers.
+    **Require pressure to show dock** - Require mouse pressure against the screen edge to show the dock. This option helps eliminate accidentally triggering the dock when using vertical scroll bars. Unfortunately, this feature requires Gnome Shell 3.8+ and an XServer installation that implements pressure barriers.
+    
+    NOTE: In multi-monitor configurations where the 2nd monitor is to the right of the workspaces dock, the dock will have to be showing before the pressure barrier is removed and the mouse pointer released to access the 2nd monitor.
 
     **Pressure threshold** - The amount of pressure required to activate and show the dock. This setting works in conjunction with 'Require pressure to show dock' above and requires Gnome Shell 3.8+ and an XServer installation that implements pressure barriers.
 
@@ -110,7 +112,7 @@ Below are examples of the workspace (thumbnail) caption in various configuration
 
 - **Keyboard Shortcuts:**
 
-    **Toggle the dock with keyboard shortcut** - When enabled, using the custom keyboard shortcut will toggle the workspaces dock.
+    **Toggle the dock with keyboard shortcut** - When enabled, using a custom keyboard shortcut will toggle the workspaces dock. The default shortcut key is Super + w.
 
 - **Dash Integration:**
 
@@ -170,6 +172,13 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
+**version 12 (Aug 28, 2013)**
+
+- RTL support added
+- Option to require mouse pressure to activate and show dock (feature)
+- Ability to use keyboard shortcut to toggle dock (feature)
+- Bug fixes
+
 **version 11 (Apr 19, 2013)**
 
 - Support for Gnome Shell 3.8
