@@ -1007,7 +1007,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
 
         let toggleDockLabel = new Gtk.Label({
-            label: _("Toggle dock with keyboard shortcut"),
+            label: _("Toggle the dock with keyboard shortcut"),
             xalign: 0,
             hexpand: true
         });

@@ -34,10 +34,16 @@ msgstr ""
 msgid "Hide delay [ms]"
 msgstr ""
 
-msgid "Hover+click to show dock when window maximized"
+msgid "Leave dock edge visible when slid out"
 msgstr ""
 
-msgid "Leave dock edge visible when slid out"
+msgid "Require click to show dock when window maximized"
+msgstr ""
+
+msgid "Require pressure to show dock (GS3.8+)"
+msgstr ""
+
+msgid "Presure threshold [px] (GS3.8+)"
 msgstr ""
 
 msgid "Autohide"
@@ -141,6 +147,15 @@ msgid "<b>Custom Actions</b>"
 msgstr ""
 
 msgid "Toggle overview mode with right click"
+msgstr ""
+
+msgid "<b>Keyboard Shortcuts</b>"
+msgstr ""
+
+msgid "Toggle the dock with keyboard shortcut"
+msgstr ""
+
+msgid "Invalid accelerator. Try F12, <Super>space, <Ctrl><Alt><Shift>w, etc."
 msgstr ""
 
 msgid "<b>Dash Integration</b>"
