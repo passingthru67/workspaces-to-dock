@@ -52,7 +52,7 @@
       <description>Enable or disable requiring hover+click to show dock when window is maximized</description>
     </key>
     <key type="b" name="require-pressure-to-show">
-      <default>false</default>
+      <default>true</default>
       <summary>Require pressure to show dock (GS38+ only)</summary>
       <description>Enable or disable requiring pressure to show dock (GS38+ only)</description>
     </key>
@@ -127,7 +127,7 @@
       <description>Toggle overview mode with right click</description>
     </key>
     <key type="b" name="toggle-dock-with-keyboard-shortcut">
-      <default>false</default>
+      <default>true</default>
       <summary>Enable keyboard shortcut to toggle dock</summary>
       <description>Enable keyboard shortcut to toggle the dock.</description>
     </key>
