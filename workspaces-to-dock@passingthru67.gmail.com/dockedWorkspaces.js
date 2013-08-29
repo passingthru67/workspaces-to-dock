@@ -288,7 +288,8 @@ dockedWorkspaces.prototype = {
         this._onThemeSupportChanged();
 
         // Setup pressure barrier (GS38+ only)
-        this._createPressureBarrier();
+        this._updatePressureBarrier();
+        this._updateBarrier();
 
         // Not really required because thumbnailsBox width signal will trigger a redisplay
         // Also found GS3.6 crashes returning from lock screen (Ubuntu GS Remix)
@@ -547,7 +548,10 @@ dockedWorkspaces.prototype = {
         }));
 
         this._settings.connect('changed::require-pressure-to-show', Lang.bind(this, this._updateBarrier));
-        this._settings.connect('changed::pressure-threshold', Lang.bind(this, this._createPressureBarrier));
+        this._settings.connect('changed::pressure-threshold', Lang.bind(this, function() {
+            this._updatePressureBarrier();
+            this._updateBarrier();
+        }));
 
 
         this._settings.connect('changed::workspace-captions', Lang.bind(this, function() {
@@ -608,21 +612,18 @@ dockedWorkspaces.prototype = {
         }));
     },
 
-    _removePressureBarrier: function() {
-        if (this._pressureBarrier) {
-            this._pressureBarrier.destroy();
-            this._pressureBarrier = null;
-        }
-    },
-
-    _createPressureBarrier: function() {
+    _updatePressureBarrier: function() {
+        if (_DEBUG_) global.log("dockedWorkspaces: _updatePressureBarrier");
         let self = this;
         if (this._gsCurrentVersion[1] > 6) {
             this._canUsePressure = global.display.supports_extended_barriers();
             let pressureThreshold = this._settings.get_double('pressure-threshold');
 
             // Remove existing pressure barrier
-            this._removePressureBarrier();
+            if (this._pressureBarrier) {
+                this._pressureBarrier.destroy();
+                this._pressureBarrier = null;
+            }
 
             // Create new pressure barrier based on pressure threshold setting
             if (this._canUsePressure) {
@@ -633,9 +634,6 @@ dockedWorkspaces.prototype = {
                 });
                 if (_DEBUG_) global.log("dockedWorkspaces: init - canUsePressure = "+this._canUsePressure);
             }
-
-            // Update barrier
-            this._updateBarrier();
         }
     },
 
@@ -915,26 +913,29 @@ dockedWorkspaces.prototype = {
                 transition: 'easeOutQuad',
                 onUpdate: Lang.bind(this, this._updateClip),
                 onStart: Lang.bind(this, function() {
+                    if (_DEBUG_) global.log("dockedWorkspaces: _animateIN onStart");
                     this._animStatus.start();
                     this._unsetHiddenWidth();
-                    if (_DEBUG_) global.log("dockedWorkspaces: _animateIn onStart");
                 }),
                 onOverwrite: Lang.bind(this, function() {
                     this._animStatus.clear();
-                    if (_DEBUG_) global.log("dockedWorkspaces: _animateIn onOverwrite");
+                    if (_DEBUG_) global.log("dockedWorkspaces: _animateIN onOverwrite");
                 }),
                 onComplete: Lang.bind(this, function() {
                     this._animStatus.end();
                     if (this._removeBarrierTimeoutId > 0) {
                         Mainloop.source_remove(this._removeBarrierTimeoutId);
-                        }
+                    }
+                    // Remove barrier so that mouse pointer is released and can access monitors on other side of dock
+                    // NOTE: Delay needed to keep mouse from moving past dock and re-hiding dock immediately. This
+                    // gives users an opportunity to hover over the dock
                     this._removeBarrierTimeoutId = Mainloop.timeout_add(300, Lang.bind(this, this._removeBarrier));
-                    if (_DEBUG_) global.log("dockedWorkspaces: _animateIn onComplete");
+                    if (_DEBUG_) global.log("dockedWorkspaces: _animateIN onComplete");
                 })
             });
         } else {
             // Still need to trigger animStatus states so that show/hide dock functions work properly
-            if (_DEBUG_) global.log("dockedWorkspaces: _animateIn final_position == actor.x .. trigger animStatus");
+            if (_DEBUG_) global.log("dockedWorkspaces: _animateIN final_position == actor.x .. trigger animStatus");
             this._animStatus.queue(true);
             this._animStatus.end();
         }
@@ -973,18 +974,18 @@ dockedWorkspaces.prototype = {
                 transition: 'easeOutQuad',
                 onUpdate: Lang.bind(this, this._updateClip),
                 onStart: Lang.bind(this, function() {
+                    if (_DEBUG_) global.log("dockedWorkspaces: _animateOUT onStart");
                     this._animStatus.start();
-                    if (_DEBUG_) global.log("dockedWorkspaces: _animateOut onStart");
                 }),
                 onOverwrite: Lang.bind(this, function() {
                     this._animStatus.clear();
-                    if (_DEBUG_) global.log("dockedWorkspaces: _animateOut onOverwrite");
+                    if (_DEBUG_) global.log("dockedWorkspaces: _animateOUT onOverwrite");
                 }),
                 onComplete: Lang.bind(this, function() {
                     this._animStatus.end();
                     this._setHiddenWidth();
                     this._updateBarrier();
-                    if (_DEBUG_) global.log("dockedWorkspaces: _animateOut onComplete");
+                    if (_DEBUG_) global.log("dockedWorkspaces: _animateOUT onComplete");
                 })
             });
         } else {
@@ -1224,8 +1225,7 @@ dockedWorkspaces.prototype = {
         }
         let y1= this._monitor.y;
         let y2= this._monitor.y + this._monitor.height;
-
-        if (_DEBUG_) global.log("C.X1 = "+Math.round(x1)+" C.X2 = "+Math.round(x2)+" C.R = "+(x2-x1)+" ACTOR.X = "+Math.round(this.actor.x)+" ACTOR.W = "+this.actor.width);
+        if (_DEBUG_) global.log("_setHiddenWidth C.X1 = "+Math.round(x1)+" C.X2 = "+Math.round(x2)+" C.R = "+(x2-x1)+" ACTOR.X = "+Math.round(this.actor.x)+" ACTOR.W = "+this.actor.width);
 
         // Apply the clip
         this.actor.set_clip(x1, y1, x2 - x1, y2);
@@ -1249,8 +1249,7 @@ dockedWorkspaces.prototype = {
         }
         let y1= this._monitor.y;
         let y2= this._monitor.y + this._monitor.height;
-
-        if (_DEBUG_) global.log("C.X1 = "+Math.round(x1)+" C.X2 = "+Math.round(x2)+" C.R = "+(x2-x1)+" ACTOR.X = "+Math.round(this.actor.x)+" ACTOR.W = "+this.actor.width);
+        if (_DEBUG_) global.log("_unsetHiddenWidth C.X1 = "+Math.round(x1)+" C.X2 = "+Math.round(x2)+" C.R = "+(x2-x1)+" ACTOR.X = "+Math.round(this.actor.x)+" ACTOR.W = "+this.actor.width);
 
         // Apply the clip
         this.actor.set_clip(x1, y1, x2 - x1, y2);
@@ -1406,6 +1405,7 @@ dockedWorkspaces.prototype = {
 
     // Remove pressure barrier (GS38+ only)
     _removeBarrier: function() {
+        if (_DEBUG_) global.log("dockedWorkspaces: _removeBarrier");
         if (this._barrier) {
             if (this._pressureBarrier) {
                 this._pressureBarrier.removeBarrier(this._barrier);
@@ -1417,7 +1417,6 @@ dockedWorkspaces.prototype = {
 
     // Update pressure barrier size (GS38+ only)
     _updateBarrier: function() {
-        if (_DEBUG_) global.log("dockedWorkspaces: _updateBarrier");
         // Remove existing barrier
         this._removeBarrier();
 
@@ -1428,7 +1427,9 @@ dockedWorkspaces.prototype = {
             this._pressureBarrier._isTriggered = false;
         }
 
+        // Create new barrier
         // Note: dock in fixed possition doesn't use pressure barrier
+        if (_DEBUG_) global.log("dockedWorkspaces: _updateBarrier");
         if (this._canUsePressure && this._settings.get_boolean('require-pressure-to-show') && !this._settings.get_boolean('dock-fixed')) {
             let x, direction;
             if (this._rtl) {
@@ -1438,8 +1439,6 @@ dockedWorkspaces.prototype = {
                 x = this._monitor.x + this._monitor.width;
                 direction = Meta.BarrierDirection.NEGATIVE_X;
             }
-
-            // Create barrier and add to pressureBarrier
             this._barrier = new Meta.Barrier({display: global.display,
                                 x1: x, x2: x,
                                 y1: this.actor.y, y2: (this.actor.y + this.actor.height),
@@ -1472,7 +1471,7 @@ dockedWorkspaces.prototype = {
         }
         let y1= this._monitor.y;
         let y2= this._monitor.y + this._monitor.height;
-        if (_DEBUG_) global.log("C.X1 = "+Math.round(x1)+" C.X2 = "+Math.round(x2)+" C.R = "+(x2-x1)+" ACTOR.X = "+Math.round(this.actor.x)+" ACTOR.W = "+this.actor.width);
+        if (_DEBUG_) global.log("_updateClip C.X1 = "+Math.round(x1)+" C.X2 = "+Math.round(x2)+" C.R = "+(x2-x1)+" ACTOR.X = "+Math.round(this.actor.x)+" ACTOR.W = "+this.actor.width);
 
         // Apply the clip
         this.actor.set_clip(x1, y1, x2 - x1, y2);
