@@ -46,7 +46,7 @@ const DashToDock_UUID = "dash-to-dock@micxgx.gmail.com";
 let DashToDock = null;
 
 const DOCK_PADDING = 1;
-const DOCK_HIDDEN_WIDTH = 2;
+const DOCK_HIDDEN_WIDTH = 0;
 const DOCK_EDGE_VISIBLE_WIDTH = 5;
 const PRESSURE_TIMEOUT = 1000;
 
