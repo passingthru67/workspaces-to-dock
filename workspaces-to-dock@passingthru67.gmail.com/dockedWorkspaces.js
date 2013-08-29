@@ -823,27 +823,7 @@ dockedWorkspaces.prototype = {
             }
 
             this._animateIn(this._settings.get_double('animation-time'), delay);
-
-            // Ensure workspaces is hidden after closing icon menu if necessary
-            this._startWorkspacesShowLoop();
         }
-    },
-
-    // autohide function to start a delay loop when showing the workspaces.
-    _startWorkspacesShowLoop: function() {
-        if (_DEBUG_) global.log("dockedWorkspaces: _startWorkspacesShowLoop");
-        // If a loop already exists clear it
-        if (this._workspacesShowTimeout > 0)
-            Mainloop.source_remove(this._workspacesShowTimeout);
-
-        this._workspacesShowTimeout = Mainloop.timeout_add(500, Lang.bind(this, function() {
-            if (_DEBUG_) global.log("dockedWorkspaces: delay looping");
-            // I'm not sure why but I need not to sync hover if it results already false
-            if (this.actor.hover == true) {
-                this.actor.sync_hover();
-            }
-            return true; // to make the loop continue;
-        }));
     },
 
     // autohide function to hide dock
@@ -1515,10 +1495,6 @@ dockedWorkspaces.prototype = {
             delay = this._settings.get_double('animation-time');
         } else {
             if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - mouse hovering AND dock using autohide, so startWorkspacesShowLoop instead of animate out");
-            // I'm enabling autohide and the workspaces keeps being showed because of mouse hover
-            // so i start the loop usualy started by _show()
-            this._startWorkspacesShowLoop();
-
             delay = 0;
         }
 
