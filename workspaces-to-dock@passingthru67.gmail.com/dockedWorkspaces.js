@@ -1421,6 +1421,13 @@ dockedWorkspaces.prototype = {
         // Remove existing barrier
         this._removeBarrier();
 
+        // Manually reset pressure barrier
+        // This is necessary because we remove the pressure barrier when it is triggered to show the dock
+        if (this._pressureBarrier) {
+            this._pressureBarrier._reset();
+            this._pressureBarrier._isTriggered = false;
+        }
+
         // Note: dock in fixed possition doesn't use pressure barrier
         if (this._canUsePressure && this._settings.get_boolean('require-pressure-to-show') && !this._settings.get_boolean('dock-fixed')) {
             let x, direction;
