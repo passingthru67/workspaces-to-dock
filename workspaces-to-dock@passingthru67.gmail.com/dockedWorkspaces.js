@@ -1307,9 +1307,20 @@ dockedWorkspaces.prototype = {
 
         // Updating size shouldn't reset the x position of the actor box (used to detect hover)
         // especially if it's in the hidden slid out position
+        let width;
         this.actor.y = y;
-        this.actor.set_size(this._thumbnailsBox.actor.width + DOCK_PADDING, height);
+        if (this._animStatus.hidden()) {
+            if (this._settings.get_boolean('dock-edge-visible')) {
+                width = DOCK_PADDING + DOCK_EDGE_VISIBLE_WIDTH + DOCK_HIDDEN_WIDTH;
+            } else {
+                width = DOCK_PADDING + DOCK_HIDDEN_WIDTH;
+            }
+        } else {
+            width = this._thumbnailsBox.actor.width + DOCK_PADDING;
+        }
+        this.actor.set_size(width, height);
 
+        // Set anchor points
         let anchorPoint, boxPosition;
         if (this._rtl) {
             anchorPoint = Clutter.Gravity.NORTH_EAST;
