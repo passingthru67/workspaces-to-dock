@@ -54,8 +54,8 @@ Main Settings:
     **Require click to show dock when window maximized** - Require a mouse click (in addition to hovering) to show the dock when the focused window is maximized. This option helps eliminate accidentally triggering the dock when using vertical scroll bars on maximized windows.
 
     **Require pressure to show dock** - Require mouse pressure against the screen edge to show the dock. This option helps eliminate accidentally triggering the dock when using vertical scroll bars. Unfortunately, this feature requires Gnome Shell 3.8+ and an XServer installation that implements pressure barriers.
-    
-    NOTE: In multi-monitor configurations where the 2nd monitor is to the right of the workspaces dock, the dock will have to be showing before the pressure barrier is removed and the mouse pointer released to access the 2nd monitor.
+
+    NOTE: In multi-monitor configurations where the 2nd monitor is to the right of the workspaces dock, the dock will have to be showing before the pressure barrier is removed and the mouse pointer released to access the 2nd monitor. This will create a slight hesitation as the mouse must wait for the dock to show. Alternately, you may show the dock using the keyboard shortcut Super + w, or by entering Gnome Shell's overview mode.
 
     **Pressure threshold** - The amount of pressure required to activate and show the dock. This setting works in conjunction with 'Require pressure to show dock' above and requires Gnome Shell 3.8+ and an XServer installation that implements pressure barriers.
 
@@ -172,7 +172,7 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
-**version 12 (Aug 28, 2013)**
+**version 12 (Sept 2, 2013)**
 
 - RTL support added
 - Option to require mouse pressure to activate and show dock (feature)
