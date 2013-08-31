@@ -14,11 +14,11 @@ msgid "Unknown version number"
 msgstr "Unbekannte Versionsnummer"
 
 #: prefs.js
-msgid "Main Settings"
-msgstr "Grundeinstellungen"
+msgid "Behavior"
+msgstr "Verhalten"
 
-msgid "<b>Behavior</b>"
-msgstr "<b>Verhalten</b>"
+msgid "<b>Visibility</b>"
+msgstr "<b>Sichtbarkeit</b>"
 
 msgid "Dock is fixed and always visible"
 msgstr "Die Dock hat eine feste Position und ist immer sichtbar"
@@ -27,21 +27,27 @@ msgid "Animation time [ms]"
 msgstr "Animationsdauer [ms]"
 
 msgid "Show delay [ms]"
-msgstr "Einblendeverzˆgerung [ms]"
+msgstr "Einblendeverz√∂gerung [ms]"
 
 msgid "Hide delay [ms]"
-msgstr "Ausblendeverzˆgerung [ms]"
+msgstr "Ausblendeverz√∂gerung [ms]"
 
-msgid "Hover+click to show dock when window maximized"
-msgstr "Mit der Maus dr¸berfahren und klicken, um Dock anzuzeigen, wenn Fenster maximiert ist"
-
-msgid "Leave dock edge visible when slid out"
+msgid "Leave the dock edge visible when slid out"
 msgstr "Dock-Kante sichtbar lassen beim Ausblenden"
 
-msgid "Autohide"
+msgid "Autohide : Show the dock on mouse hover"
 msgstr "Autoverstecken"
 
-msgid "Intellihide"
+msgid "Require click to show the dock when window maximized"
+msgstr "Mit der Maus dr√ºberfahren und klicken, um Dock anzuzeigen, wenn Fenster maximiert ist"
+
+msgid "Require pressure to show the dock (GS3.8+)"
+msgstr ""
+
+msgid "Pressure threshold [px] (GS3.8+)"
+msgstr ""
+
+msgid "Intellihide : Show the dock unless a window overlaps"
 msgstr "Intelligentes Verstecken"
 
 msgid "Dodge all windows"
@@ -53,6 +59,16 @@ msgstr "Allen Fenstern des fokusierten Programms ausweichen"
 msgid "Dodge only top instance of focused app"
 msgstr "Nur dem aktuell fokusiertem Fenster ausweichen"
 
+
+msgid "Toggle the dock with a keyboard shortcut"
+msgstr ""
+
+msgid "Invalid accelerator. Try F12, <Super>space, <Ctrl><Alt><Shift>w, etc."
+msgstr ""
+
+msgid "Appearance"
+msgstr ""
+
 msgid "<b>Background</b>"
 msgstr "<b>Hintergrund</b>"
 
@@ -62,62 +78,69 @@ msgstr "Dock-Hintergrundtransparenz anpassen"
 msgid "Opacity"
 msgstr "Transparenz"
 
-msgid "Only when in autohide"
+msgid "Only when the dock is shown by autohide"
 msgstr "Nur im Autoverstecken-Modus"
 
 msgid "<b>Position</b>"
 msgstr "<b>Position</b>"
 
-msgid "Show the dock on following monitor (if attached)"
+msgid "Show the dock on the following monitor (if attached)"
 msgstr "Zeige Dock auf folgendem Monitor (falls angeschlossen)"
 
 msgid "Primary (default)"
 msgstr "Hauptmonitor (Vorgabe)"
 
+#, fuzzy
 msgid "1"
 msgstr "1"
 
+#, fuzzy
 msgid "2"
 msgstr "2"
 
+#, fuzzy
 msgid "3"
 msgstr "3"
 
+#, fuzzy
 msgid "4"
 msgstr "4"
 
-msgid "Extend the height of the dock to fill the screen"
-msgstr "Die Hˆhe auf die Bildschirmhˆhe ausdehnen"
+msgid "<b>Height</b>"
+msgstr "<b>H√∂he</b>"
 
-msgid "Top Margin"
+msgid "Extend the height of the dock to fill the screen"
+msgstr "Die H√∂he auf die Bildschirmh√∂he ausdehnen"
+
+msgid "Top margin"
 msgstr "Oberer Rand"
 
-msgid "Bottom Margin"
+msgid "Bottom margin"
 msgstr "Unterer Rand"
 
-msgid "Additional Settings"
-msgstr "Weitere Einstellungen"
+msgid "Additional"
+msgstr "Weitere"
 
 msgid "<b>Workspace Captions</b>"
-msgstr "<b>Arbeitsfl‰chenbeschriftungen</b>"
-
-msgid "User theme supports workspaces-to-dock captions"
-msgstr "Nutzerthema unterst¸tzt workspaces-to-dock-Beschriftungen"
+msgstr "<b>Arbeitsfl√§chenbeschriftungen</b>"
 
 msgid "Add captions to workspace thumbnails"
-msgstr "Beschriftung auf Arbeitsfl‰chenvorschau anzeigen"
+msgstr "Beschriftung auf Arbeitsfl√§chenvorschau anzeigen"
 
-msgid "Show the workspace number"
-msgstr "Arbeitsfl‰chennummer"
+msgid "User theme supports workspaces-to-dock captions"
+msgstr "Nutzerthema unterst√ºtzt workspaces-to-dock-Beschriftungen"
 
-msgid "Show the workspace name"
-msgstr "Arbeitsfl‰chennamen"
+msgid "Show workspace number"
+msgstr "Arbeitsfl√§chennummer"
 
-msgid "Show the workspace window count"
+msgid "Show workspace name"
+msgstr "Arbeitsfl√§chennamen"
+
+msgid "Show workspace window count"
 msgstr "Fensteranzahl"
 
-msgid "Show the workspace taskbar (app icons)"
-msgstr "Zeige Arbeitsfl‰chen-Task-Leiste (Programmsymbole)"
+msgid "Show workspace taskbar (apps)"
+msgstr "Zeige Arbeitsfl√§chen-Task-Leiste (Programmsymbole)"
 
 msgid "Show a spacer/filler"
 msgstr "Platzhalter"
@@ -126,25 +149,26 @@ msgid "Use image"
 msgstr "Nutze Bild"
 
 msgid "Large icons"
-msgstr "Groﬂe Symbole"
+msgstr "Gro√üe Symbole"
 
 msgid "Expand"
 msgstr "Ausdehnen"
 
 msgid "<b>Custom Actions</b>"
-msgstr "Aktionen anpassen"
+msgstr "<b>Aktionen anpassen</b>"
 
-msgid "Toggle overview mode with right click"
-msgstr "Mit Rechtsklick zur ‹bersicht wechseln"
+msgid "Toggle Gnome Shell's overview mode with right click"
+msgstr "Mit Rechtsklick zur √úbersicht wechseln"
 
 msgid "<b>Dash Integration</b>"
 msgstr "<b>Dash-Integration</b>"
 
-msgid "Show workspaces when hovering over Dash-To-Dock extension"
-msgstr "Zeige Arbeitsfl‰chen, wenn sich die Maus ¸ber der Dash-To-Dock-Erweiterung befindet"
+msgid "Show the dock when hovering over Dash-To-Dock extension"
+msgstr "Zeige Arbeitsfl√§chen, wenn sich die Maus √ºber der Dash-To-Dock-Erweiterung befindet"
 
+#: myThumbnailsBox.js
 msgid "Close all applications"
-msgstr "Alle Anwendungen schlieﬂen"
+msgstr "Alle Anwendungen schlie√üen"
 
 msgid "Extension preferences"
 msgstr "Erweiterungseinstellungen"

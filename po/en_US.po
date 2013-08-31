@@ -16,10 +16,10 @@ msgid "Unknown version number"
 msgstr ""
 
 #: prefs.js
-msgid "Main Settings"
+msgid "Behavior"
 msgstr ""
 
-msgid "<b>Behavior</b>"
+msgid "<b>Visibility</b>"
 msgstr ""
 
 msgid "Dock is fixed and always visible"
@@ -34,22 +34,22 @@ msgstr ""
 msgid "Hide delay [ms]"
 msgstr ""
 
-msgid "Leave dock edge visible when slid out"
+msgid "Leave the dock edge visible when slid out"
 msgstr ""
 
-msgid "Require click to show dock when window maximized"
+msgid "Autohide : Show the dock on mouse hover"
 msgstr ""
 
-msgid "Require pressure to show dock (GS3.8+)"
+msgid "Require click to show the dock when window maximized"
+msgstr ""
+
+msgid "Require pressure to show the dock (GS3.8+)"
 msgstr ""
 
 msgid "Pressure threshold [px] (GS3.8+)"
 msgstr ""
 
-msgid "Autohide"
-msgstr ""
-
-msgid "Intellihide"
+msgid "Intellihide : Show the dock unless a window overlaps"
 msgstr ""
 
 msgid "Dodge all windows"
@@ -61,6 +61,15 @@ msgstr ""
 msgid "Dodge only top instance of focused app"
 msgstr ""
 
+msgid "Toggle the dock with a keyboard shortcut"
+msgstr ""
+
+msgid "Invalid accelerator. Try F12, <Super>space, <Ctrl><Alt><Shift>w, etc."
+msgstr ""
+
+msgid "Appearance"
+msgstr ""
+
 msgid "<b>Background</b>"
 msgstr ""
 
@@ -70,13 +79,13 @@ msgstr ""
 msgid "Opacity"
 msgstr ""
 
-msgid "Only when in autohide"
+msgid "Only when the dock is shown by autohide"
 msgstr ""
 
 msgid "<b>Position</b>"
 msgstr ""
 
-msgid "Show the dock on following monitor (if attached)"
+msgid "Show the dock on the following monitor (if attached)"
 msgstr ""
 
 msgid "Primary (default)"
@@ -98,37 +107,40 @@ msgstr "3"
 msgid "4"
 msgstr "4"
 
+msgid "<b>Height</b>"
+msgstr ""
+
 msgid "Extend the height of the dock to fill the screen"
 msgstr ""
 
-msgid "Top Margin"
+msgid "Top margin"
 msgstr ""
 
-msgid "Bottom Margin"
+msgid "Bottom margin"
 msgstr ""
 
-msgid "Additional Settings"
+msgid "Additional"
 msgstr ""
 
 msgid "<b>Workspace Captions</b>"
 msgstr ""
 
-msgid "User theme supports workspaces-to-dock captions"
-msgstr ""
-
 msgid "Add captions to workspace thumbnails"
 msgstr ""
 
-msgid "Show the workspace number"
+msgid "User theme supports workspaces-to-dock captions"
 msgstr ""
 
-msgid "Show the workspace name"
+msgid "Show workspace number"
 msgstr ""
 
-msgid "Show the workspace window count"
+msgid "Show workspace name"
 msgstr ""
 
-msgid "Show the workspace taskbar (app icons)"
+msgid "Show workspace window count"
+msgstr ""
+
+msgid "Show workspace taskbar (apps)"
 msgstr ""
 
 msgid "Show a spacer/filler"
@@ -146,22 +158,13 @@ msgstr ""
 msgid "<b>Custom Actions</b>"
 msgstr ""
 
-msgid "Toggle overview mode with right click"
-msgstr ""
-
-msgid "<b>Keyboard Shortcuts</b>"
-msgstr ""
-
-msgid "Toggle the dock with keyboard shortcut"
-msgstr ""
-
-msgid "Invalid accelerator. Try F12, <Super>space, <Ctrl><Alt><Shift>w, etc."
+msgid "Toggle Gnome Shell's overview mode with right click"
 msgstr ""
 
 msgid "<b>Dash Integration</b>"
 msgstr ""
 
-msgid "Show workspaces when hovering over Dash-To-Dock extension"
+msgid "Show the dock when hovering over Dash-To-Dock extension"
 msgstr ""
 
 #: myThumbnailsBox.js
