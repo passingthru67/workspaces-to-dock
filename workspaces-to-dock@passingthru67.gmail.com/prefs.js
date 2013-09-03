@@ -268,7 +268,8 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
         /* Bind interactions */
         this.settings.bind('autohide', autohideContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
-
+        this.settings.bind('require-pressure-to-show', pressureThresholdLabel, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+        this.settings.bind('require-pressure-to-show', pressureThresholdSpinner, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
 
         /* INTELLIHIDE WIDGETS */
 
@@ -347,7 +348,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         intellihideContainerGrid.attach(intellihideTopWindow, 0, 2, 2, 1);
         visibilityContainerBox.add(intellihideControlGrid);
         visibilityContainerBox.add(intellihideContainerGrid);
-        
+
         /* Bind interactions */
         this.settings.bind('intellihide', intellihideContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
 
@@ -403,7 +404,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         keyboardShortcutsControlGrid.attach(toggleDockShortcutEntry, 1, 0, 1, 1);
         keyboardShortcutsControlGrid.attach(toggleDockShortcutSwitch, 2, 0, 1, 1);
         visibilityContainerBox.add(keyboardShortcutsControlGrid);
-        
+
         /* Bind interactions */
         this.settings.bind('toggle-dock-with-keyboard-shortcut', toggleDockShortcutEntry, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
 
@@ -971,7 +972,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
         workspaceCaptionsControlGrid.attach(workspaceCaptionsLabel, 0, 0, 1, 1);
         workspaceCaptionsControlGrid.attach(workspaceCaptionsSwitch, 1, 0, 1, 1);
-        
+
 
         workspaceCaptionsContainerGrid.attach(wsCaptionThemeSupport, 0, 0, 2, 1);
 

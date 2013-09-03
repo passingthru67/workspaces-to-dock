@@ -536,6 +536,7 @@ dockedWorkspaces.prototype = {
 
         this._settings.connect('changed::autohide', Lang.bind(this, function() {
             this.emit('box-changed');
+            this._updateBarrier();
         }));
 
         this._settings.connect('changed::preferred-monitor', Lang.bind(this, this._resetPosition));
@@ -1421,7 +1422,7 @@ dockedWorkspaces.prototype = {
         // Create new barrier
         // Note: dock in fixed possition doesn't use pressure barrier
         if (_DEBUG_) global.log("dockedWorkspaces: _updateBarrier");
-        if (this._canUsePressure && this._settings.get_boolean('require-pressure-to-show') && !this._settings.get_boolean('dock-fixed')) {
+        if (this._canUsePressure && this._settings.get_boolean('autohide') && this._settings.get_boolean('require-pressure-to-show') && !this._settings.get_boolean('dock-fixed')) {
             let x, direction;
             if (this._rtl) {
                 x = this._monitor.x;
