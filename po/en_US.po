@@ -119,6 +119,15 @@ msgstr ""
 msgid "Bottom margin"
 msgstr ""
 
+msgid "<b>Thumbnails</b>"
+msgstr ""
+
+msgid "Customize the workspace thumbnail size"
+msgstr ""
+
+msgid "Thumbnail size"
+msgstr ""
+
 msgid "Additional"
 msgstr ""
 

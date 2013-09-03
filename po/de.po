@@ -59,7 +59,6 @@ msgstr "Allen Fenstern des fokusierten Programms ausweichen"
 msgid "Dodge only top instance of focused app"
 msgstr "Nur dem aktuell fokusiertem Fenster ausweichen"
 
-
 msgid "Toggle the dock with a keyboard shortcut"
 msgstr ""
 
@@ -117,6 +116,15 @@ msgstr "Oberer Rand"
 
 msgid "Bottom margin"
 msgstr "Unterer Rand"
+
+msgid "<b>Thumbnails</b>"
+msgstr ""
+
+msgid "Customize the workspace thumbnail size"
+msgstr ""
+
+msgid "Thumbnail size"
+msgstr ""
 
 msgid "Additional"
 msgstr "Weitere"
