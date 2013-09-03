@@ -365,6 +365,11 @@ dockedWorkspaces.prototype = {
             Main.overview._controls._thumbnailsSlider.actor.opacity = 0;
         }
 
+        // Set MAX_THUMBNAIL_SCALE to custom value
+        if (this._settings.get_boolean('customize-thumbnail')) {
+            WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = this._settings.get_double('thumbnail-size');
+        }
+
     },
 
     // function called during destroy to restore gnome shell 3.4/3.6/3.8
@@ -396,6 +401,8 @@ dockedWorkspaces.prototype = {
             Main.overview._controls._thumbnailsSlider.actor.opacity = 255;
         }
 
+        // Reset MAX_THUMBNAIL_SCALE to default value
+        WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = 1/8.;
     },
 
     // handler for when workspace is restacked
@@ -548,6 +555,12 @@ dockedWorkspaces.prototype = {
         }));
 
         this._settings.connect('changed::customize-thumbnail', Lang.bind(this, function() {
+            // Set Gnome Shell's workspace thumbnail size so that overview mode layout doesn't overlap dock
+            if (this._settings.get_boolean('customize-thumbnail')) {
+                WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = this._settings.get_double('thumbnail-size');
+            } else {
+                WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = 1/8.;
+            }
             // hide and show thumbnailsBox to resize thumbnails
             if (this._gsCurrentVersion[1] < 7) {
                 this._thumbnailsBox.hide();
@@ -559,6 +572,12 @@ dockedWorkspaces.prototype = {
         }));
 
         this._settings.connect('changed::thumbnail-size', Lang.bind(this, function() {
+            // Set Gnome Shell's workspace thumbnail size so that overview mode layout doesn't overlap dock
+            if (this._settings.get_boolean('customize-thumbnail')) {
+                WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = this._settings.get_double('thumbnail-size');
+            } else {
+                WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = 1/8.;
+            }
             // hide and show thumbnailsBox to resize thumbnails
             if (this._gsCurrentVersion[1] < 7) {
                 this._thumbnailsBox.hide();
