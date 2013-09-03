@@ -28,97 +28,98 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         let self = this;
         this.parent(params);
         this.settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
+        this._rtl = Gtk.Widget.get_default_direction() == Gtk.TextDirection.RTL;
 
         let notebook = new Gtk.Notebook();
-        
-        
+
+
         /* ================================================*/
-        /* NOTEBOOK - MAIN SETTINGS PAGE */
+        /* NOTEBOOK - BEHAVIOR SETTINGS PAGE */
         /* ------------------------------------------------*/
 
-        let notebookMainSettings = new Gtk.Box({
+        let notebookBehaviorSettings = new Gtk.Box({
             orientation: Gtk.Orientation.VERTICAL,
-            margin_left: 10
+            margin_left: 10,
+            margin_right: 10
         });
-        let notebookMainSettingsTitle = new Gtk.Label({
-            label: _("Main Settings"),
+
+        let notebookBehaviorSettingsTitle = new Gtk.Label({
+            label: _("Behavior"),
             use_markup: true,
             xalign: 0,
             margin_top: 5,
             margin_bottom: 5,
         });
 
-        /* DOCK SETTINGS */
 
-        let dockSettings = new Gtk.Box({
-            orientation: Gtk.Orientation.VERTICAL
-        });
+        /* TITLE: VISIBILITY SETTINGS */
 
-        let dockSettingsTitle = new Gtk.Label({
-            label: _("<b>Behavior</b>"),
+        let visibilityTitle = new Gtk.Label({
+            label: _("<b>Visibility</b>"),
             use_markup: true,
             xalign: 0,
             margin_top: 15,
             margin_bottom: 5
         });
 
-        let dockSettingsMain1 = new Gtk.Box({
-            spacing: 20,
-            orientation: Gtk.Orientation.HORIZONTAL,
-            homogeneous: false,
-            margin_left: 20,
-            margin_top: 10,
-            margin_bottom: 10,
-            margin_right: 10
-        });
 
-        let dockSettingsControl1 = new Gtk.Box({
-            spacing: 20,
-            margin_top: 10,
-            margin_right: 10
-        });
+        /* ALWAYS VISIBLE WIDGETS */
 
         let alwaysVisibleLabel = new Gtk.Label({
             label: _("Dock is fixed and always visible"),
             use_markup: true,
             xalign: 0,
-            hexpand: true,
-            margin_left: 10
+            hexpand: true
         });
 
-        let alwaysVisible = new Gtk.Switch ({
+        let alwaysVisibleSwitch = new Gtk.Switch ({
             halign: Gtk.Align.END
         });
-        alwaysVisible.set_active(this.settings.get_boolean('dock-fixed'));
-        alwaysVisible.connect("notify::active", Lang.bind(this, function(check) {
+        alwaysVisibleSwitch.set_active(this.settings.get_boolean('dock-fixed'));
+        alwaysVisibleSwitch.connect("notify::active", Lang.bind(this, function(check) {
             this.settings.set_boolean('dock-fixed', check.get_active());
         }));
 
-        dockSettingsControl1.add(alwaysVisibleLabel);
-        dockSettingsControl1.add(alwaysVisible);
-
-        /* TIMINGS SETTINGS */
-
-        let dockSettingsGrid1 = new Gtk.Grid({
+        /* Add to layout */
+        let visibilityControlGrid = new Gtk.Grid({
             row_homogeneous: false,
             column_homogeneous: false
         });
+        let visibilityContainerBox = new Gtk.Box({
+            orientation: Gtk.Orientation.VERTICAL,
+            spacing: 0,
+            homogeneous: false,
+            margin_left: 10,
+            margin_top: 10,
+            margin_bottom: 10,
+            margin_right: 10
+        });
+        visibilityControlGrid.attach(alwaysVisibleLabel, 0, 0, 1, 1);
+        visibilityControlGrid.attach(alwaysVisibleSwitch, 1, 0, 1, 1);
+
+        /* Bind interactions */
+        this.settings.bind('dock-fixed', visibilityContainerBox, 'sensitive', Gio.SettingsBindFlags.INVERT_BOOLEAN);
+
+
+        /* TIMING WIDGETS */
 
         let animationTimeLabel = new Gtk.Label({
             label: _("Animation time [ms]"),
             use_markup: true,
             xalign: 0,
-            hexpand: true
+            hexpand: true,
+            margin_top: 0
         });
 
-        let animationTime = new Gtk.SpinButton({
-            halign: Gtk.Align.END
+        let animationTimeSpinner = new Gtk.SpinButton({
+            halign: Gtk.Align.END,
+            margin_top: 0
         });
-        animationTime.set_sensitive(true);
-        animationTime.set_range(0, 5000);
-        animationTime.set_value(this.settings.get_double("animation-time") * 1000);
-        animationTime.set_increments(50, 100);
-        animationTime.connect("value-changed", Lang.bind(this, function(button) {
+        animationTimeSpinner.set_sensitive(true);
+        animationTimeSpinner.set_range(0, 5000);
+        animationTimeSpinner.set_value(this.settings.get_double("animation-time") * 1000);
+        animationTimeSpinner.set_increments(50, 100);
+        animationTimeSpinner.connect("value-changed", Lang.bind(this, function(button) {
             let s = button.get_value_as_int() / 1000;
             this.settings.set_double("animation-time", s);
         }));
@@ -130,14 +131,14 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             hexpand: true
         });
 
-        let showDelay = new Gtk.SpinButton({
+        let showDelaySpinner = new Gtk.SpinButton({
             halign: Gtk.Align.END
         });
-        showDelay.set_sensitive(true);
-        showDelay.set_range(0, 5000);
-        showDelay.set_value(this.settings.get_double("show-delay") * 1000);
-        showDelay.set_increments(50, 100);
-        showDelay.connect("value-changed", Lang.bind(this, function(button) {
+        showDelaySpinner.set_sensitive(true);
+        showDelaySpinner.set_range(0, 5000);
+        showDelaySpinner.set_value(this.settings.get_double("show-delay") * 1000);
+        showDelaySpinner.set_increments(50, 100);
+        showDelaySpinner.connect("value-changed", Lang.bind(this, function(button) {
             let s = button.get_value_as_int() / 1000;
             this.settings.set_double("show-delay", s);
         }));
@@ -149,76 +150,148 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             hexpand: true
         });
 
-        let hideDelay = new Gtk.SpinButton({
+        let hideDelaySpinner = new Gtk.SpinButton({
             halign: Gtk.Align.END
         });
-        hideDelay.set_sensitive(true);
-        hideDelay.set_range(0, 5000);
-        hideDelay.set_value(this.settings.get_double("hide-delay") * 1000);
-        hideDelay.set_increments(50, 100);
-        hideDelay.connect("value-changed", Lang.bind(this, function(button) {
+        hideDelaySpinner.set_sensitive(true);
+        hideDelaySpinner.set_range(0, 5000);
+        hideDelaySpinner.set_value(this.settings.get_double("hide-delay") * 1000);
+        hideDelaySpinner.set_increments(50, 100);
+        hideDelaySpinner.connect("value-changed", Lang.bind(this, function(button) {
             let s = button.get_value_as_int() / 1000;
             this.settings.set_double("hide-delay", s);
         }));
 
-        /* VISIBILITY BEHAVIOR OPTIONS */
-        let requireClick = new Gtk.CheckButton({
-            label: _("Hover+click to show dock when window maximized"),
+        let leaveVisibleButton = new Gtk.CheckButton({
+            label: _("Leave the dock edge visible when slid out"),
             margin_left: 0,
-            margin_top: 10
+            margin_top: 4
         });
-        requireClick.set_active(this.settings.get_boolean('require-click-to-show'));
-        requireClick.connect('toggled', Lang.bind(this, function(check) {
-            this.settings.set_boolean('require-click-to-show', check.get_active());
-        }));
-
-        let leaveVisible = new Gtk.CheckButton({
-            label: _("Leave dock edge visible when slid out"),
-            margin_left: 0,
-            margin_top: 2
-        });
-        leaveVisible.set_active(this.settings.get_boolean('dock-edge-visible'));
-        leaveVisible.connect('toggled', Lang.bind(this, function(check) {
+        leaveVisibleButton.set_active(this.settings.get_boolean('dock-edge-visible'));
+        leaveVisibleButton.connect('toggled', Lang.bind(this, function(check) {
             this.settings.set_boolean('dock-edge-visible', check.get_active());
         }));
 
-        /* INTELLIHIDE AUTOHIDE SETTINGS */
-
-        let dockSettingsGrid2 = new Gtk.Grid({
+        /* Add to layout */
+        let timingGrid = new Gtk.Grid({
             row_homogeneous: false,
-            column_homogeneous: false
+            column_homogeneous: false,
+            margin_top: 5
         });
+        timingGrid.attach(animationTimeLabel, 0, 0, 1, 1);
+        timingGrid.attach(animationTimeSpinner, 1, 0, 1, 1);
+        timingGrid.attach(showDelayLabel, 0, 1, 1, 1);
+        timingGrid.attach(showDelaySpinner, 1, 1, 1, 1);
+        timingGrid.attach(hideDelayLabel, 0, 2, 1, 1);
+        timingGrid.attach(hideDelaySpinner, 1, 2, 1, 1);
+        timingGrid.attach(leaveVisibleButton, 0, 3, 2, 1);
+        visibilityContainerBox.add(timingGrid);
+
+
+        /* AUTOHIDE WIDGETS */
 
         let autohideLabel = new Gtk.Label({
-            label: _("Autohide"),
+            label: _("Autohide : Show the dock on mouse hover"),
+            use_markup: true,
             xalign: 0,
-            hexpand: true
+            hexpand: true,
+            margin_top: 0
         });
 
-        let autohide = new Gtk.Switch ({
-            halign: Gtk.Align.END
+        let autohideSwitch = new Gtk.Switch ({
+            halign: Gtk.Align.END,
+            margin_top: 0
         });
-        autohide.set_active(this.settings.get_boolean('autohide'));
-        autohide.connect("notify::active", Lang.bind(this, function(check) {
+        autohideSwitch.set_active(this.settings.get_boolean('autohide'));
+        autohideSwitch.connect("notify::active", Lang.bind(this, function(check) {
             this.settings.set_boolean('autohide', check.get_active());
         }));
 
-        let intellihideLabel = new Gtk.Label({
-            label: _("Intellihide"),
+        let requireClickButton = new Gtk.CheckButton({
+            label: _("Require click to show the dock when window maximized"),
+            margin_left: 0,
+            margin_top: 0
+        });
+        requireClickButton.set_active(this.settings.get_boolean('require-click-to-show'));
+        requireClickButton.connect('toggled', Lang.bind(this, function(check) {
+            this.settings.set_boolean('require-click-to-show', check.get_active());
+        }));
+
+        let requirePressureButton = new Gtk.CheckButton({
+            label: _("Require pressure to show the dock (GS3.8+)"),
+            margin_left: 0,
+            margin_top: 0
+        });
+        requirePressureButton.set_active(this.settings.get_boolean('require-pressure-to-show'));
+        requirePressureButton.connect('toggled', Lang.bind(this, function(check) {
+            this.settings.set_boolean('require-pressure-to-show', check.get_active());
+        }));
+
+        let pressureThresholdLabel = new Gtk.Label({
+            label: _("Pressure threshold [px] (GS3.8+)"),
+            use_markup: true,
             xalign: 0,
+            margin_top: 0,
             hexpand: true
         });
 
-        let intellihide = new Gtk.Switch ({
-            halign: Gtk.Align.END
+        let pressureThresholdSpinner = new Gtk.SpinButton({
+            halign: Gtk.Align.END,
+            margin_top: 0
         });
-        intellihide.set_active(this.settings.get_boolean('intellihide'));
-        intellihide.connect("notify::active", Lang.bind(this, function(check) {
+        pressureThresholdSpinner.set_sensitive(true);
+        pressureThresholdSpinner.set_range(10, 1000);
+        pressureThresholdSpinner.set_value(this.settings.get_double("pressure-threshold") * 1);
+        pressureThresholdSpinner.set_increments(10, 20);
+        pressureThresholdSpinner.connect("value-changed", Lang.bind(this, function(button) {
+            let s = button.get_value_as_int() / 1;
+            this.settings.set_double("pressure-threshold", s);
+        }));
+
+        /* Add to layout */
+        let autohideControlGrid = new Gtk.Grid({
+            row_homogeneous: false,
+            column_homogeneous: false,
+            margin_top: 15
+        });
+        let autohideContainerGrid = new Gtk.Grid({
+            row_homogeneous: false,
+            column_homogeneous: false
+        });
+        autohideControlGrid.attach(autohideLabel, 0, 0, 1, 1);
+        autohideControlGrid.attach(autohideSwitch, 1, 0, 1, 1);
+        autohideContainerGrid.attach(requireClickButton, 0, 0, 2, 1);
+        autohideContainerGrid.attach(requirePressureButton, 0, 1, 2, 1);
+        autohideContainerGrid.attach(pressureThresholdLabel, 0, 2, 1, 1);
+        autohideContainerGrid.attach(pressureThresholdSpinner, 1, 2, 1, 1);
+        visibilityContainerBox.add(autohideControlGrid);
+        visibilityContainerBox.add(autohideContainerGrid);
+
+        /* Bind interactions */
+        this.settings.bind('autohide', autohideContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+        this.settings.bind('require-pressure-to-show', pressureThresholdLabel, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+        this.settings.bind('require-pressure-to-show', pressureThresholdSpinner, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+
+
+        /* INTELLIHIDE WIDGETS */
+
+        let intellihideLabel = new Gtk.Label({
+            label: _("Intellihide : Show the dock unless a window overlaps"),
+            use_markup: true,
+            xalign: 0,
+            hexpand: true,
+            margin_top: 5
+        });
+
+        let intellihideSwitch = new Gtk.Switch ({
+            halign: Gtk.Align.END,
+            margin_top: 5
+        });
+        intellihideSwitch.set_active(this.settings.get_boolean('intellihide'));
+        intellihideSwitch.connect("notify::active", Lang.bind(this, function(check) {
             this.settings.set_boolean('intellihide', check.get_active());
         }));
 
-        /* INTELLIHIDE OPTIONS */
-        
         let intellihideNormal =  new Gtk.RadioButton({
             label: _("Dodge all windows"),
             margin_top: 0
@@ -230,7 +303,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         let intellihideFocusApp =  new Gtk.RadioButton({
             label: _("Dodge all instances of focused app"),
             group: intellihideNormal,
-            margin_top: 2
+            margin_top: 0
         });
         intellihideFocusApp.connect('toggled', Lang.bind(this, function(check){
             if (check.get_active()) this.settings.set_int('intellihide-option', 1);
@@ -239,7 +312,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         let intellihideTopWindow =  new Gtk.RadioButton({
             label: _("Dodge only top instance of focused app"),
             group: intellihideNormal,
-            margin_top: 2
+            margin_top: 0
         });
         intellihideTopWindow.connect('toggled', Lang.bind(this, function(check){
             if (check.get_active()) this.settings.set_int('intellihide-option', 2);
@@ -260,59 +333,124 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
                 intellihideNormal.set_active(true); // default .. any window
         }
 
-        dockSettingsGrid1.attach(animationTimeLabel, 0, 0, 1, 1);
-        dockSettingsGrid1.attach(animationTime, 1, 0, 1, 1);
-        dockSettingsGrid1.attach(showDelayLabel, 0, 1, 1, 1);
-        dockSettingsGrid1.attach(showDelay, 1, 1, 1, 1);
-        dockSettingsGrid1.attach(hideDelayLabel, 0, 2, 1, 1);
-        dockSettingsGrid1.attach(hideDelay, 1, 2, 1, 1);
-        dockSettingsGrid1.attach(requireClick, 0, 3, 2, 1);
-        dockSettingsGrid1.attach(leaveVisible, 0, 4, 2, 1);
-        
-
-        dockSettingsGrid2.attach(autohideLabel, 0, 0, 1, 1);
-        dockSettingsGrid2.attach(autohide, 1, 0, 1, 1);
-        dockSettingsGrid2.attach(intellihideLabel, 0, 1, 1, 1);
-        dockSettingsGrid2.attach(intellihide, 1, 1, 1, 1);
-        dockSettingsGrid2.attach(intellihideNormal, 0, 2, 2, 1);
-        dockSettingsGrid2.attach(intellihideFocusApp, 0, 3, 2, 1);
-        dockSettingsGrid2.attach(intellihideTopWindow, 0, 4, 2, 1);
-        
-        dockSettingsMain1.add(dockSettingsGrid1);
-        dockSettingsMain1.add(dockSettingsGrid2);
-
-        this.settings.bind('dock-fixed', dockSettingsMain1, 'sensitive', Gio.SettingsBindFlags.INVERT_BOOLEAN);
-        this.settings.bind('intellihide', intellihideNormal, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
-        this.settings.bind('intellihide', intellihideFocusApp, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
-        this.settings.bind('intellihide', intellihideTopWindow, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
-        
-        dockSettings.add(dockSettingsTitle);
-        dockSettings.add(dockSettingsControl1);
-        dockSettings.add(dockSettingsMain1);
-        notebookMainSettings.add(dockSettings);
-
-        /* BACKGROUND SETTINGS */
-
-        let background = new Gtk.Box({
-            orientation: Gtk.Orientation.VERTICAL
+        /* Add to layout */
+        let intellihideControlGrid = new Gtk.Grid({
+            row_homogeneous: false,
+            column_homogeneous: false,
+            margin_top: 15
         });
+        let intellihideContainerGrid = new Gtk.Grid({
+            row_homogeneous: false,
+            column_homogeneous: false
+        });
+        intellihideControlGrid.attach(intellihideLabel, 0, 0, 1, 1);
+        intellihideControlGrid.attach(intellihideSwitch, 1, 0, 1, 1);
+        intellihideContainerGrid.attach(intellihideNormal, 0, 0, 2, 1);
+        intellihideContainerGrid.attach(intellihideFocusApp, 0, 1, 2, 1);
+        intellihideContainerGrid.attach(intellihideTopWindow, 0, 2, 2, 1);
+        visibilityContainerBox.add(intellihideControlGrid);
+        visibilityContainerBox.add(intellihideContainerGrid);
+
+        /* Bind interactions */
+        this.settings.bind('intellihide', intellihideContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+
+
+        /* KEYBOARD SHORCUT WIDGETS */
+
+        let toggleDockShortcutLabel = new Gtk.Label({
+            label: _("Toggle the dock with a keyboard shortcut"),
+            use_markup: true,
+            xalign: 0,
+            hexpand: false
+        });
+
+        let toggleDockShortcutEntry = new Gtk.Entry({
+            margin_top: 2,
+            margin_left: 20,
+            margin_right: 10,
+            halign: Gtk.Align.END
+        });
+        toggleDockShortcutEntry.set_width_chars(15);
+        toggleDockShortcutEntry.set_text(this.settings.get_strv('dock-keyboard-shortcut')[0]);
+        toggleDockShortcutEntry.connect('changed', Lang.bind(this, function(entry) {
+            let [key, mods] = Gtk.accelerator_parse(entry.get_text());
+            if(Gtk.accelerator_valid(key, mods)) {
+                toggleDockShortcutEntry["secondary-icon-name"] = null;
+                toggleDockShortcutEntry["secondary-icon-tooltip-text"] = null;
+                let shortcut = Gtk.accelerator_name(key, mods);
+                this.settings.set_strv('dock-keyboard-shortcut', [shortcut]);
+            } else {
+                toggleDockShortcutEntry["secondary-icon-name"] = "dialog-warning-symbolic";
+                toggleDockShortcutEntry["secondary-icon-tooltip-text"] = _("Invalid accelerator. Try F12, <Super>space, <Ctrl><Alt><Shift>w, etc.");
+            }
+        }));
+
+        let toggleDockShortcutSwitch = new Gtk.Switch ({
+            halign: Gtk.Align.END,
+            hexpand: true
+        });
+        toggleDockShortcutSwitch.set_active(this.settings.get_boolean('toggle-dock-with-keyboard-shortcut'));
+        toggleDockShortcutSwitch.connect('notify::active', Lang.bind(this, function(check) {
+            this.settings.set_boolean('toggle-dock-with-keyboard-shortcut', check.get_active());
+        }));
+
+        /* Add to layout */
+        let keyboardShortcutsControlGrid = new Gtk.Grid({
+            row_homogeneous: false,
+            column_homogeneous: false,
+            margin_top: 15,
+            margin_left: 0,
+            margin_bottom: 20
+        });
+        keyboardShortcutsControlGrid.attach(toggleDockShortcutLabel, 0, 0, 1, 1);
+        keyboardShortcutsControlGrid.attach(toggleDockShortcutEntry, 1, 0, 1, 1);
+        keyboardShortcutsControlGrid.attach(toggleDockShortcutSwitch, 2, 0, 1, 1);
+        visibilityContainerBox.add(keyboardShortcutsControlGrid);
+
+        /* Bind interactions */
+        this.settings.bind('toggle-dock-with-keyboard-shortcut', toggleDockShortcutEntry, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+
+
+
+        /* ADD TO NOTEBOOK PAGE */
+        notebookBehaviorSettings.add(visibilityTitle);
+        notebookBehaviorSettings.add(visibilityControlGrid);
+        notebookBehaviorSettings.add(visibilityContainerBox);
+        notebook.append_page(notebookBehaviorSettings, notebookBehaviorSettingsTitle);
+
+
+
+        /* ================================================*/
+        /* NOTEBOOK - APPEARANCE SETTINGS PAGE */
+        /* ------------------------------------------------*/
+
+        let notebookAppearanceSettings = new Gtk.Box({
+            orientation: Gtk.Orientation.VERTICAL,
+            margin_left: 10,
+            margin_right: 10
+        });
+
+        let notebookAppearanceSettingsTitle = new Gtk.Label({
+            label: _("Appearance"),
+            use_markup: true,
+            xalign: 0,
+            margin_top: 5,
+            margin_bottom: 5,
+        });
+
+
+        /* TITLE: BACKGROUND SETTINGS */
 
         let backgroundTitle = new Gtk.Label({
             label: _("<b>Background</b>"),
             use_markup: true,
             xalign: 0,
-            margin_top: 5,
+            margin_top: 15,
             margin_bottom: 5
         });
 
-        /* OPAQUE LAYER */
 
-        let opaqueLayerControl = new Gtk.Box({
-            margin_left: 10,
-            margin_top: 10,
-            margin_bottom: 10,
-            margin_right: 10
-        });
+        /* OPAQUE LAYER WIDGETS */
 
         let opaqueLayerLabel = new Gtk.Label({
             label: _("Customize the dock background opacity"),
@@ -320,98 +458,86 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             hexpand: true
         });
 
-        let opaqueLayer = new Gtk.Switch ({
+        let opaqueLayerSwitch = new Gtk.Switch ({
             halign: Gtk.Align.END
         });
-        opaqueLayer.set_active(this.settings.get_boolean('opaque-background'));
-        opaqueLayer.connect('notify::active', Lang.bind(this, function(check) {
+        opaqueLayerSwitch.set_active(this.settings.get_boolean('opaque-background'));
+        opaqueLayerSwitch.connect('notify::active', Lang.bind(this, function(check) {
             this.settings.set_boolean('opaque-background', check.get_active());
         }));
-
-        opaqueLayerControl.add(opaqueLayerLabel);
-        opaqueLayerControl.add(opaqueLayer);
-
-        let opaqueLayerMain = new Gtk.Box({
-            spacing: 20,
-            orientation: Gtk.Orientation.HORIZONTAL,
-            homogeneous: false,
-            margin_left: 20,
-            margin_top: 10,
-            margin_bottom: 10,
-            margin_right: 10
-        });
 
         let layerOpacityLabel = new Gtk.Label({
             label: _("Opacity"),
             use_markup: true,
-            xalign: 0
+            xalign: 0,
         });
 
-        let layerOpacity = new Gtk.Scale({
+        let layerOpacityScaler = new Gtk.Scale({
             orientation: Gtk.Orientation.HORIZONTAL,
-            valuePos: Gtk.PositionType.RIGHT
+            valuePos: Gtk.PositionType.RIGHT,
+            margin_left: 20
         });
-        layerOpacity.set_range(0, 100);
-        layerOpacity.set_value(this.settings.get_double('background-opacity') * 100);
-        layerOpacity.set_digits(0);
-        layerOpacity.set_increments(5, 5);
-        layerOpacity.set_size_request(200, -1);
-        layerOpacity.connect('value-changed', Lang.bind(this, function(button) {
+        layerOpacityScaler.set_range(0, 100);
+        layerOpacityScaler.set_value(this.settings.get_double('background-opacity') * 100);
+        layerOpacityScaler.set_digits(0);
+        layerOpacityScaler.set_increments(5, 5);
+        layerOpacityScaler.set_size_request(200, -1);
+        layerOpacityScaler.connect('value-changed', Lang.bind(this, function(button) {
             let s = button.get_value() / 100;
             this.settings.set_double('background-opacity', s);
         }));
 
-        let opaqueLayeralwaysVisible = new Gtk.CheckButton({
-            label: _("Only when in autohide"),
-            margin_left: 20
+        let opaqueLayeralwaysVisibleButton = new Gtk.CheckButton({
+            label: _("Only when the dock is shown by autohide"),
+            margin_left: 0
         });
-        opaqueLayeralwaysVisible.set_active(!this.settings.get_boolean('opaque-background-always'));
-        opaqueLayeralwaysVisible.connect('toggled', Lang.bind(this, function(check) {
+        opaqueLayeralwaysVisibleButton.set_active(!this.settings.get_boolean('opaque-background-always'));
+        opaqueLayeralwaysVisibleButton.connect('toggled', Lang.bind(this, function(check) {
             this.settings.set_boolean('opaque-background-always', !check.get_active());
         }));
 
-        this.settings.bind('opaque-background', opaqueLayerMain, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
-
-        opaqueLayerMain.add(layerOpacityLabel);
-        opaqueLayerMain.add(layerOpacity);
-        opaqueLayerMain.add(opaqueLayeralwaysVisible);
-
-        background.add(backgroundTitle);
-        background.add(opaqueLayerControl);
-        background.add(opaqueLayerMain);
-        
-        notebookMainSettings.add(background);
-
-        /* DOCK POSITION */
-
-        let dockPosition = new Gtk.Box({
-            orientation: Gtk.Orientation.VERTICAL
+        /* Add to layout */
+        let backgroundControlGrid = new Gtk.Grid({
+            row_homogeneous: false,
+            column_homogeneous: false,
+            margin_left: 0
         });
+        let backgroundContainerGrid = new Gtk.Grid({
+            row_homogeneous: false,
+            column_homogeneous: false,
+            margin_left: 10
+        });
+        backgroundControlGrid.attach(opaqueLayerLabel, 0, 0, 1, 1);
+        backgroundControlGrid.attach(opaqueLayerSwitch, 1, 0, 1, 1);
+        backgroundContainerGrid.attach(layerOpacityLabel, 0, 0, 1, 1);
+        backgroundContainerGrid.attach(layerOpacityScaler, 1, 0, 1, 1);
+        backgroundContainerGrid.attach(opaqueLayeralwaysVisibleButton, 0, 1, 2, 1);
+
+        /* Bind interactions */
+        this.settings.bind('opaque-background', backgroundContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+
+
+        /* TITLE: POSITION SETTINGS */
 
         let dockPositionTitle = new Gtk.Label({
             label: _("<b>Position</b>"),
             use_markup: true,
             xalign: 0,
-            margin_top: 5,
+            margin_top: 25,
             margin_bottom: 5
         });
 
-        let dockMonitor = new Gtk.Box({
-            orientation: Gtk.Orientation.HORIZONTAL,
-            margin_left: 10,
-            margin_top: 10,
-            margin_bottom: 5,
-            margin_right: 10
-        });
 
-        let dockMonitorLabel = new Gtk.Label({label: _("Show the dock on following monitor (if attached)"), hexpand:true, xalign:0});
+        /* MONITOR WIDGETS */
+
+        let dockMonitorLabel = new Gtk.Label({label: _("Show the dock on the following monitor (if attached)"), hexpand:true, xalign:0});
         let dockMonitorCombo = new Gtk.ComboBoxText({halign:Gtk.Align.END});
             dockMonitorCombo.append_text(_('Primary (default)'));
             dockMonitorCombo.append_text(_('1'));
             dockMonitorCombo.append_text(_('2'));
             dockMonitorCombo.append_text(_('3'));
             dockMonitorCombo.append_text(_('4'));
-            
+
         let active = this.settings.get_int('preferred-monitor');
         if (active<0)
             active = 0;
@@ -424,16 +550,29 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
                 this.settings.set_int('preferred-monitor', active );
         }));
 
-        dockMonitor.add(dockMonitorLabel)
-        dockMonitor.add(dockMonitorCombo);
-
-
-        let dockHeightControl = new Gtk.Box({
-            margin_left: 10,
-            margin_top: 5,
-            margin_bottom: 10,
-            margin_right: 10
+        /* Add to layout */
+        let dockMonitorControlGrid = new Gtk.Grid({
+            row_homogeneous: false,
+            column_homogeneous: false,
+            margin_top: 0,
+            margin_left: 0
         });
+        dockMonitorControlGrid.attach(dockMonitorLabel, 0, 0, 1, 1);
+        dockMonitorControlGrid.attach(dockMonitorCombo, 1, 0, 1, 1);
+
+
+        /* TITLE: HEIGHT SETTINGS */
+
+        let dockHeightTitle = new Gtk.Label({
+            label: _("<b>Height</b>"),
+            use_markup: true,
+            xalign: 0,
+            margin_top: 25,
+            margin_bottom: 5
+        });
+
+
+        /* HEIGHT WIDGETS */
 
         let extendHeightLabel = new Gtk.Label({
             label: _("Extend the height of the dock to fill the screen"),
@@ -441,88 +580,170 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             hexpand: true
         });
 
-        let extendHeight = new Gtk.Switch ({
+        let extendHeightSwitch = new Gtk.Switch ({
             halign: Gtk.Align.END
         });
-        extendHeight.set_active(this.settings.get_boolean('extend-height'));
-        extendHeight.connect('notify::active', Lang.bind(this, function(check) {
+        extendHeightSwitch.set_active(this.settings.get_boolean('extend-height'));
+        extendHeightSwitch.connect('notify::active', Lang.bind(this, function(check) {
             this.settings.set_boolean('extend-height', check.get_active());
         }));
 
-        dockHeightControl.add(extendHeightLabel);
-        dockHeightControl.add(extendHeight);
-
-
-        let dockHeightMargins = new Gtk.Box({
-            orientation: Gtk.Orientation.HORIZONTAL,
-            homogeneous: false,
-            spacing: 20,
-            margin_left: 20,
-            margin_top: 10,
-            margin_bottom: 10,
-            margin_right: 10
-        });
-
         let topMarginLabel = new Gtk.Label({
-            label: _("Top Margin"),
+            label: _("Top margin"),
             use_markup: true,
-            xalign: 0
+            xalign: 0,
+            hexpand: true
         });
 
-        let topMargin = new Gtk.SpinButton();
-        topMargin.set_range(0, 15);
-        topMargin.set_value(this.settings.get_double('top-margin') * 100);
-        topMargin.set_digits(1);
-        topMargin.set_increments(.5, 1);
-        topMargin.set_size_request(120, -1);
-        topMargin.connect('value-changed', Lang.bind(this, function(button) {
+        let topMarginSpinner = new Gtk.SpinButton();
+        topMarginSpinner.set_range(0, 15);
+        topMarginSpinner.set_value(this.settings.get_double('top-margin') * 100);
+        topMarginSpinner.set_digits(1);
+        topMarginSpinner.set_increments(.5, 1);
+        topMarginSpinner.set_size_request(120, -1);
+        topMarginSpinner.connect('value-changed', Lang.bind(this, function(button) {
             let s = button.get_value() / 100;
             this.settings.set_double('top-margin', s);
         }));
-        topMargin.connect('output', function(button, data) {
+        topMarginSpinner.connect('output', function(button, data) {
             var val = button.get_value().toFixed(1);
             button.set_text(val + "%");
             return true;
         });
 
         let bottomMarginLabel = new Gtk.Label({
-            label: _("Bottom Margin"),
+            label: _("Bottom margin"),
             use_markup: true,
-            xalign: 0
+            xalign: 0,
+            hexpand: true
         });
 
-        let bottomMargin = new Gtk.SpinButton();
-        bottomMargin.set_range(0, 15);
-        bottomMargin.set_value(this.settings.get_double('bottom-margin') * 100);
-        bottomMargin.set_digits(1);
-        bottomMargin.set_increments(.5, 1);
-        bottomMargin.set_size_request(120, -1);
-        bottomMargin.connect('value-changed', Lang.bind(this, function(button) {
+        let bottomMarginSpinner = new Gtk.SpinButton();
+        bottomMarginSpinner.set_range(0, 15);
+        bottomMarginSpinner.set_value(this.settings.get_double('bottom-margin') * 100);
+        bottomMarginSpinner.set_digits(1);
+        bottomMarginSpinner.set_increments(.5, 1);
+        bottomMarginSpinner.set_size_request(120, -1);
+        bottomMarginSpinner.connect('value-changed', Lang.bind(this, function(button) {
             let s = button.get_value() / 100;
             this.settings.set_double('bottom-margin', s);
         }));
-        bottomMargin.connect('output', function(button, data) {
+        bottomMarginSpinner.connect('output', function(button, data) {
             var val = button.get_value().toFixed(1);
             button.set_text(val + "%");
             return true;
         });
 
+        /* Add to layout */
+        let dockHeightControlGrid = new Gtk.Grid({
+            row_homogeneous: false,
+            column_homogeneous: false,
+            margin_top: 0,
+            margin_left: 0
+        });
+        let dockHeightContainerGrid = new Gtk.Grid({
+            row_homogeneous: false,
+            column_homogeneous: false,
+            margin_top: 0,
+            margin_left: 10
+        });
+        dockHeightControlGrid.attach(extendHeightLabel, 0, 0, 1, 1);
+        dockHeightControlGrid.attach(extendHeightSwitch, 1, 0, 1, 1);
+        dockHeightContainerGrid.attach(topMarginLabel, 0, 0, 1, 1);
+        dockHeightContainerGrid.attach(topMarginSpinner, 1, 0, 1, 1);
+        dockHeightContainerGrid.attach(bottomMarginLabel, 0, 1, 1, 1);
+        dockHeightContainerGrid.attach(bottomMarginSpinner, 1, 1, 1, 1);
 
-        this.settings.bind('extend-height', dockHeightMargins, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
-        
-        dockHeightMargins.add(topMarginLabel);
-        dockHeightMargins.add(topMargin);
-        dockHeightMargins.add(bottomMarginLabel);
-        dockHeightMargins.add(bottomMargin);
+        /* Bind interactions */
+        this.settings.bind('extend-height', dockHeightContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
 
-        dockPosition.add(dockPositionTitle);
-        dockPosition.add(dockMonitor);
-        dockPosition.add(dockHeightControl);
-        dockPosition.add(dockHeightMargins);
 
-        notebookMainSettings.add(dockPosition);
-        notebook.append_page(notebookMainSettings, notebookMainSettingsTitle);
+        /* TITLE: THUMBNAIL SETTINGS */
 
+        let customizeThumbnailTitle = new Gtk.Label({
+            label: _("<b>Thumbnails</b>"),
+            use_markup: true,
+            xalign: 0,
+            margin_top: 25,
+            margin_bottom: 5
+        });
+
+
+        /* THUMBNAIL WIDGETS */
+
+        let customizeThumbnailLabel = new Gtk.Label({
+            label: _("Customize the workspace thumbnail size"),
+            xalign: 0,
+            hexpand: true
+        });
+
+        let customizeThumbnailSwitch = new Gtk.Switch ({
+            halign: Gtk.Align.END
+        });
+        customizeThumbnailSwitch.set_active(this.settings.get_boolean('customize-thumbnail'));
+        customizeThumbnailSwitch.connect('notify::active', Lang.bind(this, function(check) {
+            this.settings.set_boolean('customize-thumbnail', check.get_active());
+        }));
+
+        let thumbnailSizeLabel = new Gtk.Label({
+            label: _("Thumbnail size"),
+            use_markup: true,
+            xalign: 0,
+            hexpand: true
+        });
+
+        let thumbnailSizeSpinner = new Gtk.SpinButton();
+        thumbnailSizeSpinner.set_range(10, 25);
+        thumbnailSizeSpinner.set_value(this.settings.get_double('thumbnail-size') * 100);
+        thumbnailSizeSpinner.set_digits(1);
+        thumbnailSizeSpinner.set_increments(.5, 1);
+        thumbnailSizeSpinner.set_size_request(120, -1);
+        thumbnailSizeSpinner.connect('value-changed', Lang.bind(this, function(button) {
+            let s = button.get_value() / 100;
+            this.settings.set_double('thumbnail-size', s);
+        }));
+        thumbnailSizeSpinner.connect('output', function(button, data) {
+            var val = button.get_value().toFixed(1);
+            button.set_text(val + "%");
+            return true;
+        });
+
+        /* Add to layout */
+        let customizeThumbnailControlGrid = new Gtk.Grid({
+            row_homogeneous: false,
+            column_homogeneous: false,
+            margin_top: 0,
+            margin_left: 0
+        });
+        let customizeThumbnailContainerGrid = new Gtk.Grid({
+            row_homogeneous: false,
+            column_homogeneous: false,
+            margin_top: 0,
+            margin_left: 10
+        });
+        customizeThumbnailControlGrid.attach(customizeThumbnailLabel, 0, 0, 1, 1);
+        customizeThumbnailControlGrid.attach(customizeThumbnailSwitch, 1, 0, 1, 1);
+        customizeThumbnailContainerGrid.attach(thumbnailSizeLabel, 0, 0, 1, 1);
+        customizeThumbnailContainerGrid.attach(thumbnailSizeSpinner, 1, 0, 1, 1);
+
+        /* Bind interactions */
+        this.settings.bind('customize-thumbnail', customizeThumbnailContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+
+
+
+        /* ADD TO NOTEBOOK PAGE */
+        notebookAppearanceSettings.add(backgroundTitle);
+        notebookAppearanceSettings.add(backgroundControlGrid);
+        notebookAppearanceSettings.add(backgroundContainerGrid);
+        notebookAppearanceSettings.add(dockPositionTitle);
+        notebookAppearanceSettings.add(dockMonitorControlGrid);
+        notebookAppearanceSettings.add(dockHeightTitle);
+        notebookAppearanceSettings.add(dockHeightControlGrid);
+        notebookAppearanceSettings.add(dockHeightContainerGrid);
+        notebookAppearanceSettings.add(customizeThumbnailTitle);
+        notebookAppearanceSettings.add(customizeThumbnailControlGrid);
+        notebookAppearanceSettings.add(customizeThumbnailContainerGrid);
+        notebook.append_page(notebookAppearanceSettings, notebookAppearanceSettingsTitle);
 
 
 
@@ -531,10 +752,12 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         /* ------------------------------------------------*/
         let notebookAdditionalSettings = new Gtk.Box({
             orientation: Gtk.Orientation.VERTICAL,
-            margin_left: 10
+            margin_left: 10,
+            margin_right: 10
         });
+
         let notebookAdditionalSettingsTitle = new Gtk.Label({
-            label: _("Additional Settings"),
+            label: _("Additional"),
             use_markup: true,
             xalign: 0,
             margin_top: 5,
@@ -542,12 +765,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
 
 
-        
-        /* WORKSPACE CAPTIONS */
-
-        let workspaceCaptions = new Gtk.Box({
-            orientation: Gtk.Orientation.VERTICAL
-        });
+        /* TITLE: WORKSPACE CAPTION SETTINGS*/
 
         let workspaceCaptionsTitle = new Gtk.Label({
             label: _("<b>Workspace Captions</b>"),
@@ -556,19 +774,24 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             margin_top: 15,
             margin_bottom: 5
         });
-        
-        // Workspace Captions - Enable/Disable Controller
-        let workspaceCaptionsControl = new Gtk.Box({
-            margin_top: 10,
-            margin_bottom: 10,
-            margin_right: 10
-        });
+
+        let icon_previous, icon_next;
+        if (this._rtl) {
+            icon_previous = "go-next";
+            icon_next = "go-previous";
+        } else {
+            icon_previous = "go-previous";
+            icon_next = "go-next";
+        }
+
+
+        /* WORKSPACE CAPTION WIDGETS */
 
         let workspaceCaptionsLabel = new Gtk.Label({
             label: _("Add captions to workspace thumbnails"),
             xalign: 0,
             hexpand: true,
-            margin_left: 10
+            margin_left: 0
         });
 
         let workspaceCaptionsSwitch = new Gtk.Switch ({
@@ -578,17 +801,6 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         workspaceCaptionsSwitch.connect('notify::active', Lang.bind(this, function(check) {
             this.settings.set_boolean('workspace-captions', check.get_active());
         }));
-
-        workspaceCaptionsControl.add(workspaceCaptionsLabel);
-        workspaceCaptionsControl.add(workspaceCaptionsSwitch);
-
-
-        let workspaceCaptionsGrid = new Gtk.Grid({
-            row_homogeneous: true,
-            column_homogeneous: false,
-            margin_left: 20,
-            margin_right: 10
-        });
 
         // Workspace Captions - User Theme Support
         let wsCaptionThemeSupport =  new Gtk.CheckButton({
@@ -601,21 +813,12 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }));
 
         // Workspace Captions - Number
-        let workspaceCaptionNumber = new Gtk.Box({
-            spacing: 20,
-            orientation: Gtk.Orientation.HORIZONTAL,
-            homogeneous: false,
-            margin_left: 20,
-            margin_top: 0,
-            margin_bottom: 0,
-            margin_right: 10
-        });
-        let wsCaptionNumber =  new Gtk.CheckButton({
-            label: _("Show the workspace number"),
+        let wsCaptionNumberButton =  new Gtk.CheckButton({
+            label: _("Show workspace number"),
             hexpand: true
         });
-        wsCaptionNumber.set_active(this._getItemExists('number'));
-        wsCaptionNumber.connect('toggled', Lang.bind(this, function(check){
+        wsCaptionNumberButton.set_active(this._getItemExists('number'));
+        wsCaptionNumberButton.connect('toggled', Lang.bind(this, function(check){
             if (check.get_active()) {
                 this._addItem('number', wsCaptionNumberExpand.get_active());
             } else {
@@ -634,7 +837,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
         let wsCaptionNumber_MoveLeftButton = new Gtk.Button({
             image: new Gtk.Image({
-                icon_name: 'go-previous'
+                icon_name: icon_previous
             })
         });
         wsCaptionNumber_MoveLeftButton.connect('clicked', function(){
@@ -642,7 +845,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
         let wsCaptionNumber_MoveRightButton = new Gtk.Button({
             image: new Gtk.Image({
-                icon_name: 'go-next'
+                icon_name: icon_next
             })
         });
         wsCaptionNumber_MoveRightButton.connect('clicked', function(){
@@ -650,21 +853,12 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
 
         // Workspace Captions - Name
-        let workspaceCaptionName = new Gtk.Box({
-            spacing: 20,
-            orientation: Gtk.Orientation.HORIZONTAL,
-            homogeneous: false,
-            margin_left: 20,
-            margin_top: 0,
-            margin_bottom: 0,
-            margin_right: 10
-        });
-        let wsCaptionName =  new Gtk.CheckButton({
-            label: _("Show the workspace name"),
+        let wsCaptionNameButton =  new Gtk.CheckButton({
+            label: _("Show workspace name"),
             hexpand: true
         });
-        wsCaptionName.set_active(this._getItemExists('name'));
-        wsCaptionName.connect('toggled', Lang.bind(this, function(check){
+        wsCaptionNameButton.set_active(this._getItemExists('name'));
+        wsCaptionNameButton.connect('toggled', Lang.bind(this, function(check){
             if (check.get_active()) {
                 this._addItem('name', wsCaptionNameExpand.get_active());
             } else {
@@ -683,7 +877,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
         let wsCaptionName_MoveLeftButton = new Gtk.Button({
             image: new Gtk.Image({
-                icon_name: 'go-previous'
+                icon_name: icon_previous
             })
         });
         wsCaptionName_MoveLeftButton.connect('clicked', function(){
@@ -691,7 +885,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
         let wsCaptionName_MoveRightButton = new Gtk.Button({
             image: new Gtk.Image({
-                icon_name: 'go-next'
+                icon_name: icon_next
             })
         });
         wsCaptionName_MoveRightButton.connect('clicked', function(){
@@ -699,17 +893,8 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
 
         // Workspace Captions - Window Count
-        let workspaceCaptionWindowCount = new Gtk.Box({
-            spacing: 20,
-            orientation: Gtk.Orientation.HORIZONTAL,
-            homogeneous: false,
-            margin_left: 20,
-            margin_top: 0,
-            margin_bottom: 0,
-            margin_right: 10
-        });
         let wsCaptionWindowCount =  new Gtk.CheckButton({
-            label: _("Show the workspace window count"),
+            label: _("Show workspace window count"),
             hexpand: true
         });
 
@@ -743,7 +928,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
         let wsCaptionWindowCount_MoveLeftButton = new Gtk.Button({
             image: new Gtk.Image({
-                icon_name: 'go-previous'
+                icon_name: icon_previous
             })
         });
         wsCaptionWindowCount_MoveLeftButton.connect('clicked', function(){
@@ -751,7 +936,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
         let wsCaptionWindowCount_MoveRightButton = new Gtk.Button({
             image: new Gtk.Image({
-                icon_name: 'go-next'
+                icon_name: icon_next
             })
         });
         wsCaptionWindowCount_MoveRightButton.connect('clicked', function(){
@@ -759,17 +944,8 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
 
         // Workspace Captions - Window Apps (taskbar)
-        let workspaceCaptionWindowApps = new Gtk.Box({
-            spacing: 20,
-            orientation: Gtk.Orientation.HORIZONTAL,
-            homogeneous: false,
-            margin_left: 20,
-            margin_top: 0,
-            margin_bottom: 0,
-            margin_right: 10
-        });
         let wsCaptionWindowApps =  new Gtk.CheckButton({
-            label: _("Show the workspace taskbar (app icons)"),
+            label: _("Show workspace taskbar (apps)"),
             hexpand: true
         });
         wsCaptionWindowApps.set_active(this._getItemExists('windowapps'));
@@ -801,7 +977,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
         let wsCaptionWindowApps_MoveLeftButton = new Gtk.Button({
             image: new Gtk.Image({
-                icon_name: 'go-previous'
+                icon_name: icon_previous
             })
         });
         wsCaptionWindowApps_MoveLeftButton.connect('clicked', function(){
@@ -809,7 +985,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
         let wsCaptionWindowApps_MoveRightButton = new Gtk.Button({
             image: new Gtk.Image({
-                icon_name: 'go-next'
+                icon_name: icon_next
             })
         });
         wsCaptionWindowApps_MoveRightButton.connect('clicked', function(){
@@ -843,7 +1019,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
         let wsCaptionSpacer_MoveLeftButton = new Gtk.Button({
             image: new Gtk.Image({
-                icon_name: 'go-previous'
+                icon_name: icon_previous
             })
         });
         wsCaptionSpacer_MoveLeftButton.connect('clicked', function(){
@@ -851,76 +1027,76 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
         let wsCaptionSpacer_MoveRightButton = new Gtk.Button({
             image: new Gtk.Image({
-                icon_name: 'go-next'
+                icon_name: icon_next
             })
         });
         wsCaptionSpacer_MoveRightButton.connect('clicked', function(){
             self._moveItem('spacer', -1);
         });
 
-
-        this.settings.bind('workspace-captions', workspaceCaptionsGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
-
-        workspaceCaptionsGrid.attach(wsCaptionThemeSupport, 0, 1, 2, 1);        
-
-        workspaceCaptionsGrid.attach(wsCaptionNumber, 0, 2, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionNumberExpand, 2, 2, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionNumber_MoveLeftButton, 3, 2, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionNumber_MoveRightButton, 4, 2, 1, 1);
-        
-        workspaceCaptionsGrid.attach(wsCaptionName, 0, 3, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionNameExpand, 2, 3, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionName_MoveLeftButton, 3, 3, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionName_MoveRightButton, 4, 3, 1, 1);
-        
-        workspaceCaptionsGrid.attach(wsCaptionWindowCount, 0, 4, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionWindowCountUseImage, 1, 4, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionWindowCountExpand, 2, 4, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionWindowCount_MoveLeftButton, 3, 4, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionWindowCount_MoveRightButton, 4, 4, 1, 1);
-
-        workspaceCaptionsGrid.attach(wsCaptionWindowApps, 0, 5, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionWindowAppsUseLargeIcons, 1, 5, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionWindowAppsExpand, 2, 5, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionWindowApps_MoveLeftButton, 3, 5, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionWindowApps_MoveRightButton, 4, 5, 1, 1);
-        
-        workspaceCaptionsGrid.attach(wsCaptionSpacer, 0, 6, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionSpacerExpand, 2, 6, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionSpacer_MoveLeftButton, 3, 6, 1, 1);
-        workspaceCaptionsGrid.attach(wsCaptionSpacer_MoveRightButton, 4, 6, 1, 1);
-
-        
-        workspaceCaptions.add(workspaceCaptionsTitle);
-        workspaceCaptions.add(workspaceCaptionsControl);
-        workspaceCaptions.add(wsCaptionThemeSupport);
-        workspaceCaptions.add(workspaceCaptionsGrid);
-        notebookAdditionalSettings.add(workspaceCaptions);
-        
-
-        /* CUSTOM ACTIONS SETTINGS */
-
-        let actions = new Gtk.Box({
-            orientation: Gtk.Orientation.VERTICAL
+        /* Add to layout */
+        let workspaceCaptionsControlGrid = new Gtk.Grid({
+            row_homogeneous: false,
+            column_homogeneous: false,
+            margin_top: 0,
+            margin_left: 0
+        });
+        let workspaceCaptionsContainerGrid = new Gtk.Grid({
+            row_homogeneous: false,
+            column_homogeneous: false,
+            margin_top: 0,
+            margin_left: 10
         });
 
-        let actionsTitle = new Gtk.Label({
+        workspaceCaptionsControlGrid.attach(workspaceCaptionsLabel, 0, 0, 1, 1);
+        workspaceCaptionsControlGrid.attach(workspaceCaptionsSwitch, 1, 0, 1, 1);
+
+        workspaceCaptionsContainerGrid.attach(wsCaptionThemeSupport, 0, 0, 2, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionNumberButton, 0, 1, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionNumberExpand, 2, 1, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionNumber_MoveLeftButton, 3, 1, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionNumber_MoveRightButton, 4, 1, 1, 1);
+
+        workspaceCaptionsContainerGrid.attach(wsCaptionNameButton, 0, 2, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionNameExpand, 2, 2, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionName_MoveLeftButton, 3, 2, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionName_MoveRightButton, 4, 2, 1, 1);
+
+        workspaceCaptionsContainerGrid.attach(wsCaptionWindowCount, 0, 3, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionWindowCountUseImage, 1, 3, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionWindowCountExpand, 2, 3, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionWindowCount_MoveLeftButton, 3, 3, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionWindowCount_MoveRightButton, 4, 3, 1, 1);
+
+        workspaceCaptionsContainerGrid.attach(wsCaptionWindowApps, 0, 4, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionWindowAppsUseLargeIcons, 1, 4, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionWindowAppsExpand, 2, 4, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionWindowApps_MoveLeftButton, 3, 4, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionWindowApps_MoveRightButton, 4, 4, 1, 1);
+
+        workspaceCaptionsContainerGrid.attach(wsCaptionSpacer, 0, 5, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionSpacerExpand, 2, 5, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionSpacer_MoveLeftButton, 3, 5, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionSpacer_MoveRightButton, 4, 5, 1, 1);
+
+        /* Bind interactions */
+        this.settings.bind('workspace-captions', workspaceCaptionsContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+
+
+        /* TITLE: CUSTOM ACTIONS SETTINGS */
+
+        let customActionsTitle = new Gtk.Label({
             label: _("<b>Custom Actions</b>"),
             use_markup: true,
             xalign: 0,
-            margin_top: 5,
+            margin_top: 25,
             margin_bottom: 5
         });
 
-        let actionsMain = new Gtk.Box({
-            margin_left: 10,
-            margin_top: 10,
-            margin_bottom: 10,
-            margin_right: 10
-        });
 
+        /* TOGGLE OVERVIEW WIDGETS */
         let toggleOverviewLabel = new Gtk.Label({
-            label: _("Toggle overview mode with right click"),
+            label: _("Toggle Gnome Shell's overview mode with right click"),
             xalign: 0,
             hexpand: true
         });
@@ -932,73 +1108,79 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         toggleOverviewSwitch.connect('notify::active', Lang.bind(this, function(check) {
             this.settings.set_boolean('toggle-overview', check.get_active());
         }));
-        
-        actionsMain.add(toggleOverviewLabel);
-        actionsMain.add(toggleOverviewSwitch);
-        
-        actions.add(actionsTitle);
-        actions.add(actionsMain);
-        notebookAdditionalSettings.add(actions);
 
-        /* DASH INTEGRATION SETTINGS */
-
-        let dashIntegration = new Gtk.Box({
-            orientation: Gtk.Orientation.VERTICAL
+        /* Add to layout */
+        let customActionsControlGrid = new Gtk.Grid({
+            row_homogeneous: false,
+            column_homogeneous: false,
+            margin_top: 0,
+            margin_left: 0
         });
+        customActionsControlGrid.attach(toggleOverviewLabel, 0, 0, 1, 1);
+        customActionsControlGrid.attach(toggleOverviewSwitch, 1, 0, 1, 1);
+
+
+        /* TITLE: DASH INTEGRATION SETTINGS */
 
         let dashIntegrationTitle = new Gtk.Label({
             label: _("<b>Dash Integration</b>"),
             use_markup: true,
             xalign: 0,
-            margin_top: 5,
+            margin_top: 25,
             margin_bottom: 5
         });
 
-        let dashIntegrationControl = new Gtk.Box({
-            margin_left: 10,
-            margin_top: 10,
-            margin_bottom: 10,
-            margin_right: 10
-        });
 
-        /* DASH-TO-DOCK HOVER */
+        /* DASH-TO-DOCK WIDGETS*/
 
         let dashToDockHoverLabel = new Gtk.Label({
-            label: _("Show workspaces when hovering over Dash-To-Dock extension"),
+            label: _("Show the dock when hovering over Dash-To-Dock extension"),
             xalign: 0,
             hexpand: true
         });
 
-        let dashToDockHover = new Gtk.Switch ({
+        let dashToDockHoverSwitch = new Gtk.Switch ({
             halign: Gtk.Align.END
         });
-        dashToDockHover.set_active(this.settings.get_boolean('dashtodock-hover'));
-        dashToDockHover.connect('notify::active', Lang.bind(this, function(check) {
+        dashToDockHoverSwitch.set_active(this.settings.get_boolean('dashtodock-hover'));
+        dashToDockHoverSwitch.connect('notify::active', Lang.bind(this, function(check) {
             this.settings.set_boolean('dashtodock-hover', check.get_active());
         }));
 
-        
-        dashIntegrationControl.add(dashToDockHoverLabel);
-        dashIntegrationControl.add(dashToDockHover);
-        
-        dashIntegration.add(dashIntegrationTitle);
-        dashIntegration.add(dashIntegrationControl);
-        notebookAdditionalSettings.add(dashIntegration);
+        /* Add to layout */
+        let dashIntegrationControlGrid = new Gtk.Grid({
+            row_homogeneous: false,
+            column_homogeneous: false,
+            margin_top: 0,
+            margin_left: 0,
+            margin_bottom: 20
+        });
+        dashIntegrationControlGrid.attach(dashToDockHoverLabel, 0, 0, 1, 1);
+        dashIntegrationControlGrid.attach(dashToDockHoverSwitch, 1, 0, 1, 1);
 
+
+        /* ADD TO NOTEBOOK PAGE */
+        notebookAdditionalSettings.add(workspaceCaptionsTitle);
+        notebookAdditionalSettings.add(workspaceCaptionsControlGrid);
+        notebookAdditionalSettings.add(workspaceCaptionsContainerGrid);
+        notebookAdditionalSettings.add(customActionsTitle);
+        notebookAdditionalSettings.add(customActionsControlGrid);
+        notebookAdditionalSettings.add(dashIntegrationTitle);
+        notebookAdditionalSettings.add(dashIntegrationControlGrid);
         notebook.append_page(notebookAdditionalSettings, notebookAdditionalSettingsTitle);
-        
+
 
 
         this.add(notebook);
 
     },
-    
+
     _getItemExists: function(item) {
         let currentItems = this.settings.get_strv('workspace-caption-items');
         let items = currentItems.map(function(el) {
             return el.split(':')[0];
         });
-        
+
         let index = items.indexOf(item);
 
         if (index == -1)
@@ -1006,13 +1188,13 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
         return true;
     },
-    
+
     _getItemExpanded: function(item) {
         let currentItems = this.settings.get_strv('workspace-caption-items');
         let items = currentItems.map(function(el) {
             return el.split(':')[0];
         });
-        
+
         let index = items.indexOf(item);
 
         if (index == -1)
@@ -1020,19 +1202,19 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
         let currentItem = currentItems[index];
         let expandState = currentItem.split(':')[1];
-        
+
         if (expandState == "false")
             return false
-            
+
         return true;
     },
-    
+
     _setItemExpanded: function(item, expandState) {
         let currentItems = this.settings.get_strv('workspace-caption-items');
         let items = currentItems.map(function(el) {
             return el.split(':')[0];
         });
-        
+
         let index = items.indexOf(item);
 
         if (index == -1)
@@ -1048,7 +1230,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         let items = currentItems.map(function(el) {
             return el.split(':')[0];
         });
-        
+
         let index = items.indexOf(item);
 
         if (index != -1)
@@ -1060,29 +1242,29 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         this.settings.set_strv('workspace-caption-items', currentItems);
         return true;
     },
-    
+
     _removeItem: function(item) {
         let currentItems = this.settings.get_strv('workspace-caption-items');
         let items = currentItems.map(function(el) {
             return el.split(':')[0];
         });
-        
+
         let index = items.indexOf(item);
 
         if (index < 0)
             return false;
-        
+
         currentItems.splice(index, 1);
         this.settings.set_strv('workspace-caption-items', currentItems);
         return true;
     },
-    
+
     _moveItem: function(item, delta) {
         let currentItems = this.settings.get_strv('workspace-caption-items');
         let items = currentItems.map(function(el) {
             return el.split(':')[0];
         });
-        
+
         let index = items.indexOf(item);
 
         if (index < 0)
@@ -1113,4 +1295,3 @@ function buildPrefsWidget() {
 
     return widget;
 }
-

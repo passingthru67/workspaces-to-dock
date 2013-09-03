@@ -41,15 +41,25 @@
       <summary>Intellihide mode options</summary>
       <description>Select type of intellihide mode</description>
     </key>
+    <key type="b" name="dock-edge-visible">
+      <default>false</default>
+      <summary>Leave dock edge visible when slid out</summary>
+      <description>Enable or disable leaving dock edge visible when slid out</description>
+    </key>
     <key type="b" name="require-click-to-show">
       <default>false</default>
       <summary>Dock requires hover+click to show when window is maximized</summary>
       <description>Enable or disable requiring hover+click to show dock when window is maximized</description>
     </key>
-    <key type="b" name="dock-edge-visible">
-      <default>false</default>
-      <summary>Leave dock edge visible when slid out</summary>
-      <description>Enable or disable leaving dock edge visible when slid out</description>
+    <key type="b" name="require-pressure-to-show">
+      <default>true</default>
+      <summary>Require pressure to show dock (GS38+ only)</summary>
+      <description>Enable or disable requiring pressure to show dock (GS38+ only)</description>
+    </key>
+    <key type="d" name="pressure-threshold">
+      <default>150</default>
+      <summary>Pressure threshold</summary>
+      <description>Sets how much pressure is needed to show the dock.</description>
     </key>
     <key type="b" name="opaque-background">
       <default>true</default>
@@ -86,6 +96,21 @@
       <summary>Bottom margin of dock</summary>
       <description>Sets the bottom margin when the dock is extended vertically.</description>
     </key>
+
+
+
+    <key type="b" name="customize-thumbnail">
+      <default>false</default>
+      <summary>Customize workspace thumbnail size</summary>
+      <description>Customize the workspace thumbnail size.</description>
+    </key>
+    <key type="d" name="thumbnail-size">
+      <default>.125</default>
+      <summary>Set custom workspace thumbnail size</summary>
+      <description>Set the custom size for the workspace thumbnail.</description>
+    </key>
+
+
     <key type="b" name="workspace-captions">
       <default>true</default>
       <summary>Show workspace captions</summary>
@@ -115,6 +140,16 @@
       <default>true</default>
       <summary>Toggle overview mode</summary>
       <description>Toggle overview mode with right click</description>
+    </key>
+    <key type="b" name="toggle-dock-with-keyboard-shortcut">
+      <default>true</default>
+      <summary>Enable keyboard shortcut to toggle dock</summary>
+      <description>Enable keyboard shortcut to toggle the dock.</description>
+    </key>
+    <key type="as" name="dock-keyboard-shortcut">
+      <default><![CDATA[['<Super>w']]]></default>
+      <summary>Dock keyboard shortcut</summary>
+      <description>Set the keyboard shortcut to toggle the dock.</description>
     </key>
     <key type="b" name="dashtodock-hover">
       <default>false</default>
