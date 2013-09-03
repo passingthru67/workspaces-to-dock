@@ -559,7 +559,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         dockMonitorControlGrid.attach(dockMonitorCombo, 1, 0, 1, 1);
 
 
-        /* TITLE: SIZE SETTINGS */
+        /* TITLE: HEIGHT SETTINGS */
 
         let dockHeightTitle = new Gtk.Label({
             label: _("<b>Height</b>"),
@@ -593,17 +593,17 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             hexpand: true
         });
 
-        let topMargin = new Gtk.SpinButton();
-        topMargin.set_range(0, 15);
-        topMargin.set_value(this.settings.get_double('top-margin') * 100);
-        topMargin.set_digits(1);
-        topMargin.set_increments(.5, 1);
-        topMargin.set_size_request(120, -1);
-        topMargin.connect('value-changed', Lang.bind(this, function(button) {
+        let topMarginSpinner = new Gtk.SpinButton();
+        topMarginSpinner.set_range(0, 15);
+        topMarginSpinner.set_value(this.settings.get_double('top-margin') * 100);
+        topMarginSpinner.set_digits(1);
+        topMarginSpinner.set_increments(.5, 1);
+        topMarginSpinner.set_size_request(120, -1);
+        topMarginSpinner.connect('value-changed', Lang.bind(this, function(button) {
             let s = button.get_value() / 100;
             this.settings.set_double('top-margin', s);
         }));
-        topMargin.connect('output', function(button, data) {
+        topMarginSpinner.connect('output', function(button, data) {
             var val = button.get_value().toFixed(1);
             button.set_text(val + "%");
             return true;
@@ -616,17 +616,17 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             hexpand: true
         });
 
-        let bottomMargin = new Gtk.SpinButton();
-        bottomMargin.set_range(0, 15);
-        bottomMargin.set_value(this.settings.get_double('bottom-margin') * 100);
-        bottomMargin.set_digits(1);
-        bottomMargin.set_increments(.5, 1);
-        bottomMargin.set_size_request(120, -1);
-        bottomMargin.connect('value-changed', Lang.bind(this, function(button) {
+        let bottomMarginSpinner = new Gtk.SpinButton();
+        bottomMarginSpinner.set_range(0, 15);
+        bottomMarginSpinner.set_value(this.settings.get_double('bottom-margin') * 100);
+        bottomMarginSpinner.set_digits(1);
+        bottomMarginSpinner.set_increments(.5, 1);
+        bottomMarginSpinner.set_size_request(120, -1);
+        bottomMarginSpinner.connect('value-changed', Lang.bind(this, function(button) {
             let s = button.get_value() / 100;
             this.settings.set_double('bottom-margin', s);
         }));
-        bottomMargin.connect('output', function(button, data) {
+        bottomMarginSpinner.connect('output', function(button, data) {
             var val = button.get_value().toFixed(1);
             button.set_text(val + "%");
             return true;
@@ -648,12 +648,104 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         dockHeightControlGrid.attach(extendHeightLabel, 0, 0, 1, 1);
         dockHeightControlGrid.attach(extendHeightSwitch, 1, 0, 1, 1);
         dockHeightContainerGrid.attach(topMarginLabel, 0, 0, 1, 1);
-        dockHeightContainerGrid.attach(topMargin, 1, 0, 1, 1);
+        dockHeightContainerGrid.attach(topMarginSpinner, 1, 0, 1, 1);
         dockHeightContainerGrid.attach(bottomMarginLabel, 0, 1, 1, 1);
-        dockHeightContainerGrid.attach(bottomMargin, 1, 1, 1, 1);
+        dockHeightContainerGrid.attach(bottomMarginSpinner, 1, 1, 1, 1);
 
         /* Bind interactions */
         this.settings.bind('extend-height', dockHeightContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        /* TITLE: THUMBNAIL SETTINGS */
+
+        let customizeThumbnailTitle = new Gtk.Label({
+            label: _("<b>Thumbnails</b>"),
+            use_markup: true,
+            xalign: 0,
+            margin_top: 25,
+            margin_bottom: 5
+        });
+
+
+        /* THUMBNAIL WIDGETS */
+
+        let customizeThumbnailLabel = new Gtk.Label({
+            label: _("Customize the workspace thumbnail size"),
+            xalign: 0,
+            hexpand: true
+        });
+
+        let customizeThumbnailSwitch = new Gtk.Switch ({
+            halign: Gtk.Align.END
+        });
+        customizeThumbnailSwitch.set_active(this.settings.get_boolean('customize-thumbnail'));
+        customizeThumbnailSwitch.connect('notify::active', Lang.bind(this, function(check) {
+            this.settings.set_boolean('customize-thumbnail', check.get_active());
+        }));
+
+        let thumbnailSizeLabel = new Gtk.Label({
+            label: _("Thumbnail size"),
+            use_markup: true,
+            xalign: 0,
+            hexpand: true
+        });
+
+        let thumbnailSizeSpinner = new Gtk.SpinButton();
+        thumbnailSizeSpinner.set_range(10, 25);
+        thumbnailSizeSpinner.set_value(this.settings.get_double('thumbnail-size') * 100);
+        thumbnailSizeSpinner.set_digits(1);
+        thumbnailSizeSpinner.set_increments(.5, 1);
+        thumbnailSizeSpinner.set_size_request(120, -1);
+        thumbnailSizeSpinner.connect('value-changed', Lang.bind(this, function(button) {
+            let s = button.get_value() / 100;
+            this.settings.set_double('thumbnail-size', s);
+        }));
+        thumbnailSizeSpinner.connect('output', function(button, data) {
+            var val = button.get_value().toFixed(1);
+            button.set_text(val + "%");
+            return true;
+        });
+
+        /* Add to layout */
+        let customizeThumbnailControlGrid = new Gtk.Grid({
+            row_homogeneous: false,
+            column_homogeneous: false,
+            margin_top: 0,
+            margin_left: 0
+        });
+        let customizeThumbnailContainerGrid = new Gtk.Grid({
+            row_homogeneous: false,
+            column_homogeneous: false,
+            margin_top: 0,
+            margin_left: 10
+        });
+        customizeThumbnailControlGrid.attach(customizeThumbnailLabel, 0, 0, 1, 1);
+        customizeThumbnailControlGrid.attach(customizeThumbnailSwitch, 1, 0, 1, 1);
+        customizeThumbnailContainerGrid.attach(thumbnailSizeLabel, 0, 0, 1, 1);
+        customizeThumbnailContainerGrid.attach(thumbnailSizeSpinner, 1, 0, 1, 1);
+
+        /* Bind interactions */
+        this.settings.bind('customize-thumbnail', customizeThumbnailContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+
+
+
+
+
+
+
 
 
         /* ADD TO NOTEBOOK PAGE */
@@ -665,6 +757,11 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         notebookAppearanceSettings.add(dockHeightTitle);
         notebookAppearanceSettings.add(dockHeightControlGrid);
         notebookAppearanceSettings.add(dockHeightContainerGrid);
+
+        notebookAppearanceSettings.add(customizeThumbnailTitle);
+        notebookAppearanceSettings.add(customizeThumbnailControlGrid);
+        notebookAppearanceSettings.add(customizeThumbnailContainerGrid);
+
         notebook.append_page(notebookAppearanceSettings, notebookAppearanceSettingsTitle);
 
 

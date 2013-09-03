@@ -1092,7 +1092,11 @@ const myThumbnailsBox = new Lang.Class({
         let avail = (contentBox.y2 - contentBox.y1) - totalSpacing;
 
         let newScale = (avail / nWorkspaces) / portholeHeight;
-        newScale = Math.min(newScale, MAX_THUMBNAIL_SCALE);
+        if (this._mySettings.get_boolean('customize-thumbnail')) {
+            newScale = Math.min(newScale, this._mySettings.get_double('thumbnail-size'));
+        } else {
+            newScale = Math.min(newScale, MAX_THUMBNAIL_SCALE);
+        }
         if (newScale != this._targetScale) {
             if (this._targetScale > 0) {
                 // We don't do the tween immediately because we need to observe the ordering
