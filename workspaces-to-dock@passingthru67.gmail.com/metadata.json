@@ -1,6 +1,6 @@
 {
     "name": "Workspaces to Dock",
-    "description": "A Gnome Shell extension that transforms the workspaces of the overview mode into an intellihide dock.  The dock is positioned and sized to maintain tight integration with the Gnome Shell.\n\nThe latest release includes support for Gnome Shell 3.8, the option to show a workspace taskbar, and enhancements for dual monitor configurations.\n\nPlease see the Github homepage for details on installation, settings, known issues, and version features. A backport is also available on Github for Gnome Shell 3.2 users (v6 only).",
+    "description": "A Gnome Shell extension that transforms the workspaces of the overview mode into an intellihide dock.  The dock is positioned and sized to maintain tight integration with the Gnome Shell.\n\nThe latest release includes a pressure threshold option to trigger the dock (GS 3.8+ only), the ability to customize the thumbnail size, the ability to toggle the dock using a keyboard shortcut, and RTL support.\n\nPlease see the Github homepage for details on installation, settings, known issues, and version features. A backport is also available on Github for Gnome Shell 3.2 users (v6 only).",
     "original-author": "passingthru67@gmail.com",
     "shell-version": ["3.4","3.6","3.8"],
     "url": "https://github.com/passingthru67/workspaces-to-dock",
