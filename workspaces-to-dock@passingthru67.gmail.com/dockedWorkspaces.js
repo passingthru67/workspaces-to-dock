@@ -79,9 +79,6 @@ dockedWorkspaces.prototype = {
 
         this._signalHandler = new Convenience.globalSignalHandler();
 
-        // Timeout id used to ensure the workspaces is hidden after some menu is shown
-        this._workspacesShowTimeout = 0;
-
         // Authohide current status. Not to be confused with autohide enable/disagle global (g)settings
         // Initially set to null - will be set during first enable/disable autohide
         this._autohideStatus = null;
@@ -308,10 +305,6 @@ dockedWorkspaces.prototype = {
 
         // Unbind keyboard shortcuts
         this._unbindDockKeyboardShortcut();
-
-        // Clear loop used to ensure workspaces visibility update.
-        if (this._workspacesShowTimeout > 0)
-            Mainloop.source_remove(this._workspacesShowTimeout);
 
         // Destroy main clutter actor: this should be sufficient
         // From clutter documentation:
@@ -554,6 +547,27 @@ dockedWorkspaces.prototype = {
             this._updateBarrier();
         }));
 
+        this._settings.connect('changed::customize-thumbnail', Lang.bind(this, function() {
+            // hide and show thumbnailsBox to resize thumbnails
+            if (this._gsCurrentVersion[1] < 7) {
+                this._thumbnailsBox.hide();
+                this._thumbnailsBox.show();
+            } else {
+                this._thumbnailsBox._destroyThumbnails();
+                this._thumbnailsBox._createThumbnails();
+            }
+        }));
+
+        this._settings.connect('changed::thumbnail-size', Lang.bind(this, function() {
+            // hide and show thumbnailsBox to resize thumbnails
+            if (this._gsCurrentVersion[1] < 7) {
+                this._thumbnailsBox.hide();
+                this._thumbnailsBox.show();
+            } else {
+                this._thumbnailsBox._destroyThumbnails();
+                this._thumbnailsBox._createThumbnails();
+            }
+        }));
 
         this._settings.connect('changed::workspace-captions', Lang.bind(this, function() {
             // hide and show thumbnailsBox to reset workspace apps in caption
@@ -854,10 +868,6 @@ dockedWorkspaces.prototype = {
             }
 
             this._animateOut(this._settings.get_double('animation-time'), delay);
-
-            // Clear workspacesShow Loop
-            if (this._workspacesShowTimeout > 0)
-                Mainloop.source_remove(this._workspacesShowTimeout);
         }
     },
 
@@ -1474,10 +1484,6 @@ dockedWorkspaces.prototype = {
         if (_DEBUG_) global.log("dockedWorkspaces: disableAutoHide - autohideStatus = "+this._autohideStatus);
         if (this._autohideStatus == true) {
             this._autohideStatus = false;
-
-            // clear unnecesssary potentially running loops
-            if (this._workspacesShowTimeout > 0)
-                Mainloop.source_remove(this._workspacesShowTimeout);
 
             this._removeAnimations();
             this._animateIn(this._settings.get_double('animation-time'), 0);
