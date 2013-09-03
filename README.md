@@ -15,7 +15,7 @@ If you would rather install it manually, download the releases branch on Github 
     $unzip workspaces-to-dock@passingthru67.gmail.com.zip -d ~/.local/share/gnome-shell/extensions/workspaces-to-dock@passingthru67.gmail.com
 
 or
-     
+
     Gnome Tweak tool --> Shell Extensions --> Install from zip file --> choose the zip file.
 
 If you're checking out code from the master branch (downloaded as zip or tar.gz), you will find an installation zip file inside with the latest updates and fixes. The version number is 0 signifying it is not a release version. The zip file can be extracted manually to the extensions folder or installed by using the Gnome Tweak tool as described above.
@@ -87,6 +87,12 @@ Appearance Settings:
 
     **Bottom margin** - Allows setting a bottom margin for the extended dock. The range allowed is 0% to 15% of the screen height.
 
+- **Thumbnails:**
+
+    **Customize the workspace thumbnail size** - Option to customize the maximum thumbnail size.
+
+    **Thumbnail size** - The custom value for the maximum thumbnail size. The range allowed is 10% to 25% of the screen size.
+
 
 Additional Settings:
 --------------------
@@ -110,7 +116,7 @@ Additional Settings:
     **Show workspace window count** - When enabled, the workspace window count is shown in the caption. It can be expanded to take up available space or its position can be adjusted using the arrow buttons. There is also an option to use images in place of numeric text.
 
     **Show workspace taskbar (apps)** - When enabled, the workspace taskbar is shown in the caption. The taskbar displays the icons of applications running on the workspace. It can be expanded to take up available space or its position can be adjusted using the arrow buttons. There is also an option to use large app icons. When the taskbar app icon is left-clicked, the application is brought into focus or minimized if it's already in focus. Right-clicking will bring up the caption popup menu shown above.
-    
+
     **Show a spacer/filler** - When enabled, a spacer is inserted in the caption. It can be expanded to take up available space or its position can be adjusted using the arrow buttons.
 
 Below are examples of the workspace (thumbnail) caption in various configurations
@@ -177,10 +183,11 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
-**version 12 (Sept 2, 2013)**
+**version 12 (Sept 3, 2013)**
 
 - RTL support added
 - Option to require mouse pressure to activate and show dock (feature)
+- Option to customize the thumbnail size (feature)
 - Ability to use keyboard shortcut to toggle dock (feature)
 - Redesigned preferences window
 - Bug fixes
@@ -217,7 +224,7 @@ Change Log:
 - Bug fixes
 - Show workspaces dock on Dash-To-Dock hover (feature)
 
-    Dash-To-Dock hover shows the workspaces dock when hovering over the dash-to-dock extension (if you've got it installed). 
+    Dash-To-Dock hover shows the workspaces dock when hovering over the dash-to-dock extension (if you've got it installed).
     Extremely useful in cases where your workspaces dock is hidden and you want to open a new app from the dash. Rather than going into overview just to see your workspaces, hover over the dash-to-dock extension. The workspaces dock will show to the right. Use the dash-to-dock scroll to go to the appropriate workspace.
 
 **version 6 (Oct 26, 2012)**
