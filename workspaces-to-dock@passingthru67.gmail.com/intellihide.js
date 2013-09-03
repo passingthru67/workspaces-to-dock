@@ -906,8 +906,13 @@ intellihide.prototype = {
             let idx = source._grabStack.length - 1;
             focusedActor = source._grabStack[idx].actor;
             if (focusedActor.get_name() == "message-tray") {
-                this._disableIntellihide = true;
-                this._hide();
+                let [rx, ry] = focusedActor.get_transformed_position();
+                let [rwidth, rheight] = focusedActor.get_size();
+                let test = (ry - rheight < this._dock.staticBox.y2) && (ry > this._dock.staticBox.y1);
+                if (test) {
+                    this._disableIntellihide = true;
+                    this._hide();
+                }
                 return;
             }
         }
