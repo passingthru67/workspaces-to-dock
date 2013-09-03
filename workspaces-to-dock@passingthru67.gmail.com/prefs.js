@@ -62,6 +62,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             margin_bottom: 5
         });
 
+
         /* ALWAYS VISIBLE WIDGETS */
 
         let alwaysVisibleLabel = new Gtk.Label({
@@ -270,6 +271,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         this.settings.bind('autohide', autohideContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
         this.settings.bind('require-pressure-to-show', pressureThresholdLabel, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
         this.settings.bind('require-pressure-to-show', pressureThresholdSpinner, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+
 
         /* INTELLIHIDE WIDGETS */
 
@@ -656,19 +658,6 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         this.settings.bind('extend-height', dockHeightContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
         /* TITLE: THUMBNAIL SETTINGS */
 
         let customizeThumbnailTitle = new Gtk.Label({
@@ -742,12 +731,6 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
 
 
-
-
-
-
-
-
         /* ADD TO NOTEBOOK PAGE */
         notebookAppearanceSettings.add(backgroundTitle);
         notebookAppearanceSettings.add(backgroundControlGrid);
@@ -757,11 +740,9 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         notebookAppearanceSettings.add(dockHeightTitle);
         notebookAppearanceSettings.add(dockHeightControlGrid);
         notebookAppearanceSettings.add(dockHeightContainerGrid);
-
         notebookAppearanceSettings.add(customizeThumbnailTitle);
         notebookAppearanceSettings.add(customizeThumbnailControlGrid);
         notebookAppearanceSettings.add(customizeThumbnailContainerGrid);
-
         notebook.append_page(notebookAppearanceSettings, notebookAppearanceSettingsTitle);
 
 
@@ -1070,9 +1051,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         workspaceCaptionsControlGrid.attach(workspaceCaptionsLabel, 0, 0, 1, 1);
         workspaceCaptionsControlGrid.attach(workspaceCaptionsSwitch, 1, 0, 1, 1);
 
-
         workspaceCaptionsContainerGrid.attach(wsCaptionThemeSupport, 0, 0, 2, 1);
-
         workspaceCaptionsContainerGrid.attach(wsCaptionNumberButton, 0, 1, 1, 1);
         workspaceCaptionsContainerGrid.attach(wsCaptionNumberExpand, 2, 1, 1, 1);
         workspaceCaptionsContainerGrid.attach(wsCaptionNumber_MoveLeftButton, 3, 1, 1, 1);
