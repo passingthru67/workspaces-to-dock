@@ -57,7 +57,7 @@
       <description>Enable or disable requiring pressure to show dock (GS38+ only)</description>
     </key>
     <key type="d" name="pressure-threshold">
-      <default>150</default>
+      <default>120</default>
       <summary>Pressure threshold</summary>
       <description>Sets how much pressure is needed to show the dock.</description>
     </key>
@@ -96,9 +96,6 @@
       <summary>Bottom margin of dock</summary>
       <description>Sets the bottom margin when the dock is extended vertically.</description>
     </key>
-
-
-
     <key type="b" name="customize-thumbnail">
       <default>false</default>
       <summary>Customize workspace thumbnail size</summary>
@@ -109,8 +106,6 @@
       <summary>Set custom workspace thumbnail size</summary>
       <description>Set the custom size for the workspace thumbnail.</description>
     </key>
-
-
     <key type="b" name="workspace-captions">
       <default>true</default>
       <summary>Show workspace captions</summary>
