@@ -306,6 +306,9 @@ dockedWorkspaces.prototype = {
         // Unbind keyboard shortcuts
         this._unbindDockKeyboardShortcut();
 
+        // Remove existing barrier
+        this._removeBarrier();
+
         // Destroy main clutter actor: this should be sufficient
         // From clutter documentation:
         // If the actor is inside a container, the actor will be removed.
