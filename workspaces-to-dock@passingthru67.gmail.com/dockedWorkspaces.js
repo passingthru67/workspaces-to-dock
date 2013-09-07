@@ -369,6 +369,7 @@ dockedWorkspaces.prototype = {
         }
 
         // Set MAX_THUMBNAIL_SCALE to custom value
+        this.saved_max_thumbnail_scale = WorkspaceThumbnail.MAX_THUMBNAIL_SCALE;
         if (this._settings.get_boolean('customize-thumbnail')) {
             WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = this._settings.get_double('thumbnail-size');
         }
@@ -404,8 +405,8 @@ dockedWorkspaces.prototype = {
             Main.overview._controls._thumbnailsSlider.actor.opacity = 255;
         }
 
-        // Reset MAX_THUMBNAIL_SCALE to default value
-        WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = 1/8.;
+        // Restore MAX_THUMBNAIL_SCALE to default value
+        WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = this.saved_max_thumbnail_scale;
     },
 
     // handler for when workspace is restacked
@@ -562,7 +563,7 @@ dockedWorkspaces.prototype = {
             if (this._settings.get_boolean('customize-thumbnail')) {
                 WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = this._settings.get_double('thumbnail-size');
             } else {
-                WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = 1/8.;
+                WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = this.saved_max_thumbnail_scale;
             }
             // hide and show thumbnailsBox to resize thumbnails
             if (this._gsCurrentVersion[1] < 7) {
@@ -579,7 +580,7 @@ dockedWorkspaces.prototype = {
             if (this._settings.get_boolean('customize-thumbnail')) {
                 WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = this._settings.get_double('thumbnail-size');
             } else {
-                WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = 1/8.;
+                WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = this.saved_max_thumbnail_scale;
             }
             // hide and show thumbnailsBox to resize thumbnails
             if (this._gsCurrentVersion[1] < 7) {
