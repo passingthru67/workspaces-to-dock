@@ -208,6 +208,7 @@ dockedWorkspaces.prototype = {
             this._bindDockKeyboardShortcut();
 
         // Connect DashToDock hover signal if the extension is already loaded and enabled
+        this._hoveringDash = false;
         let extension = ExtensionUtils.extensions[DashToDock_UUID];
         if (extension) {
             if (extension.state == ExtensionSystem.ExtensionState.ENABLED) {
@@ -790,10 +791,12 @@ dockedWorkspaces.prototype = {
         if (this._settings.get_boolean('dashtodock-hover') && DashToDock && DashToDock.dock) {
             if (DashToDock.dock._box.hover) {
                 if (Main.overview.visible == false) {
+                    this._hoveringDash = true;
                     this._show();
                 }
             } else {
                 this._hide();
+                this._hoveringDash = false;
             }
         }
     },
@@ -819,6 +822,7 @@ dockedWorkspaces.prototype = {
             } else if (extension.state == ExtensionSystem.ExtensionState.DISABLED || extension.state == ExtensionSystem.ExtensionState.UNINSTALLED) {
                 DashToDock = null;
                 this._signalHandler.disconnectWithLabel('DashToDockHoverSignal');
+                this._hoveringDash = false;
             }
         }
     },
@@ -870,7 +874,7 @@ dockedWorkspaces.prototype = {
         if (_DEBUG_) global.log("dockedWorkspaces: _hide autohideStatus = "+this._autohideStatus+" anim.shown = "+anim.shown()+" anim.showing = "+anim.showing());
 
         // If no hiding animation is running or queued
-        if (this._autohideStatus && (anim.showing() || anim.shown())) {
+        if (!this._hoveringDash && this._autohideStatus && (anim.showing() || anim.shown())) {
             let delay;
 
             // If a show is queued but still not started (i.e the mouse was
@@ -1530,7 +1534,7 @@ dockedWorkspaces.prototype = {
             this.actor.sync_hover();
         }
 
-        if (!this.actor.hover || !this._settings.get_boolean('autohide')) {
+        if (!(this._hoveringDash || this.actor.hover) || !this._settings.get_boolean('autohide')) {
             if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - mouse not hovering OR dock not using autohide, so animate out");
             this._animateOut(this._settings.get_double('animation-time'), 0);
             delay = this._settings.get_double('animation-time');
