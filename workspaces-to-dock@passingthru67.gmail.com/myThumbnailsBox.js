@@ -399,24 +399,26 @@ const myWorkspaceThumbnail = new Lang.Class({
 
             let activeWorkspace = global.screen.get_active_workspace();
             if ((windows[i].get_workspace() == this.metaWorkspace.index()) || (metaWin.is_on_all_workspaces() && this.metaWorkspace == activeWorkspace)) {
-                if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps - add window buttons");
                 let tracker = Shell.WindowTracker.get_default();
-                let app = tracker.get_window_app(metaWin);
-                if (app) {
-                    if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps - window button app = "+app.get_name());
-                    let button = new WindowAppIcon(app, metaWin, this);
-                    if (metaWin.has_focus()) {
-                        button.actor.add_style_pseudo_class('active');
+                if (tracker.is_window_interesting(metaWin)) {
+                    if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps - add window buttons");
+                    let app = tracker.get_window_app(metaWin);
+                    if (app) {
+                        if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps - window button app = "+app.get_name());
+                        let button = new WindowAppIcon(app, metaWin, this);
+                        if (metaWin.has_focus()) {
+                            button.actor.add_style_pseudo_class('active');
+                        }
+
+                        if (this._wsWindowAppsBox)
+                            this._wsWindowAppsBox.add(button.actor, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
+
+                        let winInfo = {};
+                        winInfo.app = app;
+                        winInfo.metaWin = metaWin;
+                        winInfo.signalFocusedId = metaWin.connect('notify::appears-focused', Lang.bind(this, this._onWindowChanged, metaWin));
+                        this._wsWindowApps.push(winInfo);
                     }
-
-                    if (this._wsWindowAppsBox)
-                        this._wsWindowAppsBox.add(button.actor, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
-
-                    let winInfo = {};
-                    winInfo.app = app;
-                    winInfo.metaWin = metaWin;
-                    winInfo.signalFocusedId = metaWin.connect('notify::appears-focused', Lang.bind(this, this._onWindowChanged, metaWin));
-                    this._wsWindowApps.push(winInfo);
                 }
             }
         }
@@ -461,21 +463,23 @@ const myWorkspaceThumbnail = new Lang.Class({
                     continue;
 
                 let tracker = Shell.WindowTracker.get_default();
-                let app = tracker.get_window_app(metaWin);
-                if (app) {
-                    let button = new WindowAppIcon(app, metaWin, this);
-                    if (metaWin.has_focus()) {
-                        button.actor.add_style_pseudo_class('active');
+                if (tracker.is_window_interesting(metaWin)) {
+                    let app = tracker.get_window_app(metaWin);
+                    if (app) {
+                        let button = new WindowAppIcon(app, metaWin, this);
+                        if (metaWin.has_focus()) {
+                            button.actor.add_style_pseudo_class('active');
+                        }
+
+                        if (this._wsWindowAppsBox)
+                            this._wsWindowAppsBox.add(button.actor, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
+
+                        let winInfo = {};
+                        winInfo.app = app;
+                        winInfo.metaWin = metaWin;
+                        winInfo.signalFocusedId = metaWin.connect('notify::appears-focused', Lang.bind(this, this._onWindowChanged, metaWin));
+                        this._wsWindowApps.push(winInfo);
                     }
-
-                    if (this._wsWindowAppsBox)
-                        this._wsWindowAppsBox.add(button.actor, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
-
-                    let winInfo = {};
-                    winInfo.app = app;
-                    winInfo.metaWin = metaWin;
-                    winInfo.signalFocusedId = metaWin.connect('notify::appears-focused', Lang.bind(this, this._onWindowChanged, metaWin));
-                    this._wsWindowApps.push(winInfo);
                 }
             } else {
                 // Don't show window on active workspace
@@ -651,24 +655,26 @@ const myWorkspaceThumbnail = new Lang.Class({
                 }
             }
             if (index < 0) {
-                if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button not found .. add it");
                 let tracker = Shell.WindowTracker.get_default();
-                let app = tracker.get_window_app(metaWin);
-                if (app) {
-                    if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button app = "+app.get_name());
-                    let button = new WindowAppIcon(app, metaWin, this);
-                    if (metaWin.has_focus()) {
-                        button.actor.add_style_pseudo_class('active');
+                if (tracker.is_window_interesting(metaWin)) {
+                    if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button not found .. add it");
+                    let app = tracker.get_window_app(metaWin);
+                    if (app) {
+                        if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button app = "+app.get_name());
+                        let button = new WindowAppIcon(app, metaWin, this);
+                        if (metaWin.has_focus()) {
+                            button.actor.add_style_pseudo_class('active');
+                        }
+
+                        if (this._wsWindowAppsBox)
+                            this._wsWindowAppsBox.add(button.actor, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
+
+                        let winInfo = {};
+                        winInfo.app = app;
+                        winInfo.metaWin = metaWin;
+                        winInfo.signalFocusedId = metaWin.connect('notify::appears-focused', Lang.bind(this, this._onWindowChanged, metaWin));
+                        this._wsWindowApps.push(winInfo);
                     }
-
-                    if (this._wsWindowAppsBox)
-                        this._wsWindowAppsBox.add(button.actor, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
-
-                    let winInfo = {};
-                    winInfo.app = app;
-                    winInfo.metaWin = metaWin;
-                    winInfo.signalFocusedId = metaWin.connect('notify::appears-focused', Lang.bind(this, this._onWindowChanged, metaWin));
-                    this._wsWindowApps.push(winInfo);
                 }
             }
         } else if (action == WindowAppsUpdateAction.REMOVE) {
