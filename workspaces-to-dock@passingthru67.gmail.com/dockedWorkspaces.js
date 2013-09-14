@@ -795,8 +795,8 @@ dockedWorkspaces.prototype = {
                     this._show();
                 }
             } else {
-                this._hide();
                 this._hoveringDash = false;
+                this._hide();
             }
         }
     },
