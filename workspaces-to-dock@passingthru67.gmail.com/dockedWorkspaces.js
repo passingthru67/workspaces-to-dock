@@ -50,6 +50,8 @@ const DOCK_HIDDEN_WIDTH = 0;
 const DOCK_EDGE_VISIBLE_WIDTH = 5;
 const PRESSURE_TIMEOUT = 1000;
 
+let GSFunctions = {};
+
 function dockedWorkspaces(settings, gsCurrentVersion) {
     this._gsCurrentVersion = gsCurrentVersion;
 
@@ -182,7 +184,7 @@ dockedWorkspaces.prototype = {
         );
 
         // Connect GS34 & GS36 global signals
-        if (this._gsCurrentVersion[1] < 7) {
+        if (this._gsCurrentVersion[1] < 8) {
             this._signalHandler.push(
                 [
                     Main.overview._viewSelector._pageArea,
@@ -262,7 +264,7 @@ dockedWorkspaces.prototype = {
         }
 
         // Show the thumbnailsBox.  We need it to calculate the width of the dock.
-        if (this._gsCurrentVersion[1] < 7) {
+        if (this._gsCurrentVersion[1] < 8) {
             this._thumbnailsBox.show();
         } else {
             this._thumbnailsBox._createThumbnails();
@@ -326,9 +328,8 @@ dockedWorkspaces.prototype = {
         // Override the WorkspaceClone onButtonRelease function to allow right click events to bubble up
         // Copied from Gnome Shell .. right click detection added .. returns false to bubble
         let self = this;
-        let p = WorkspaceThumbnail.WindowClone.prototype;
-        this.saved_WindowClone_onButtonRelease = p._onButtonRelease;
-        p._onButtonRelease = function (actor, event) {
+        GSFunctions['WindowClone_onButtonRelease'] = WorkspaceThumbnail.WindowClone.prototype._onButtonRelease;
+        WorkspaceThumbnail.WindowClone.prototype._onButtonRelease = function (actor, event) {
             if (self._settings.get_boolean('toggle-overview')) {
                 let button = event.get_button();
                 if (button == 3) { //right click
@@ -340,11 +341,10 @@ dockedWorkspaces.prototype = {
         };
 
         // Force normal workspaces to be always zoomed
-        if (this._gsCurrentVersion[1] < 7) {
+        if (this._gsCurrentVersion[1] < 8) {
             // Override the WorkspacesDisplay updateAlwaysZoom function
-            let p = WorkspacesView.WorkspacesDisplay.prototype;
-            this.saved_updateAlwaysZoom = p._updateAlwaysZoom;
-            p._updateAlwaysZoom = function() {
+            GSFunctions['WorkspacesDisplay_updateAlwaysZoom'] = WorkspacesView.WorkspacesDisplay.prototype._updateAlwaysZoom;
+            WorkspacesView.WorkspacesDisplay.prototype._updateAlwaysZoom = function() {
                 this._alwaysZoomOut = true;
             };
 
@@ -359,18 +359,18 @@ dockedWorkspaces.prototype = {
             }
         } else {
             // GS38 moved things to the overviewControls thumbnailsSlider
-            let p = OverviewControls.ThumbnailsSlider.prototype;
-            this.saved_getAlwaysZoomOut = p._getAlwaysZoomOut;
-            p._getAlwaysZoomOut = function() {
+            GSFunctions['ThumbnailsSlider_getAlwaysZoomOut'] = OverviewControls.ThumbnailsSlider.prototype._getAlwaysZoomOut;
+            OverviewControls.ThumbnailsSlider.prototype._getAlwaysZoomOut = function() {
                 let alwaysZoomOut = true;
                 return alwaysZoomOut;
             };
+
             // Hide normal workspaces thumbnailsBox
             Main.overview._controls._thumbnailsSlider.actor.opacity = 0;
         }
 
         // Set MAX_THUMBNAIL_SCALE to custom value
-        this.saved_max_thumbnail_scale = WorkspaceThumbnail.MAX_THUMBNAIL_SCALE;
+        GSFunctions['WorkspaceThumbnail_MAX_THUMBNAIL_SCALE'] = WorkspaceThumbnail.MAX_THUMBNAIL_SCALE;
         if (this._settings.get_boolean('customize-thumbnail')) {
             WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = this._settings.get_double('thumbnail-size');
         }
@@ -381,13 +381,11 @@ dockedWorkspaces.prototype = {
     _restoreGnomeShellFunctions: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _restoreGnomeShellFunctions");
         // Restore normal WindowClone onButtonRelease function
-        let p = WorkspaceThumbnail.WindowClone.prototype;
-        p._onButtonRelease = this.saved_WindowClone_onButtonRelease;
+        WorkspaceThumbnail.WindowClone.prototype._onButtonRelease = GSFunctions['WindowClone_onButtonRelease'];
 
-        if (this._gsCurrentVersion[1] < 7) {
+        if (this._gsCurrentVersion[1] < 8) {
             // Restore normal workspaces to previous zoom setting
-            let p = WorkspacesView.WorkspacesDisplay.prototype;
-            p._updateAlwaysZoom = this.saved_updateAlwaysZoom;
+            WorkspacesView.WorkspacesDisplay.prototype._updateAlwaysZoom = GSFunctions['WorkspacesDisplay_updateAlwaysZoom'];
 
             // Restore zoom status to false & normal workspaces thumbnailsBox to show
             if (this._gsCurrentVersion[1] == 4) {
@@ -401,13 +399,12 @@ dockedWorkspaces.prototype = {
                 Main.overview._viewSelector._workspacesDisplay._thumbnailsBox.actor.opacity = 255;
             }
         } else {
-            let p = OverviewControls.ThumbnailsSlider.prototype;
-            p._getAlwaysZoomOut = this.saved_getAlwaysZoomOut;
+            OverviewControls.ThumbnailsSlider.prototype._getAlwaysZoomOut = GSFunctions['ThumbnailsSlider_getAlwaysZoomOut'];
             Main.overview._controls._thumbnailsSlider.actor.opacity = 255;
         }
 
         // Restore MAX_THUMBNAIL_SCALE to default value
-        WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = this.saved_max_thumbnail_scale;
+        WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = GSFunctions['WorkspaceThumbnail_MAX_THUMBNAIL_SCALE'];
     },
 
     // handler for when workspace is restacked
@@ -530,7 +527,7 @@ dockedWorkspaces.prototype = {
             }
 
             // hide and show thumbnailsBox to reset workspace apps in caption
-            if (this._gsCurrentVersion[1] < 7) {
+            if (this._gsCurrentVersion[1] < 8) {
                 this._thumbnailsBox.hide();
                 this._thumbnailsBox.show();
             } else {
@@ -564,10 +561,10 @@ dockedWorkspaces.prototype = {
             if (this._settings.get_boolean('customize-thumbnail')) {
                 WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = this._settings.get_double('thumbnail-size');
             } else {
-                WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = this.saved_max_thumbnail_scale;
+                WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = GSFunctions['WorkspaceThumbnail_MAX_THUMBNAIL_SCALE'];
             }
             // hide and show thumbnailsBox to resize thumbnails
-            if (this._gsCurrentVersion[1] < 7) {
+            if (this._gsCurrentVersion[1] < 8) {
                 this._thumbnailsBox.hide();
                 this._thumbnailsBox.show();
             } else {
@@ -581,10 +578,10 @@ dockedWorkspaces.prototype = {
             if (this._settings.get_boolean('customize-thumbnail')) {
                 WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = this._settings.get_double('thumbnail-size');
             } else {
-                WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = this.saved_max_thumbnail_scale;
+                WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = GSFunctions['WorkspaceThumbnail_MAX_THUMBNAIL_SCALE'];
             }
             // hide and show thumbnailsBox to resize thumbnails
-            if (this._gsCurrentVersion[1] < 7) {
+            if (this._gsCurrentVersion[1] < 8) {
                 this._thumbnailsBox.hide();
                 this._thumbnailsBox.show();
             } else {
@@ -595,7 +592,7 @@ dockedWorkspaces.prototype = {
 
         this._settings.connect('changed::workspace-captions', Lang.bind(this, function() {
             // hide and show thumbnailsBox to reset workspace apps in caption
-            if (this._gsCurrentVersion[1] < 7) {
+            if (this._gsCurrentVersion[1] < 8) {
                 this._thumbnailsBox.hide();
                 this._thumbnailsBox.show();
             } else {
@@ -605,7 +602,7 @@ dockedWorkspaces.prototype = {
         }));
         this._settings.connect('changed::workspace-caption-items', Lang.bind(this, function() {
             // hide and show thumbnailsBox to reset workspace apps in caption
-            if (this._gsCurrentVersion[1] < 7) {
+            if (this._gsCurrentVersion[1] < 8) {
                 this._thumbnailsBox.hide();
                 this._thumbnailsBox.show();
             } else {
@@ -615,7 +612,7 @@ dockedWorkspaces.prototype = {
         }));
         this._settings.connect('changed::workspace-caption-windowcount-image', Lang.bind(this, function() {
             // hide and show thumbnailsBox to reset workspace apps in caption
-            if (this._gsCurrentVersion[1] < 7) {
+            if (this._gsCurrentVersion[1] < 8) {
                 this._thumbnailsBox.hide();
                 this._thumbnailsBox.show();
             } else {
@@ -626,7 +623,7 @@ dockedWorkspaces.prototype = {
 
         this._settings.connect('changed::workspace-caption-large-icons', Lang.bind(this, function() {
             // hide and show thumbnailsBox to reset workspace apps in caption
-            if (this._gsCurrentVersion[1] < 7) {
+            if (this._gsCurrentVersion[1] < 8) {
                 this._thumbnailsBox.hide();
                 this._thumbnailsBox.show();
             } else {
@@ -834,14 +831,22 @@ dockedWorkspaces.prototype = {
         if (event.get_scroll_direction() == Clutter.ScrollDirection.UP) {
             if (this._gsCurrentVersion[1] < 6) {
                 Main.wm.actionMoveWorkspaceUp();
-            } else {
+            } else if (this._gsCurrentVersion[1] < 10){
                 Main.wm.actionMoveWorkspace(Meta.MotionDirection.UP);
+            } else {
+                let activeWs = global.screen.get_active_workspace();
+                let ws = activeWs.get_neighbor(Meta.MotionDirection.UP);
+                Main.wm.actionMoveWorkspace(ws);
             }
         } else if (event.get_scroll_direction() == Clutter.ScrollDirection.DOWN) {
             if (this._gsCurrentVersion[1] < 6) {
                 Main.wm.actionMoveWorkspaceDown();
-            } else {
+            } else if (this._gsCurrentVersion[1] < 10) {
                 Main.wm.actionMoveWorkspace(Meta.MotionDirection.DOWN);
+            } else {
+                let activeWs = global.screen.get_active_workspace();
+                let ws = activeWs.get_neighbor(Meta.MotionDirection.DOWN);
+                Main.wm.actionMoveWorkspace(ws);
             }
         }
         return true;
@@ -1170,7 +1175,7 @@ dockedWorkspaces.prototype = {
             }
         }
 
-        if (this._gsCurrentVersion[1] < 7) {
+        if (this._gsCurrentVersion[1] < 8) {
             this._thumbnailsBox.hide();
             this._thumbnailsBox.show();
         } else {
