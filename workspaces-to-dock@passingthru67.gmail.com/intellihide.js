@@ -54,6 +54,8 @@ const IntellihideMode = {
 
 const OVERVIEW_MODE = IntellihideMode.SHOW;
 
+let GSFunctions = {};
+
 
 /*
  * A rough and ugly implementation of the intellihide behaviour.
@@ -270,7 +272,7 @@ intellihide.prototype = {
             }
 
         } else {
-            // Gnome Shell 3.8 signals
+            // Gnome Shell 3.8+ signals
             this._signalHandler.push(
                 [
                     Main.messageTray._grabHelper,
@@ -287,7 +289,7 @@ intellihide.prototype = {
                     'page-changed',
                     Lang.bind(this, this._overviewPageChanged)
                 ],
-                // GS38 panel and background menus use the grabHelper
+                // GS38+ panel and background menus use the grabHelper
                 [
                     Main.panel.menuManager._grabHelper,
                     'focus-grabbed',
@@ -337,344 +339,92 @@ intellihide.prototype = {
         this._restoreGnomeShellFunctions();
     },
 
-    // main function called during init to override gnome shell 3.4/3.6/#
+    // Called during init to override/extend gnome shell functions
     _overrideGnomeShellFunctions: function() {
         if (_DEBUG_) global.log("intellihide: _overrideGnomeShellFunctions");
-        if (this._gsCurrentVersion[1] == 4) {
-            this._overrideGnomeShell34Functions();
-        } else if (this._gsCurrentVersion[1] == 6) {
-            this._overrideGnomeShell36Functions();
-        } else {
-            this._overrideGnomeShell38Functions();
+        if (this._gsCurrentVersion[1] < 8) {
+            // Extend the PopupMenuManager addMenu function to emit a signal when new menus are added
+            GSFunctions['PopupMenuManager_addMenu'] = PopupMenu.PopupMenuManager.prototype.addMenu;
+            PopupMenu.PopupMenuManager.prototype.addMenu = function(menu, position) {
+                let ret = GSFunctions['PopupMenuManager_addMenu'].call(this, menu, position);
+                this.emit("menu-added", menu);
+                return ret;
+            };
+            Signals.addSignalMethods(PopupMenu.PopupMenuManager.prototype);
+        }
+
+        if (this._gsCurrentVersion[1] == 6) {
+            // Override the ViewSelector showPage function to emit a signal when overview page changes
+            // Copied from Gnome Shell .. emit 'show-page' added
+            GSFunctions['ViewSelector_showPage'] = ViewSelector.ViewSelector.prototype._showPage;
+            ViewSelector.ViewSelector.prototype._showPage = function(page) {
+                if(page == this._activePage)
+                    return;
+
+                if(this._activePage) {
+                    Tweener.addTween(this._activePage,
+                                     { opacity: 0,
+                                       time: 0.1,
+                                       transition: 'easeOutQuad',
+                                       onComplete: Lang.bind(this,
+                                           function() {
+                                               this._activePage.hide();
+                                               this._activePage = page;
+                                           })
+                                     });
+                }
+
+                page.show();
+                this.emit('show-page', page);
+                Tweener.addTween(page,
+                                 { opacity: 255,
+                                   time: 0.1,
+                                   transition: 'easeOutQuad'
+                                 });
+            };
+            // NOTE: Signal methods already added by parent
+        }
+
+        if (this._gsCurrentVersion[1] > 4) {
+            // Extend the GrabHelper grab function to emit a signal when focus is grabbed
+            GSFunctions['GrabHelper_grab'] = GrabHelper.GrabHelper.prototype.grab;
+            GrabHelper.GrabHelper.prototype.grab = function(params) {
+                let ret = GSFunctions['GrabHelper_grab'].call(this, params);
+                if (ret)
+                    this.emit('focus-grabbed');
+                return ret;
+            };
+            // Extend the GrabHelper ungrab function to emit a signal when focus is ungrabbed
+            GSFunctions['GrabHelper_ungrab'] = GrabHelper.GrabHelper.prototype.ungrab;
+            GrabHelper.GrabHelper.prototype.ungrab = function(params) {
+                let ret = GSFunctions['GrabHelper_ungrab'].call(this, params);
+                this.emit('focus-ungrabbed');
+                return ret;
+            };
+            Signals.addSignalMethods(GrabHelper.GrabHelper.prototype);
         }
     },
 
-    // main function called during destroy to restore gnome shell 3.4/3.6/#
+    // main function called during destroy to restore gnome shell functions
     _restoreGnomeShellFunctions: function() {
         if (_DEBUG_) global.log("intellihide: _restoreGnomeShellFunctions");
-        if (this._gsCurrentVersion[1] == 4) {
-            this._restoreGnomeShell34Functions();
-        } else if (this._gsCurrentVersion[1] == 6) {
-            this._restoreGnomeShell36Functions();
-        } else {
-            this._restoreGnomeShell38Functions();
+        let p;
+        if (this._gsCurrentVersion[1] < 8) {
+            // Restore normal PopupMenuManager addMenu function
+            PopupMenu.PopupMenuManager.prototype.addMenu = GSFunctions['PopupMenuManager_addMenu'];
         }
-    },
 
-    // gnome shell 3.4 function overrides
-    _overrideGnomeShell34Functions: function() {
-        // Override the PopupMenuManager addMenu function to emit a signal when new menus are added
-        // Copied from Gnome Shell .. emit 'menu-added' added
-        let p = PopupMenu.PopupMenuManager.prototype;
-        this.saved_PopupMenuManager_addMenu = p.addMenu;
-        p.addMenu = function(menu, position) {
-            let menudata = {
-                menu:              menu,
-                openStateChangeId: menu.connect('open-state-changed', Lang.bind(this, this._onMenuOpenState)),
-                childMenuAddedId:  menu.connect('child-menu-added', Lang.bind(this, this._onChildMenuAdded)),
-                childMenuRemovedId: menu.connect('child-menu-removed', Lang.bind(this, this._onChildMenuRemoved)),
-                destroyId:         menu.connect('destroy', Lang.bind(this, this._onMenuDestroy)),
-                enterId:           0,
-                focusInId:         0
-            };
+        if (this._gsCurrentVersion[1] == 6) {
+            // Restore normal ViewSelector showPage function
+            ViewSelector.ViewSelector.prototype._showPage = GSFunctions['ViewSelector_showPage'];
+        }
 
-            let source = menu.sourceActor;
-            if (source) {
-                menudata.enterId = source.connect('enter-event', Lang.bind(this, function() { this._onMenuSourceEnter(menu); }));
-                menudata.focusInId = source.connect('key-focus-in', Lang.bind(this, function() { this._onMenuSourceEnter(menu); }));
-            }
-
-            if (position == undefined)
-                this._menus.push(menudata);
-            else
-                this._menus.splice(position, 0, menudata);
-
-            this.emit("menu-added", menu);
-        };
-        Signals.addSignalMethods(PopupMenu.PopupMenuManager.prototype);
-    },
-
-    // gnome shell 3.6 function overrides
-    _overrideGnomeShell36Functions: function() {
-        // Override the ViewSelector showPage function to emit a signal when overview page changes
-        // Copied from Gnome Shell .. emit 'show-page' added
-        let p = ViewSelector.ViewSelector.prototype;
-        this.saved_ViewSelector_showPage = p._showPage;
-        p._showPage = function(page) {
-            if(page == this._activePage)
-                return;
-
-            if(this._activePage) {
-                Tweener.addTween(this._activePage,
-                                 { opacity: 0,
-                                   time: 0.1,
-                                   transition: 'easeOutQuad',
-                                   onComplete: Lang.bind(this,
-                                       function() {
-                                           this._activePage.hide();
-                                           this._activePage = page;
-                                       })
-                                 });
-            }
-
-            page.show();
-            this.emit('show-page', page);
-            Tweener.addTween(page,
-                             { opacity: 255,
-                               time: 0.1,
-                               transition: 'easeOutQuad'
-                             });
-        };
-
-        // Override the PopupMenuManager addMenu function to emit a signal when new menus are added
-        // Copied from Gnome Shell .. emit 'menu-added' added
-        let p = PopupMenu.PopupMenuManager.prototype;
-        this.saved_PopupMenuManager_addMenu = p.addMenu;
-        p.addMenu = function(menu, position) {
-            if (this._findMenu(menu) > -1)
-                return;
-
-            let menudata = {
-                menu:              menu,
-                openStateChangeId: menu.connect('open-state-changed', Lang.bind(this, this._onMenuOpenState)),
-                childMenuAddedId:  menu.connect('child-menu-added', Lang.bind(this, this._onChildMenuAdded)),
-                childMenuRemovedId: menu.connect('child-menu-removed', Lang.bind(this, this._onChildMenuRemoved)),
-                destroyId:         menu.connect('destroy', Lang.bind(this, this._onMenuDestroy)),
-                enterId:           0,
-                focusInId:         0
-            };
-
-            let source = menu.sourceActor;
-            if (source) {
-                menudata.enterId = source.connect('enter-event', Lang.bind(this, function() { this._onMenuSourceEnter(menu); }));
-                menudata.focusInId = source.connect('key-focus-in', Lang.bind(this, function() { this._onMenuSourceEnter(menu); }));
-            }
-
-            if (position == undefined)
-                this._menus.push(menudata);
-            else
-                this._menus.splice(position, 0, menudata);
-
-            this.emit("menu-added", menu);
-        };
-        Signals.addSignalMethods(PopupMenu.PopupMenuManager.prototype);
-
-        // Override the GrabHelper grab function to emit a signal when focus is grabbed
-        // Copied from Gnome Shell .. emit 'focus-grabbed' added
-        let p = GrabHelper.GrabHelper.prototype;
-        this.saved_GrabHelper_grab = p.grab;
-        p.grab = function(params) {
-            params = Params.parse(params, { actor: null,
-                                            modal: false,
-                                            grabFocus: false,
-                                            onUngrab: null });
-
-            let focus = global.stage.key_focus;
-            let hadFocus = focus && this._isWithinGrabbedActor(focus);
-            let newFocus = params.actor;
-
-            if (this.isActorGrabbed(params.actor))
-                return true;
-
-            params.savedFocus = focus;
-
-            if (params.modal && !this._takeModalGrab())
-                return false;
-
-            if (params.grabFocus && !this._takeFocusGrab(hadFocus))
-                return false;
-
-            if (hadFocus || params.grabFocus)
-               GrabHelper._navigateActor(newFocus);
-
-            this._grabStack.push(params);
-            this.emit('focus-grabbed');
-            return true;
-        };
-
-        // Override the GrabHelper ungrab function to emit a signal when focus is ungrabbed
-        // Copied from Gnome Shell .. emit 'focus-ungrabbed' added
-        let p = GrabHelper.GrabHelper.prototype;
-        this.saved_GrabHelper_ungrab = p.ungrab;
-        p.ungrab = function(params) {
-            params = Params.parse(params, { actor: this.currentGrab.actor });
-
-            let grabStackIndex = this._findStackIndex(params.actor);
-            if (grabStackIndex < 0)
-                return;
-
-            let focus = global.stage.key_focus;
-            let hadFocus = focus && this._isWithinGrabbedActor(focus);
-
-            let poppedGrabs = this._grabStack.slice(grabStackIndex);
-            // "Pop" all newly ungrabbed actors off the grab stack
-            // by truncating the array.
-            this._grabStack.length = grabStackIndex;
-
-            for (let i = poppedGrabs.length - 1; i >= 0; i--) {
-                let poppedGrab = poppedGrabs[i];
-
-                if (poppedGrab.onUngrab)
-                    poppedGrab.onUngrab();
-
-                if (poppedGrab.modal)
-                    this._releaseModalGrab();
-
-                if (poppedGrab.grabFocus)
-                    this._releaseFocusGrab();
-            }
-
-            if (hadFocus) {
-                let poppedGrab = poppedGrabs[0];
-                GrabHelper._navigateActor(poppedGrab.savedFocus);
-            }
-
-            this.emit('focus-ungrabbed');
-        };
-        Signals.addSignalMethods(GrabHelper.GrabHelper.prototype);
-    },
-
-    // gnome shell 3.8 function overrides
-    _overrideGnomeShell38Functions: function() {
-        // Override the GrabHelper grab function to emit a signal when focus is grabbed
-        // Copied from Gnome Shell .. emit 'focus-grabbed' added
-        let p = GrabHelper.GrabHelper.prototype;
-        this.saved_GrabHelper_grab = p.grab;
-        p.grab = function(params) {
-            params = Params.parse(params, { actor: null,
-                                            modal: false,
-                                            grabFocus: false,
-                                            focus: null,
-                                            onUngrab: null });
-
-            let focus = global.stage.key_focus;
-            let hadFocus = focus && this._isWithinGrabbedActor(focus);
-            let newFocus = params.actor;
-
-            if (this.isActorGrabbed(params.actor))
-                return true;
-
-            params.savedFocus = focus;
-
-            if (params.modal && !this._takeModalGrab())
-                return false;
-
-            if (params.grabFocus && !this._takeFocusGrab(hadFocus))
-                return false;
-
-            this._grabStack.push(params);
-
-            if (params.focus) {
-                params.focus.grab_key_focus();
-            } else if (newFocus && (hadFocus || params.grabFocus)) {
-                if (!newFocus.navigate_focus(null, Gtk.DirectionType.TAB_FORWARD, false))
-                    newFocus.grab_key_focus();
-            }
-
-            if ((params.grabFocus || params.modal) && !this._capturedEventId)
-                this._capturedEventId = global.stage.connect('captured-event', Lang.bind(this, this._onCapturedEvent));
-
-            this.emit('focus-grabbed');
-            return true;
-        };
-
-        // Override the GrabHelper ungrab function to emit a signal when focus is ungrabbed
-        // Copied from Gnome Shell .. emit 'focus-ungrabbed' added
-        let p = GrabHelper.GrabHelper.prototype;
-        this.saved_GrabHelper_ungrab = p.ungrab;
-        p.ungrab = function(params) {
-            params = Params.parse(params, { actor: this.currentGrab.actor,
-                                            isUser: false });
-
-            let grabStackIndex = this._findStackIndex(params.actor);
-            if (grabStackIndex < 0)
-                return;
-
-            // We may get key focus changes when calling onUngrab, which
-            // would cause an extra ungrab() on the next actor in the
-            // stack, which is wrong. Ignore key focus changes during the
-            // ungrab, and restore the saved key focus ourselves afterwards.
-            // We use a count as ungrab() may be re-entrant, as onUngrab()
-            // may ungrab additional actors.
-            this._isUngrabbingCount++;
-
-            let focus = global.stage.key_focus;
-            let hadFocus = focus && this._isWithinGrabbedActor(focus);
-
-            let poppedGrabs = this._grabStack.slice(grabStackIndex);
-            // "Pop" all newly ungrabbed actors off the grab stack
-            // by truncating the array.
-            this._grabStack.length = grabStackIndex;
-
-            for (let i = poppedGrabs.length - 1; i >= 0; i--) {
-                let poppedGrab = poppedGrabs[i];
-
-                if (poppedGrab.onUngrab)
-                    poppedGrab.onUngrab(params.isUser);
-
-                if (poppedGrab.modal)
-                    this._releaseModalGrab();
-
-                if (poppedGrab.grabFocus)
-                    this._releaseFocusGrab();
-            }
-
-            if (!this.grabbed && this._capturedEventId > 0) {
-                global.stage.disconnect(this._capturedEventId);
-                this._capturedEventId = 0;
-
-                this._ignoreRelease = false;
-            }
-
-            if (hadFocus) {
-                let poppedGrab = poppedGrabs[0];
-                if (poppedGrab.savedFocus)
-                    poppedGrab.savedFocus.grab_key_focus();
-            }
-
-            this._isUngrabbingCount--;
-
-            this.emit('focus-ungrabbed');
-        };
-
-        Signals.addSignalMethods(GrabHelper.GrabHelper.prototype);
-    },
-
-    // gnome shell 3.4 function restores
-    _restoreGnomeShell34Functions: function() {
-        // Restore normal PopupMenuManager addMenu function
-        let p = PopupMenu.PopupMenuManager.prototype;
-        p.addMenu = this.saved_PopupMenuManager_addMenu;
-    },
-
-    // gnome shell 3.6 function restores
-    _restoreGnomeShell36Functions: function() {
-        // Restore normal ViewSelector showPage function
-        let p = ViewSelector.ViewSelector.prototype;
-        p._showPage = this.saved_ViewSelector_showPage;
-
-        // Restore normal PopupMenuManager addMenu function
-        let p = PopupMenu.PopupMenuManager.prototype;
-        p.addMenu = this.saved_PopupMenuManager_addMenu;
-
-        // Restore normal GrabHelper grab function
-        let p = GrabHelper.GrabHelper.prototype;
-        p.grab = this.saved_GrabHelper_grab;
-
-        // Restore normal GrabHelper ungrab function
-        let p = GrabHelper.GrabHelper.prototype;
-        p.ungrab = this.saved_GrabHelper_ungrab;
-    },
-
-    // gnome shell 3.8 function restores
-    _restoreGnomeShell38Functions: function() {
-        // Restore normal GrabHelper grab function
-        let p = GrabHelper.GrabHelper.prototype;
-        p.grab = this.saved_GrabHelper_grab;
-
-        // Restore normal GrabHelper ungrab function
-        let p = GrabHelper.GrabHelper.prototype;
-        p.ungrab = this.saved_GrabHelper_ungrab;
+        if (this._gsCurrentVersion[1] > 4) {
+            // Restore normal GrabHelper grab function
+            GrabHelper.GrabHelper.prototype.grab = GSFunctions['GrabHelper_grab'];
+            // Restore normal GrabHelper ungrab function
+            GrabHelper.GrabHelper.prototype.ungrab = GSFunctions['GrabHelper_ungrab'];
+        }
     },
 
     // handler to bind settings when preferences changed
@@ -827,7 +577,7 @@ intellihide.prototype = {
         }
     },
 
-    // handler for when Gnome Shell 3.6 overview page is changed
+    // handler for when Gnome Shell 3.6+ overview page is changed (GS36+)
     // for example, when Applications button is clicked the workspaces dock is hidden
     // or when search is started the workspaces dock is hidden
     _overviewPageChanged: function(source, page) {
@@ -847,13 +597,13 @@ intellihide.prototype = {
         }
     },
 
-    // handler for when Gnome Shell 3.4 search started
+    // handler for when Gnome Shell 3.4 search started (GS 34)
     _searchStarted: function() {
       if (_DEBUG_) global.log("intellihide: _searchStarted");
       this._hide();
     },
 
-    // handler for when Gnome Shell 3.4 search cancelled
+    // handler for when Gnome Shell 3.4 search cancelled (GS 34)
     _searchCancelled: function() {
         if (_DEBUG_) global.log("intellihide: _searchCancelled");
         if (Main.overview._viewSelector._activeTab.id == "windows") {
@@ -863,7 +613,7 @@ intellihide.prototype = {
         }
     },
 
-    // handler for when panel focus is grabbed
+    // handler for when panel focus is grabbed (GS 38+)
     _onPanelFocusGrabbed: function(source, event) {
         let focusedActor;
         if (this._gsCurrentVersion[1] < 6) {
@@ -882,7 +632,7 @@ intellihide.prototype = {
         }
     },
 
-    // handler for when panel focus is ungrabbed
+    // handler for when panel focus is ungrabbed (GS 38+)
     _onPanelFocusUngrabbed: function(source, event) {
         if (_DEBUG_) global.log("intellihide: onPanelFocusUnGrabbed");
         this._disableIntellihide = false;
@@ -897,7 +647,7 @@ intellihide.prototype = {
         }
     },
 
-    // handler for when messageTray focus is grabbed
+    // handler for when messageTray focus is grabbed (GS 34+)
     _onTrayFocusGrabbed: function(source, event) {
         let focusedActor;
         if (this._gsCurrentVersion[1] < 6) {
@@ -926,7 +676,7 @@ intellihide.prototype = {
         }
     },
 
-    // handler for when messageTray focus is ungrabbed
+    // handler for when messageTray focus is ungrabbed (GS 34+)
     _onTrayFocusUngrabbed: function(source, event) {
         if (_DEBUG_) global.log("intellihide: onTrayFocusUnGrabbed");
         this._disableIntellihide = false;
@@ -941,7 +691,7 @@ intellihide.prototype = {
         }
     },
 
-    // handler for when panel menu state is changed
+    // handler for when panel menu state is changed (GS34-GS36)
     _onPanelMenuStateChange: function(menu, open) {
         if (open) {
             if (_DEBUG_) global.log("intellihide: _onPanelMenuStateChange - open");
@@ -967,7 +717,7 @@ intellihide.prototype = {
         }
     },
 
-    // handler for when panel menu is added
+    // handler for when panel menu is added (GS 34-GS36)
     _onPanelMenuAdded: function(source, menu) {
         if (_DEBUG_) global.log("intellihide: _onPanelMenuAdded");
         // We need to connect signals for new panel menus added after initialization
