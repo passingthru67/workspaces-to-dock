@@ -207,7 +207,7 @@ intellihide.prototype = {
         );
 
         // Connect global signals based on gnome shell version
-        if (this._gsCurrentVersion[1] == 4) {
+        if (this._gsCurrentVersion[1] < 6) {
             // Gnome Shell 3.4 signals
             this._signalHandler.push(
                 [
@@ -241,7 +241,7 @@ intellihide.prototype = {
             this._signalHandler.push([Main.overview._viewSelector._searchTab, 'activated', Lang.bind(this, this._searchStarted)]);
             this._signalHandler.push([Main.overview._viewSelector._searchTab, 'search-cancelled', Lang.bind(this, this._searchCancelled)]);
 
-        } else if (this._gsCurrentVersion[1] == 6) {
+        } else if (this._gsCurrentVersion[1] < 8) {
             // Gnome Shell 3.6 signals
             this._signalHandler.push(
                 [
@@ -272,6 +272,25 @@ intellihide.prototype = {
             }
 
         } else {
+            if (this._gsCurrentVersion[1] < 10) {
+                // Gnome Shell 3.8 signals
+                this._signalHandler.push(
+                    [
+                        Main.overview._viewSelector,
+                        'page-changed',
+                        Lang.bind(this, this._overviewPageChanged)
+                    ]
+                );
+            } else {
+                // Gnome Shell 3.10+ signals
+                this._signalHandler.push(
+                    [
+                        Main.overview.viewSelector,
+                        'page-changed',
+                        Lang.bind(this, this._overviewPageChanged)
+                    ]
+                );
+            }
             // Gnome Shell 3.8+ signals
             this._signalHandler.push(
                 [
@@ -283,11 +302,6 @@ intellihide.prototype = {
                     Main.messageTray._grabHelper,
                     'focus-ungrabbed',
                     Lang.bind(this, this._onTrayFocusUngrabbed)
-                ],
-                [
-                    Main.overview._viewSelector,
-                    'page-changed',
-                    Lang.bind(this, this._overviewPageChanged)
                 ],
                 // GS38+ panel and background menus use the grabHelper
                 [

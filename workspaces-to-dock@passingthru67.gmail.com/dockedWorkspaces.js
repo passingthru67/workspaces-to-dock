@@ -148,11 +148,6 @@ dockedWorkspaces.prototype = {
         // Connect global signals
         this._signalHandler.push(
             [
-                Main.overview._viewSelector,
-                'notify::y',
-                Lang.bind(this, this._updateYPosition)
-            ],
-            [
                 this._thumbnailsBox._background,
                 'notify::width',
                 Lang.bind(this, this._thumbnailsBoxResized)
@@ -189,23 +184,43 @@ dockedWorkspaces.prototype = {
             ]
         );
 
-        // Connect GS34 & GS36 global signals
-        if (this._gsCurrentVersion[1] < 8) {
+
+        if (this._gsCurrentVersion[1] < 10) {
+            // Connect GS34 - GS36 global signals
+            if (this._gsCurrentVersion[1] < 8) {
+                this._signalHandler.push(
+                    [
+                        Main.overview._viewSelector._pageArea,
+                        'notify::y',
+                        Lang.bind(this, this._updateYPosition)
+                    ],
+                    [
+                        global.screen,
+                        'restacked',
+                        Lang.bind(this, this._workspacesRestacked)
+                    ],
+                    [
+                        global.screen,
+                        'workspace-switched',
+                        Lang.bind(this, this._workspacesRestacked)
+                    ]
+                );
+            }
+            // Connect GS34 - GS38 global signals
             this._signalHandler.push(
                 [
-                    Main.overview._viewSelector._pageArea,
+                    Main.overview._viewSelector,
                     'notify::y',
                     Lang.bind(this, this._updateYPosition)
-                ],
+                ]
+            );
+        } else {
+            // Connect GS310+ global signals
+            this._signalHandler.push(
                 [
-                    global.screen,
-                    'restacked',
-                    Lang.bind(this, this._workspacesRestacked)
-                ],
-                [
-                    global.screen,
-                    'workspace-switched',
-                    Lang.bind(this, this._workspacesRestacked)
+                    Main.overview.viewSelector,
+                    'notify::y',
+                    Lang.bind(this, this._updateYPosition)
                 ]
             );
         }
