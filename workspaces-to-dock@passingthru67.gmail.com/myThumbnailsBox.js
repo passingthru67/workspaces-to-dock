@@ -604,7 +604,6 @@ const myWorkspaceThumbnail = new Lang.Class({
                 thumbnail.activate(event.get_time());
                 metaWin.activate(global.get_current_time());
             } else {
-                metaWin.activate(global.get_current_time());
                 if (!metaWin.has_focus())
                     metaWin.activate(global.get_current_time());
                 else
