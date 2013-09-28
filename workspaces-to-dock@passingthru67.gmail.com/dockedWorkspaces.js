@@ -12,7 +12,7 @@
 const _DEBUG_ = false;
 
 const GLib = imports.gi.GLib;
-
+const Gio = imports.gi.Gio;
 const Clutter = imports.gi.Clutter;
 const Lang = imports.lang;
 const Shell = imports.gi.Shell;
@@ -20,7 +20,7 @@ const Signals = imports.signals;
 const St = imports.gi.St;
 const Mainloop = imports.mainloop;
 const Meta = imports.gi.Meta;
-
+const IconTheme = imports.gi.Gtk.IconTheme;
 
 const Main = imports.ui.main;
 const WorkspacesView = imports.ui.workspacesView;
@@ -36,6 +36,7 @@ let Layout = null;
 const ExtensionSystem = imports.ui.extensionSystem;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
+const Extension = Me.imports.extension;
 const Convenience = Me.imports.convenience;
 const MyThumbnailsBox = Me.imports.myThumbnailsBox;
 
@@ -167,6 +168,11 @@ dockedWorkspaces.prototype = {
                 Lang.bind(this, this._onThemeChanged)
             ],
             [
+                IconTheme.get_default(),
+                'changed',
+                Lang.bind(this, this._onIconsChanged)
+            ],
+            [
                 ExtensionSystem._signals,
                 'extension-state-changed',
                 Lang.bind(this, this._onExtensionSystemStateChanged)
@@ -283,9 +289,8 @@ dockedWorkspaces.prototype = {
         if (_DEBUG_) global.log("dockedWorkspaces: initialize - turn on redisplay");
 
         // Now that the dock is on the stage and custom themes are loaded
-        // retrieve background color and set background opacity and load workspace caption css
+        // retrieve background color and set background opacity
         this._updateBackgroundOpacity();
-        this._onThemeSupportChanged();
 
         // Setup pressure barrier (GS38+ only)
         this._updatePressureBarrier();
@@ -424,6 +429,7 @@ dockedWorkspaces.prototype = {
         let NumMyWorkspaces = this._thumbnailsBox._thumbnails.length;
         let NumGlobalWorkspaces = global.screen.n_workspaces;
         let active = global.screen.get_active_workspace_index();
+        //if (_DEBUG_) global.log("dockedWorkspaces: _workspacesAdded - numThumbs = "+NumMyWorkspaces+" numWSpaces = "+NumGlobalWorkspaces);
 
         // NumMyWorkspaces == NumGlobalWorkspaces shouldn't happen, but does when Firefox started.
         // Assume that a workspace thumbnail is still in process of being removed from _thumbnailsBox
@@ -440,6 +446,7 @@ dockedWorkspaces.prototype = {
         let NumMyWorkspaces = this._thumbnailsBox._thumbnails.length;
         let NumGlobalWorkspaces = global.screen.n_workspaces;
         let active = global.screen.get_active_workspace_index();
+        //if (_DEBUG_) global.log("dockedWorkspaces: _workspacesRemoved - numThumbs = "+NumMyWorkspaces+" numWSpaces = "+NumGlobalWorkspaces);
 
         // TODO: Not sure if this is an issue?
         if (_DEBUG_) global.log("dockedWorkspaces: _workspacesRemoved - thumbnails being removed .. ws="+NumGlobalWorkspaces+" th="+NumMyWorkspaces);
@@ -630,10 +637,6 @@ dockedWorkspaces.prototype = {
                 this._thumbnailsBox._destroyThumbnails();
                 this._thumbnailsBox._createThumbnails();
             }
-        }));
-
-        this._settings.connect('changed::workspace-captions-support', Lang.bind(this, function() {
-            this._onThemeSupportChanged();
         }));
 
         this._settings.connect('changed::extend-height', Lang.bind(this, this._updateSize));
@@ -1127,53 +1130,77 @@ dockedWorkspaces.prototype = {
         }
     },
 
-    // handler for workspace captions theme support changes
-    _onThemeSupportChanged: function() {
-        if (_DEBUG_) global.log("dockedWorkspaces: _onThemeSupportChanged");
-        let workspacesToDockExtStylesheet;
-        if (this._gsCurrentVersion[1] < 6) {
-            workspacesToDockExtStylesheet = GLib.build_filenamev([Me.path, 'themes', 'default', 'workspaces-to-dock-gs34.css']);
-        } else {
-            workspacesToDockExtStylesheet = GLib.build_filenamev([Me.path, 'themes', 'default', 'workspaces-to-dock.css']);
-        }
-        if (!GLib.file_test(workspacesToDockExtStylesheet, GLib.FileTest.EXISTS)) {
-            return;
-        }
+    // handler for theme changes
+    _onThemeChanged: function() {
+        if (_DEBUG_) global.log("dockedWorkspaces: _onThemeChanged");
+        this._updateBackgroundOpacity();
+        this._changeStylesheet();
+    },
 
-        let themeContext = St.ThemeContext.get_for_stage(global.stage);
-        if (themeContext) {
-            let theme = themeContext.get_theme();
-            if (theme) {
-                let customStylesheets = theme.get_custom_stylesheets();
-                if (this._settings.get_boolean('workspace-captions-support')) {
-                    // Check if stylesheet already loaded
-                    let found = false;
-                    for (let i = 0; i < customStylesheets.length; i++) {
-                        if (customStylesheets[i] == workspacesToDockExtStylesheet) {
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (found) {
-                        // unload workspace captions css
-                        theme.unload_stylesheet(workspacesToDockExtStylesheet);
-                    }
-                } else {
-                    // Check if stylesheet already loaded
-                    let found = false;
-                    for (let i = 0; i < customStylesheets.length; i++) {
-                        if (customStylesheets[i] == workspacesToDockExtStylesheet) {
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (!found) {
-                        // load workspace captions css
-                        theme.load_stylesheet(workspacesToDockExtStylesheet);
-                    }
-                }
+    // function to change stylesheets
+    _changeStylesheet: function() {
+        if (_DEBUG_) global.log("dockedWorkspaces: _changeStylesheet");
+        // Get css filename
+        let filename = "workspaces-to-dock.css";
+        if (this._gsCurrentVersion[1] < 6)
+            filename = "workspaces-to-dock-gs34.css";
+
+        // Get new theme stylesheet
+        let themeStylesheet = Main._defaultCssStylesheet;
+        if (Main._cssStylesheet != null)
+            themeStylesheet = Main._cssStylesheet;
+
+        // Get theme directory
+        let themeDirectory = GLib.path_get_dirname(themeStylesheet);
+        if (_DEBUG_) global.log("dockedWorkspaces: _changeStylesheet - new theme = "+themeStylesheet);
+
+        // Test for workspacesToDock stylesheet
+        let newStylesheet = themeDirectory + '/extensions/workspaces-to-dock/' + filename;
+        if (!GLib.file_test(newStylesheet, GLib.FileTest.EXISTS)) {
+            if (_DEBUG_) global.log("dockedWorkspaces: _changeStylesheet - Theme doesn't support workspacesToDock .. use default stylesheet");
+            let defaultStylesheet = Gio.File.new_for_path(Me.path + "/themes/default/" + filename);
+            if (defaultStylesheet.query_exists(null)) {
+                newStylesheet = defaultStylesheet.get_path();
+            } else {
+                throw new Error(_("No Workspaces-To-Dock stylesheet found") + " (extension.js).");
             }
         }
+
+        if (Extension.workspacesToDockStylesheet && Extension.workspacesToDockStylesheet == newStylesheet) {
+            if (_DEBUG_) global.log("dockedWorkspaces: _changeStylesheet - No change in stylesheet. Exit");
+            return false;
+        }
+
+        // Change workspacesToDock stylesheet by updating theme
+        let themeContext = St.ThemeContext.get_for_stage(global.stage);
+        if (!themeContext)
+            return false;
+
+        if (_DEBUG_) global.log("dockedWorkspaces: _changeStylesheet - themeContext is valid");
+        let theme = themeContext.get_theme();
+        if (!theme)
+            return false;
+
+        if (_DEBUG_) global.log("dockedWorkspaces: _changeStylesheet - theme is valid");
+        let customStylesheets = theme.get_custom_stylesheets();
+        if (!customStylesheets)
+            return false;
+
+        let previousStylesheet = Extension.workspacesToDockStylesheet;
+        Extension.workspacesToDockStylesheet = newStylesheet;
+
+        let newTheme = new St.Theme ({ application_stylesheet: themeStylesheet });
+        for (let i = 0; i < customStylesheets.length; i++) {
+            if (customStylesheets[i] != previousStylesheet) {
+                newTheme.load_stylesheet(customStylesheets[i]);
+            }
+        }
+
+        if (_DEBUG_) global.log("dockedWorkspaces: _changeStylesheet - Removed previous stylesheet");
+        newTheme.load_stylesheet(Extension.workspacesToDockStylesheet);
+
+        if (_DEBUG_) global.log("dockedWorkspaces: _changeStylesheet - Added new stylesheet");
+        themeContext.set_theme (newTheme);
 
         if (this._gsCurrentVersion[1] < 8) {
             this._thumbnailsBox.hide();
@@ -1182,12 +1209,20 @@ dockedWorkspaces.prototype = {
             this._thumbnailsBox._destroyThumbnails();
             this._thumbnailsBox._createThumbnails();
         }
+
+        return true;
     },
 
-    // handler for theme changes
-    _onThemeChanged: function() {
-        if (_DEBUG_) global.log("dockedWorkspaces: _onThemeChanged");
-        this._updateBackgroundOpacity();
+    // handler for icon changes
+    _onIconsChanged: function() {
+        if (_DEBUG_) global.log("dockedWorkspaces: _onIconsChanged");
+        if (this._gsCurrentVersion[1] < 8) {
+            this._thumbnailsBox.hide();
+            this._thumbnailsBox.show();
+        } else {
+            this._thumbnailsBox._destroyThumbnails();
+            this._thumbnailsBox._createThumbnails();
+        }
     },
 
     // resdiplay dock called if size-position changed due to dock resizing
@@ -1248,7 +1283,7 @@ dockedWorkspaces.prototype = {
         }
         let y1= this._monitor.y;
         let y2= this._monitor.y + this._monitor.height;
-        if (_DEBUG_) global.log("_setHiddenWidth C.X1 = "+Math.round(x1)+" C.X2 = "+Math.round(x2)+" C.R = "+(x2-x1)+" ACTOR.X = "+Math.round(this.actor.x)+" ACTOR.W = "+this.actor.width);
+        //if (_DEBUG_) global.log("dockedWorkspaces: _setHiddenWidth C.X1 = "+Math.round(x1)+" C.X2 = "+Math.round(x2)+" C.R = "+(x2-x1)+" ACTOR.X = "+Math.round(this.actor.x)+" ACTOR.W = "+this.actor.width);
 
         // Apply the clip
         this.actor.set_clip(x1, y1, x2 - x1, y2);
@@ -1272,7 +1307,7 @@ dockedWorkspaces.prototype = {
         }
         let y1= this._monitor.y;
         let y2= this._monitor.y + this._monitor.height;
-        if (_DEBUG_) global.log("_unsetHiddenWidth C.X1 = "+Math.round(x1)+" C.X2 = "+Math.round(x2)+" C.R = "+(x2-x1)+" ACTOR.X = "+Math.round(this.actor.x)+" ACTOR.W = "+this.actor.width);
+        //if (_DEBUG_) global.log("dockedWorkspaces: _unsetHiddenWidth C.X1 = "+Math.round(x1)+" C.X2 = "+Math.round(x2)+" C.R = "+(x2-x1)+" ACTOR.X = "+Math.round(this.actor.x)+" ACTOR.W = "+this.actor.width);
 
         // Apply the clip
         this.actor.set_clip(x1, y1, x2 - x1, y2);
@@ -1505,7 +1540,7 @@ dockedWorkspaces.prototype = {
         }
         let y1= this._monitor.y;
         let y2= this._monitor.y + this._monitor.height;
-        if (_DEBUG_) global.log("_updateClip C.X1 = "+Math.round(x1)+" C.X2 = "+Math.round(x2)+" C.R = "+(x2-x1)+" ACTOR.X = "+Math.round(this.actor.x)+" ACTOR.W = "+this.actor.width);
+        //if (_DEBUG_) global.log("_updateClip C.X1 = "+Math.round(x1)+" C.X2 = "+Math.round(x2)+" C.R = "+(x2-x1)+" ACTOR.X = "+Math.round(this.actor.x)+" ACTOR.W = "+this.actor.width);
 
         // Apply the clip
         this.actor.set_clip(x1, y1, x2 - x1, y2);
