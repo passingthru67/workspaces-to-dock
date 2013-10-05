@@ -207,7 +207,7 @@ intellihide.prototype = {
         );
 
         // Connect global signals based on gnome shell version
-        if (this._gsCurrentVersion[1] < 6) {
+        if (this._gsCurrentVersion[1] == 4) {
             // Gnome Shell 3.4 signals
             this._signalHandler.push(
                 [
@@ -241,8 +241,9 @@ intellihide.prototype = {
             this._signalHandler.push([Main.overview._viewSelector._searchTab, 'activated', Lang.bind(this, this._searchStarted)]);
             this._signalHandler.push([Main.overview._viewSelector._searchTab, 'search-cancelled', Lang.bind(this, this._searchCancelled)]);
 
-        } else if (this._gsCurrentVersion[1] < 8) {
-            // Gnome Shell 3.6 signals
+        } else {
+
+            // Gnome Shell 3.6+ (GS3.6 - GS3.10) signals
             this._signalHandler.push(
                 [
                     Main.messageTray._grabHelper,
@@ -253,78 +254,72 @@ intellihide.prototype = {
                     Main.messageTray._grabHelper,
                     'focus-ungrabbed',
                     Lang.bind(this, this._onTrayFocusUngrabbed)
-                ],
-                [
-                    Main.panel.menuManager,
-                    'menu-added',
-                    Lang.bind(this, this._onPanelMenuAdded)
-                ],
-                [
-                    Main.overview._viewSelector,
-                    'show-page',
-                    Lang.bind(this, this._overviewPageChanged)
                 ]
             );
 
-            // Detect gnome panel popup menus
-            for (let i = 0; i < Main.panel.menuManager._menus.length; i++) {
-                this._signalHandler.push([Main.panel.menuManager._menus[i].menu, 'open-state-changed', Lang.bind(this, this._onPanelMenuStateChange)]);
-            }
-
-        } else {
-            if (this._gsCurrentVersion[1] < 10) {
-                // Gnome Shell 3.8 signals
+            if (this._gsCurrentVersion[1] == 6) {
+                // Gnome Shell 3.6 signals
                 this._signalHandler.push(
+                    [
+                        Main.panel.menuManager,
+                        'menu-added',
+                        Lang.bind(this, this._onPanelMenuAdded)
+                    ],
                     [
                         Main.overview._viewSelector,
-                        'page-changed',
+                        'show-page',
                         Lang.bind(this, this._overviewPageChanged)
                     ]
                 );
+                // Detect gnome panel popup menus
+                for (let i = 0; i < Main.panel.menuManager._menus.length; i++) {
+                    this._signalHandler.push([Main.panel.menuManager._menus[i].menu, 'open-state-changed', Lang.bind(this, this._onPanelMenuStateChange)]);
+                }
             } else {
-                // Gnome Shell 3.10+ signals
+                // Gnome Shell 3.8+ (GS3.8 - GS3.10) panel and background menus use the grabHelper
                 this._signalHandler.push(
                     [
-                        Main.overview.viewSelector,
-                        'page-changed',
-                        Lang.bind(this, this._overviewPageChanged)
+                        Main.panel.menuManager._grabHelper,
+                        'focus-grabbed',
+                        Lang.bind(this, this._onPanelFocusGrabbed)
+                    ],
+                    [
+                        Main.panel.menuManager._grabHelper,
+                        'focus-ungrabbed',
+                        Lang.bind(this, this._onPanelFocusUngrabbed)
+                    ],
+                    [
+                        Main.layoutManager._bgManagers[0].background.actor._backgroundManager._grabHelper,
+                        'focus-grabbed',
+                        Lang.bind(this, this._onPanelFocusGrabbed)
+                    ],
+                    [
+                        Main.layoutManager._bgManagers[0].background.actor._backgroundManager._grabHelper,
+                        'focus-ungrabbed',
+                        Lang.bind(this, this._onPanelFocusUngrabbed)
                     ]
                 );
+
+                if (this._gsCurrentVersion[1] == 8) {
+                    // Gnome Shell 3.8 signals
+                    this._signalHandler.push(
+                        [
+                            Main.overview._viewSelector,
+                            'page-changed',
+                            Lang.bind(this, this._overviewPageChanged)
+                        ]
+                    );
+                } else {
+                    // Gnome Shell 3.10+ signals
+                    this._signalHandler.push(
+                        [
+                            Main.overview.viewSelector,
+                            'page-changed',
+                            Lang.bind(this, this._overviewPageChanged)
+                        ]
+                    );
+                }
             }
-            // Gnome Shell 3.8+ signals
-            this._signalHandler.push(
-                [
-                    Main.messageTray._grabHelper,
-                    'focus-grabbed',
-                    Lang.bind(this, this._onTrayFocusGrabbed)
-                ],
-                [
-                    Main.messageTray._grabHelper,
-                    'focus-ungrabbed',
-                    Lang.bind(this, this._onTrayFocusUngrabbed)
-                ],
-                // GS38+ panel and background menus use the grabHelper
-                [
-                    Main.panel.menuManager._grabHelper,
-                    'focus-grabbed',
-                    Lang.bind(this, this._onPanelFocusGrabbed)
-                ],
-                [
-                    Main.panel.menuManager._grabHelper,
-                    'focus-ungrabbed',
-                    Lang.bind(this, this._onPanelFocusUngrabbed)
-                ],
-                [
-                    Main.layoutManager._bgManagers[0].background.actor._backgroundManager._grabHelper,
-                    'focus-grabbed',
-                    Lang.bind(this, this._onPanelFocusGrabbed)
-                ],
-                [
-                    Main.layoutManager._bgManagers[0].background.actor._backgroundManager._grabHelper,
-                    'focus-ungrabbed',
-                    Lang.bind(this, this._onPanelFocusUngrabbed)
-                ]
-            );
         }
         if (_DEBUG_) global.log("intellihide: init - signals being captured");
 
@@ -629,13 +624,8 @@ intellihide.prototype = {
 
     // handler for when panel focus is grabbed (GS 38+)
     _onPanelFocusGrabbed: function(source, event) {
-        let focusedActor;
-        if (this._gsCurrentVersion[1] < 6) {
-            focusedActor = source.actor;
-        } else {
-            let idx = source._grabStack.length - 1;
-            focusedActor = source._grabStack[idx].actor;
-        }
+        let idx = source._grabStack.length - 1;
+        let focusedActor = source._grabStack[idx].actor;
         let [rx, ry] = focusedActor.get_transformed_position();
         let [rwidth, rheight] = focusedActor.get_size();
         let test = (rx < this._dock.staticBox.x2) && (rx + rwidth > this._dock.staticBox.x1) && (ry < this._dock.staticBox.y2) && (ry + rheight > this._dock.staticBox.y1);
