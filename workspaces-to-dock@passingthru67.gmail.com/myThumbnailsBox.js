@@ -134,6 +134,7 @@ const WindowAppMenuItem = new Lang.Class({
     Name: 'workspacesToDock.windowAppMenuItem',
 
     _init: function(app, metaWin, thumbnail) {
+        this._gsCurrentVersion = thumbnail._gsCurrentVersion;
         let iconParams = {setSizeManually: true, showLabel: false};
         iconParams['createIcon'] = Lang.bind(this, function(iconSize){ return app.create_icon_texture(iconSize);});
 
@@ -158,6 +159,11 @@ const WindowAppMenuItem = new Lang.Class({
         this.actor = new St.BoxLayout({reactive: true, style_class: 'popup-menu-item workspacestodock-caption-windowapps-menu-item'});
         this.actor._delegate = this;
 
+        if (this._gsCurrentVersion[1] > 8) {
+            this._ornament = 0;
+            this._ornamentLabel = new St.Label({ style_class: 'popup-menu-ornament' });
+            this.actor.add(this._ornamentLabel);
+        }
         this.actor.add(this._buttonBox, {x_fill: false, y_fill: false, x_align: St.Align.START, y_align: St.Align.MIDDLE, expand: true});
         this.actor.add(this._closeButton, {x_fill: true, y_fill: true, x_align: St.Align.END, y_align: St.Align.MIDDLE});
 
