@@ -487,7 +487,7 @@ dockedWorkspaces.prototype = {
 
         if (removedIndex != null) {
             if (_DEBUG_) global.log("dockedWorkspaces: _workspacesRemoved - thumbnail index being removed is = "+removedIndex);
-            if (this._gsCurrentVersion[1] < 6) {
+            if (this._gsCurrentVersion[1] == 4) {
                 this._thumbnailsBox.removeThumbmails(removedIndex, removedNum);
             } else {
                 this._thumbnailsBox.removeThumbnails(removedIndex, removedNum);
@@ -680,8 +680,8 @@ dockedWorkspaces.prototype = {
 
     _updatePressureBarrier: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _updatePressureBarrier");
-        let self = this;
         if (this._gsCurrentVersion[1] > 6) {
+            let self = this;
             this._canUsePressure = global.display.supports_extended_barriers();
             let pressureThreshold = this._settings.get_double('pressure-threshold');
 
@@ -704,6 +704,7 @@ dockedWorkspaces.prototype = {
     },
 
     _bindDockKeyboardShortcut: function() {
+        if (_DEBUG_) global.log("dockedWorkspaces: _bindDockKeyboardShortcut");
         if (this._gsCurrentVersion[1] > 6) {
             Main.wm.addKeybinding('dock-keyboard-shortcut', this._settings, Meta.KeyBindingFlags.NONE, Shell.KeyBindingMode.NORMAL,
                 Lang.bind(this, function() {
@@ -728,6 +729,7 @@ dockedWorkspaces.prototype = {
     },
 
     _unbindDockKeyboardShortcut: function() {
+        if (_DEBUG_) global.log("dockedWorkspaces: _unbindDockKeyboardShortcut");
         if (this._gsCurrentVersion[1] > 6) {
             Main.wm.removeKeybinding('dock-keyboard-shortcut');
         } else {
@@ -859,7 +861,7 @@ dockedWorkspaces.prototype = {
     // This comes from desktop-scroller@obsidien.github.com
     _onScrollEvent: function (actor, event) {
         if (event.get_scroll_direction() == Clutter.ScrollDirection.UP) {
-            if (this._gsCurrentVersion[1] < 6) {
+            if (this._gsCurrentVersion[1] == 4) {
                 Main.wm.actionMoveWorkspaceUp();
             } else if (this._gsCurrentVersion[1] < 10){
                 Main.wm.actionMoveWorkspace(Meta.MotionDirection.UP);
@@ -869,7 +871,7 @@ dockedWorkspaces.prototype = {
                 Main.wm.actionMoveWorkspace(ws);
             }
         } else if (event.get_scroll_direction() == Clutter.ScrollDirection.DOWN) {
-            if (this._gsCurrentVersion[1] < 6) {
+            if (this._gsCurrentVersion[1] == 4) {
                 Main.wm.actionMoveWorkspaceDown();
             } else if (this._gsCurrentVersion[1] < 10) {
                 Main.wm.actionMoveWorkspace(Meta.MotionDirection.DOWN);
@@ -1169,7 +1171,7 @@ dockedWorkspaces.prototype = {
         if (_DEBUG_) global.log("dockedWorkspaces: _changeStylesheet");
         // Get css filename
         let filename = "workspaces-to-dock.css";
-        if (this._gsCurrentVersion[1] < 6)
+        if (this._gsCurrentVersion[1] == 4)
             filename = "workspaces-to-dock-gs34.css";
 
         // Get new theme stylesheet
