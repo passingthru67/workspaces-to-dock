@@ -1300,11 +1300,14 @@ dockedWorkspaces.prototype = {
         // New clip coordinates
         let x1, x2;
         if (this._rtl) {
-            this._thumbnailsBox.actor.set_position(this.actor.width - DOCK_PADDING, 0);
+            // NOTE: Needed for GS < 3.10 otherwise dock's left edge is left showing
+            // instead of right edge
+            if (this._gsCurrentVersion[1] < 10) {
+                this._thumbnailsBox.actor.x = width - DOCK_PADDING - this._thumbnailsBox.actor.width;
+            }
             x1 = width;
             x2 = 0;
         } else {
-            this._thumbnailsBox.actor.set_position(DOCK_PADDING, 0);
             x1 = 0;
             x2 = width;
         }
@@ -1324,11 +1327,14 @@ dockedWorkspaces.prototype = {
         // New clip coordinates
         let x1, x2;
         if (this._rtl) {
-            this._thumbnailsBox.actor.set_position(this.actor.width - DOCK_PADDING, 0);
+            // NOTE: Needed for GS < 3.10 otherwise dock's left edge is left in position
+            // set by _setHiddenWidth function above
+            if (this._gsCurrentVersion[1] < 10) {
+                this._thumbnailsBox.actor.x = 0;
+            }
             x1 = width;
             x2 = this._monitor.x + this._thumbnailsBox.actor.width + DOCK_PADDING - this.actor.x;
         } else {
-            this._thumbnailsBox.actor.set_position(DOCK_PADDING, 0);
             x1 = 0;
             x2 = this._monitor.x + this._monitor.width - this.actor.x;
         }
@@ -1443,8 +1449,6 @@ dockedWorkspaces.prototype = {
             boxPosition = DOCK_PADDING;
         }
         this.actor.move_anchor_point_from_gravity(anchorPoint);
-        this._thumbnailsBox.actor.move_anchor_point_from_gravity(anchorPoint);
-        this._thumbnailsBox.actor.set_position(boxPosition, 0);
         this._thumbnailsBox.actor.height = height;
     },
 
@@ -1477,8 +1481,6 @@ dockedWorkspaces.prototype = {
         }
 
         this.actor.move_anchor_point_from_gravity(anchorPoint);
-        this._thumbnailsBox.actor.move_anchor_point_from_gravity(anchorPoint);
-        this._thumbnailsBox.actor.set_position(boxPosition, 0);
 
         if (this._settings.get_boolean('dock-fixed')) {
             //position on the screen so that its initial show is not animated

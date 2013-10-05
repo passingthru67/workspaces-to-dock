@@ -1,3 +1,12 @@
+#workspacestodockContainer {
+}
+#workspacestodockContainer:ltr {
+    padding-left: 1px;
+}
+#workspacestodockContainer:rtl {
+    padding-right: 1px;
+}
+
 .workspacestodock-workspace-caption-container {
     padding: 1px;
 }
