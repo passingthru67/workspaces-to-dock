@@ -258,10 +258,16 @@ dockedWorkspaces.prototype = {
         // Add workspaces and to the main container actor and then to the Chrome.
         this.actor.add_actor(this._thumbnailsBox.actor);
 
-        Main.layoutManager.addChrome(this.actor, {
-            affectsStruts: this._settings.get_boolean('dock-fixed'),
-            affectsInputRegion: true
-        });
+        if (this._gsCurrentVersion[1] < 10) {
+            Main.layoutManager.addChrome(this.actor, {
+                affectsStruts: this._settings.get_boolean('dock-fixed'),
+                affectsInputRegion: true
+            });
+        } else {
+            Main.layoutManager.addChrome(this.actor, {
+                affectsStruts: this._settings.get_boolean('dock-fixed')
+            });
+        }
 
         // TODO: can we lower this.actor in gnome shell without causing problems?
         // gs3.4 problem - dock immediately hides when workspace is switched even when mouse is hovering
@@ -526,10 +532,16 @@ dockedWorkspaces.prototype = {
         this._settings.connect('changed::dock-fixed', Lang.bind(this, function() {
             if (_DEBUG_) global.log("dockedWorkspaces: _bindSettingsChanges for dock-fixed");
             Main.layoutManager.removeChrome(this.actor);
-            Main.layoutManager.addChrome(this.actor, {
-                affectsStruts: this._settings.get_boolean('dock-fixed'),
-                affectsInputRegion: true
-            });
+            if (this._gsCurrentVersion[1] < 10) {
+                Main.layoutManager.addChrome(this.actor, {
+                    affectsStruts: this._settings.get_boolean('dock-fixed'),
+                    affectsInputRegion: true
+                });
+            } else {
+                Main.layoutManager.addChrome(this.actor, {
+                    affectsStruts: this._settings.get_boolean('dock-fixed')
+                });
+            }
 
             // TODO: can we lower this.actor in gnome shell without causing problems?
             // gs3.4 problem - dock immediately hides when workspace is switched even when mouse is hovering
