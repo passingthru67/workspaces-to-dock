@@ -1311,8 +1311,8 @@ dockedWorkspaces.prototype = {
             x1 = 0;
             x2 = width;
         }
-        let y1= this._monitor.y;
-        let y2= this._monitor.y + this._monitor.height;
+        let y1= 0;
+        let y2 = this._thumbnailsBox.actor.height;
         //if (_DEBUG_) global.log("dockedWorkspaces: _setHiddenWidth C.X1 = "+Math.round(x1)+" C.X2 = "+Math.round(x2)+" C.R = "+(x2-x1)+" ACTOR.X = "+Math.round(this.actor.x)+" ACTOR.W = "+this.actor.width);
 
         // Apply the clip
@@ -1338,8 +1338,8 @@ dockedWorkspaces.prototype = {
             x1 = 0;
             x2 = this._monitor.x + this._monitor.width - this.actor.x;
         }
-        let y1= this._monitor.y;
-        let y2= this._monitor.y + this._monitor.height;
+        let y1= 0;
+        let y2 = this._thumbnailsBox.actor.height;
         //if (_DEBUG_) global.log("dockedWorkspaces: _unsetHiddenWidth C.X1 = "+Math.round(x1)+" C.X2 = "+Math.round(x2)+" C.R = "+(x2-x1)+" ACTOR.X = "+Math.round(this.actor.x)+" ACTOR.W = "+this.actor.width);
 
         // Apply the clip
@@ -1575,8 +1575,8 @@ dockedWorkspaces.prototype = {
             x1 = 0;
             x2 = this._monitor.x + this._monitor.width - this.actor.x;
         }
-        let y1= this._monitor.y;
-        let y2= this._monitor.y + this._monitor.height;
+        let y1 = 0;
+        let y2 = this._thumbnailsBox.actor.height;
         //if (_DEBUG_) global.log("_updateClip C.X1 = "+Math.round(x1)+" C.X2 = "+Math.round(x2)+" C.R = "+(x2-x1)+" ACTOR.X = "+Math.round(this.actor.x)+" ACTOR.W = "+this.actor.width);
 
         // Apply the clip
