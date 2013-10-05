@@ -1378,12 +1378,20 @@ dockedWorkspaces.prototype = {
                     y = this._monitor.y + Main.overview._viewSelector.actor.y;
                     height = this._monitor.height - (Main.overview._viewSelector.actor.y + Main.messageTray.actor.height);
                 }
-            } else {
+            } else if (this._gsCurrentVersion[1] == 8) {
                 if (primary) {
                     y = this._monitor.y + Main.panel.actor.height + Main.overview._searchEntryBin.y + Main.overview._searchEntryBin.height;
                     height = this._monitor.height - (Main.overview._searchEntryBin.y + Main.overview._searchEntryBin.height + Main.messageTray.actor.height);
                 } else {
                     y = this._monitor.y + Main.overview._viewSelector.actor.y;
+                    height = this._monitor.height - (Main.messageTray.actor.height);
+                }
+            } else {
+                if (primary) {
+                    y = this._monitor.y + Main.panel.actor.height + Main.overview._searchEntryBin.y + Main.overview._searchEntryBin.height;
+                    height = this._monitor.height - (Main.overview._searchEntryBin.y + Main.overview._searchEntryBin.height + Main.messageTray.actor.height);
+                } else {
+                    y = this._monitor.y + Main.overview.viewSelector.actor.y;
                     height = this._monitor.height - (Main.messageTray.actor.height);
                 }
             }

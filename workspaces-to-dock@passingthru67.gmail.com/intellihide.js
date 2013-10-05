@@ -591,14 +591,15 @@ intellihide.prototype = {
     // or when search is started the workspaces dock is hidden
     _overviewPageChanged: function(source, page) {
         if (_DEBUG_) global.log("intellihide: _overviewPageChanged");
+        let viewSelector = this._gsCurrentVersion[1] < 10 ? Main.overview._viewSelector : Main.overview.viewSelector;
         let newPage;
         if (page)
             newPage = page;
         else
-            newPage = Main.overview._viewSelector._activePage;
+            newPage = viewSelector._activePage;
 
         if (this._inOverview) {
-            if (newPage == Main.overview._viewSelector._workspacesPage) {
+            if (newPage == viewSelector._workspacesPage) {
                 this._show();
             } else {
                 this._hide();
@@ -639,13 +640,10 @@ intellihide.prototype = {
     // handler for when panel focus is ungrabbed (GS 38+)
     _onPanelFocusUngrabbed: function(source, event) {
         if (_DEBUG_) global.log("intellihide: onPanelFocusUnGrabbed");
+        let viewSelector = this._gsCurrentVersion[1] < 10 ? Main.overview._viewSelector : Main.overview.viewSelector;
         this._disableIntellihide = false;
         if (this._inOverview) {
-            if (this._gsCurrentVersion[1] < 6) {
-                if (Main.overview._viewSelector._activeTab.id == "windows") this._show();
-            } else {
-                if (Main.overview._viewSelector._activePage == Main.overview._viewSelector._workspacesPage) this._show();
-            }
+            if (viewSelector._activePage == viewSelector._workspacesPage) this._show();
         } else {
             this._updateDockVisibility();
         }
@@ -683,12 +681,13 @@ intellihide.prototype = {
     // handler for when messageTray focus is ungrabbed (GS 34+)
     _onTrayFocusUngrabbed: function(source, event) {
         if (_DEBUG_) global.log("intellihide: onTrayFocusUnGrabbed");
+        let viewSelector = this._gsCurrentVersion[1] < 10 ? Main.overview._viewSelector : Main.overview.viewSelector;
         this._disableIntellihide = false;
         if (this._inOverview) {
             if (this._gsCurrentVersion[1] < 6) {
-                if (Main.overview._viewSelector._activeTab.id == "windows") this._show();
+                if (viewSelector._activeTab.id == "windows") this._show();
             } else {
-                if (Main.overview._viewSelector._activePage == Main.overview._viewSelector._workspacesPage) this._show();
+                if (viewSelector._activePage == viewSelector._workspacesPage) this._show();
             }
         } else {
             this._updateDockVisibility();
