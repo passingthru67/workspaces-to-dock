@@ -347,10 +347,15 @@ const myWorkspaceThumbnail = new Lang.Class({
             // Create menu and menuitems
             let rtl = Clutter.get_default_text_direction() == Clutter.TextDirection.RTL;
             if (rtl) {
-                this._menu = new PopupMenu.PopupMenu(this._wsCaptionBackground, 0.5, St.Side.LEFT);
+                this._menu = new PopupMenu.PopupMenu(this._wsCaption, 0.5, St.Side.LEFT);
             } else {
-                this._menu = new PopupMenu.PopupMenu(this._wsCaptionBackground, 0.5, St.Side.RIGHT);
+                this._menu = new PopupMenu.PopupMenu(this._wsCaption, 0.5, St.Side.RIGHT);
             }
+
+            // Set popup menu boxpointer to center vertically on caption background
+            //this._menu.setSourceAlignment(.8);
+            this._menu._boxPointer.setArrowActor(this._wsCaptionBackground);
+
             this._menu.actor.add_style_class_name('workspacestodock-caption-windowapps-menu');
             this._menu.connect('open-state-changed', Lang.bind(this, function(menu, open) {
                 if (_DEBUG_) global.log("myWorkspaceThumbnail: _onWindowAppsButtonClick - menu open-state-changed - open = "+open);
@@ -380,7 +385,8 @@ const myWorkspaceThumbnail = new Lang.Class({
             this._menu.addMenuItem(item);
 
             // Add to chrome and hide
-            Main.layoutManager.addChrome(this._menu.actor);
+            //Main.layoutManager.addChrome(this._menu.actor);
+            Main.uiGroup.add_actor(this._menu.actor);
             this._menu.actor.hide();
 
             // Add menu to menu manager
@@ -563,6 +569,11 @@ const myWorkspaceThumbnail = new Lang.Class({
 
     _onWorkspaceCaptionClick: function(actor, event, thumbnail) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _onWorkspaceCaptionClick");
+        if (thumbnail._menu.isOpen) {
+            thumbnail._menu.close();
+            return true;
+        }
+
         let mouseButton = event.get_button();
         if (mouseButton == 3) {
             thumbnail._menu.removeAll();
@@ -602,6 +613,9 @@ const myWorkspaceThumbnail = new Lang.Class({
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _onWindowAppsButtonClick");
         let mouseButton = event.get_button();
         if (mouseButton == 1) {
+            if (actor._delegate instanceof WindowAppIcon && thumbnail._menu.isOpen) {
+                thumbnail._menu.close();
+            }
             let activeWorkspace = global.screen.get_active_workspace();
             if (_DEBUG_) global.log("_myWorkspaceThumbnail: _onWindowAppsButtonClick - activeWorkspace = "+activeWorkspace);
             if (_DEBUG_) global.log("_myWorkspaceThumbnail: _onWindowAppsButtonClick - metaWorkspace = "+thumbnail.metaWorkspace);
