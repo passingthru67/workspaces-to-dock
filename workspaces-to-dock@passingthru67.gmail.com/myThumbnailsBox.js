@@ -46,7 +46,7 @@ const WORKSPACE_KEEP_ALIVE_TIME = 100;
 
 const OVERRIDE_SCHEMA = 'org.gnome.shell.overrides';
 
-const CAPTION_HEIGHT = 60; // NOTE: Must be larger than CAPTION_APP_ICON_SIZE_ZOOMED + css icon padding + css icon border
+const CAPTION_HEIGHT = 40; // NOTE: Must be larger than CAPTION_APP_ICON_SIZE_ZOOMED + css icon padding + css icon border
 const CAPTION_BACKGROUND_HEIGHT = 22;
 const CAPTION_APP_ICON_NORMAL_SIZE = 16;
 const CAPTION_APP_ICON_NORMAL_SIZE_ZOOMED = 24;
@@ -352,12 +352,10 @@ const myWorkspaceThumbnail = new Lang.Class({
                 this._menu = new PopupMenu.PopupMenu(this._wsCaption, 0.5, St.Side.RIGHT);
             }
 
-            // Set popup menu boxpointer to center vertically on caption background
-            if (this._gsCurrentVersion[1] < 8) {
-                this._menu.setSourceAlignment(.85);
-            } else {
-                this._menu._boxPointer.setArrowActor(this._wsCaptionBackground);
-            }
+            // Set popup menu boxpointer point to center vertically on caption background
+            // Otherwise the point lands at the top of the caption background because
+            // the caption actually extends up another 18px.
+            this._menu.setSourceAlignment(.8);
 
             this._menu.actor.add_style_class_name('workspacestodock-caption-windowapps-menu');
             this._menu.connect('open-state-changed', Lang.bind(this, function(menu, open) {
