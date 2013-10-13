@@ -1162,6 +1162,9 @@ dockedWorkspaces.prototype = {
     // handler for theme changes
     _onThemeChanged: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _onThemeChanged");
+        if (this._disableRedisplay)
+            return
+
         this._updateBackgroundOpacity();
         this._changeStylesheet();
     },
@@ -1245,6 +1248,9 @@ dockedWorkspaces.prototype = {
     // handler for icon changes
     _onIconsChanged: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _onIconsChanged");
+        if (this._disableRedisplay)
+            return
+
         if (this._gsCurrentVersion[1] < 8) {
             this._thumbnailsBox.hide();
             this._thumbnailsBox.show();
