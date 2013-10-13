@@ -304,6 +304,10 @@ dockedWorkspaces.prototype = {
             // Show the non-fixed dock (off screen from resetPosition)
             // note: fixed dock already on screen and will animate opacity to 255 when fadeInDock is called
             this.actor.set_opacity(255);
+        } else {
+            if (this._gsCurrentVersion[1] > 6) {
+                this.actor.set_opacity(255);
+            }
         }
 
         this._disableRedisplay = false;
@@ -1081,6 +1085,9 @@ dockedWorkspaces.prototype = {
     // position but overlapped by gnome panel menus or meta popup windows
     fadeOutDock: function(time, delay, nonreactive) {
         if (_DEBUG_) global.log("dockedWorkspaces: fadeOutDock");
+        if (this._gsCurrentVersion[1] > 6)
+            return;
+
         if (this._autohideStatus == false) {
             this._autohideStatus = true;
 
@@ -1103,6 +1110,9 @@ dockedWorkspaces.prototype = {
     // position but overlapped by gnome panel menus or meta popup windows
     fadeInDock: function(time, delay) {
         if (_DEBUG_) global.log("dockedWorkspaces: fadeInDock");
+        if (this._gsCurrentVersion[1] > 6)
+            return;
+
         if (this._autohideStatus == true) {
             this._autohideStatus = false;
 
