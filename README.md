@@ -103,8 +103,6 @@ Additional Settings:
 
     **Add captions to workspace thumbnails** - Adds captions to the workspace thumbnails. Right clicking on the workspace caption displays a popup menu with options to close applications or show the extension preferences dialog. (See image below)
 
-    **User theme supports workspaces-to-dock captions** - When enabled, user themes that support workspaces-to-dock captions will be used to style the captions. Unfortunately, there is no built-in detection for when a theme supports workspaces-to-dock captions. Therefore, if this option is enabled, the default style will be disabled. We hope to provide auto-detection in a future release.
-
 ![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Popup.png)
 
 - **Caption Items:**
@@ -133,7 +131,7 @@ Below are examples of the workspace (thumbnail) caption in various configuration
 
 Workspace Caption Theming:
 -------------------------
-Adding workspaces-to-dock caption support to a theme can be accomplished by placing a custom 'workspaces-to-dock.css' stylesheet in the theme's gnome-shell/extensions/ folder. You can then use the @import directive to incorporate the stylesheet classes into your theme's gnome-shell.css. Please see the workspaces-to-dock.css stylesheet for a description of the css classes.
+Adding workspaces-to-dock caption support to a theme can be accomplished by placing a custom 'workspaces-to-dock.css' stylesheet in the theme's gnome-shell/extensions/ folder. There is no need to use the @import directive to incorporate the stylesheet classes into your theme's gnome-shell.css. The extension will automatically detect the stylesheet file. Please see the workspaces-to-dock.css stylesheet for a description of the css classes.
 
 
 Localization Support:
@@ -183,6 +181,17 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
+**version 14 (Oct 14, 2013)**
+
+- Support for Gnome Shell 3.10
+- Reimplemented custom theme auto-detection
+- Enhancements to Dash integration and thumbnail captions
+- Bug fixes
+
+**version 13 (Sept 7, 2013)**
+
+- Big fixes (before version 12 review completed)
+
 **version 12 (Sept 3, 2013)**
 
 - RTL support added
