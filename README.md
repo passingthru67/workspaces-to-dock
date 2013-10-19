@@ -181,6 +181,10 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
+**version 15 (Oct 20, 2013)**
+
+- Support for Gnome Shell 3.10.1
+
 **version 14 (Oct 14, 2013)**
 
 - Support for Gnome Shell 3.10
