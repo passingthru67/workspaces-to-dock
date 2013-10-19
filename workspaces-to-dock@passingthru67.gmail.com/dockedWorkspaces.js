@@ -108,6 +108,11 @@ dockedWorkspaces.prototype = {
 
         // Create a new thumbnailsbox object
         this._thumbnailsBox = new MyThumbnailsBox.myThumbnailsBox(this);
+        if (this._gsCurrentVersion[1] < 10) {
+            this._thumbnailsBoxBackground = this._thumbnailsBox._background;
+        } else {
+            this._thumbnailsBoxBackground = this._thumbnailsBox.actor;
+        }
 
         // Create the main container, turn on track hover, add hoverChange signal
         this.actor = new St.BoxLayout({
@@ -148,7 +153,7 @@ dockedWorkspaces.prototype = {
         // Connect global signals
         this._signalHandler.push(
             [
-                this._thumbnailsBox._background,
+                this._thumbnailsBoxBackground,
                 'notify::width',
                 Lang.bind(this, this._thumbnailsBoxResized)
             ],
@@ -1067,7 +1072,7 @@ dockedWorkspaces.prototype = {
     _fadeOutBackground: function(time, delay) {
         if (_DEBUG_) global.log("dockedWorkspaces: _fadeOutBackground");
         // CSS time is in ms
-        this._thumbnailsBox._background.set_style('transition-duration:' + time*1000 + ';' +
+        this._thumbnailsBoxBackground.set_style('transition-duration:' + time*1000 + ';' +
             'transition-delay:' + delay*1000 + ';' +
             'background-color:' + this._defaultBackground);
     },
@@ -1076,7 +1081,7 @@ dockedWorkspaces.prototype = {
     _fadeInBackground: function(time, delay) {
         if (_DEBUG_) global.log("dockedWorkspaces: _fadeInBackground");
         // CSS time is in ms
-        this._thumbnailsBox._background.set_style('transition-duration:' + time*1000 + ';' +
+        this._thumbnailsBoxBackground.set_style('transition-duration:' + time*1000 + ';' +
             'transition-delay:' + delay*1000 + ';' +
             'background-color:' + this._customBackground);
     },
@@ -1136,16 +1141,16 @@ dockedWorkspaces.prototype = {
     _getBackgroundColor: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _getBackgroundColor");
         // Remove custom style
-        let oldStyle = this._thumbnailsBox._background.get_style();
-        this._thumbnailsBox._background.set_style(null);
+        let oldStyle = this._thumbnailsBoxBackground.get_style();
+        this._thumbnailsBoxBackground.set_style(null);
 
         // Prevent shell crash if the actor is not on the stage
         // It happens enabling/disabling repeatedly the extension
-        if (!this._thumbnailsBox._background.get_stage())
+        if (!this._thumbnailsBoxBackground.get_stage())
             return null;
 
-        let themeNode = this._thumbnailsBox._background.get_theme_node();
-        this._thumbnailsBox._background.set_style(oldStyle);
+        let themeNode = this._thumbnailsBoxBackground.get_theme_node();
+        this._thumbnailsBoxBackground.set_style(oldStyle);
 
         let backgroundColor = themeNode.get_background_color();
         return backgroundColor;
@@ -1370,7 +1375,9 @@ dockedWorkspaces.prototype = {
         // Sometimes thumbnailsBox actor is wider than thumbnailsBox background
         // This happens when thumbnail count grows and thumbnails have to be resized
         // Manually set thumbnailsBox actor width equal to background width so there's no gap
-        this._thumbnailsBox.actor.width = this._thumbnailsBox._background.width;
+        if (this._gsCurrentVersion[1] < 10) {
+            this._thumbnailsBox.actor.width = this._thumbnailsBoxBackground.width;
+        }
 
         // check if the dock is on the primary monitor
         let primary = false;
