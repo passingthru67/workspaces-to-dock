@@ -108,7 +108,7 @@ dockedWorkspaces.prototype = {
 
         // Create a new thumbnailsbox object
         this._thumbnailsBox = new MyThumbnailsBox.myThumbnailsBox(this);
-        if (this._gsCurrentVersion[1] < 10) {
+        if (this._gsCurrentVersion[1] < 10 || (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0)) {
             this._thumbnailsBoxBackground = this._thumbnailsBox._background;
         } else {
             this._thumbnailsBoxBackground = this._thumbnailsBox.actor;
@@ -1375,7 +1375,7 @@ dockedWorkspaces.prototype = {
         // Sometimes thumbnailsBox actor is wider than thumbnailsBox background
         // This happens when thumbnail count grows and thumbnails have to be resized
         // Manually set thumbnailsBox actor width equal to background width so there's no gap
-        if (this._gsCurrentVersion[1] < 10) {
+        if (this._gsCurrentVersion[1] < 10 || (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0)) {
             this._thumbnailsBox.actor.width = this._thumbnailsBoxBackground.width;
         }
 

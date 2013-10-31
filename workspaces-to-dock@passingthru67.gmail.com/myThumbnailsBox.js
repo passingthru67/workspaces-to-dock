@@ -810,7 +810,7 @@ const myThumbnailsBox = new Lang.Class({
             this.actor.connect('allocate', Lang.bind(this, this._allocate));
             this.actor._delegate = this;
 
-            if (this._gsCurrentVersion[1] < 10) {
+            if (this._gsCurrentVersion[1] < 10 || (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0)) {
                 // When we animate the scale, we don't animate the requested size of the thumbnails, rather
                 // we ask for our final size and then animate within that size. This slightly simplifies the
                 // interaction with the main workspace windows (instead of constantly reallocating them
@@ -1091,7 +1091,7 @@ const myThumbnailsBox = new Lang.Class({
             return;
 
         let themeNode, contentBox;
-        if (this._gsCurrentVersion[1] < 10) {
+        if (this._gsCurrentVersion[1] < 10 || (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0)) {
             // See comment about this._background in _init()
             themeNode = this._background.get_theme_node();
             contentBox = themeNode.get_content_box(box);
@@ -1103,7 +1103,7 @@ const myThumbnailsBox = new Lang.Class({
         let portholeHeight = this._porthole.height;
 
         let spacing;
-        if (this._gsCurrentVersion[1] < 10) {
+        if (this._gsCurrentVersion[1] < 10 || (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0)) {
             spacing = this.actor.get_theme_node().get_length('spacing');
         } else {
             spacing = themeNode.get_length('spacing');
@@ -1130,7 +1130,7 @@ const myThumbnailsBox = new Lang.Class({
         let totalSpacing = (nWorkspaces - 1) * (spacing + 5);
 
         let avail;
-        if (this._gsCurrentVersion[1] < 10) {
+        if (this._gsCurrentVersion[1] < 10 || (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0)) {
             avail = (contentBox.y2 - contentBox.y1) - totalSpacing;
         } else {
             avail = (box.y2 - box.y1) - totalSpacing;
@@ -1168,7 +1168,7 @@ const myThumbnailsBox = new Lang.Class({
 
         let childBox = new Clutter.ActorBox();
 
-        if (this._gsCurrentVersion[1] < 10) {
+        if (this._gsCurrentVersion[1] < 10 || (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0)) {
             // The background is horizontally restricted to correspond to the current thumbnail size
             // but otherwise covers the entire allocation
             if (rtl) {
@@ -1285,7 +1285,7 @@ const myThumbnailsBox = new Lang.Class({
             let indicatorRightFullBorder = indicatorThemeNode.get_padding(St.Side.RIGHT) + indicatorThemeNode.get_border_width(St.Side.RIGHT);
 
             let y;
-            if (this._gsCurrentVersion[1] < 10) {
+            if (this._gsCurrentVersion[1] < 10 || (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0)) {
                 y = contentBox.y1;
             } else {
                 y = box.y1;
@@ -1307,7 +1307,7 @@ const myThumbnailsBox = new Lang.Class({
                     y += spacing - Math.round(thumbnail.collapseFraction * spacing);
 
                 let x1, x2;
-                if (this._gsCurrentVersion[1] < 10) {
+                if (this._gsCurrentVersion[1] < 10 || (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0)) {
                     if (rtl) {
                         x1 = contentBox.x1 + slideOffset * thumbnail.slidePosition;
                         x2 = x1 + thumbnailWidth;
@@ -1373,7 +1373,7 @@ const myThumbnailsBox = new Lang.Class({
                 y += thumbnailHeight - Math.round(thumbnailHeight * thumbnail.collapseFraction);
             }
 
-            if (this._gsCurrentVersion[1] < 10) {
+            if (this._gsCurrentVersion[1] < 10 || (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0)) {
                 if (rtl) {
                     childBox.x1 = contentBox.x1;
                     childBox.x2 = contentBox.x1 + thumbnailWidth;
