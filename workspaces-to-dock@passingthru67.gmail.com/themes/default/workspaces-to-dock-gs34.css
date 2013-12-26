@@ -6,7 +6,9 @@
 #workspacestodockContainer:rtl {
     padding-right: 1px;
 }
-
+.workspace-thumbnails-fullheight {
+    border-radius: 0px;
+}
 .workspacestodock-workspace-caption-container {
     padding: 1px;
 }
@@ -111,7 +113,7 @@
     height: 16px;
 }
 
-/* The classes below are used in conjunction with the above workspacestodock-caption-windowcount-image 
+/* The classes below are used in conjunction with the above workspacestodock-caption-windowcount-image
  * They provide background images that corespond with the window count */
 .workspacestodock-caption-windowcount-image-1 {
     background-image: url('h-one.svg');

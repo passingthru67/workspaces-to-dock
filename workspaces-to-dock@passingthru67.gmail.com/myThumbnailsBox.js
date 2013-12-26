@@ -824,6 +824,16 @@ const myThumbnailsBox = new Lang.Class({
                 this._background = new St.Bin({ style_class: 'workspace-thumbnails-background' });
 
                 this.actor.add_actor(this._background);
+
+                // Add addtional style class when workspace is fixed and set to full height
+                if (this._mySettings.get_boolean('dock-fixed') && this._mySettings.get_boolean('extend-height') && this._mySettings.get_double('top-margin') == 0) {
+                    this._background.add_style_class_name('workspace-thumbnails-fullheight');
+                }
+            } else {
+                // Add addtional style class when workspace is fixed and set to full height
+                if (this._mySettings.get_boolean('dock-fixed') && this._mySettings.get_boolean('extend-height') && this._mySettings.get_double('top-margin') == 0) {
+                    this.actor.add_style_class_name('workspace-thumbnails-fullheight');
+                }
             }
 
             let indicator = new St.Bin({ style_class: 'workspace-thumbnail-indicator' });
@@ -904,6 +914,7 @@ const myThumbnailsBox = new Lang.Class({
 
         // The "porthole" is the portion of the screen that we show in the workspaces
         this._porthole = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
+        if (_DEBUG_) global.log("myThumbanailsBox: _createThumbnails - portholeH = "+this._porthole.height+" portholeW = "+this._porthole.width+" portholeX = "+this._porthole.x+" porholeY = "+this._porthole.y);
 
         this.addThumbnails(0, global.screen.n_workspaces);
 
@@ -1142,6 +1153,7 @@ const myThumbnailsBox = new Lang.Class({
         } else {
             newScale = Math.min(newScale, MAX_THUMBNAIL_SCALE);
         }
+        if (_DEBUG_) global.log("mythumbnailsBox: _allocate - newScale = "+newScale+" targetScale = "+this._targetScale);
         if (newScale != this._targetScale) {
             if (this._targetScale > 0) {
                 // We don't do the tween immediately because we need to observe the ordering
@@ -1159,6 +1171,7 @@ const myThumbnailsBox = new Lang.Class({
         let thumbnailHeight = portholeHeight * this._scale;
         let thumbnailWidth = Math.round(portholeWidth * this._scale);
         let roundedHScale = thumbnailWidth / portholeWidth;
+        if (_DEBUG_) global.log("mythumbnailsBox: _allocate - thumbnailH = "+thumbnailHeight+" thumbnailW = "+thumbnailWidth);
 
         let slideOffset; // X offset when thumbnail is fully slid offscreen
         if (rtl)

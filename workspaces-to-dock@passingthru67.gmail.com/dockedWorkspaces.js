@@ -675,9 +675,33 @@ dockedWorkspaces.prototype = {
             }
         }));
 
-        this._settings.connect('changed::extend-height', Lang.bind(this, this._updateSize));
-        this._settings.connect('changed::top-margin', Lang.bind(this, this._updateSize));
-        this._settings.connect('changed::bottom-margin', Lang.bind(this, this._updateSize));
+        this._settings.connect('changed::extend-height', Lang.bind(this, function() {
+            // Add or remove addtional style class when workspace is fixed and set to full height
+            if (this._settings.get_boolean('dock-fixed') && this._settings.get_boolean('extend-height') && this._settings.get_double('top-margin') == 0) {
+                this._thumbnailsBoxBackground.add_style_class_name('workspace-thumbnails-fullheight');
+            } else {
+                this._thumbnailsBoxBackground.remove_style_class_name('workspace-thumbnails-fullheight');
+            }
+            this._updateSize();
+        }));
+        this._settings.connect('changed::top-margin', Lang.bind(this, function() {
+            // Add or remove addtional style class when workspace is fixed and set to full height
+            if (this._settings.get_boolean('dock-fixed') && this._settings.get_boolean('extend-height') && this._settings.get_double('top-margin') == 0) {
+                this._thumbnailsBoxBackground.add_style_class_name('workspace-thumbnails-fullheight');
+            } else {
+                this._thumbnailsBoxBackground.remove_style_class_name('workspace-thumbnails-fullheight');
+            }
+            this._updateSize();
+        }));
+        this._settings.connect('changed::bottom-margin', Lang.bind(this, function() {
+            // Add or remove addtional style class when workspace is fixed and set to full height
+            if (this._settings.get_boolean('dock-fixed') && this._settings.get_boolean('extend-height') && this._settings.get_double('top-margin') == 0) {
+                this._thumbnailsBoxBackground.add_style_class_name('workspace-thumbnails-fullheight');
+            } else {
+                this._thumbnailsBoxBackground.remove_style_class_name('workspace-thumbnails-fullheight');
+            }
+            this._updateSize();
+        }));
 
         this._settings.connect('changed::toggle-dock-with-keyboard-shortcut', Lang.bind(this, function(){
             if (this._settings.get_boolean('toggle-dock-with-keyboard-shortcut'))

@@ -6,7 +6,9 @@
 #workspacestodockContainer:rtl {
     padding-right: 1px;
 }
-
+.workspace-thumbnails-fullheight {
+    border-radius: 0px;
+}
 .workspacestodock-workspace-caption-container {
     padding: 1px;
 }
