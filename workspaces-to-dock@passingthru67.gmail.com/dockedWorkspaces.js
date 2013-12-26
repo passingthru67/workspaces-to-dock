@@ -1285,7 +1285,7 @@ dockedWorkspaces.prototype = {
         // Initial display of dock .. sets autohideStatus
         if (this._autohideStatus == null) {
             if (this._settings.get_boolean('dock-fixed')) {
-                this._autohideStatus = true;
+                this._autohideStatus = false;
                 this.fadeInDock(this._settings.get_double('animation-time'), 0);
             } else {
                 // Initial animation is out .. intellihide will animate in if its needed
