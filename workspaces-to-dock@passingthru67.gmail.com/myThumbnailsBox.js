@@ -808,6 +808,10 @@ const myThumbnailsBox = new Lang.Class({
         this._mySettings = dock._settings;
         if (this._gsCurrentVersion[1] < 7) {
             this.parent();
+            // Add addtional style class when workspace is fixed and set to full height
+            if (this._mySettings.get_boolean('dock-fixed') && this._mySettings.get_boolean('extend-height') && this._mySettings.get_double('top-margin') == 0) {
+                this._background.add_style_class_name('workspace-thumbnails-fullheight');
+            }
         } else {
             // override GS38 _init to remove create/destroy thumbnails when showing/hiding overview
             this.actor = new Shell.GenericContainer({ reactive: true,
