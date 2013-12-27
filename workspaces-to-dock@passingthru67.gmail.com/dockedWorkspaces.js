@@ -310,9 +310,8 @@ dockedWorkspaces.prototype = {
             // note: fixed dock already on screen and will animate opacity to 255 when fadeInDock is called
             this.actor.set_opacity(255);
         } else {
-            if (this._gsCurrentVersion[1] > 6) {
-                this.actor.set_opacity(255);
-            }
+			// NOTE: animating fixed dock causes issues .. just show without animation
+			this.actor.set_opacity(255);
         }
 
         this._disableRedisplay = false;
@@ -1451,10 +1450,15 @@ dockedWorkspaces.prototype = {
         // Updating size also resets the position of the staticBox (used to detect window overlaps)
         this.staticBox.init_rect(onScreenX, y, this._thumbnailsBox.actor.width + DOCK_PADDING, height);
 
-        // Updating size shouldn't reset the x position of the actor box (used to detect hover)
+        // Updating size shouldn't reset the x position of the dock unless in fixed-position
         // especially if it's in the hidden slid out position
+        if (this._settings.get_boolean('dock-fixed')) {
+            this.actor.set_position(onScreenX, y);
+        } else {
+            this.actor.y = y;
+        }
+
         let width;
-        this.actor.y = y;
         if (this._animStatus.hidden()) {
             if (this._settings.get_boolean('dock-edge-visible')) {
                 width = DOCK_PADDING + DOCK_EDGE_VISIBLE_WIDTH + DOCK_HIDDEN_WIDTH;
