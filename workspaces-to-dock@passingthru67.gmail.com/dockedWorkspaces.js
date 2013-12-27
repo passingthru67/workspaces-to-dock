@@ -1117,18 +1117,12 @@ dockedWorkspaces.prototype = {
         if (this._autohideStatus == false) {
             this._autohideStatus = true;
 
-            Tweener.removeTweens(this.actor);
-            Tweener.addTween(this.actor, {
-                opacity: 0,
-                time: time,
-                delay: delay,
-                transition: 'easeOutQuad',
-                onComplete: Lang.bind(this, function() {
-                    //this.actor.lower_bottom(); // send dock to back of stage allowing messageTray menus to react to clicks
-                    if (nonreactive == true)
-                        global.set_stage_input_mode(Shell.StageInputMode.NONREACTIVE); // clutter stage needs to be nonreactive else meta popup windows (under stage) don't receive hover and click events
-                })
-            });
+            this.actor.opacity = 0;
+
+            // clutter stage needs to be nonreactive else meta popup windows (under stage) don't receive hover and click events
+            if (nonreactive == true)
+                global.set_stage_input_mode(Shell.StageInputMode.NONREACTIVE); 
+
         }
     },
 
@@ -1142,19 +1136,10 @@ dockedWorkspaces.prototype = {
         if (this._autohideStatus == true) {
             this._autohideStatus = false;
 
-            //this.actor.raise_top(); // return dock to front of stage
             if (global.stage_input_mode == Shell.StageInputMode.NONREACTIVE)
                 global.set_stage_input_mode(Shell.StageInputMode.NORMAL); // return stage to normal reactive mode
 
-            Tweener.removeTweens(this.actor);
-            Tweener.addTween(this.actor, {
-                opacity: 255,
-                time: time,
-                delay: delay,
-                transition: 'easeOutQuad',
-                onComplete: Lang.bind(this, function() {
-                })
-            });
+            this.actor.opacity = 255;
         }
     },
 
