@@ -1093,6 +1093,120 @@ const myThumbnailsBox = new Lang.Class({
 
     },
 
+    _getPreferredHeight: function(actor, forWidth, alloc) {
+        // Note that for getPreferredWidth/Height we cheat a bit and skip propagating
+        // the size request to our children because we know how big they are and know
+        // that the actors aren't depending on the virtual functions being called.
+
+        if (this._thumbnails.length == 0)
+            return;
+
+        let themeNode;
+        if (this._gsCurrentVersion[1] < 10 || (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0)) {
+            // See comment about this._background in _init()
+            themeNode = this._background.get_theme_node();
+        } else {
+            themeNode = this.actor.get_theme_node();
+        }
+
+        if (this._gsCurrentVersion[1] < 8) {
+            forWidth = themeNode.adjust_for_width(forWidth);
+        }
+
+        let spacing = themeNode.get_length('spacing');
+
+        // passingthru67 - make room for thumbnail captions
+        let captionBackgroundHeight = 0;
+        if (this._mySettings.get_boolean('workspace-captions')) {
+            captionBackgroundHeight = CAPTION_BACKGROUND_HEIGHT;
+        }
+        spacing = spacing + captionBackgroundHeight;
+
+        let nWorkspaces = global.screen.n_workspaces;
+
+        // passingthru67 - add 5px to totalSpacing calculation
+        // otherwise scale doesn't kick in soon enough and total thumbnails height is greater than height of dock
+        // why is 5px needed? spacing was already adjusted in gnome-shell.css from 7px to 27px (GS36 11px to ?)
+        // does it have anything to do with a border added by St.Bin in WorkspaceThumbnails _background?
+        //let totalSpacing = (nWorkspaces - 1) * spacing;
+        let totalSpacing;
+        if (this._mySettings.get_boolean('workspace-captions')) {
+            totalSpacing = (nWorkspaces - 1) * (spacing + 5);
+        } else {
+            totalSpacing = (nWorkspaces - 1) * spacing;
+        }
+
+        let maxScale;
+        if (this._mySettings.get_boolean('customize-thumbnail')) {
+            maxScale = this._mySettings.get_double('thumbnail-size');
+        } else {
+            maxScale = MAX_THUMBNAIL_SCALE;
+        }
+
+        if (this._gsCurrentVersion[1] < 10 || (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0)) {
+            [alloc.min_size, alloc.natural_size] =
+                themeNode.adjust_preferred_height(totalSpacing,
+                                                  totalSpacing + nWorkspaces * this._porthole.height * maxScale);
+        } else {
+            alloc.min_size = totalSpacing;
+            alloc.natural_size = totalSpacing + nWorkspaces * this._porthole.height * maxScale;
+        }
+    },
+
+    _getPreferredWidth: function(actor, forHeight, alloc) {
+        if (this._thumbnails.length == 0)
+            return;
+
+        let themeNode;
+        if (this._gsCurrentVersion[1] < 10 || (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0)) {
+            // See comment about this._background in _init()
+            themeNode = this._background.get_theme_node();
+        } else {
+            themeNode = this.actor.get_theme_node();
+        }
+
+        let spacing = this.actor.get_theme_node().get_length('spacing');
+
+        // passingthru67 - make room for thumbnail captions
+        let captionBackgroundHeight = 0;
+        if (this._mySettings.get_boolean('workspace-captions')) {
+            captionBackgroundHeight = CAPTION_BACKGROUND_HEIGHT;
+        }
+        spacing = spacing + captionBackgroundHeight;
+
+        let nWorkspaces = global.screen.n_workspaces;
+
+        // passingthru67 - add 5px to totalSpacing calculation
+        // otherwise scale doesn't kick in soon enough and total thumbnails height is greater than height of dock
+        // why is 5px needed? spacing was already adjusted in gnome-shell.css from 7px to 27px (GS36 11px to ?)
+        // does it have anything to do with a border added by St.Bin in WorkspaceThumbnails _background?
+        //let totalSpacing = (nWorkspaces - 1) * spacing;
+        let totalSpacing;
+        if (this._mySettings.get_boolean('workspace-captions')) {
+            totalSpacing = (nWorkspaces - 1) * (spacing + 5);
+        } else {
+            totalSpacing = (nWorkspaces - 1) * spacing;
+        }
+
+        let avail = forHeight - totalSpacing;
+
+        let scale = (avail / nWorkspaces) / this._porthole.height;
+        if (this._mySettings.get_boolean('customize-thumbnail')) {
+            scale = Math.min(scale, this._mySettings.get_double('thumbnail-size'));
+        } else {
+            scale = Math.min(scale, MAX_THUMBNAIL_SCALE);
+        }
+
+        let width = Math.round(this._porthole.width * scale);
+        if (this._gsCurrentVersion[1] < 10 || (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0)) {
+            [alloc.min_size, alloc.natural_size] =
+                themeNode.adjust_preferred_width(width, width);
+        } else {
+            alloc.min_size = width;
+            alloc.natural_size = width;
+        }
+    },
+
     // override _allocate to provide area for workspaceThumbnail captions
     // also serves to update caption items
     _allocate: function(actor, box, flags) {
@@ -1138,7 +1252,12 @@ const myThumbnailsBox = new Lang.Class({
         // why is 5px needed? spacing was already adjusted in gnome-shell.css from 7px to 27px (GS36 11px to ?)
         // does it have anything to do with a border added by St.Bin in WorkspaceThumbnails _background?
         //let totalSpacing = (nWorkspaces - 1) * spacing;
-        let totalSpacing = (nWorkspaces - 1) * (spacing + 5);
+        let totalSpacing;
+        if (this._mySettings.get_boolean('workspace-captions')) {
+            totalSpacing = (nWorkspaces - 1) * (spacing + 5);
+        } else {
+            totalSpacing = (nWorkspaces - 1) * spacing;
+        }
 
         let avail;
         if (this._gsCurrentVersion[1] < 10 || (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0)) {

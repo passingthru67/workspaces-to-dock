@@ -1396,13 +1396,6 @@ dockedWorkspaces.prototype = {
     // update the dock size
     _updateSize: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _updateSize");
-        // Sometimes thumbnailsBox actor is wider than thumbnailsBox background
-        // This happens when thumbnail count grows and thumbnails have to be resized
-        // Manually set thumbnailsBox actor width equal to background width so there's no gap
-        if (this._gsCurrentVersion[1] < 10 || (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0)) {
-            this._thumbnailsBox.actor.width = this._thumbnailsBoxBackground.width;
-        }
-
         // check if the dock is on the primary monitor
         let primary = false;
         if (this._monitor.x == Main.layoutManager.primaryMonitor.x && this._monitor.y == Main.layoutManager.primaryMonitor.y)
