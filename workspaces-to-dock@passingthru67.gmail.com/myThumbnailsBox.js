@@ -199,6 +199,7 @@ const myWorkspaceThumbnail = new Lang.Class({
         this._wsWindowApps = [];
         this._wsWindowAppsBox = null;
         this._windowAppsMenuListBox = null;
+        this._windowAppsRealizeId = 0;
 
         this._afterWindowAddedId = this.metaWorkspace.connect_after('window-added',
                                                           Lang.bind(this, this._onAfterWindowAdded));
@@ -212,7 +213,7 @@ const myWorkspaceThumbnail = new Lang.Class({
         this._menuManager = new PopupMenu.PopupMenuManager(this);
 
         this._initCaption();
-        this.actor.connect("realize", Lang.bind(this, this._initWindowApps));
+        this._windowAppsRealizeId = this.actor.connect("realize", Lang.bind(this, this._initWindowApps));
     },
 
     _onDestroy: function(actor) {
@@ -402,6 +403,13 @@ const myWorkspaceThumbnail = new Lang.Class({
     // function initializes the window app icons for the caption taskbar
     _initWindowApps: function() {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps");
+        if(this._windowAppsRealizeId > 0){
+            this.actor.disconnect(this._windowAppsRealizeId);
+            this._windowAppsRealizeId = 0;
+        } else {
+            return;
+        }
+
         // Create initial buttons for windows on workspace
         let windows = global.get_window_actors();
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps - window count = "+windows.length);

@@ -569,13 +569,11 @@ dockedWorkspaces.prototype = {
                 this.emit('box-changed');
             }
 
-            // hide and show thumbnailsBox to reset workspace apps in caption
-            if (this._gsCurrentVersion[1] < 8) {
-                this._thumbnailsBox.hide();
-                this._thumbnailsBox.show();
+            // Add or remove addtional style class when workspace is fixed and set to full height
+            if (this._settings.get_boolean('dock-fixed') && this._settings.get_boolean('extend-height') && this._settings.get_double('top-margin') == 0) {
+                this._thumbnailsBoxBackground.add_style_class_name('workspace-thumbnails-fullheight');
             } else {
-                this._thumbnailsBox._destroyThumbnails();
-                this._thumbnailsBox._createThumbnails();
+                this._thumbnailsBoxBackground.remove_style_class_name('workspace-thumbnails-fullheight');
             }
         }));
 
