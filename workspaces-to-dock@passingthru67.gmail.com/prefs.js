@@ -596,7 +596,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
 
         let topMarginSpinner = new Gtk.SpinButton();
-        topMarginSpinner.set_range(0, 15);
+        topMarginSpinner.set_range(0, 25);
         topMarginSpinner.set_value(this.settings.get_double('top-margin') * 100);
         topMarginSpinner.set_digits(1);
         topMarginSpinner.set_increments(.5, 1);
@@ -619,7 +619,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
 
         let bottomMarginSpinner = new Gtk.SpinButton();
-        bottomMarginSpinner.set_range(0, 15);
+        bottomMarginSpinner.set_range(0, 25);
         bottomMarginSpinner.set_value(this.settings.get_double('bottom-margin') * 100);
         bottomMarginSpinner.set_digits(1);
         bottomMarginSpinner.set_increments(.5, 1);
