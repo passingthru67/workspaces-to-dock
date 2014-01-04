@@ -770,13 +770,7 @@ intellihide.prototype = {
     _show: function() {
         if (this._settings.get_boolean('dock-fixed')) {
             if (_DEBUG_) global.log("intellihide: _show - fadeInDock");
-            if (this.status == null) {
-                // do slow fade in when first showing dock
-                this._dock.fadeInDock(this._settings.get_double('animation-time'), 0);
-            } else {
-                // do a quick fade in afterward .. don't know why but slow animation sometimes leaves the fixed dock barely visible
-                this._dock.fadeInDock(.05, 0);
-            }
+            this._dock.fadeInDock(0, 0);
         } else {
             if (_DEBUG_) global.log("intellihide: _show - disableAutoHide");
             this._dock.disableAutoHide();
@@ -791,9 +785,10 @@ intellihide.prototype = {
             if (_DEBUG_) global.log("intellihide: _hide - fadeOutDock");
             if (nonreactive) {
                 // hide and make stage nonreactive so meta popup windows receive hover and clicks
-                this._dock.fadeOutDock(this._settings.get_double('animation-time'), 0, true);
+                this._dock.fadeOutDock(0, 0, true);
             } else {
-                this._dock.fadeOutDock(this._settings.get_double('animation-time'), 0, false);
+                // panel or messagetray initiated this hide .. still reactive
+                this._dock.fadeOutDock(0, 0, false);
             }
         } else {
             if (_DEBUG_) global.log("intellihide: _hide - enableAutoHide");
