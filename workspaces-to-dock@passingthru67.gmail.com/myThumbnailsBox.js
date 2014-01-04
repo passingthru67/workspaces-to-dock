@@ -793,6 +793,16 @@ const myWorkspaceThumbnail = new Lang.Class({
                 }
             }
         }
+    },
+
+    setWindowClonesReactiveState: function (state) {
+        if (state == null)
+            return;
+            
+        for (let i = 0; i < this._windows.length; i++) {
+            let clone = this._windows[i];
+            clone.actor.reactive = state;
+        }
     }
 
 });
