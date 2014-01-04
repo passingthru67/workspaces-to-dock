@@ -903,6 +903,10 @@ dockedWorkspaces.prototype = {
     // Switches workspace by scrolling over the dock
     // This comes from desktop-scroller@obsidien.github.com
     _onScrollEvent: function (actor, event) {
+        if (_DEBUG_) global.log("dockedWorkspaces: _onScrollEvent autohideStatus = "+this._autohideStatus+" animHidden = "+this._animStatus.hidden()+" animHiding = "+this._animStatus.hiding());
+        if (this._settings.get_boolean('disable-scroll') && this._autohideStatus && (this._animStatus.hidden() || this._animStatus.hiding()))
+            return true;
+
         if (event.get_scroll_direction() == Clutter.ScrollDirection.UP) {
             if (this._gsCurrentVersion[1] == 4) {
                 Main.wm.actionMoveWorkspaceUp();

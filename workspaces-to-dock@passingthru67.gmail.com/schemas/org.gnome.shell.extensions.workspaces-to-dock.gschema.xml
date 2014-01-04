@@ -46,6 +46,11 @@
       <summary>Leave dock edge visible when slid out</summary>
       <description>Enable or disable leaving dock edge visible when slid out</description>
     </key>
+    <key type="b" name="disable-scroll">
+      <default>false</default>
+      <summary>Disable scroll to prevent workspace switching when dock is slid out</summary>
+      <description>Disable scroll to prevent workspace switching when dock is slid out.</description>
+    </key>
     <key type="b" name="require-click-to-show">
       <default>false</default>
       <summary>Dock requires hover+click to show when window is maximized</summary>

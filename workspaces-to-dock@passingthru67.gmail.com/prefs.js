@@ -172,6 +172,16 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             this.settings.set_boolean('dock-edge-visible', check.get_active());
         }));
 
+        let disableScrollButton = new Gtk.CheckButton({
+            label: _("Disable scroll to prevent workspace switching when slid out"),
+            margin_left: 0,
+            margin_top: 0
+        });
+        disableScrollButton.set_active(this.settings.get_boolean('disable-scroll'));
+        disableScrollButton.connect('toggled', Lang.bind(this, function(check) {
+            this.settings.set_boolean('disable-scroll', check.get_active());
+        }));
+
         /* Add to layout */
         let timingGrid = new Gtk.Grid({
             row_homogeneous: false,
@@ -185,6 +195,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         timingGrid.attach(hideDelayLabel, 0, 2, 1, 1);
         timingGrid.attach(hideDelaySpinner, 1, 2, 1, 1);
         timingGrid.attach(leaveVisibleButton, 0, 3, 2, 1);
+        timingGrid.attach(disableScrollButton, 0, 4, 2, 1);
         visibilityContainerBox.add(timingGrid);
 
 
