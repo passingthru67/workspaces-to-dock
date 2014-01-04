@@ -513,15 +513,6 @@ intellihide.prototype = {
         if (_DEBUG_) global.log("intellihide: _onItemDragBegin");
         Main.overview.show();
         this._toggledOverviewOnDrag = true;
-        // TODO:
-        // commented below code because GS38 doesn't switch overview back to workspaces page when item is dragged.
-        // Possibly a bug in GS38 or possibly by design. Workspaces dock currently forced to show overtop scrollbar
-        // in GS38's all-app display overview mode.
-        //if (this._gsCurrentVersion[1] < 6) {
-            //if (Main.overview._viewSelector._activeTab.id == "windows") this._show();
-        //} else {
-            //if (Main.overview._viewSelector._activePage == Main.overview._viewSelector._workspacesPage) this._show();
-        //}
         this._show();
     },
 
@@ -530,7 +521,18 @@ intellihide.prototype = {
         if (_DEBUG_) global.log("intellihide: _onItemDragCancelled");
         if (this._toggledOverviewOnDrag) {
             this._toggledOverviewOnDrag = false;
-            Main.overview.hide();
+
+            // Should we hide the dock?
+            // GS34-36 switches overview mode to workspaces when item is dragged, therefore we don't want to hide dock.
+            // GS38+ remains in same overview mode, therefore we need to detect mode to determine if we should hide dock.
+            let viewSelector = this._gsCurrentVersion[1] < 10 ? Main.overview._viewSelector : Main.overview.viewSelector;
+            if (this._inOverview) {
+                if (this._gsCurrentVersion[1] < 6) {
+                    if (viewSelector._activeTab.id != "windows") this._hide();
+                } else {
+                    if (viewSelector._activePage != viewSelector._workspacesPage) this._hide();
+                }
+            }
         }
     },
 
@@ -539,7 +541,18 @@ intellihide.prototype = {
         if (_DEBUG_) global.log("intellihide: _onWindowDragEnd");
         if (this._toggledOverviewOnDrag) {
             this._toggledOverviewOnDrag = false;
-            Main.overview.hide();
+
+            // Should we hide the dock?
+            // GS34-36 switches overview mode to workspaces when item is dragged, therefore we don't want to hide dock.
+            // GS38+ remains in same overview mode, therefore we need to detect mode to determine if we should hide dock.
+            let viewSelector = this._gsCurrentVersion[1] < 10 ? Main.overview._viewSelector : Main.overview.viewSelector;
+            if (this._inOverview) {
+                if (this._gsCurrentVersion[1] < 6) {
+                    if (viewSelector._activeTab.id != "windows") this._hide();
+                } else {
+                    if (viewSelector._activePage != viewSelector._workspacesPage) this._hide();
+                }
+            }
         }
     },
 
