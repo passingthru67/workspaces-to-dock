@@ -827,7 +827,7 @@ intellihide.prototype = {
                         //let wtype = win.get_window_type();
                         //let wfocus = win.has_focus();
                         //let wapp = this._tracker.get_window_app(win);
-                        //let msg = wclass + " [" + wtype + "] focused? " + wfocus + " app? " + wapp;
+                        //let msg = wclass + " [" + wtype + "] focused? " + wfocus + " wintype? " + wtype + " app? " + wapp;
                         //global.log(msg);
                     //}
                     //global.log("---------------------------------------------------------------");
