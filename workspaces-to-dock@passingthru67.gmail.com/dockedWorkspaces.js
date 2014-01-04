@@ -303,17 +303,9 @@ dockedWorkspaces.prototype = {
             this._thumbnailsBox._createThumbnails();
         }
 
-        // Set initial position
+        // Set initial position and opacity
         this._resetPosition();
-
-        if (!this._settings.get_boolean('dock-fixed')) {
-            // Show the non-fixed dock (off screen from resetPosition)
-            // note: fixed dock already on screen and will animate opacity to 255 when fadeInDock is called
-            this.actor.set_opacity(255);
-        } else {
-			// NOTE: animating fixed dock causes issues .. just show without animation
-			this.actor.set_opacity(255);
-        }
+        this.actor.set_opacity(255);
 
         this._disableRedisplay = false;
         if (_DEBUG_) global.log("dockedWorkspaces: initialize - turn on redisplay");
