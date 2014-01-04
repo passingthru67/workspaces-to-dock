@@ -276,10 +276,11 @@ dockedWorkspaces.prototype = {
 
         // TODO: can we lower this.actor in gnome shell without causing problems?
         // gs3.4 problem - dock immediately hides when workspace is switched even when mouse is hovering
-        // Lower the dock below the trayBox so that messageTray popups can receive focus & clicks
-        if (this._gsCurrentVersion[1] > 4)
-            this.actor.lower(Main.layoutManager.trayBox);
-
+        // Lower the dock below the screenShieldGroup so that panel and messageTray popups can receive focus & clicks
+        if (this._gsCurrentVersion[1] > 4) {
+            if (Main.layoutManager.uiGroup.contains(Main.layoutManager.screenShieldGroup))
+                Main.layoutManager.uiGroup.set_child_below_sibling(this.actor, Main.layoutManager.screenShieldGroup);
+        }
     },
 
     _initialize: function() {
@@ -553,9 +554,11 @@ dockedWorkspaces.prototype = {
 
             // TODO: can we lower this.actor in gnome shell without causing problems?
             // gs3.4 problem - dock immediately hides when workspace is switched even when mouse is hovering
-            // Lower the dock below the trayBox so that messageTray popups can receive focus & clicks
-            if (this._gsCurrentVersion[1] > 4)
-                this.actor.lower(Main.layoutManager.trayBox);
+            // Lower the dock below the screenShieldGroup so that panel and messageTray popups can receive focus & clicks
+            if (this._gsCurrentVersion[1] > 4) {
+                if (Main.layoutManager.uiGroup.contains(Main.layoutManager.screenShieldGroup))
+                    Main.layoutManager.uiGroup.set_child_below_sibling(this.actor, Main.layoutManager.screenShieldGroup);
+            }
 
             // Add or remove barrier depending on if dock-fixed
             this._updateBarrier();
