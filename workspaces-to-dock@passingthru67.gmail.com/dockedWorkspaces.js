@@ -1124,18 +1124,34 @@ dockedWorkspaces.prototype = {
     // position but overlapped by gnome panel menus or meta popup windows
     fadeOutDock: function(time, delay, nonreactive) {
         if (_DEBUG_) global.log("dockedWorkspaces: fadeOutDock");
-        if (this._gsCurrentVersion[1] > 6)
-            return;
+        if (nonreactive) {
+            this.actor.opacity = 150;
+        } else {
+            let inOverview;
+            if (this._gsCurrentVersion[1] < 8)
+                inOverview = Main.layoutManager._chrome._inOverview;
+            else
+                inOverview = Main.layoutManager._inOverview;
 
-        if (this._autohideStatus == false) {
-            this._autohideStatus = true;
+            if (inOverview)
+                this.actor.opacity = 0;
+            else
+                this.actor.opacity = 150;
+        }
 
-            this.actor.opacity = 0;
+        // Make dock non-reactive
+        this.actor.reactive = false;
+        this._thumbnailsBox.actor.reactive = false;
+        for (let i = 0; i < this._thumbnailsBox._thumbnails.length; i++) {
+            let thumbnail = this._thumbnailsBox._thumbnails[i];
+            thumbnail.setWindowClonesReactiveState(false);
+        }
 
-            // clutter stage needs to be nonreactive else meta popup windows (under stage) don't receive hover and click events
-            if (nonreactive == true)
-                global.set_stage_input_mode(Shell.StageInputMode.NONREACTIVE); 
-
+        // GS34-GS36 clutter stage needs to be nonreactive else meta popup windows (under stage)
+        // don't receive hover and click events
+        if (this._gsCurrentVersion[1] < 8) {
+            if (nonreactive || inOverview)
+                global.set_stage_input_mode(Shell.StageInputMode.NONREACTIVE);
         }
     },
 
@@ -1143,16 +1159,20 @@ dockedWorkspaces.prototype = {
     // position but overlapped by gnome panel menus or meta popup windows
     fadeInDock: function(time, delay) {
         if (_DEBUG_) global.log("dockedWorkspaces: fadeInDock");
-        if (this._gsCurrentVersion[1] > 6)
-            return;
+        this.actor.opacity = 255;
 
-        if (this._autohideStatus == true) {
-            this._autohideStatus = false;
+        // Return dock to reactive state
+        this.actor.reactive = true;
+        this._thumbnailsBox.actor.reactive = true;
+        for (let i = 0; i < this._thumbnailsBox._thumbnails.length; i++) {
+            let thumbnail = this._thumbnailsBox._thumbnails[i];
+            thumbnail.setWindowClonesReactiveState(true);
+        }
 
+        // GS34-GS36 return stage to normal reactive mode
+        if (this._gsCurrentVersion[1] < 8) {
             if (global.stage_input_mode == Shell.StageInputMode.NONREACTIVE)
-                global.set_stage_input_mode(Shell.StageInputMode.NORMAL); // return stage to normal reactive mode
-
-            this.actor.opacity = 255;
+                global.set_stage_input_mode(Shell.StageInputMode.NORMAL);
         }
     },
 
