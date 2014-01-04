@@ -496,25 +496,16 @@ intellihide.prototype = {
     _onWindowDragBegin: function() {
         if (_DEBUG_) global.log("intellihide: _onWindowDragBegin");
         Main.overview.show();
-        this._toggledOverviewOnDrag = true;
     },
 
     // handler for when thumbnail windows dragging cancelled
     _onWindowDragCancelled: function() {
         if (_DEBUG_) global.log("intellihide: _onWindowDragCancelled");
-        if (this._toggledOverviewOnDrag) {
-            this._toggledOverviewOnDrag = false;
-            Main.overview.hide();
-        }
     },
 
     // handler for when thumbnail windows dragging ended
     _onWindowDragEnd: function() {
         if (_DEBUG_) global.log("intellihide: _onWindowDragEnd");
-        if (this._toggledOverviewOnDrag) {
-            this._toggledOverviewOnDrag = false;
-            Main.overview.hide();
-        }
     },
 
     // handler for when app icon dragging started
