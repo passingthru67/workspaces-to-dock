@@ -264,13 +264,22 @@ dockedWorkspaces.prototype = {
         this.actor.add_actor(this._thumbnailsBox.actor);
 
         if (this._gsCurrentVersion[1] < 10) {
-            Main.layoutManager.addChrome(this.actor, {
-                affectsStruts: this._settings.get_boolean('dock-fixed'),
-                affectsInputRegion: true
-            });
+            if (this._gsCurrentVersion[1] < 6) {
+                Main.layoutManager.addChrome(this.actor, {
+                    affectsStruts: this._settings.get_boolean('dock-fixed'),
+                    affectsInputRegion: true
+                });
+            } else {
+                Main.layoutManager.addChrome(this.actor, {
+                    affectsStruts: this._settings.get_boolean('dock-fixed'),
+                    affectsInputRegion: true,
+                    trackFullscreen: true
+                });
+            }
         } else {
             Main.layoutManager.addChrome(this.actor, {
-                affectsStruts: this._settings.get_boolean('dock-fixed')
+                affectsStruts: this._settings.get_boolean('dock-fixed'),
+                trackFullscreen: true
             });
         }
 
@@ -534,13 +543,22 @@ dockedWorkspaces.prototype = {
             if (_DEBUG_) global.log("dockedWorkspaces: _bindSettingsChanges for dock-fixed");
             Main.layoutManager.removeChrome(this.actor);
             if (this._gsCurrentVersion[1] < 10) {
-                Main.layoutManager.addChrome(this.actor, {
-                    affectsStruts: this._settings.get_boolean('dock-fixed'),
-                    affectsInputRegion: true
-                });
+                if (this._gsCurrentVersion[1] < 6) {
+                    Main.layoutManager.addChrome(this.actor, {
+                        affectsStruts: this._settings.get_boolean('dock-fixed'),
+                        affectsInputRegion: true
+                    });
+                } else {
+                    Main.layoutManager.addChrome(this.actor, {
+                        affectsStruts: this._settings.get_boolean('dock-fixed'),
+                        affectsInputRegion: true,
+                        trackFullscreen: true
+                    });
+                }
             } else {
                 Main.layoutManager.addChrome(this.actor, {
-                    affectsStruts: this._settings.get_boolean('dock-fixed')
+                    affectsStruts: this._settings.get_boolean('dock-fixed'),
+                    trackFullscreen: true
                 });
             }
 
