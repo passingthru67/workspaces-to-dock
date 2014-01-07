@@ -183,6 +183,11 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
+**version 16 (Jan 7, 2014)**
+
+- Option to disable mouse scroll when dock is hidden (feature)
+- Bug fixes
+
 **version 15 (Oct 20, 2013)**
 
 - Support for Gnome Shell 3.10.1
