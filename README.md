@@ -41,6 +41,8 @@ Behavior Settings:
 
     **Leave the dock edge visible when slid out** - Option to leave the dock edge visible when in the slid out or hidden state. This option makes the dock more easily accessible in dual monitor configurations where the second monitor is to the right.
 
+    **Disable scroll to prevent workspace switching when slid out** - Option to disable mouse scrolling to prevent accidentally switching workspaces when the dock is hidden.
+    
     **Autohide : Show the dock on mouse hover** - When enabled, the dock shows when the mouse touches the right edge of screen. When disabled, the dock remains hidden unless the intellihide option is on or overview mode is entered.
 
     **Require click to show the dock when window maximized** - Require a mouse click (in addition to hovering) to show the dock when the focused window is maximized. This option helps eliminate accidentally triggering the dock when using vertical scroll bars on maximized windows.
