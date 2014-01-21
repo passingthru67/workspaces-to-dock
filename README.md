@@ -85,9 +85,9 @@ Appearance Settings:
 
     **Extend the height of the dock to fill the screen** - Option to extend the height of the dock to fill the screen.
 
-    **Top margin** - Allows setting a top margin for the extended dock. The range allowed is 0% to 15% of the screen height.
+    **Top margin** - Allows setting a top margin for the extended dock. The range allowed is 0% to 25% of the screen height.
 
-    **Bottom margin** - Allows setting a bottom margin for the extended dock. The range allowed is 0% to 15% of the screen height.
+    **Bottom margin** - Allows setting a bottom margin for the extended dock. The range allowed is 0% to 25% of the screen height.
 
 - **Thumbnails:**
 
@@ -183,7 +183,7 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
-**version 16 (Jan 7, 2014)**
+**version 16 (Jan 20, 2014)**
 
 - Option to disable mouse scroll when dock is hidden (feature)
 - Bug fixes
