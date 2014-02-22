@@ -287,8 +287,8 @@ dockedWorkspaces.prototype = {
         // gs3.4 problem - dock immediately hides when workspace is switched even when mouse is hovering
         // Lower the dock below the screenShieldGroup so that panel and messageTray popups can receive focus & clicks
         if (this._gsCurrentVersion[1] > 4) {
-            if (Main.layoutManager.uiGroup.contains(Main.layoutManager.screenShieldGroup))
-                Main.layoutManager.uiGroup.set_child_below_sibling(this.actor, Main.layoutManager.screenShieldGroup);
+            if (Main.uiGroup.contains(Main.layoutManager.screenShieldGroup))
+                Main.uiGroup.set_child_below_sibling(this.actor, Main.layoutManager.screenShieldGroup);
         }
     },
 
@@ -566,8 +566,8 @@ dockedWorkspaces.prototype = {
             // gs3.4 problem - dock immediately hides when workspace is switched even when mouse is hovering
             // Lower the dock below the screenShieldGroup so that panel and messageTray popups can receive focus & clicks
             if (this._gsCurrentVersion[1] > 4) {
-                if (Main.layoutManager.uiGroup.contains(Main.layoutManager.screenShieldGroup))
-                    Main.layoutManager.uiGroup.set_child_below_sibling(this.actor, Main.layoutManager.screenShieldGroup);
+                if (Main.uiGroup.contains(Main.layoutManager.screenShieldGroup))
+                    Main.uiGroup.set_child_below_sibling(this.actor, Main.layoutManager.screenShieldGroup);
             }
 
             // Add or remove barrier depending on if dock-fixed
