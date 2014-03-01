@@ -32,8 +32,6 @@ function loadStylesheet() {
     if (_DEBUG_) global.log("WorkspacesToDock: _loadStylesheet");
     // Get css filename
     let filename = "workspaces-to-dock.css";
-    if (GSVersion[1] < 6)
-        filename = "workspaces-to-dock-gs34.css";
 
     // Get current theme stylesheet
     let themeStylesheet = Main._defaultCssStylesheet;
