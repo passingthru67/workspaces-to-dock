@@ -96,9 +96,6 @@ const WindowAppIcon = new Lang.Class({
         }
 
         this.actor = new St.Button({style_class:'workspacestodock-caption-windowapps-button'});
-        //if (this._gsCurrentVersion[1] > 4) {
-            //this.actor.add_style_class_name('app-well-app');
-        //}
         this.actor.set_child(this._icon.actor);
         this.actor._delegate = this;
 
@@ -150,20 +147,16 @@ const WindowAppMenuItem = new Lang.Class({
         //this._closeIcon = new St.Icon({ icon_name: 'window-close-symbolic', style_class: 'popup-menu-icon' });
 
         this._closeButton = new St.Button({style_class:'workspacestodock-caption-windowapps-menu-close'});
-        if (thumbnail._gsCurrentVersion[1] > 4) {
-            this._closeButton.add_style_class_name('window-close');
-        }
+        this._closeButton.add_style_class_name('window-close');
         //this._closeButton.set_size(CAPTION_APP_ICON_MENU_SIZE, CAPTION_APP_ICON_MENU_SIZE);
         //this._closeButton.set_child(this._closeIcon);
 
         this.actor = new St.BoxLayout({reactive: true, style_class: 'popup-menu-item workspacestodock-caption-windowapps-menu-item'});
         this.actor._delegate = this;
 
-        if (this._gsCurrentVersion[1] > 8) {
-            this._ornament = 0;
-            this._ornamentLabel = new St.Label({ style_class: 'popup-menu-ornament' });
-            this.actor.add(this._ornamentLabel);
-        }
+        this._ornament = 0;
+        this._ornamentLabel = new St.Label({ style_class: 'popup-menu-ornament' });
+        this.actor.add(this._ornamentLabel);
         this.actor.add(this._buttonBox, {x_fill: false, y_fill: false, x_align: St.Align.START, y_align: St.Align.MIDDLE, expand: true});
         this.actor.add(this._closeButton, {x_fill: true, y_fill: true, x_align: St.Align.END, y_align: St.Align.MIDDLE});
 
@@ -816,103 +809,96 @@ const myThumbnailsBox = new Lang.Class({
         this._dock = dock;
         this._gsCurrentVersion = dock._gsCurrentVersion;
         this._mySettings = dock._settings;
-        if (this._gsCurrentVersion[1] < 7) {
-            this.parent();
+
+        // override _init to remove create/destroy thumbnails when showing/hiding overview
+        this.actor = new Shell.GenericContainer({ reactive: true,
+                                                  style_class: 'workspace-thumbnails',
+                                                  request_mode: Clutter.RequestMode.WIDTH_FOR_HEIGHT });
+        this.actor.connect('get-preferred-width', Lang.bind(this, this._getPreferredWidth));
+        this.actor.connect('get-preferred-height', Lang.bind(this, this._getPreferredHeight));
+        this.actor.connect('allocate', Lang.bind(this, this._allocate));
+        this.actor._delegate = this;
+
+        if (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0) {
+            // When we animate the scale, we don't animate the requested size of the thumbnails, rather
+            // we ask for our final size and then animate within that size. This slightly simplifies the
+            // interaction with the main workspace windows (instead of constantly reallocating them
+            // to a new size, they get a new size once, then use the standard window animation code
+            // allocate the windows to their new positions), however it causes problems for drawing
+            // the background and border wrapped around the thumbnail as we animate - we can't just pack
+            // the container into a box and set style properties on the box since that box would wrap
+            // around the final size not the animating size. So instead we fake the background with
+            // an actor underneath the content and adjust the allocation of our children to leave space
+            // for the border and padding of the background actor.
+            this._background = new St.Bin({ style_class: 'workspace-thumbnails-background' });
+
+            this.actor.add_actor(this._background);
+
             // Add addtional style class when workspace is fixed and set to full height
             if (this._mySettings.get_boolean('dock-fixed') && this._mySettings.get_boolean('extend-height') && this._mySettings.get_double('top-margin') == 0) {
                 this._background.add_style_class_name('workspace-thumbnails-fullheight');
             }
         } else {
-            // override GS38 _init to remove create/destroy thumbnails when showing/hiding overview
-            this.actor = new Shell.GenericContainer({ reactive: true,
-                                                      style_class: 'workspace-thumbnails',
-                                                      request_mode: Clutter.RequestMode.WIDTH_FOR_HEIGHT });
-            this.actor.connect('get-preferred-width', Lang.bind(this, this._getPreferredWidth));
-            this.actor.connect('get-preferred-height', Lang.bind(this, this._getPreferredHeight));
-            this.actor.connect('allocate', Lang.bind(this, this._allocate));
-            this.actor._delegate = this;
-
-            if (this._gsCurrentVersion[1] < 10 || (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0)) {
-                // When we animate the scale, we don't animate the requested size of the thumbnails, rather
-                // we ask for our final size and then animate within that size. This slightly simplifies the
-                // interaction with the main workspace windows (instead of constantly reallocating them
-                // to a new size, they get a new size once, then use the standard window animation code
-                // allocate the windows to their new positions), however it causes problems for drawing
-                // the background and border wrapped around the thumbnail as we animate - we can't just pack
-                // the container into a box and set style properties on the box since that box would wrap
-                // around the final size not the animating size. So instead we fake the background with
-                // an actor underneath the content and adjust the allocation of our children to leave space
-                // for the border and padding of the background actor.
-                this._background = new St.Bin({ style_class: 'workspace-thumbnails-background' });
-
-                this.actor.add_actor(this._background);
-
-                // Add addtional style class when workspace is fixed and set to full height
-                if (this._mySettings.get_boolean('dock-fixed') && this._mySettings.get_boolean('extend-height') && this._mySettings.get_double('top-margin') == 0) {
-                    this._background.add_style_class_name('workspace-thumbnails-fullheight');
-                }
-            } else {
-                // Add addtional style class when workspace is fixed and set to full height
-                if (this._mySettings.get_boolean('dock-fixed') && this._mySettings.get_boolean('extend-height') && this._mySettings.get_double('top-margin') == 0) {
-                    this.actor.add_style_class_name('workspace-thumbnails-fullheight');
-                }
+            // Add addtional style class when workspace is fixed and set to full height
+            if (this._mySettings.get_boolean('dock-fixed') && this._mySettings.get_boolean('extend-height') && this._mySettings.get_double('top-margin') == 0) {
+                this.actor.add_style_class_name('workspace-thumbnails-fullheight');
             }
-
-            let indicator = new St.Bin({ style_class: 'workspace-thumbnail-indicator' });
-
-            // We don't want the indicator to affect drag-and-drop
-            Shell.util_set_hidden_from_pick(indicator, true);
-
-            this._indicator = indicator;
-            this.actor.add_actor(indicator);
-
-            this._dropWorkspace = -1;
-            this._dropPlaceholderPos = -1;
-            this._dropPlaceholder = new St.Bin({ style_class: 'placeholder' });
-            this.actor.add_actor(this._dropPlaceholder);
-            this._spliceIndex = -1;
-
-            this._targetScale = 0;
-            this._scale = 0;
-            this._pendingScaleUpdate = false;
-            this._stateUpdateQueued = false;
-            this._animatingIndicator = false;
-            this._indicatorY = 0; // only used when _animatingIndicator is true
-
-            this._stateCounts = {};
-            for (let key in ThumbnailState)
-                this._stateCounts[ThumbnailState[key]] = 0;
-
-            this._thumbnails = [];
-
-            this.actor.connect('button-press-event', function() { return true; });
-            this.actor.connect('button-release-event', Lang.bind(this, this._onButtonRelease));
-
-            //Main.overview.connect('showing',
-            //                      Lang.bind(this, this._createThumbnails));
-            //Main.overview.connect('hidden',
-            //                      Lang.bind(this, this._destroyThumbnails));
-
-            Main.overview.connect('item-drag-begin',
-                                  Lang.bind(this, this._onDragBegin));
-            Main.overview.connect('item-drag-end',
-                                  Lang.bind(this, this._onDragEnd));
-            Main.overview.connect('item-drag-cancelled',
-                                  Lang.bind(this, this._onDragCancelled));
-            Main.overview.connect('window-drag-begin',
-                                  Lang.bind(this, this._onDragBegin));
-            Main.overview.connect('window-drag-end',
-                                  Lang.bind(this, this._onDragEnd));
-            Main.overview.connect('window-drag-cancelled',
-                                  Lang.bind(this, this._onDragCancelled));
-
-            this._settings = new Gio.Settings({ schema: OVERRIDE_SCHEMA });
-            this._settings.connect('changed::dynamic-workspaces',
-                Lang.bind(this, this._updateSwitcherVisibility));
         }
+
+        let indicator = new St.Bin({ style_class: 'workspace-thumbnail-indicator' });
+
+        // We don't want the indicator to affect drag-and-drop
+        Shell.util_set_hidden_from_pick(indicator, true);
+
+        this._indicator = indicator;
+        this.actor.add_actor(indicator);
+
+        this._dropWorkspace = -1;
+        this._dropPlaceholderPos = -1;
+        this._dropPlaceholder = new St.Bin({ style_class: 'placeholder' });
+        this.actor.add_actor(this._dropPlaceholder);
+        this._spliceIndex = -1;
+
+        this._targetScale = 0;
+        this._scale = 0;
+        this._pendingScaleUpdate = false;
+        this._stateUpdateQueued = false;
+        this._animatingIndicator = false;
+        this._indicatorY = 0; // only used when _animatingIndicator is true
+
+        this._stateCounts = {};
+        for (let key in ThumbnailState)
+            this._stateCounts[ThumbnailState[key]] = 0;
+
+        this._thumbnails = [];
+
+        this.actor.connect('button-press-event', function() { return true; });
+        this.actor.connect('button-release-event', Lang.bind(this, this._onButtonRelease));
+
+        //Main.overview.connect('showing',
+        //                      Lang.bind(this, this._createThumbnails));
+        //Main.overview.connect('hidden',
+        //                      Lang.bind(this, this._destroyThumbnails));
+
+        Main.overview.connect('item-drag-begin',
+                              Lang.bind(this, this._onDragBegin));
+        Main.overview.connect('item-drag-end',
+                              Lang.bind(this, this._onDragEnd));
+        Main.overview.connect('item-drag-cancelled',
+                              Lang.bind(this, this._onDragCancelled));
+        Main.overview.connect('window-drag-begin',
+                              Lang.bind(this, this._onDragBegin));
+        Main.overview.connect('window-drag-end',
+                              Lang.bind(this, this._onDragEnd));
+        Main.overview.connect('window-drag-cancelled',
+                              Lang.bind(this, this._onDragCancelled));
+
+        this._settings = new Gio.Settings({ schema: OVERRIDE_SCHEMA });
+        this._settings.connect('changed::dynamic-workspaces',
+            Lang.bind(this, this._updateSwitcherVisibility));
     },
 
-    // override GS38 _createThumbnails to remove global n-workspaces notification
+    // override _createThumbnails to remove global n-workspaces notification
     _createThumbnails: function() {
         if (_DEBUG_) global.log("mythumbnailsBox: _createThumbnails");
         this._switchWorkspaceNotifyId =
@@ -1124,15 +1110,11 @@ const myThumbnailsBox = new Lang.Class({
             return;
 
         let themeNode;
-        if (this._gsCurrentVersion[1] < 10 || (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0)) {
+        if (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0) {
             // See comment about this._background in _init()
             themeNode = this._background.get_theme_node();
         } else {
             themeNode = this.actor.get_theme_node();
-        }
-
-        if (this._gsCurrentVersion[1] < 8) {
-            forWidth = themeNode.adjust_for_width(forWidth);
         }
 
         let spacing = themeNode.get_length('spacing');
@@ -1165,7 +1147,7 @@ const myThumbnailsBox = new Lang.Class({
             maxScale = MAX_THUMBNAIL_SCALE;
         }
 
-        if (this._gsCurrentVersion[1] < 10 || (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0)) {
+        if (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0) {
             [alloc.min_size, alloc.natural_size] =
                 themeNode.adjust_preferred_height(totalSpacing,
                                                   totalSpacing + nWorkspaces * this._porthole.height * maxScale);
@@ -1180,7 +1162,7 @@ const myThumbnailsBox = new Lang.Class({
             return;
 
         let themeNode;
-        if (this._gsCurrentVersion[1] < 10 || (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0)) {
+        if (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0) {
             // See comment about this._background in _init()
             themeNode = this._background.get_theme_node();
         } else {
@@ -1220,7 +1202,7 @@ const myThumbnailsBox = new Lang.Class({
         }
 
         let width = Math.round(this._porthole.width * scale);
-        if (this._gsCurrentVersion[1] < 10 || (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0)) {
+        if (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0) {
             [alloc.min_size, alloc.natural_size] =
                 themeNode.adjust_preferred_width(width, width);
         } else {
@@ -1238,7 +1220,7 @@ const myThumbnailsBox = new Lang.Class({
             return;
 
         let themeNode, contentBox;
-        if (this._gsCurrentVersion[1] < 10 || (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0)) {
+        if (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0) {
             // See comment about this._background in _init()
             themeNode = this._background.get_theme_node();
             contentBox = themeNode.get_content_box(box);
@@ -1250,7 +1232,7 @@ const myThumbnailsBox = new Lang.Class({
         let portholeHeight = this._porthole.height;
 
         let spacing;
-        if (this._gsCurrentVersion[1] < 10 || (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0)) {
+        if (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0) {
             spacing = this.actor.get_theme_node().get_length('spacing');
         } else {
             spacing = themeNode.get_length('spacing');
@@ -1282,7 +1264,7 @@ const myThumbnailsBox = new Lang.Class({
         }
 
         let avail;
-        if (this._gsCurrentVersion[1] < 10 || (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0)) {
+        if (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0) {
             avail = (contentBox.y2 - contentBox.y1) - totalSpacing;
         } else {
             avail = (box.y2 - box.y1) - totalSpacing;
@@ -1322,7 +1304,7 @@ const myThumbnailsBox = new Lang.Class({
 
         let childBox = new Clutter.ActorBox();
 
-        if (this._gsCurrentVersion[1] < 10 || (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0)) {
+        if (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0) {
             // The background is horizontally restricted to correspond to the current thumbnail size
             // but otherwise covers the entire allocation
             if (rtl) {
@@ -1337,27 +1319,41 @@ const myThumbnailsBox = new Lang.Class({
             this._background.allocate(childBox, flags);
         }
 
-        // passingthru67 - conditional for gnome shell 3.4/3.6/# differences
-        if (this._gsCurrentVersion[1] < 6) {
-            let indicatorY = this._indicatorY;
-            // when not animating, the workspace position overrides this._indicatorY
-            let indicatorWorkspace = !this._animatingIndicator ? global.screen.get_active_workspace() : null;
+        let indicatorY1 = this._indicatorY;
+        let indicatorY2;
+        // when not animating, the workspace position overrides this._indicatorY
+        let indicatorWorkspace = !this._animatingIndicator ? global.screen.get_active_workspace() : null;
+        let indicatorThemeNode = this._indicator.get_theme_node();
 
-            let y = contentBox.y1;
+        let indicatorTopFullBorder = indicatorThemeNode.get_padding(St.Side.TOP) + indicatorThemeNode.get_border_width(St.Side.TOP);
+        let indicatorBottomFullBorder = indicatorThemeNode.get_padding(St.Side.BOTTOM) + indicatorThemeNode.get_border_width(St.Side.BOTTOM);
+        let indicatorLeftFullBorder = indicatorThemeNode.get_padding(St.Side.LEFT) + indicatorThemeNode.get_border_width(St.Side.LEFT);
+        let indicatorRightFullBorder = indicatorThemeNode.get_padding(St.Side.RIGHT) + indicatorThemeNode.get_border_width(St.Side.RIGHT);
 
-            if (this._dropPlaceholderPos == -1) {
-                Meta.later_add(Meta.LaterType.BEFORE_REDRAW, Lang.bind(this, function() {
-                    this._dropPlaceholder.hide();
-                }));
-            }
+        let y;
+        if (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0) {
+            y = contentBox.y1;
+        } else {
+            y = box.y1;
+        }
 
-            for (let i = 0; i < this._thumbnails.length; i++) {
-                let thumbnail = this._thumbnails[i];
+        if (this._dropPlaceholderPos == -1) {
+            Meta.later_add(Meta.LaterType.BEFORE_REDRAW, Lang.bind(this, function() {
+                this._dropPlaceholder.hide();
+            }));
+        }
 
-                if (i > 0)
-                    y += spacing - Math.round(thumbnail.collapseFraction * spacing);
+        // Passingthru67 - GS 3.10.1 moved this here but already defined above
+        //let childBox = new Clutter.ActorBox();
 
-                let x1, x2;
+        for (let i = 0; i < this._thumbnails.length; i++) {
+            let thumbnail = this._thumbnails[i];
+
+            if (i > 0)
+                y += spacing - Math.round(thumbnail.collapseFraction * spacing);
+
+            let x1, x2;
+            if (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0) {
                 if (rtl) {
                     x1 = contentBox.x1 + slideOffset * thumbnail.slidePosition;
                     x2 = x1 + thumbnailWidth;
@@ -1365,54 +1361,65 @@ const myThumbnailsBox = new Lang.Class({
                     x1 = contentBox.x2 - thumbnailWidth + slideOffset * thumbnail.slidePosition;
                     x2 = x1 + thumbnailWidth;
                 }
-
-                if (i == this._dropPlaceholderPos) {
-                    let [minHeight, placeholderHeight] = this._dropPlaceholder.get_preferred_height(-1);
-                    childBox.x1 = x1;
-                    childBox.x2 = x1 + thumbnailWidth;
-                    childBox.y1 = Math.round(y);
-                    childBox.y2 = Math.round(y + placeholderHeight);
-                    this._dropPlaceholder.allocate(childBox, flags);
-                    Meta.later_add(Meta.LaterType.BEFORE_REDRAW, Lang.bind(this, function() {
-                        this._dropPlaceholder.show();
-                    }));
-                    y += placeholderHeight + spacing;
+            } else {
+                if (rtl) {
+                    x1 = box.x1 + slideOffset * thumbnail.slidePosition;
+                    x2 = x1 + thumbnailWidth;
+                } else {
+                    x1 = box.x2 - thumbnailWidth + slideOffset * thumbnail.slidePosition;
+                    x2 = x1 + thumbnailWidth;
                 }
-
-                // We might end up with thumbnailHeight being something like 99.33
-                // pixels. To make this work and not end up with a gap at the bottom,
-                // we need some thumbnails to be 99 pixels and some 100 pixels height;
-                // we compute an actual scale separately for each thumbnail.
-                let y1 = Math.round(y);
-                let y2 = Math.round(y + thumbnailHeight);
-                let roundedVScale = (y2 - y1) / portholeHeight;
-
-                if (thumbnail.metaWorkspace == indicatorWorkspace)
-                    indicatorY = y1;
-
-
-                // Allocating a scaled actor is funny - x1/y1 correspond to the origin
-                // of the actor, but x2/y2 are increased by the *unscaled* size.
-                childBox.x1 = x1;
-                childBox.x2 = x1 + portholeWidth;
-                childBox.y1 = y1;
-                // passingthru67 - size needs to include caption area
-                //childBox.y2 = y1 + portholeHeight;
-                childBox.y2 = y1 + portholeHeight + (captionBackgroundHeight/roundedVScale);
-
-                thumbnail.actor.set_scale(roundedHScale, roundedVScale);
-                thumbnail.actor.allocate(childBox, flags);
-
-                // passingthru67 - set WorkspaceThumbnail labels
-                if (this._mySettings.get_boolean('workspace-captions'))
-                    this._updateThumbnailCaption(thumbnail, i, captionHeight, captionBackgroundHeight);
-
-                // We round the collapsing portion so that we don't get thumbnails resizing
-                // during an animation due to differences in rounded, but leave the uncollapsed
-                // portion unrounded so that non-animating we end up with the right total
-                y += thumbnailHeight - Math.round(thumbnailHeight * thumbnail.collapseFraction);
             }
 
+            if (i == this._dropPlaceholderPos) {
+                let [minHeight, placeholderHeight] = this._dropPlaceholder.get_preferred_height(-1);
+                childBox.x1 = x1;
+                childBox.x2 = x1 + thumbnailWidth;
+                childBox.y1 = Math.round(y);
+                childBox.y2 = Math.round(y + placeholderHeight);
+                this._dropPlaceholder.allocate(childBox, flags);
+                Meta.later_add(Meta.LaterType.BEFORE_REDRAW, Lang.bind(this, function() {
+                    this._dropPlaceholder.show();
+                }));
+                y += placeholderHeight + spacing;
+            }
+
+            // We might end up with thumbnailHeight being something like 99.33
+            // pixels. To make this work and not end up with a gap at the bottom,
+            // we need some thumbnails to be 99 pixels and some 100 pixels height;
+            // we compute an actual scale separately for each thumbnail.
+            let y1 = Math.round(y);
+            let y2 = Math.round(y + thumbnailHeight);
+            let roundedVScale = (y2 - y1) / portholeHeight;
+
+            if (thumbnail.metaWorkspace == indicatorWorkspace) {
+                indicatorY1 = y1;
+                indicatorY2 = y2;
+            }
+
+            // Allocating a scaled actor is funny - x1/y1 correspond to the origin
+            // of the actor, but x2/y2 are increased by the *unscaled* size.
+            childBox.x1 = x1;
+            childBox.x2 = x1 + portholeWidth;
+            childBox.y1 = y1;
+            // passingthru67 - size needs to include caption area
+            //childBox.y2 = y1 + portholeHeight;
+            childBox.y2 = y1 + portholeHeight + (captionBackgroundHeight/roundedVScale);
+
+            thumbnail.actor.set_scale(roundedHScale, roundedVScale);
+            thumbnail.actor.allocate(childBox, flags);
+
+            // passingthru67 - set WorkspaceThumbnail labels
+            if (this._mySettings.get_boolean('workspace-captions'))
+                this._updateThumbnailCaption(thumbnail, i, captionHeight, captionBackgroundHeight);
+
+            // We round the collapsing portion so that we don't get thumbnails resizing
+            // during an animation due to differences in rounded, but leave the uncollapsed
+            // portion unrounded so that non-animating we end up with the right total
+            y += thumbnailHeight - Math.round(thumbnailHeight * thumbnail.collapseFraction);
+        }
+
+        if (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0) {
             if (rtl) {
                 childBox.x1 = contentBox.x1;
                 childBox.x2 = contentBox.x1 + thumbnailWidth;
@@ -1420,139 +1427,23 @@ const myThumbnailsBox = new Lang.Class({
                 childBox.x1 = contentBox.x2 - thumbnailWidth;
                 childBox.x2 = contentBox.x2;
             }
-            childBox.y1 = indicatorY;
-            // passingthru67 - indicator needs to include caption
-            //childBox.y2 = childBox.y1 + thumbnailHeight;
-            childBox.y2 = childBox.y1 + thumbnailHeight + captionBackgroundHeight;
-            this._indicator.allocate(childBox, flags);
-
         } else {
-            let indicatorY1 = this._indicatorY;
-            let indicatorY2;
-            // when not animating, the workspace position overrides this._indicatorY
-            let indicatorWorkspace = !this._animatingIndicator ? global.screen.get_active_workspace() : null;
-            let indicatorThemeNode = this._indicator.get_theme_node();
-
-            let indicatorTopFullBorder = indicatorThemeNode.get_padding(St.Side.TOP) + indicatorThemeNode.get_border_width(St.Side.TOP);
-            let indicatorBottomFullBorder = indicatorThemeNode.get_padding(St.Side.BOTTOM) + indicatorThemeNode.get_border_width(St.Side.BOTTOM);
-            let indicatorLeftFullBorder = indicatorThemeNode.get_padding(St.Side.LEFT) + indicatorThemeNode.get_border_width(St.Side.LEFT);
-            let indicatorRightFullBorder = indicatorThemeNode.get_padding(St.Side.RIGHT) + indicatorThemeNode.get_border_width(St.Side.RIGHT);
-
-            let y;
-            if (this._gsCurrentVersion[1] < 10 || (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0)) {
-                y = contentBox.y1;
+            if (rtl) {
+                childBox.x1 = box.x1;
+                childBox.x2 = box.x1 + thumbnailWidth;
             } else {
-                y = box.y1;
+                childBox.x1 = box.x2 - thumbnailWidth;
+                childBox.x2 = box.x2;
             }
-
-            if (this._dropPlaceholderPos == -1) {
-                Meta.later_add(Meta.LaterType.BEFORE_REDRAW, Lang.bind(this, function() {
-                    this._dropPlaceholder.hide();
-                }));
-            }
-
-            // Passingthru67 - GS 3.10.1 moved this here but already defined above
-            //let childBox = new Clutter.ActorBox();
-
-            for (let i = 0; i < this._thumbnails.length; i++) {
-                let thumbnail = this._thumbnails[i];
-
-                if (i > 0)
-                    y += spacing - Math.round(thumbnail.collapseFraction * spacing);
-
-                let x1, x2;
-                if (this._gsCurrentVersion[1] < 10 || (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0)) {
-                    if (rtl) {
-                        x1 = contentBox.x1 + slideOffset * thumbnail.slidePosition;
-                        x2 = x1 + thumbnailWidth;
-                    } else {
-                        x1 = contentBox.x2 - thumbnailWidth + slideOffset * thumbnail.slidePosition;
-                        x2 = x1 + thumbnailWidth;
-                    }
-                } else {
-                    if (rtl) {
-                        x1 = box.x1 + slideOffset * thumbnail.slidePosition;
-                        x2 = x1 + thumbnailWidth;
-                    } else {
-                        x1 = box.x2 - thumbnailWidth + slideOffset * thumbnail.slidePosition;
-                        x2 = x1 + thumbnailWidth;
-                    }
-                }
-
-                if (i == this._dropPlaceholderPos) {
-                    let [minHeight, placeholderHeight] = this._dropPlaceholder.get_preferred_height(-1);
-                    childBox.x1 = x1;
-                    childBox.x2 = x1 + thumbnailWidth;
-                    childBox.y1 = Math.round(y);
-                    childBox.y2 = Math.round(y + placeholderHeight);
-                    this._dropPlaceholder.allocate(childBox, flags);
-                    Meta.later_add(Meta.LaterType.BEFORE_REDRAW, Lang.bind(this, function() {
-                        this._dropPlaceholder.show();
-                    }));
-                    y += placeholderHeight + spacing;
-                }
-
-                // We might end up with thumbnailHeight being something like 99.33
-                // pixels. To make this work and not end up with a gap at the bottom,
-                // we need some thumbnails to be 99 pixels and some 100 pixels height;
-                // we compute an actual scale separately for each thumbnail.
-                let y1 = Math.round(y);
-                let y2 = Math.round(y + thumbnailHeight);
-                let roundedVScale = (y2 - y1) / portholeHeight;
-
-                if (thumbnail.metaWorkspace == indicatorWorkspace) {
-                    indicatorY1 = y1;
-                    indicatorY2 = y2;
-                }
-
-                // Allocating a scaled actor is funny - x1/y1 correspond to the origin
-                // of the actor, but x2/y2 are increased by the *unscaled* size.
-                childBox.x1 = x1;
-                childBox.x2 = x1 + portholeWidth;
-                childBox.y1 = y1;
-                // passingthru67 - size needs to include caption area
-                //childBox.y2 = y1 + portholeHeight;
-                childBox.y2 = y1 + portholeHeight + (captionBackgroundHeight/roundedVScale);
-
-                thumbnail.actor.set_scale(roundedHScale, roundedVScale);
-                thumbnail.actor.allocate(childBox, flags);
-
-                // passingthru67 - set WorkspaceThumbnail labels
-                if (this._mySettings.get_boolean('workspace-captions'))
-                    this._updateThumbnailCaption(thumbnail, i, captionHeight, captionBackgroundHeight);
-
-                // We round the collapsing portion so that we don't get thumbnails resizing
-                // during an animation due to differences in rounded, but leave the uncollapsed
-                // portion unrounded so that non-animating we end up with the right total
-                y += thumbnailHeight - Math.round(thumbnailHeight * thumbnail.collapseFraction);
-            }
-
-            if (this._gsCurrentVersion[1] < 10 || (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0)) {
-                if (rtl) {
-                    childBox.x1 = contentBox.x1;
-                    childBox.x2 = contentBox.x1 + thumbnailWidth;
-                } else {
-                    childBox.x1 = contentBox.x2 - thumbnailWidth;
-                    childBox.x2 = contentBox.x2;
-                }
-            } else {
-                if (rtl) {
-                    childBox.x1 = box.x1;
-                    childBox.x2 = box.x1 + thumbnailWidth;
-                } else {
-                    childBox.x1 = box.x2 - thumbnailWidth;
-                    childBox.x2 = box.x2;
-                }
-            }
-            childBox.x1 -= indicatorLeftFullBorder;
-            childBox.x2 += indicatorRightFullBorder;
-            childBox.y1 = indicatorY1 - indicatorTopFullBorder;
-            // passingthru67 - indicator needs to include caption
-            //childBox.y2 = (indicatorY2 ? indicatorY2 : (indicatorY1 + thumbnailHeight)) + indicatorBottomFullBorder;
-            childBox.y2 = (indicatorY2 ? indicatorY2 + captionBackgroundHeight : (indicatorY1 + thumbnailHeight + captionBackgroundHeight)) + indicatorBottomFullBorder;
-
-            this._indicator.allocate(childBox, flags);
         }
+        childBox.x1 -= indicatorLeftFullBorder;
+        childBox.x2 += indicatorRightFullBorder;
+        childBox.y1 = indicatorY1 - indicatorTopFullBorder;
+        // passingthru67 - indicator needs to include caption
+        //childBox.y2 = (indicatorY2 ? indicatorY2 : (indicatorY1 + thumbnailHeight)) + indicatorBottomFullBorder;
+        childBox.y2 = (indicatorY2 ? indicatorY2 + captionBackgroundHeight : (indicatorY1 + thumbnailHeight + captionBackgroundHeight)) + indicatorBottomFullBorder;
+
+        this._indicator.allocate(childBox, flags);
     },
 
     // override _activeWorkspaceChanged to eliminate errors thrown
@@ -1575,16 +1466,10 @@ const myThumbnailsBox = new Lang.Class({
         if (thumbnail.actor == null)
             return
 
-        // passingthru67 - conditional for gnome shell 3.4/3.6/# differences
-        if (this._gsCurrentVersion[1] < 6) {
-            this._animatingIndicator = true;
-            this.indicatorY = this._indicator.allocation.y1;
-        } else {
-            this._animatingIndicator = true;
-            let indicatorThemeNode = this._indicator.get_theme_node();
-            let indicatorTopFullBorder = indicatorThemeNode.get_padding(St.Side.TOP) + indicatorThemeNode.get_border_width(St.Side.TOP);
-            this.indicatorY = this._indicator.allocation.y1 + indicatorTopFullBorder;
-        }
+        this._animatingIndicator = true;
+        let indicatorThemeNode = this._indicator.get_theme_node();
+        let indicatorTopFullBorder = indicatorThemeNode.get_padding(St.Side.TOP) + indicatorThemeNode.get_border_width(St.Side.TOP);
+        this.indicatorY = this._indicator.allocation.y1 + indicatorTopFullBorder;
 
         Tweener.addTween(this,
                          { indicatorY: thumbnail.actor.allocation.y1,
