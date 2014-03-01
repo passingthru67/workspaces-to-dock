@@ -573,7 +573,7 @@ const myWorkspaceThumbnail = new Lang.Class({
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _onWorkspaceCaptionClick");
         if (thumbnail._menu.isOpen) {
             thumbnail._menu.close();
-            return true;
+            return Clutter.EVENT_STOP;
         }
 
         let mouseButton = event.get_button();
@@ -606,9 +606,9 @@ const myWorkspaceThumbnail = new Lang.Class({
             this._menu.addMenuItem(item2);
 
             thumbnail._menu.open();
-            return true;
+            return Clutter.EVENT_STOP;
         }
-        return false;
+        return Clutter.EVENT_PROPAGATE;
     },
 
     activateMetaWindow: function(actor, event, thumbnail, metaWin) {
@@ -632,7 +632,7 @@ const myWorkspaceThumbnail = new Lang.Class({
                     metaWin.minimize(global.get_current_time());
             }
         }
-        return false;
+        return Clutter.EVENT_PROPAGATE;
     },
 
     _showExtensionPreferences: function(menuItem, event) {
@@ -872,7 +872,7 @@ const myThumbnailsBox = new Lang.Class({
 
         this._thumbnails = [];
 
-        this.actor.connect('button-press-event', function() { return true; });
+        this.actor.connect('button-press-event', function() { return Clutter.EVENT_STOP; });
         this.actor.connect('button-release-event', Lang.bind(this, this._onButtonRelease));
 
         //Main.overview.connect('showing',
@@ -945,7 +945,7 @@ const myThumbnailsBox = new Lang.Class({
                         // Skip if dock is showing or shown
                         if (this._dock._animStatus.hidden() || this._dock._animStatus.hiding()) {
                             // pass click event on to dock handler
-                            return false;
+                            return Clutter.EVENT_PROPAGATE;
                         }
                     }
                 }
@@ -961,7 +961,7 @@ const myThumbnailsBox = new Lang.Class({
                     Main.overview.show(); // force overview mode
                 }
                 // pass right-click event on allowing it to bubble up
-                return false;
+                return Clutter.EVENT_PROPAGATE;
             }
         }
 
@@ -977,7 +977,7 @@ const myThumbnailsBox = new Lang.Class({
                 break;
             }
         }
-        return true;
+        return Clutter.EVENT_STOP;
 
     },
 

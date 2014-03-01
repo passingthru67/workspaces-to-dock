@@ -292,11 +292,11 @@ dockedWorkspaces.prototype = {
             if (self._settings.get_boolean('toggle-overview')) {
                 let button = event.get_button();
                 if (button == 3) { //right click
-                    return false;
+                    return Clutter.EVENT_PROPAGATE;
                 }
             }
             this.emit('selected', event.get_time());
-            return true;
+            return Clutter.EVENT_STOP;
         };
 
         // Force normal workspaces to be always zoomed
@@ -725,18 +725,17 @@ dockedWorkspaces.prototype = {
     _onScrollEvent: function (actor, event) {
         if (_DEBUG_) global.log("dockedWorkspaces: _onScrollEvent autohideStatus = "+this._autohideStatus+" animHidden = "+this._animStatus.hidden()+" animHiding = "+this._animStatus.hiding());
         if (this._settings.get_boolean('disable-scroll') && this._autohideStatus && (this._animStatus.hidden() || this._animStatus.hiding()))
-            return true;
+            return Clutter.EVENT_STOP;
 
+        let activeWs = global.screen.get_active_workspace();
+        let ws;
         if (event.get_scroll_direction() == Clutter.ScrollDirection.UP) {
-            let activeWs = global.screen.get_active_workspace();
-            let ws = activeWs.get_neighbor(Meta.MotionDirection.UP);
-            Main.wm.actionMoveWorkspace(ws);
+            ws = activeWs.get_neighbor(Meta.MotionDirection.UP);
         } else if (event.get_scroll_direction() == Clutter.ScrollDirection.DOWN) {
-            let activeWs = global.screen.get_active_workspace();
-            let ws = activeWs.get_neighbor(Meta.MotionDirection.DOWN);
-            Main.wm.actionMoveWorkspace(ws);
+            ws = activeWs.get_neighbor(Meta.MotionDirection.DOWN);
         }
-        return true;
+        Main.wm.actionMoveWorkspace(ws);
+        return Clutter.EVENT_STOP;
     },
 
     // autohide function to show dock
