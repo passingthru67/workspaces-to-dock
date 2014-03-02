@@ -407,32 +407,29 @@ const myWorkspaceThumbnail = new Lang.Class({
         let windows = global.get_window_actors();
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps - window count = "+windows.length);
         for (let i = 0; i < windows.length; i++) {
-            let metaWin = windows[i].get_meta_window();
-            if (!metaWin)
-                continue;
+            if (this._isMyWindow(windows[i]) && this._isOverviewWindow(windows[i])) {
+                let metaWin = windows[i].get_meta_window();
+                if (!metaWin)
+                    continue;
 
-            let activeWorkspace = global.screen.get_active_workspace();
-            if ((windows[i].get_workspace() == this.metaWorkspace.index()) || (metaWin.is_on_all_workspaces() && this.metaWorkspace == activeWorkspace)) {
+                if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps - add window buttons");
                 let tracker = Shell.WindowTracker.get_default();
-                if (tracker.is_window_interesting(metaWin)) {
-                    if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps - add window buttons");
-                    let app = tracker.get_window_app(metaWin);
-                    if (app) {
-                        if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps - window button app = "+app.get_name());
-                        let button = new WindowAppIcon(app, metaWin, this);
-                        if (metaWin.has_focus()) {
-                            button.actor.add_style_pseudo_class('active');
-                        }
-
-                        if (this._wsWindowAppsBox)
-                            this._wsWindowAppsBox.add(button.actor, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
-
-                        let winInfo = {};
-                        winInfo.app = app;
-                        winInfo.metaWin = metaWin;
-                        winInfo.signalFocusedId = metaWin.connect('notify::appears-focused', Lang.bind(this, this._onWindowChanged, metaWin));
-                        this._wsWindowApps.push(winInfo);
+                let app = tracker.get_window_app(metaWin);
+                if (app) {
+                    if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps - window button app = "+app.get_name());
+                    let button = new WindowAppIcon(app, metaWin, this);
+                    if (metaWin.has_focus()) {
+                        button.actor.add_style_pseudo_class('active');
                     }
+
+                    if (this._wsWindowAppsBox)
+                        this._wsWindowAppsBox.add(button.actor, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
+
+                    let winInfo = {};
+                    winInfo.app = app;
+                    winInfo.metaWin = metaWin;
+                    winInfo.signalFocusedId = metaWin.connect('notify::appears-focused', Lang.bind(this, this._onWindowChanged, metaWin));
+                    this._wsWindowApps.push(winInfo);
                 }
             }
         }
@@ -477,7 +474,8 @@ const myWorkspaceThumbnail = new Lang.Class({
                     continue;
 
                 let tracker = Shell.WindowTracker.get_default();
-                if (tracker.is_window_interesting(metaWin)) {
+                //if (tracker.is_window_interesting(metaWin)) {
+                if (!metaWin.skip_taskbar && metaWin.showing_on_its_workspace()) { // isOverviewWindow
                     let app = tracker.get_window_app(metaWin);
                     if (app) {
                         let button = new WindowAppIcon(app, metaWin, this);
@@ -677,7 +675,8 @@ const myWorkspaceThumbnail = new Lang.Class({
             }
             if (index < 0) {
                 let tracker = Shell.WindowTracker.get_default();
-                if (tracker.is_window_interesting(metaWin)) {
+                //if (tracker.is_window_interesting(metaWin)) {
+                if (!metaWin.skip_taskbar && metaWin.showing_on_its_workspace()) { // isOverviewWindow
                     if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button not found .. add it");
                     let app = tracker.get_window_app(metaWin);
                     if (app) {
@@ -791,7 +790,7 @@ const myWorkspaceThumbnail = new Lang.Class({
     setWindowClonesReactiveState: function (state) {
         if (state == null)
             return;
-            
+
         for (let i = 0; i < this._windows.length; i++) {
             let clone = this._windows[i];
             clone.actor.reactive = state;
