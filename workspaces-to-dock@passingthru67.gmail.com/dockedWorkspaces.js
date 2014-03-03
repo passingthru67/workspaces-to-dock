@@ -326,7 +326,7 @@ dockedWorkspaces.prototype = {
 
         // Restore normal workspaces to previous zoom setting
         OverviewControls.ThumbnailsSlider.prototype._getAlwaysZoomOut = GSFunctions['ThumbnailsSlider_getAlwaysZoomOut'];
-        
+
         // Show normal workspaces thumbnailsBox
         Main.overview._controls._thumbnailsSlider.actor.opacity = 255;
 
@@ -1008,11 +1008,9 @@ dockedWorkspaces.prototype = {
     // handler for theme changes
     _onThemeChanged: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _onThemeChanged");
-        if (this._disableRedisplay)
-            return
-
-        this._updateBackgroundOpacity();
         this._changeStylesheet();
+        if (!this._disableRedisplay)
+            this._updateBackgroundOpacity();
     },
 
     // function to change stylesheets
@@ -1078,8 +1076,10 @@ dockedWorkspaces.prototype = {
         if (_DEBUG_) global.log("dockedWorkspaces: _changeStylesheet - Added new stylesheet");
         themeContext.set_theme (newTheme);
 
-        this._thumbnailsBox._destroyThumbnails();
-        this._thumbnailsBox._createThumbnails();
+        if (!this._disableRedisplay) {
+            this._thumbnailsBox._destroyThumbnails();
+            this._thumbnailsBox._createThumbnails();
+        }
 
         return true;
     },
