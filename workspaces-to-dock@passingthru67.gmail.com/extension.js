@@ -44,7 +44,7 @@ function loadStylesheet() {
     // Test for workspacesToDock stylesheet
     workspacesToDockStylesheet = themeDirectory + '/extensions/workspaces-to-dock/' + filename;
     if (!GLib.file_test(workspacesToDockStylesheet, GLib.FileTest.EXISTS)) {
-        if (_DEBUG_) global.log("Theme doesn't support workspacesToDock .. use default stylesheet");
+        if (_DEBUG_) global.log("WorkspacesToDock: _loadStylesheet - Theme doesn't support workspacesToDock .. use default stylesheet");
         let defaultStylesheet = Gio.File.new_for_path(Me.path + "/themes/default/" + filename);
         if (defaultStylesheet.query_exists(null)) {
             workspacesToDockStylesheet = defaultStylesheet.get_path();
@@ -89,7 +89,7 @@ function init() {
 }
 
 function enable() {
-    if (_DEBUG_) global.log("workspaces-to-dock: ENABLE");
+    if (_DEBUG_) global.log("WorkspacesToDock: ENABLE");
     loadStylesheet();
     settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
     dock = new DockedWorkspaces.dockedWorkspaces(settings, GSVersion);
@@ -97,7 +97,7 @@ function enable() {
 }
 
 function disable() {
-    if (_DEBUG_) global.log("workspaces-to-dock: DISABLE");
+    if (_DEBUG_) global.log("WorkspacesToDock: DISABLE");
     unloadStylesheet();
     intellihide.destroy();
     dock.destroy();
