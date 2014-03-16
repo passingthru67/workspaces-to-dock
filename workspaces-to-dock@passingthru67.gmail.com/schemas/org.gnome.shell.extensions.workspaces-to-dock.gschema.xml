@@ -41,6 +41,16 @@
       <summary>Intellihide mode options</summary>
       <description>Select type of intellihide mode</description>
     </key>
+    <key type="b" name="ignore-top-panel">
+      <default>true</default>
+      <summary>Ignore top panel menus</summary>
+      <description>Enable or disable dodging menu window belonging to the top panel</description>
+    </key>
+    <key type="b" name="ignore-message-tray">
+      <default>true</default>
+      <summary>Ignore message tray menus</summary>
+      <description>Enable or disable dodging menu windows belonging to the message tray</description>
+    </key>
     <key type="b" name="dock-edge-visible">
       <default>false</default>
       <summary>Leave dock edge visible when slid out</summary>
