@@ -9,6 +9,7 @@
 const _DEBUG_ = false;
 
 const Gio = imports.gi.Gio;
+const GLib = imports.gi.GLib;
 const Clutter = imports.gi.Clutter;
 const Lang = imports.lang;
 const Meta = imports.gi.Meta;
@@ -184,6 +185,7 @@ const myWorkspaceThumbnail = new Lang.Class({
     Extends: WorkspaceThumbnail.WorkspaceThumbnail,
 
     _init: function(metaWorkspace, thumbnailsBox) {
+        this._windowsOnAllWorkspaces = [];
         this.parent(metaWorkspace);
 
         this._thumbnailsBox = thumbnailsBox;
@@ -209,8 +211,41 @@ const myWorkspaceThumbnail = new Lang.Class({
         this._windowAppsRealizeId = this.actor.connect("realize", Lang.bind(this, this._initWindowApps));
     },
 
+    refreshWindowClones: function() {
+        if (_DEBUG_ && !this._removed) global.log("myWorkspaceThumbnail: refreshWindowClones for metaWorkspace "+this.metaWorkspace.index());
+        // Disconnect window signals
+        for (let i = 0; i < this._allWindows.length; i++) {
+            this._allWindows[i].disconnect(this._minimizedChangedIds[i]);
+        }
+        // Destroy window clones
+        for (let i = 0; i < this._windows.length; i++) {
+            this._windows[i].destroy();
+        }
+        // Create clones for windows that should be visible in the Overview
+        this._windows = [];
+        this._allWindows = [];
+        this._minimizedChangedIds = [];
+        let windows = global.get_window_actors().filter(Lang.bind(this, function(actor) {
+            let win = actor.meta_window;
+            return win.located_on_workspace(this.metaWorkspace);
+        }));
+        for (let i = 0; i < windows.length; i++) {
+            let minimizedChangedId =
+                windows[i].meta_window.connect('notify::minimized',
+                                               Lang.bind(this,
+                                                         this._updateMinimized));
+            this._allWindows.push(windows[i].meta_window);
+            this._minimizedChangedIds.push(minimizedChangedId);
+
+            if (this._isMyWindow(windows[i]) && this._isOverviewWindow(windows[i])) {
+                this._addWindowClone(windows[i]);
+            }
+        }
+    },
+
     _onDestroy: function(actor) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _onDestroy");
+        // passingthru67 - destroy caption taskbar and associated objects
         if (this._switchWorkspaceNotifyId > 0) {
             global.window_manager.disconnect(this._switchWorkspaceNotifyId);
             this._switchWorkspaceNotifyId = 0;
@@ -228,6 +263,145 @@ const myWorkspaceThumbnail = new Lang.Class({
             this._menu.destroy();
         }
         this.parent(actor);
+    },
+
+    _doAddWindow : function(metaWin) {
+        if (_DEBUG_ && !this._removed) global.log("myWorkspaceThumbnail: _doAddWindow for metaWorkspace "+this.metaWorkspace.index());
+        if (this._removed)
+            return;
+
+        let win = metaWin.get_compositor_private();
+
+        if (!win) {
+            // Newly-created windows are added to a workspace before
+            // the compositor finds out about them...
+            Mainloop.idle_add(Lang.bind(this,
+                                        function () {
+                                            if (!this._removed &&
+                                                metaWin.get_compositor_private() &&
+                                                metaWin.get_workspace() == this.metaWorkspace)
+                                                this._doAddWindow(metaWin);
+                                            return GLib.SOURCE_REMOVE;
+                                        }));
+            return;
+        }
+
+        if (this._allWindows.indexOf(metaWin) == -1) {
+            let minimizedChangedId = metaWin.connect('notify::minimized',
+                                                     Lang.bind(this,
+                                                               this._updateMinimized));
+            this._allWindows.push(metaWin);
+            this._minimizedChangedIds.push(minimizedChangedId);
+        }
+
+        // We might have the window in our list already if it was on all workspaces and
+        // now was moved to this workspace
+        if (this._lookupIndex (metaWin) != -1)
+            return;
+
+        if (!this._isMyWindow(win))
+            return;
+
+        if (this._isOverviewWindow(win)) {
+            // passingthru67 - force thumbnail refresh if window is on all workspaces
+            // note: _addWindowClone checks if metawindow is on all workspaces
+            this._addWindowClone(win, true);
+        } else if (metaWin.is_attached_dialog()) {
+            let parent = metaWin.get_transient_for();
+            while (parent.is_attached_dialog())
+                parent = metaWin.get_transient_for();
+
+            let idx = this._lookupIndex (parent);
+            if (idx < 0) {
+                // parent was not created yet, it will take care
+                // of the dialog when created
+                return;
+            }
+
+            let clone = this._windows[idx];
+            clone.addAttachedDialog(metaWin);
+        }
+    },
+
+    _doRemoveWindow : function(metaWin) {
+        if (_DEBUG_ && !this._removed) global.log("myWorkspaceThumbnail: _doRemoveWindow for metaWorkspace "+this.metaWorkspace.index());
+        let win = metaWin.get_compositor_private();
+
+        // find the position of the window in our list
+        let index = this._lookupIndex (metaWin);
+
+        if (index == -1)
+            return;
+
+        // Check if window still should be here
+        if (win && this._isMyWindow(win) && this._isOverviewWindow(win))
+            return;
+
+        let clone = this._windows[index];
+        this._windows.splice(index, 1);
+
+        // passingthru67 - refresh thumbnails is metaWin being removed is on all workspaces
+        //if (win && this._isMyWindow(win) && metaWin.is_on_all_workspaces()) {
+        if (win && metaWin.is_on_all_workspaces()) {
+            for (let j = 0; j < this._windowsOnAllWorkspaces.length; j++) {
+                if (metaWin == this._windowsOnAllWorkspaces[j]) {
+                    this._windowsOnAllWorkspaces.splice(j, 1);
+                }
+            }
+            this._thumbnailsBox.refreshThumbnails();
+        }
+
+        clone.destroy();
+    },
+
+    // Create a clone of a (non-desktop) window and add it to the window list
+    _addWindowClone : function(win, refresh) {
+        if (_DEBUG_ && !this._removed) global.log("myWorkspaceThumbnail: _addWindowClone for metaWorkspace "+this.metaWorkspace.index());
+        let clone = new WorkspaceThumbnail.WindowClone(win);
+
+        clone.connect('selected',
+                      Lang.bind(this, function(clone, time) {
+                          this.activate(time);
+                      }));
+        clone.connect('drag-begin',
+                      Lang.bind(this, function() {
+                          Main.overview.beginWindowDrag(clone);
+                      }));
+        clone.connect('drag-cancelled',
+                      Lang.bind(this, function() {
+                          Main.overview.cancelledWindowDrag(clone);
+                      }));
+        clone.connect('drag-end',
+                      Lang.bind(this, function() {
+                          Main.overview.endWindowDrag(clone);
+                      }));
+        this._contents.add_actor(clone.actor);
+
+        if (this._windows.length == 0)
+            clone.setStackAbove(this._bgManager.background.actor);
+        else
+            clone.setStackAbove(this._windows[this._windows.length - 1].actor);
+
+        this._windows.push(clone);
+
+        // passingthru67 - need to refresh thumbnails if new added window is on all workspaces
+        // NOTE: refresh is only forced when a new window is added and not during myWorkspaceThumbnail initialization
+        if (clone.metaWindow.is_on_all_workspaces()) {
+            let alreadyPushed = false;
+            for (let j = 0; j < this._windowsOnAllWorkspaces.length; j++) {
+                if (clone.metaWindow == this._windowsOnAllWorkspaces[j]) {
+                    alreadyPushed = true;
+                }
+            }
+            if (!alreadyPushed) {
+                this._windowsOnAllWorkspaces.push(clone.metaWindow);
+            }
+            if (refresh) {
+                this._thumbnailsBox.refreshThumbnails();
+            }
+        }
+
+        return clone;
     },
 
     // function initializes the WorkspaceThumbnails captions
@@ -929,6 +1103,14 @@ const myThumbnailsBox = new Lang.Class({
         this._updateSwitcherVisibility();
     },
 
+    refreshThumbnails: function() {
+        if (_DEBUG_) global.log("mythumbnailsBox: refreshThumbnails");
+        for (let i = 0; i < this._thumbnails.length; i++) {
+            this._thumbnails[i].refreshWindowClones();
+            this._thumbnails[i]._activeWorkspaceChanged();
+        }
+    },
+
     // override _onButtonRelease to provide customized click actions (i.e. overview on right click)
     _onButtonRelease: function(actor, event) {
         if (_DEBUG_) global.log("mythumbnailsBox: _onButtonRelease");
@@ -1211,6 +1393,35 @@ const myThumbnailsBox = new Lang.Class({
         }
     },
 
+    _checkWindowsOnAllWorkspaces: function(thumbnail) {
+        let refresh = false;
+        if (_DEBUG_ && thumbnail._windows.length > 0) global.log("myWorkspaceThumbnail: _checkWindowsOnAllWorkspaces - windowsOnAllWorkspaces.length = "+thumbnail._windowsOnAllWorkspaces.length);
+        for (let i = 0; i < thumbnail._windows.length; i++) {
+            let clone = thumbnail._windows[i];
+            let realWindow = clone.realWindow;
+            let metaWindow = clone.metaWindow;
+            let alreadyPushed = false;
+            for (let j = 0; j < thumbnail._windowsOnAllWorkspaces.length; j++) {
+                if (metaWindow == thumbnail._windowsOnAllWorkspaces[j]) {
+                    alreadyPushed = true;
+                    if (!metaWindow.is_on_all_workspaces()) {
+                        if (_DEBUG_) global.log("myWorkspaceThumbnail: _checkWindowsOnAllWorkspaces - REFRESH THUMBNAILS - window removed from windowsOnAllWorkspaces");
+                        thumbnail._windowsOnAllWorkspaces.splice(j, 1);
+                        refresh = true;
+                    }
+                }
+            }
+            if (_DEBUG_ && alreadyPushed) global.log("myWorkspaceThumbnail: _checkWindowsOnAllWorkspaces - "+metaWindow.get_wm_class()+" in windowsOnAllWorkspaces. isMyWindow = "+ thumbnail._isMyWindow(realWindow)+", is_on_all_workspaces = "+metaWindow.is_on_all_workspaces());
+            if (_DEBUG_ && !alreadyPushed) global.log("myWorkspaceThumbnail: _checkWindowsOnAllWorkspaces - "+metaWindow.get_wm_class()+" not in windowsOnAllWorkspaces. isMyWindow = "+ thumbnail._isMyWindow(realWindow)+", is_on_all_workspaces = "+metaWindow.is_on_all_workspaces());
+            if (!alreadyPushed && metaWindow.is_on_all_workspaces()) {
+                if (_DEBUG_) global.log("myWorkspaceThumbnail: _checkWindowsOnAllWorkspaces - REFRESH THUMBNAILS - window added to windowsOnAllWorkspaces");
+                thumbnail._windowsOnAllWorkspaces.push(metaWindow);
+                refresh = true;
+            }
+        }
+        return refresh;
+    },
+
     // override _allocate to provide area for workspaceThumbnail captions
     // also serves to update caption items
     _allocate: function(actor, box, flags) {
@@ -1395,6 +1606,11 @@ const myThumbnailsBox = new Lang.Class({
             if (thumbnail.metaWorkspace == indicatorWorkspace) {
                 indicatorY1 = y1;
                 indicatorY2 = y2;
+
+	            // passingthru67 - check if window-visible_on_all_workspaces state changed
+    	        // if so, then we need to refresh thumbnails
+                let refresh = this._checkWindowsOnAllWorkspaces(thumbnail);
+                if (refresh) this.refreshThumbnails();
             }
 
             // Allocating a scaled actor is funny - x1/y1 correspond to the origin
