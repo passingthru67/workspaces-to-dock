@@ -32,6 +32,7 @@ const Tweener = imports.ui.tweener;
 const WorkspaceSwitcherPopup = imports.ui.workspaceSwitcherPopup;
 const OverviewControls = imports.ui.overviewControls;
 const Layout = imports.ui.layout;
+const MessageTray = imports.ui.messageTray;
 
 const ExtensionSystem = imports.ui.extensionSystem;
 const ExtensionUtils = imports.misc.extensionUtils;
@@ -95,6 +96,7 @@ dockedWorkspaces.prototype = {
         this._pressureSensed = false;
         this._pressureBarrier = null;
         this._barrier = null;
+        this._messageTrayShowing = false;
 
         // Override Gnome Shell functions
         this._overrideGnomeShellFunctions();
@@ -182,6 +184,16 @@ dockedWorkspaces.prototype = {
                 Main.overview.viewSelector,
                 'notify::y',
                 Lang.bind(this, this._updateYPosition)
+            ],
+            [
+                Main.messageTray,
+                'showing',
+                Lang.bind(this, this._onMessageTrayShowing)
+            ],
+            [
+                Main.messageTray,
+                'hiding',
+                Lang.bind(this, this._onMessageTrayHiding)
             ]
         );
         if (_DEBUG_) global.log("dockedWorkspaces: init - signals being captured");
@@ -1323,6 +1335,16 @@ dockedWorkspaces.prototype = {
         }
     },
 
+    _onMessageTrayShowing: function() {
+        this._messageTrayShowing = true;
+        this._updateBarrier();
+    },
+
+    _onMessageTrayHiding: function() {
+        this._messageTrayShowing = false;
+        this._updateBarrier();
+    },
+
     // Update pressure barrier size (GS38+ only)
     _updateBarrier: function() {
         // Remove existing barrier
@@ -1338,7 +1360,7 @@ dockedWorkspaces.prototype = {
         // Create new barrier
         // Note: dock in fixed possition doesn't use pressure barrier
         if (_DEBUG_) global.log("dockedWorkspaces: _updateBarrier");
-        if (this._canUsePressure && this._settings.get_boolean('autohide') && this._settings.get_boolean('require-pressure-to-show') && !this._settings.get_boolean('dock-fixed')) {
+        if (this._canUsePressure && this._settings.get_boolean('autohide') && this._autohideStatus && this._settings.get_boolean('require-pressure-to-show') && !this._settings.get_boolean('dock-fixed') && !this._messageTrayShowing) {
             let x, direction;
             if (this._rtl) {
                 x = this._monitor.x;
