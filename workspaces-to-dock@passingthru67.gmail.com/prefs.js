@@ -344,6 +344,26 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
                 intellihideNormal.set_active(true); // default .. any window
         }
 
+        let ignoreTopPanelButton = new Gtk.CheckButton({
+            label: _("Ignore top panel menus"),
+            margin_left: 0,
+            margin_top: 0
+        });
+        ignoreTopPanelButton.set_active(this.settings.get_boolean('ignore-top-panel'));
+        ignoreTopPanelButton.connect('toggled', Lang.bind(this, function(check) {
+            this.settings.set_boolean('ignore-top-panel', check.get_active());
+        }));
+
+        let ignoreMessageTrayButton = new Gtk.CheckButton({
+            label: _("Ignore message tray menus"),
+            margin_left: 0,
+            margin_top: 0
+        });
+        ignoreMessageTrayButton.set_active(this.settings.get_boolean('ignore-message-tray'));
+        ignoreMessageTrayButton.connect('toggled', Lang.bind(this, function(check) {
+            this.settings.set_boolean('ignore-message-tray', check.get_active());
+        }));
+
         /* Add to layout */
         let intellihideControlGrid = new Gtk.Grid({
             row_homogeneous: false,
@@ -359,6 +379,9 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         intellihideContainerGrid.attach(intellihideNormal, 0, 0, 2, 1);
         intellihideContainerGrid.attach(intellihideFocusApp, 0, 1, 2, 1);
         intellihideContainerGrid.attach(intellihideTopWindow, 0, 2, 2, 1);
+        intellihideContainerGrid.attach(ignoreTopPanelButton, 0, 3, 2, 1);
+        //intellihideContainerGrid.attach(ignoreMessageTrayButton, 0, 4, 2, 1);
+
         visibilityContainerBox.add(intellihideControlGrid);
         visibilityContainerBox.add(intellihideContainerGrid);
 
