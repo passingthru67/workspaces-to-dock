@@ -446,6 +446,7 @@ intellihide.prototype = {
 
     // handler for when panel focus is grabbed (GS 38+)
     _onPanelFocusGrabbed: function(source, event) {
+        if (this._settings.get_boolean('ignore-top-panel')) return;
         let idx = source._grabStack.length - 1;
         let focusedActor = source._grabStack[idx].actor;
         let [rx, ry] = focusedActor.get_transformed_position();
@@ -460,6 +461,7 @@ intellihide.prototype = {
 
     // handler for when panel focus is ungrabbed (GS 38+)
     _onPanelFocusUngrabbed: function(source, event) {
+        if (this._settings.get_boolean('ignore-top-panel')) return;
         if (_DEBUG_) global.log("intellihide: onPanelFocusUnGrabbed");
         this._disableIntellihide = false;
         if (this._inOverview) {
@@ -472,6 +474,7 @@ intellihide.prototype = {
 
     // handler for when messageTray focus is grabbed (GS 34+)
     _onTrayFocusGrabbed: function(source, event) {
+        if (this._settings.get_boolean('ignore-message-tray')) return;
         if (_DEBUG_) global.log("intellihide: _onTrayFocusGrabbed");
         let idx = source._grabStack.length - 1;
         let focusedActor = source._grabStack[idx].actor;
@@ -497,6 +500,7 @@ intellihide.prototype = {
 
     // handler for when messageTray focus is ungrabbed (GS 34+)
     _onTrayFocusUngrabbed: function(source, event) {
+        if (this._settings.get_boolean('ignore-message-tray')) return;
         if (_DEBUG_) global.log("intellihide: onTrayFocusUnGrabbed");
         this._disableIntellihide = false;
         if (this._inOverview) {
