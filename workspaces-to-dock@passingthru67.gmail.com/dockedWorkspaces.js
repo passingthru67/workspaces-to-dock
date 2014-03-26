@@ -373,7 +373,7 @@ dockedWorkspaces.prototype = {
                 this._combinedSources = null;
             }
 
-            if (Main.layoutManager.uiGroup.contains(self.actor)) {
+            if (self._settings.get_boolean('ignore-message-tray')) {
                 let normalClone = new Clutter.Clone({ source: cloneSource });
                 let workspaceClone = new Clutter.Clone({ source: self.actor });
                 this._combinedSources = new Clutter.Actor({reactive: true});
