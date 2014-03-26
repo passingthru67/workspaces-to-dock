@@ -355,7 +355,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }));
 
         let ignoreMessageTrayButton = new Gtk.CheckButton({
-            label: _("Ignore message tray menus"),
+            label: _("Ignore message tray menus + shift dock upward when tray is shown"),
             margin_left: 0,
             margin_top: 0
         });
@@ -380,7 +380,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         intellihideContainerGrid.attach(intellihideFocusApp, 0, 1, 2, 1);
         intellihideContainerGrid.attach(intellihideTopWindow, 0, 2, 2, 1);
         intellihideContainerGrid.attach(ignoreTopPanelButton, 0, 3, 2, 1);
-        //intellihideContainerGrid.attach(ignoreMessageTrayButton, 0, 4, 2, 1);
+        intellihideContainerGrid.attach(ignoreMessageTrayButton, 0, 4, 2, 1);
 
         visibilityContainerBox.add(intellihideControlGrid);
         visibilityContainerBox.add(intellihideContainerGrid);

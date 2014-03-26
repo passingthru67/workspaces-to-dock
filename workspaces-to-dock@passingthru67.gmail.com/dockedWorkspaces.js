@@ -210,6 +210,10 @@ dockedWorkspaces.prototype = {
                 if (_DEBUG_) global.log("dockeWorkspaces: init - DashToDock extension is installed and enabled");
                 DashToDock = extension.imports.extension;
                 if (DashToDock && DashToDock.dock) {
+                    // Lower the dash-to-dock below the screenShieldGroup
+                    if (Main.layoutManager.uiGroup.contains(Main.layoutManager.screenShieldGroup))
+                        Main.layoutManager.uiGroup.set_child_below_sibling(DashToDock.dock.actor, Main.layoutManager.screenShieldGroup);
+
                     // Connect DashToDock hover signal
                     this._signalHandler.pushWithLabel(
                         'DashToDockHoverSignal',
@@ -326,7 +330,86 @@ dockedWorkspaces.prototype = {
         GSFunctions['WorkspaceThumbnail_MAX_THUMBNAIL_SCALE'] = WorkspaceThumbnail.MAX_THUMBNAIL_SCALE;
         if (this._settings.get_boolean('customize-thumbnail')) {
             WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = this._settings.get_double('thumbnail-size');
-        }
+        };
+
+        // Remove workspaces-to-dock from desktop clone when messageTray is hidden
+        GSFunctions['MessageTray_hideDesktopClone'] = MessageTray.MessageTray.prototype._hideDesktopClone;
+        MessageTray.MessageTray.prototype._hideDesktopClone = function() {
+            //GSFunctions['MessageTray_hideDesktopClone'].call(this);
+            this._tween(this._desktopClone, '_desktopCloneState', MessageTray.State.HIDDEN,
+                        { y: 0,
+                          time: MessageTray.ANIMATION_TIME,
+                          transition: 'easeOutQuad',
+                          onComplete: Lang.bind(this, function() {
+                              this._desktopClone.destroy();
+                              this._desktopClone = null;
+                              if (this._combinedSources) {
+                                  this._combinedSources.destroy();
+                                  this._combinedSources = null;
+                              }
+                              this._bottomMonitorGeometry = null;
+                          }),
+                          onUpdate: Lang.bind(this, this._updateDesktopCloneClip)
+                        });
+        };
+
+        // Include workspaces-to-dock in desktop clone that gets shifted upward when the messageTray is shown
+        GSFunctions['MessageTray_showDesktopClone'] = MessageTray.MessageTray.prototype._showDesktopClone;
+        MessageTray.MessageTray.prototype._showDesktopClone = function() {
+            //GSFunctions['MessageTray_showDesktopClone'].call(this);
+            let bottomMonitor = Main.layoutManager.bottomMonitor;
+            this._bottomMonitorGeometry = { x: bottomMonitor.x,
+                                            y: bottomMonitor.y,
+                                            width: bottomMonitor.width,
+                                            height: bottomMonitor.height };
+
+            if (this._desktopClone)
+                this._desktopClone.destroy();
+
+            let cloneSource = Main.overview.visible ? Main.layoutManager.overviewGroup : global.window_group;
+
+            if (this._combinedSources) {
+                this._combinedSources.destroy();
+                this._combinedSources = null;
+            }
+
+            if (self._settings.get_boolean('ignore-message-tray')) {
+                let normalClone = new Clutter.Clone({ source: cloneSource });
+                let workspaceClone = new Clutter.Clone({ source: self.actor });
+                this._combinedSources = new Clutter.Actor({reactive: true});
+                this._combinedSources.add_actor(normalClone);
+                this._combinedSources.add_actor(workspaceClone);
+                let workspaceChild = this._combinedSources.get_child_at_index(1);
+                workspaceChild.set_position(self.actor.x, self.actor.y);
+                if (DashToDock && DashToDock.dock) {
+                    let dashClone = new Clutter.Clone({ source: DashToDock.dock.actor });
+                    this._combinedSources.add_actor(dashClone);
+                    let dashChild = this._combinedSources.get_child_at_index(2);
+                    dashChild.set_position(DashToDock.dock.actor.x, DashToDock.dock.actor.y);
+                }
+                Main.layoutManager.uiGroup.insert_child_below(this._combinedSources, Main.layoutManager.screenShieldGroup);
+
+                this._desktopClone = new Clutter.Clone({ source: this._combinedSources,
+                                                     clip: new Clutter.Geometry(this._bottomMonitorGeometry) });
+                Main.layoutManager.uiGroup.insert_child_below(this._desktopClone, Main.layoutManager.screenShieldGroup);
+
+            } else {
+                this._desktopClone = new Clutter.Clone({ source: cloneSource,
+                                                     clip: new Clutter.Geometry(this._bottomMonitorGeometry) });
+                Main.uiGroup.insert_child_above(this._desktopClone, cloneSource);
+            }
+
+            this._desktopClone.x = 0;
+            this._desktopClone.y = 0;
+            this._desktopClone.show();
+
+            this._tween(this._desktopClone, '_desktopCloneState', MessageTray.State.SHOWN,
+                        { y: -this.actor.height,
+                          time: MessageTray.ANIMATION_TIME,
+                          transition: 'easeOutQuad',
+                          onUpdate: Lang.bind(this, this._updateDesktopCloneClip)
+                        });
+        };
 
     },
 
@@ -344,6 +427,9 @@ dockedWorkspaces.prototype = {
 
         // Restore MAX_THUMBNAIL_SCALE to default value
         WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = GSFunctions['WorkspaceThumbnail_MAX_THUMBNAIL_SCALE'];
+
+        MessageTray.MessageTray.prototype._hideDesktopClone = GSFunctions['MessageTray_hideDesktopClone'];
+        MessageTray.MessageTray.prototype._showDesktopClone = GSFunctions['MessageTray_showDesktopClone'];
     },
 
     // handler for when workspace is restacked
@@ -713,6 +799,10 @@ dockedWorkspaces.prototype = {
             if (extension.state == ExtensionSystem.ExtensionState.ENABLED) {
                 DashToDock = extension.imports.extension;
                 if (DashToDock && DashToDock.dock) {
+                    // Lower the dash-to-dock below the screenShieldGroup
+                    if (Main.layoutManager.uiGroup.contains(Main.layoutManager.screenShieldGroup))
+                        Main.layoutManager.uiGroup.set_child_below_sibling(DashToDock.dock.actor, Main.layoutManager.screenShieldGroup);
+
                     // Connect DashToDock hover signal
                     this._signalHandler.pushWithLabel(
                         'DashToDockHoverSignal',
