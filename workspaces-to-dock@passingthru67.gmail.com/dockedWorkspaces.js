@@ -373,7 +373,7 @@ dockedWorkspaces.prototype = {
                 this._combinedSources = null;
             }
 
-            if (self._settings.get_boolean('ignore-message-tray')) {
+            if (self._settings.get_boolean('ignore-message-tray') || self._settings.get_boolean('dock-fixed')) {
                 let normalClone = new Clutter.Clone({ source: cloneSource });
                 let workspaceClone = new Clutter.Clone({ source: self.actor });
                 this._combinedSources = new Clutter.Actor({reactive: true});
