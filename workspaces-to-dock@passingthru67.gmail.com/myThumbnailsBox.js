@@ -309,8 +309,7 @@ const myWorkspaceThumbnail = new Lang.Class({
             win = actor.meta_window;
         }
         let activeWorkspace = global.screen.get_active_workspace();
-        return (this.metaWorkspace == activeWorkspace && win.is_on_all_workspaces());
-        //return win.is_on_all_workspaces();
+        return (this.metaWorkspace == activeWorkspace && !win.skip_taskbar && win.is_on_all_workspaces());
     },
 
     _doAddWindow : function(metaWin) {
