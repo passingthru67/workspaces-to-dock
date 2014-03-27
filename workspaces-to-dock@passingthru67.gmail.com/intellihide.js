@@ -559,15 +559,15 @@ intellihide.prototype = {
     },
 
     // intellihide function to hide dock
-    _hide: function(nonreactive) {
+    _hide: function(metaOverlap) {
         this.status = false;
         if (this._settings.get_boolean('dock-fixed')) {
             if (_DEBUG_) global.log("intellihide: _hide - fadeOutDock");
-            if (nonreactive) {
-                // hide and make stage nonreactive so meta popup windows receive hover and clicks
+            if (metaOverlap) {
+                // meta popup overlap initiated this hide
                 this._dock.fadeOutDock(0, 0, true);
             } else {
-                // panel or messagetray initiated this hide .. still reactive
+                // toppanel or messagetray or overview change initiated this hide
                 this._dock.fadeOutDock(0, 0, false);
             }
         } else {
@@ -644,7 +644,7 @@ intellihide.prototype = {
 
                 if (_DEBUG_) global.log("intellihide: updateDockVisiblity - overlaps = "+overlaps);
                 if (overlaps) {
-                    this._hide(true); // hide and make stage nonreactive so meta popup windows receive hover and clicks
+                    this._hide(true);
                 } else {
                     this._show();
                 }
