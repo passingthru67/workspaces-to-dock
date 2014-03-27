@@ -829,15 +829,14 @@ dockedWorkspaces.prototype = {
         if (this._settings.get_boolean('disable-scroll') && this._autohideStatus && (this._animStatus.hidden() || this._animStatus.hiding()))
             return true;
 
+        let activeWs = global.screen.get_active_workspace();
+        let ws;
         if (event.get_scroll_direction() == Clutter.ScrollDirection.UP) {
-            let activeWs = global.screen.get_active_workspace();
-            let ws = activeWs.get_neighbor(Meta.MotionDirection.UP);
-            Main.wm.actionMoveWorkspace(ws);
+            ws = activeWs.get_neighbor(Meta.MotionDirection.UP);
         } else if (event.get_scroll_direction() == Clutter.ScrollDirection.DOWN) {
-            let activeWs = global.screen.get_active_workspace();
-            let ws = activeWs.get_neighbor(Meta.MotionDirection.DOWN);
-            Main.wm.actionMoveWorkspace(ws);
+            ws = activeWs.get_neighbor(Meta.MotionDirection.DOWN);
         }
+        Main.wm.actionMoveWorkspace(ws);
         return true;
     },
 
