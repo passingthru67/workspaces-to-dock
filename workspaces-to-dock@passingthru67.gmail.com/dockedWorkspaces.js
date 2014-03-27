@@ -1036,18 +1036,16 @@ dockedWorkspaces.prototype = {
 
     // This function handles hiding the dock when dock is in stationary-fixed
     // position but overlapped by gnome panel menus or meta popup windows
-    fadeOutDock: function(time, delay, nonreactive) {
+    fadeOutDock: function(time, delay, metaOverlap) {
         if (_DEBUG_) global.log("dockedWorkspaces: fadeOutDock");
-        if (nonreactive) {
-            this.actor.opacity = 150;
-        } else {
-            if (Main.layoutManager._inOverview)
-                this.actor.opacity = 0;
-            else
-                this.actor.opacity = 150;
+        if (Main.layoutManager._inOverview) {
+            // Hide fixed dock when in overviewmode applications view
+            this.actor.opacity = 0;
         }
 
-        // Make dock non-reactive
+        // Make thumbnail windowclones non-reactive
+        // NOTE: Need this for when in overviewmode applications view and dock is in fixed mode.
+        // Fixed dock has opacity set to 0 but is still reactive.
         this.actor.reactive = false;
         this._thumbnailsBox.actor.reactive = false;
         for (let i = 0; i < this._thumbnailsBox._thumbnails.length; i++) {
@@ -1062,7 +1060,7 @@ dockedWorkspaces.prototype = {
         if (_DEBUG_) global.log("dockedWorkspaces: fadeInDock");
         this.actor.opacity = 255;
 
-        // Return dock to reactive state
+        // Return thumbnail windowclones to reactive state
         this.actor.reactive = true;
         this._thumbnailsBox.actor.reactive = true;
         for (let i = 0; i < this._thumbnailsBox._thumbnails.length; i++) {
