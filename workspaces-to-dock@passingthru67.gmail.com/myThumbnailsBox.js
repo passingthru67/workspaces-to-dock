@@ -770,10 +770,13 @@ const myWorkspaceThumbnail = new Lang.Class({
 
             this._windowAppsMenuListBox = new St.BoxLayout({vertical: true});
             for (let i=0; i < thumbnail._wsWindowApps.length; i++) {
-                let metaWin = thumbnail._wsWindowApps[i].metaWin;
-                let app = thumbnail._wsWindowApps[i].app;
-                let item = new WindowAppMenuItem(app, metaWin, thumbnail);
-                this._windowAppsMenuListBox.add_actor(item.actor);
+                let buttonActor = this._wsWindowAppsBox.get_child_at_index(i);
+                if (buttonActor.visible) {
+                    let metaWin = thumbnail._wsWindowApps[i].metaWin;
+                    let app = thumbnail._wsWindowApps[i].app;
+                    let item = new WindowAppMenuItem(app, metaWin, thumbnail);
+                    this._windowAppsMenuListBox.add_actor(item.actor);
+                }
             }
 
             let windowAppsListsection = new PopupMenu.PopupMenuSection();
