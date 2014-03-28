@@ -151,9 +151,9 @@ dockedWorkspaces.prototype = {
                 Lang.bind(this, this._thumbnailsBoxResized)
             ],
             [
-                global.screen,
+                Main.layoutManager,
                 'monitors-changed',
-                Lang.bind(this, this._resetPosition)
+                Lang.bind(this, this._onMonitorsChanged)
             ],
             [
                 St.ThemeContext.get_for_stage(global.stage),
@@ -1311,11 +1311,10 @@ dockedWorkspaces.prototype = {
             height = this._monitor.height - (Main.overview._searchEntryBin.y + Main.overview._searchEntryBin.height + Main.messageTray.actor.height);
         }
 
-        // skip updating if size is same
-        if ((this.actor.y == y) && (this.actor.width == this._thumbnailsBox.actor.width + DOCK_PADDING) && (this.actor.height == height)) {
-            if (_DEBUG_) global.log("dockedWorkspaces: _updateSize not necessary .. size the same");
-            return;
-        }
+        //// skip updating if size is same
+        //if ((this.actor.y == y) && (this.actor.width == this._thumbnailsBox.actor.width + DOCK_PADDING) && (this.actor.height == height)) {
+            //return;
+        //}
 
         // Updating size also resets the position of the staticBox (used to detect window overlaps)
         this.staticBox.init_rect(onScreenX, y, this._thumbnailsBox.actor.width + DOCK_PADDING, height);
@@ -1394,6 +1393,13 @@ dockedWorkspaces.prototype = {
         this._updateBackgroundOpacity();
         this._updateClip();
         this._updateBarrier();
+    },
+
+    _onMonitorsChanged: function() {
+        this._resetPosition();
+		this._thumbnailsBox._destroyThumbnails();
+		this._thumbnailsBox._createThumbnails();
+        this._redisplay();
     },
 
     // Retrieve the preferred monitor

@@ -195,7 +195,7 @@ intellihide.prototype = {
             ],
             // update when monitor changes, for instance in multimonitor when monitors are attached
             [
-                global.screen,
+                Main.layoutManager,
                 'monitors-changed',
                 Lang.bind(this, this._onMonitorsChanged)
             ],
