@@ -285,7 +285,9 @@ const myWorkspaceThumbnail = new Lang.Class({
         } else {
             win = window.get_meta_window();
         }
-        return !win.skip_taskbar &&
+
+        let tracker = Shell.WindowTracker.get_default();
+        return tracker.is_window_interesting(win) &&
                win.showing_on_its_workspace();
     },
 
@@ -297,7 +299,10 @@ const myWorkspaceThumbnail = new Lang.Class({
         } else {
             win = actor.meta_window;
         }
-        return (!win.skip_taskbar && win.minimized);
+
+        let tracker = Shell.WindowTracker.get_default();
+        return tracker.is_window_interesting(win) &&
+               win.minimized;
     },
 
     // Tests if window app should be shown on this workspace
@@ -308,8 +313,10 @@ const myWorkspaceThumbnail = new Lang.Class({
         } else {
             win = actor.meta_window;
         }
+
+        let tracker = Shell.WindowTracker.get_default();
         let activeWorkspace = global.screen.get_active_workspace();
-        return (this.metaWorkspace == activeWorkspace && !win.skip_taskbar && win.is_on_all_workspaces());
+        return (this.metaWorkspace == activeWorkspace && tracker.is_window_interesting(win) && win.is_on_all_workspaces());
     },
 
     _doAddWindow : function(metaWin) {
@@ -328,7 +335,7 @@ const myWorkspaceThumbnail = new Lang.Class({
                                                 metaWin.get_compositor_private() &&
                                                 metaWin.get_workspace() == this.metaWorkspace)
                                                 this._doAddWindow(metaWin);
-                                            return GLib.SOURCE_REMOVE;
+                                            return false;
                                         }));
             return;
         }
@@ -346,28 +353,10 @@ const myWorkspaceThumbnail = new Lang.Class({
         if (this._lookupIndex (metaWin) != -1)
             return;
 
-        if (!this._isMyWindow(win))
+        if (!this._isMyWindow(win) || !this._isOverviewWindow(win))
             return;
 
-        if (this._isOverviewWindow(win)) {
-            // passingthru67 - force thumbnail refresh if window is on all workspaces
-            // note: _addWindowClone checks if metawindow is on all workspaces
-            this._addWindowClone(win, true);
-        } else if (metaWin.is_attached_dialog()) {
-            let parent = metaWin.get_transient_for();
-            while (parent.is_attached_dialog())
-                parent = metaWin.get_transient_for();
-
-            let idx = this._lookupIndex (parent);
-            if (idx < 0) {
-                // parent was not created yet, it will take care
-                // of the dialog when created
-                return;
-            }
-
-            let clone = this._windows[idx];
-            clone.addAttachedDialog(metaWin);
-        }
+        let clone = this._addWindowClone(win, true);
     },
 
     _doRemoveWindow : function(metaWin) {
@@ -411,16 +400,16 @@ const myWorkspaceThumbnail = new Lang.Class({
                           this.activate(time);
                       }));
         clone.connect('drag-begin',
-                      Lang.bind(this, function() {
-                          Main.overview.beginWindowDrag(clone);
+                      Lang.bind(this, function(clone) {
+                          Main.overview.beginWindowDrag();
                       }));
         clone.connect('drag-cancelled',
-                      Lang.bind(this, function() {
-                          Main.overview.cancelledWindowDrag(clone);
+                      Lang.bind(this, function(clone) {
+                          Main.overview.cancelledWindowDrag();
                       }));
         clone.connect('drag-end',
-                      Lang.bind(this, function() {
-                          Main.overview.endWindowDrag(clone);
+                      Lang.bind(this, function(clone) {
+                          Main.overview.endWindowDrag();
                       }));
         this._contents.add_actor(clone.actor);
 
