@@ -220,21 +220,27 @@ intellihide.prototype = {
                 Lang.bind(this, this._onPanelFocusUngrabbed)
             ],
             [
-                Main.layoutManager._bgManagers[0].background.actor._backgroundManager._grabHelper,
-                'focus-grabbed',
-                Lang.bind(this, this._onPanelFocusGrabbed)
-            ],
-            [
-                Main.layoutManager._bgManagers[0].background.actor._backgroundManager._grabHelper,
-                'focus-ungrabbed',
-                Lang.bind(this, this._onPanelFocusUngrabbed)
-            ],
-            [
                 Main.overview.viewSelector,
                 'page-changed',
                 Lang.bind(this, this._overviewPageChanged)
             ]
         );
+
+        // if background manager valid, Connect grabHelper signals
+        if (Main.layoutManager._bgManagers.length > 0) {
+            this._signalHandler.push(
+                [
+                    Main.layoutManager._bgManagers[0].background.actor._backgroundManager._grabHelper,
+                    'focus-grabbed',
+                    Lang.bind(this, this._onPanelFocusGrabbed)
+                ],
+                [
+                    Main.layoutManager._bgManagers[0].background.actor._backgroundManager._grabHelper,
+                    'focus-ungrabbed',
+                    Lang.bind(this, this._onPanelFocusUngrabbed)
+                ]
+            );
+        }
         if (_DEBUG_) global.log("intellihide: init - signals being captured");
 
         // Start main loop and bind initialize function
