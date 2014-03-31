@@ -228,7 +228,8 @@ intellihide.prototype = {
 
         // if background manager valid, Connect grabHelper signals
         if (Main.layoutManager._bgManagers.length > 0) {
-            this._signalHandler.push(
+            this._signalHandler.pushWithLabel(
+                'bgManagerSignals',
                 [
                     Main.layoutManager._bgManagers[0].background.actor._backgroundManager._grabHelper,
                     'focus-grabbed',
@@ -350,7 +351,27 @@ intellihide.prototype = {
 
     // handler for when monitor changes
     _onMonitorsChanged: function() {
-        if (_DEBUG_) global.log("intellihide: _onMonitorsChanged");
+		if (_DEBUG_) global.log("intellihide: _onMonitorsChanged");
+        // disconnect bgManager signals
+        this._signalHandler.disconnectWithLabel('bgManagerSignals');
+
+        // if background manager valid, Connect grabHelper signals
+        if (Main.layoutManager._bgManagers.length > 0) {
+            this._signalHandler.pushWithLabel(
+                'bgManagerSignals',
+                [
+                    Main.layoutManager._bgManagers[0].background.actor._backgroundManager._grabHelper,
+                    'focus-grabbed',
+                    Lang.bind(this, this._onPanelFocusGrabbed)
+                ],
+                [
+                    Main.layoutManager._bgManagers[0].background.actor._backgroundManager._grabHelper,
+                    'focus-ungrabbed',
+                    Lang.bind(this, this._onPanelFocusUngrabbed)
+                ]
+            );
+        }
+
         this._updateDockVisibility();
     },
 
