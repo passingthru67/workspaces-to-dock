@@ -781,17 +781,18 @@ const myWorkspaceThumbnail = new Lang.Class({
 
             let windowAppsListsection = new PopupMenu.PopupMenuSection();
             windowAppsListsection.actor.add_actor(this._windowAppsMenuListBox);
-            if (thumbnail._wsWindowApps.length > 0) {
+
+            let appsArray = this._windowAppsMenuListBox.get_children();
+            if (appsArray.length  > 0) {
                 this._menu.addMenuItem(windowAppsListsection);
+                if (appsArray.length > 1) {
+                    let item1 = new PopupMenu.PopupMenuItem(_('Close All Applications'));
+                    item1.connect('activate', Lang.bind(this, this._closeAllMetaWindows, this));
+                    this._menu.addMenuItem(item1);
+                }
+                this._menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
             }
 
-            if (thumbnail._wsWindowApps.length > 1) {
-                let item1 = new PopupMenu.PopupMenuItem(_('Close All Applications'));
-                item1.connect('activate', Lang.bind(this, this._closeAllMetaWindows, this));
-                this._menu.addMenuItem(item1);
-            }
-
-            this._menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
             let item2 = new PopupMenu.PopupMenuItem(_("Extension preferences"));
             item2.connect('activate', Lang.bind(this, this._showExtensionPreferences));
             this._menu.addMenuItem(item2);
