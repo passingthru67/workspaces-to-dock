@@ -17,7 +17,7 @@ fi
 root_dir=${PWD}
 files_dir=$root_dir/workspaces-to-dock@passingthru67.gmail.com
 temp_dir=$root_dir/attic/releases/build
-if [ $1 -gt 0 ] ;
+if [ $1 -lt 999 ] ;
 then
     release_dir=$root_dir/attic/releases/master/$1
 else
@@ -48,7 +48,7 @@ cd "$temp_dir/"
 zip -r workspaces-to-dock@passingthru67.gmail.com.zip *
 
 # copy zip to release directory
-if [ $1 -gt 0 ] ;
+if [ $1 -lt 999 ] ;
 then
     rm -Rf "$release_dir"
     mkdir "$release_dir"
