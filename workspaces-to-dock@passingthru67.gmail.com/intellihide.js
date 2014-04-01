@@ -227,16 +227,17 @@ intellihide.prototype = {
         );
 
         // if background manager valid, Connect grabHelper signals
-        if (Main.layoutManager._bgManagers.length > 0) {
+        let primaryIndex = Main.layoutManager.primaryIndex;
+        if (Main.layoutManager._bgManagers[primaryIndex]) {
             this._signalHandler.pushWithLabel(
                 'bgManagerSignals',
                 [
-                    Main.layoutManager._bgManagers[0].background.actor._backgroundManager._grabHelper,
+                    Main.layoutManager._bgManagers[primaryIndex].background.actor._backgroundManager._grabHelper,
                     'focus-grabbed',
                     Lang.bind(this, this._onPanelFocusGrabbed)
                 ],
                 [
-                    Main.layoutManager._bgManagers[0].background.actor._backgroundManager._grabHelper,
+                    Main.layoutManager._bgManagers[primaryIndex].background.actor._backgroundManager._grabHelper,
                     'focus-ungrabbed',
                     Lang.bind(this, this._onPanelFocusUngrabbed)
                 ]
@@ -356,16 +357,17 @@ intellihide.prototype = {
         this._signalHandler.disconnectWithLabel('bgManagerSignals');
 
         // if background manager valid, Connect grabHelper signals
-        if (Main.layoutManager._bgManagers.length > 0) {
+        let primaryIndex = Main.layoutManager.primaryIndex;
+        if (Main.layoutManager._bgManagers[primaryIndex]) {
             this._signalHandler.pushWithLabel(
                 'bgManagerSignals',
                 [
-                    Main.layoutManager._bgManagers[0].background.actor._backgroundManager._grabHelper,
+                    Main.layoutManager._bgManagers[primaryIndex].background.actor._backgroundManager._grabHelper,
                     'focus-grabbed',
                     Lang.bind(this, this._onPanelFocusGrabbed)
                 ],
                 [
-                    Main.layoutManager._bgManagers[0].background.actor._backgroundManager._grabHelper,
+                    Main.layoutManager._bgManagers[primaryIndex].background.actor._backgroundManager._grabHelper,
                     'focus-ungrabbed',
                     Lang.bind(this, this._onPanelFocusUngrabbed)
                 ]
