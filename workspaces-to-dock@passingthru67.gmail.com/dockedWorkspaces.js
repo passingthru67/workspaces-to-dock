@@ -86,6 +86,9 @@ dockedWorkspaces.prototype = {
         // initialize popup menu flag
         this._popupMenuShowing = false;
 
+        // initialize monitors changed flag
+        this._monitorsChanged = false;
+
         // initialize colors with generic values
         this._defaultBackground = {red:0, green:0, blue:0};
         this._customBackground = {red:0, green:0, blue:0};
@@ -411,6 +414,22 @@ dockedWorkspaces.prototype = {
                         });
         };
 
+        // Extend LayoutManager _updateRegions function to destroy/create workspace thumbnails when completed.
+        // NOTE: needed because 'monitors-changed' signal doesn't wait for queued regions to update.
+        // We need to wait so that the screen workspace workarea is adjusted before creating workspace thumbnails.
+        // Otherwise when we move the primary workspace to another monitor, the workspace thumbnails won't adjust for the top panel.
+        GSFunctions['LayoutManager_updateRegions'] = Layout.LayoutManager.prototype._updateRegions;
+        Layout.LayoutManager.prototype._updateRegions = function() {
+            let ret = GSFunctions['LayoutManager_updateRegions'].call(this);
+            //this.emit('regions-updated');
+            if (self._monitorsChanged) {
+                self._monitorsChanged = false;
+                self._thumbnailsBox._destroyThumbnails();
+                self._thumbnailsBox._createThumbnails();
+            }
+            return ret;
+        };
+
     },
 
     // function called during destroy to restore gnome shell 3.4/3.6/3.8
@@ -430,6 +449,9 @@ dockedWorkspaces.prototype = {
 
         MessageTray.MessageTray.prototype._hideDesktopClone = GSFunctions['MessageTray_hideDesktopClone'];
         MessageTray.MessageTray.prototype._showDesktopClone = GSFunctions['MessageTray_showDesktopClone'];
+
+        // Restore normal LayoutManager _updateRegions function
+        Layout.LayoutManager.prototype._updateRegions = GSFunctions['LayoutManager_updateRegions'];
     },
 
     // handler for when workspace is restacked
@@ -1397,9 +1419,10 @@ dockedWorkspaces.prototype = {
 
     _onMonitorsChanged: function() {
         this._resetPosition();
-		this._thumbnailsBox._destroyThumbnails();
-		this._thumbnailsBox._createThumbnails();
         this._redisplay();
+        this._monitorsChanged = true;
+        this._thumbnailsBox._destroyThumbnails();
+        this._thumbnailsBox._createThumbnails();
     },
 
     // Retrieve the preferred monitor
