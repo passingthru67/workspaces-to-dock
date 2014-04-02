@@ -5,30 +5,58 @@
 # version_number > 0 creates zip in attic/releases/master/<version_number>
 #
 
+APPLICATION="${0##*/}"
+USAGE="$APPLICATION [options] version_number
+
+Builds the installation zip for release and copies it into the releases folder.
+Options:
+    -d      Zip file will be copied into the development branch instead of the releases folder.
+"
+
+# Verify argument for version_number exists
 if [ $# -lt 1 ] ;
 then
-    echo "Cannot build without a release number. Command syntax is ./build_release <version_number>."
-    echo "Replace <version_number> with an integer number."
+    echo "Cannot build without a release number. Replace <version_number> with an integer value."
+    echo ""
+    echo "$USAGE"
     exit 1
 fi
 
-# variables
+# Process options
+while getopts "d" flag; do
+    case "$flag" in
+        d) DEV='y';;
+        *) echo "$USAGE"; exit 1;;
+    esac
+done
+shift $((OPTIND-1))
+
+# Test to verify argument is integer
+if [[ $1 != [0-9]* ]];
+then
+    echo "$USAGE"
+    exit 1
+fi
+
+# Set directory variables
 #root_dir=~/.local/share/gnome-shell/extensions/workspaces-to-dock
 root_dir=${PWD}
 files_dir=$root_dir/workspaces-to-dock@passingthru67.gmail.com
 temp_dir=$root_dir/attic/releases/build
-if [ $1 -lt 999 ] ;
+
+# Set release_dir based on development option
+if [ -z "$DEV" ];
 then
     release_dir=$root_dir/attic/releases/master/$1
 else
     release_dir=$root_dir
 fi
 
-# create temp directory
+# Create temp directory
 rm -Rf "$temp_dir"
 mkdir "$temp_dir"
 
-# copy extension files stripping out debug and changing version number in metadata
+# Copy extension files stripping out debug and changing version number in metadata
 cd "$files_dir"
 sed "s/ 0/ $1/g" metadata.json > "$temp_dir/metadata.json"
 cat extension.js | grep -v '_DEBUG_' > "$temp_dir/extension.js"
@@ -38,25 +66,26 @@ cat dockedWorkspaces.js | grep -v '_DEBUG_' > "$temp_dir/dockedWorkspaces.js"
 cat myThumbnailsBox.js | grep -v '_DEBUG_' > "$temp_dir/myThumbnailsBox.js"
 cat prefs.js | grep -v '_DEBUG_' > "$temp_dir/prefs.js"
 
-# copy extension subfolders
+# Copy extension subfolders
 cp -R schemas/ "$temp_dir/"
 cp -R themes/ "$temp_dir/"
 cp -R locale/ "$temp_dir/"
 
-# create release zip
+# Create release zip
 cd "$temp_dir/"
 zip -r workspaces-to-dock@passingthru67.gmail.com.zip *
 
-# copy zip to release directory
-if [ $1 -lt 999 ] ;
+# Delete and recreate release directory
+if [ -z "$DEV" ];
 then
     rm -Rf "$release_dir"
     mkdir "$release_dir"
 fi
 
+# Copy zip file to release directory
 cp workspaces-to-dock@passingthru67.gmail.com.zip "$release_dir/"
 
-# cleanup - remove temp directory
+# Cleanup - remove temp directory
 rm -Rf "$temp_dir"
 echo "Build completed."
 
