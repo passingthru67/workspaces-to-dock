@@ -221,6 +221,16 @@ dockedWorkspaces.prototype = {
                             DashToDock.dock._box,
                             'notify::hover',
                             Lang.bind(this, this._onDashToDockHoverChanged)
+                        ],
+                        [
+                            DashToDock.dock,
+                            'showing',
+                            Lang.bind(this, this._onDashToDockShowing)
+                        ],
+                        [
+                            DashToDock.dock,
+                            'hiding',
+                            Lang.bind(this, this._onDashToDockHiding)
                         ]
                     );
                 }
@@ -774,11 +784,31 @@ dockedWorkspaces.prototype = {
         }
     },
 
+    _onDashToDockShowing: function() {
+        if (_DEBUG_) global.log("dockedWorkspaces: _onDashToDockShowing");
+        //Skip if dock is not in dashtodock hover mode
+        if (this._settings.get_boolean('dashtodock-hover') && DashToDock && DashToDock.dock) {
+            if (Main.overview.visible == false) {
+                this._hoveringDash = true;
+                this._show();
+            }
+        }
+    },
+
+    _onDashToDockHiding: function() {
+        if (_DEBUG_) global.log("dockedWorkspaces: _onDashToDockHiding");
+        //Skip if dock is not in dashtodock hover mode
+        if (this._settings.get_boolean('dashtodock-hover') && DashToDock && DashToDock.dock) {
+            this._hoveringDash = false;
+            this._hide();
+        }
+    },
+
     // handler for DashToDock hover events
     _onDashToDockHoverChanged: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _onDashToDockHoverChanged");
         //Skip if dock is not in dashtodock hover mode
-        if (this._settings.get_boolean('dashtodock-hover') && DashToDock && DashToDock.dock) {
+        if (this._settings.get_boolean('dashtodock-hover') && DashToDock && DashToDock.dock && DashToDock.dock._animStatus.shown()) {
             if (DashToDock.dock._box.hover) {
                 if (Main.overview.visible == false) {
                     this._hoveringDash = true;
@@ -810,6 +840,16 @@ dockedWorkspaces.prototype = {
                             DashToDock.dock._box,
                             'notify::hover',
                             Lang.bind(this, this._onDashToDockHoverChanged)
+                        ],
+                        [
+                            DashToDock.dock,
+                            'showing',
+                            Lang.bind(this, this._onDashToDockShowing)
+                        ],
+                        [
+                            DashToDock.dock,
+                            'hiding',
+                            Lang.bind(this, this._onDashToDockHiding)
                         ]
                     );
                 }
