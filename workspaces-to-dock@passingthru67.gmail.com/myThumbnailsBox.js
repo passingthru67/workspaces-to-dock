@@ -316,7 +316,7 @@ const myWorkspaceThumbnail = new Lang.Class({
 
         let tracker = Shell.WindowTracker.get_default();
         let activeWorkspace = global.screen.get_active_workspace();
-        return (this.metaWorkspace == activeWorkspace && tracker.is_window_interesting(win) && win.is_on_all_workspaces());
+        return (win.located_on_workspace(this.metaWorkspace) || (this.metaWorkspace == activeWorkspace && tracker.is_window_interesting(win) && win.is_on_all_workspaces()));
     },
 
     _doAddWindow : function(metaWin) {
