@@ -45,8 +45,6 @@ Behavior Settings:
     
     **Autohide : Show the dock on mouse hover** - When enabled, the dock shows when the mouse touches the right edge of screen. When disabled, the dock remains hidden unless the intellihide option is on or overview mode is entered.
 
-    **Require click to show the dock when window maximized** - Require a mouse click (in addition to hovering) to show the dock when the focused window is maximized. This option helps eliminate accidentally triggering the dock when using vertical scroll bars on maximized windows.
-
     **Require pressure to show the dock** - Require mouse pressure against the edge of the screen to show the dock. This option helps eliminate accidentally triggering the dock when using vertical scroll bars. It also helps with accessing the dock in multi-monitor configurations where the 2nd monitor is to the right of the dock. Unfortunately, this feature requires Gnome Shell 3.8+ and an XServer installation that implements pressure barriers.
 
     NOTE: In multi-monitor configurations where the 2nd monitor is to the right of the workspaces dock, the dock will have to be showing before the pressure barrier is removed and the mouse pointer released to access the 2nd monitor. This will create a slight hesitation as the mouse must wait for the dock to show. To elliminate this issue, you may show the dock using the keyboard shortcut Super + w, or by entering Gnome Shell's overview mode prior to attempting to access the 2nd monitor.
@@ -183,6 +181,10 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
+**version 18 for Gnome 3.12 (Mar 16, 2014)**
+
+- Support for Gnome Shell 3.12
+
 **version 17 (Feb 21, 2014)**
 
 - Bug fix (Gnome Shell 3.6)
