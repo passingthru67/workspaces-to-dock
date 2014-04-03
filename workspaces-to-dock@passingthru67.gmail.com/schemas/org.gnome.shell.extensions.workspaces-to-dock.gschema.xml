@@ -61,11 +61,6 @@
       <summary>Disable scroll to prevent workspace switching when dock is slid out</summary>
       <description>Disable scroll to prevent workspace switching when dock is slid out.</description>
     </key>
-    <key type="b" name="require-click-to-show">
-      <default>false</default>
-      <summary>Dock requires hover+click to show when window is maximized</summary>
-      <description>Enable or disable requiring hover+click to show dock when window is maximized</description>
-    </key>
     <key type="b" name="require-pressure-to-show">
       <default>true</default>
       <summary>Require pressure to show dock (GS38+ only)</summary>
