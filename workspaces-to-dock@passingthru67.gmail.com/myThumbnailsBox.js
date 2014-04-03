@@ -188,6 +188,7 @@ const myWorkspaceThumbnail = new Lang.Class({
         this._windowsOnAllWorkspaces = [];
         this.parent(metaWorkspace);
 
+        this._settings = new Gio.Settings({ schema: OVERRIDE_SCHEMA });
         this._thumbnailsBox = thumbnailsBox;
         this._gsCurrentVersion = thumbnailsBox._gsCurrentVersion;
         this._mySettings = thumbnailsBox._mySettings;
@@ -316,7 +317,11 @@ const myWorkspaceThumbnail = new Lang.Class({
 
         let tracker = Shell.WindowTracker.get_default();
         let activeWorkspace = global.screen.get_active_workspace();
-        return (win.located_on_workspace(this.metaWorkspace) || (this.metaWorkspace == activeWorkspace && tracker.is_window_interesting(win) && win.is_on_all_workspaces()));
+        if (this._settings.get_boolean('workspaces-only-on-primary')) {
+            return (this.metaWorkspace == activeWorkspace && tracker.is_window_interesting(win) && win.is_on_all_workspaces());
+        } else {
+            return (win.located_on_workspace(this.metaWorkspace) && tracker.is_window_interesting(win) && win.showing_on_its_workspace());
+        }
     },
 
     _doAddWindow : function(metaWin) {
