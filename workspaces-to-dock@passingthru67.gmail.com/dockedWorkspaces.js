@@ -592,7 +592,10 @@ dockedWorkspaces.prototype = {
             this._updateBarrier();
         }));
 
-        this._settings.connect('changed::preferred-monitor', Lang.bind(this, this._resetPosition));
+        this._settings.connect('changed::preferred-monitor', Lang.bind(this, function() {
+            this._resetPosition();
+            this._redisplay();
+        }));
 
         this._settings.connect('changed::dock-edge-visible', Lang.bind(this, function() {
             if (this._autohideStatus) {
