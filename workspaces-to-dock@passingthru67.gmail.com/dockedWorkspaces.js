@@ -605,8 +605,7 @@ dockedWorkspaces.prototype = {
                 WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = GSFunctions['WorkspaceThumbnail_MAX_THUMBNAIL_SCALE'];
             }
             // hide and show thumbnailsBox to resize thumbnails
-            this._thumbnailsBox._destroyThumbnails();
-            this._thumbnailsBox._createThumbnails();
+            this._refreshThumbnails();
         }));
 
         this._settings.connect('changed::thumbnail-size', Lang.bind(this, function() {
@@ -617,30 +616,25 @@ dockedWorkspaces.prototype = {
                 WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = GSFunctions['WorkspaceThumbnail_MAX_THUMBNAIL_SCALE'];
             }
             // hide and show thumbnailsBox to resize thumbnails
-            this._thumbnailsBox._destroyThumbnails();
-            this._thumbnailsBox._createThumbnails();
+            this._refreshThumbnails();
         }));
 
         this._settings.connect('changed::workspace-captions', Lang.bind(this, function() {
             // hide and show thumbnailsBox to reset workspace apps in caption
-            this._thumbnailsBox._destroyThumbnails();
-            this._thumbnailsBox._createThumbnails();
+            this._refreshThumbnails();
         }));
         this._settings.connect('changed::workspace-caption-items', Lang.bind(this, function() {
             // hide and show thumbnailsBox to reset workspace apps in caption
-            this._thumbnailsBox._destroyThumbnails();
-            this._thumbnailsBox._createThumbnails();
+            this._refreshThumbnails();
         }));
         this._settings.connect('changed::workspace-caption-windowcount-image', Lang.bind(this, function() {
             // hide and show thumbnailsBox to reset workspace apps in caption
-            this._thumbnailsBox._destroyThumbnails();
-            this._thumbnailsBox._createThumbnails();
+            this._refreshThumbnails();
         }));
 
         this._settings.connect('changed::workspace-caption-large-icons', Lang.bind(this, function() {
             // hide and show thumbnailsBox to reset workspace apps in caption
-            this._thumbnailsBox._destroyThumbnails();
-            this._thumbnailsBox._createThumbnails();
+            this._refreshThumbnails();
         }));
 
         this._settings.connect('changed::extend-height', Lang.bind(this, function() {
@@ -1151,8 +1145,7 @@ dockedWorkspaces.prototype = {
         if (_DEBUG_) global.log("dockedWorkspaces: _changeStylesheet - Added new stylesheet");
         themeContext.set_theme (newTheme);
 
-        this._thumbnailsBox._destroyThumbnails();
-        this._thumbnailsBox._createThumbnails();
+        this._refreshThumbnails();
 
         return true;
     },
@@ -1163,8 +1156,7 @@ dockedWorkspaces.prototype = {
         if (this._disableRedisplay)
             return
 
-        this._thumbnailsBox._destroyThumbnails();
-        this._thumbnailsBox._createThumbnails();
+        this._refreshThumbnails();
     },
 
     // resdiplay dock called if size-position changed due to dock resizing
