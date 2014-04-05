@@ -13,14 +13,21 @@ Options:
     -d      Zip file will be copied into the development branch instead of the releases folder.
 "
 
-# Verify argument for version_number exists
-if [ $# -lt 1 ] ;
-then
-    echo "Cannot build without a release number. Replace <version_number> with an integer value."
-    echo ""
-    echo "$USAGE"
-    exit 1
-fi
+## Verify argument for version_number exists
+#if [ $# -lt 1 ] ;
+#then
+    #echo "Cannot build without a release number. Replace <version_number> with an integer value."
+    #echo ""
+    #echo "$USAGE"
+    #exit 1
+#fi
+
+## Test to verify argument is integer
+#if [[ $1 != [0-9]* ]];
+#then
+    #echo "$USAGE"
+    #exit 1
+#fi
 
 # Process options
 while getopts "d" flag; do
@@ -31,34 +38,20 @@ while getopts "d" flag; do
 done
 shift $((OPTIND-1))
 
-# Test to verify argument is integer
-if [[ $1 != [0-9]* ]];
-then
-    echo "$USAGE"
-    exit 1
-fi
-
 # Set directory variables
 #root_dir=~/.local/share/gnome-shell/extensions/workspaces-to-dock
 root_dir=${PWD}
 files_dir=$root_dir/workspaces-to-dock@passingthru67.gmail.com
 temp_dir=$root_dir/attic/releases/build
 
-# Set release_dir based on development option
-if [ -z "$DEV" ];
-then
-    release_dir=$root_dir/attic/releases/master/$1
-else
-    release_dir=$root_dir
-fi
-
 # Create temp directory
 rm -Rf "$temp_dir"
 mkdir "$temp_dir"
 
-# Copy extension files stripping out debug and changing version number in metadata
+# Copy extension files stripping out debug
 cd "$files_dir"
-sed "s/ 0/ $1/g" metadata.json > "$temp_dir/metadata.json"
+#sed "s/ 0/ $1/g" metadata.json > "$temp_dir/metadata.json"
+cat metadata.json > "$temp_dir/metadata.json"
 cat extension.js | grep -v '_DEBUG_' > "$temp_dir/extension.js"
 cat convenience.js | grep -v '_DEBUG_' > "$temp_dir/convenience.js"
 cat intellihide.js | grep -v '_DEBUG_' > "$temp_dir/intellihide.js"
@@ -74,6 +67,15 @@ cp -R locale/ "$temp_dir/"
 # Create release zip
 cd "$temp_dir/"
 zip -r workspaces-to-dock@passingthru67.gmail.com.zip *
+
+# Set release_dir based on development option and metadata version number
+version_number=$(grep \"version\": metadata.json | awk '{print $2}')
+if [ -z "$DEV" ];
+then
+    release_dir=$root_dir/attic/releases/master/$version_number
+else
+    release_dir=$root_dir
+fi
 
 # Delete and recreate release directory
 if [ -z "$DEV" ];
