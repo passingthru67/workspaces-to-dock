@@ -121,10 +121,10 @@
       <summary>Show workspace captions</summary>
       <description>Enable or disable workspace captions.</description>
     </key>
-    <key type="b" name="workspace-captions-support">
-      <default>false</default>
-      <summary>User theme supports workspace captions</summary>
-      <description>Enable or disable user theme support - Enable if workspace caption support is provided by user theme.</description>
+    <key type="d" name="workspace-caption-height">
+      <default>22</default>
+      <summary>Workspace caption height</summary>
+      <description>Set the workspace caption height.</description>
     </key>
     <key type="as" name="workspace-caption-items">
       <default>['number:false', 'spacer:true']</default>
@@ -135,6 +135,11 @@
       <default>true</default>
       <summary>Show workspace window count using images</summary>
       <description>Enable or disable using images for workspace window count.</description>
+    </key>
+    <key type="d" name="workspace-caption-app-icon-size">
+      <default>24</default>
+      <summary>Workspace caption taskbar icon size</summary>
+      <description>Set the workspace caption taskbar icon size.</description>
     </key>
     <key type="b" name="workspace-caption-large-icons">
       <default>false</default>

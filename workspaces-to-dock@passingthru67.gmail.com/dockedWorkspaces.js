@@ -623,6 +623,10 @@ dockedWorkspaces.prototype = {
             // hide and show thumbnailsBox to reset workspace apps in caption
             this._refreshThumbnails();
         }));
+        this._settings.connect('changed::workspace-caption-height', Lang.bind(this, function() {
+            // hide and show thumbnailsBox to reset workspace apps in caption
+            this._refreshThumbnails();
+        }));
         this._settings.connect('changed::workspace-caption-items', Lang.bind(this, function() {
             // hide and show thumbnailsBox to reset workspace apps in caption
             this._refreshThumbnails();

@@ -47,8 +47,6 @@ const WORKSPACE_KEEP_ALIVE_TIME = 100;
 
 const OVERRIDE_SCHEMA = 'org.gnome.shell.overrides';
 
-const CAPTION_HEIGHT = 40; // NOTE: Must be larger than CAPTION_APP_ICON_SIZE_ZOOMED + css icon padding + css icon border
-const CAPTION_BACKGROUND_HEIGHT = 22;
 const CAPTION_APP_ICON_NORMAL_SIZE = 16;
 const CAPTION_APP_ICON_NORMAL_SIZE_ZOOMED = 24;
 const CAPTION_APP_ICON_LARGE_SIZE = 24;
@@ -1344,7 +1342,7 @@ const myThumbnailsBox = new Lang.Class({
         // passingthru67 - make room for thumbnail captions
         let captionBackgroundHeight = 0;
         if (this._mySettings.get_boolean('workspace-captions')) {
-            captionBackgroundHeight = CAPTION_BACKGROUND_HEIGHT;
+            captionBackgroundHeight = this._mySettings.get_double('workspace-caption-height');
         }
         spacing = spacing + captionBackgroundHeight;
 
@@ -1396,7 +1394,7 @@ const myThumbnailsBox = new Lang.Class({
         // passingthru67 - make room for thumbnail captions
         let captionBackgroundHeight = 0;
         if (this._mySettings.get_boolean('workspace-captions')) {
-            captionBackgroundHeight = CAPTION_BACKGROUND_HEIGHT;
+            captionBackgroundHeight = this._mySettings.get_double('workspace-caption-height');
         }
         spacing = spacing + captionBackgroundHeight;
 
@@ -1493,8 +1491,8 @@ const myThumbnailsBox = new Lang.Class({
         let captionHeight = 0;
         let captionBackgroundHeight = 0;
         if (this._mySettings.get_boolean('workspace-captions')) {
-            captionHeight = CAPTION_HEIGHT;
-            captionBackgroundHeight = CAPTION_BACKGROUND_HEIGHT;
+            captionBackgroundHeight = this._mySettings.get_double('workspace-caption-height');
+            captionHeight = Math.max(captionBackgroundHeight, CAPTION_APP_ICON_LARGE_SIZE_ZOOMED+4);
         }
 
         spacing = spacing + captionBackgroundHeight;
