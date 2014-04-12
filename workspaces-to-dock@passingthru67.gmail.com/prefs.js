@@ -825,6 +825,29 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             this.settings.set_boolean('workspace-captions', check.get_active());
         }));
 
+        // Workspace Caption - Height
+        let wsCaptionHeightLabel = new Gtk.Label({
+            label: _("Caption Height [px]"),
+            use_markup: true,
+            xalign: 0,
+            margin_top: 10,
+            margin_bottom: 10,
+            hexpand: true
+        });
+
+        let wsCaptionHeightSpinner = new Gtk.SpinButton({
+            halign: Gtk.Align.END,
+            margin_top: 0
+        });
+        wsCaptionHeightSpinner.set_sensitive(true);
+        wsCaptionHeightSpinner.set_range(10, 50);
+        wsCaptionHeightSpinner.set_value(this.settings.get_double("workspace-caption-height") * 1);
+        wsCaptionHeightSpinner.set_increments(1, 5);
+        wsCaptionHeightSpinner.connect("value-changed", Lang.bind(this, function(button) {
+            let s = button.get_value_as_int() / 1;
+            this.settings.set_double("workspace-caption-height", s);
+        }));
+
         // Workspace Captions - Number
         let wsCaptionNumberButton =  new Gtk.CheckButton({
             label: _("Show workspace number"),
@@ -970,14 +993,31 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             }
         }));
 
-        let wsCaptionWindowAppsUseLargeIcons =  new Gtk.CheckButton({
-            label: _("Large icons"),
-            hexpand: true
+        //let wsCaptionWindowAppsUseLargeIcons =  new Gtk.CheckButton({
+            //label: _("Large icons"),
+            //hexpand: true
+        //});
+        //wsCaptionWindowAppsUseLargeIcons.set_active(this.settings.get_boolean('workspace-caption-large-icons'));
+        //wsCaptionWindowAppsUseLargeIcons.connect('toggled', Lang.bind(this, function(check) {
+            //this.settings.set_boolean('workspace-caption-large-icons', check.get_active());
+        //}));
+
+
+
+        let wsCaptionWindowAppsIconSizeSpinner = new Gtk.SpinButton({
+            halign: Gtk.Align.START,
+            margin_top: 0
         });
-        wsCaptionWindowAppsUseLargeIcons.set_active(this.settings.get_boolean('workspace-caption-large-icons'));
-        wsCaptionWindowAppsUseLargeIcons.connect('toggled', Lang.bind(this, function(check) {
-            this.settings.set_boolean('workspace-caption-large-icons', check.get_active());
+        wsCaptionWindowAppsIconSizeSpinner.set_sensitive(true);
+        wsCaptionWindowAppsIconSizeSpinner.set_range(10, 50);
+        wsCaptionWindowAppsIconSizeSpinner.set_value(this.settings.get_double("workspace-caption-taskbar-icon-size") * 1);
+        wsCaptionWindowAppsIconSizeSpinner.set_increments(1, 5);
+        wsCaptionWindowAppsIconSizeSpinner.connect("value-changed", Lang.bind(this, function(button) {
+            let s = button.get_value_as_int() / 1;
+            this.settings.set_double("workspace-caption-taskbar-icon-size", s);
         }));
+
+
 
         let wsCaptionWindowAppsExpand =  new Gtk.CheckButton({
             label: _("Expand"),
@@ -1047,30 +1087,6 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             self._moveItem('spacer', -1);
         });
 
-        // Workspace Caption - Height
-        let wsCaptionHeightLabel = new Gtk.Label({
-            label: _("Caption Height [px]"),
-            use_markup: true,
-            xalign: 0,
-            margin_top: 10,
-            margin_bottom: 10,
-            hexpand: true
-        });
-
-        let wsCaptionHeightSpinner = new Gtk.SpinButton({
-            halign: Gtk.Align.END,
-            margin_top: 0
-        });
-        wsCaptionHeightSpinner.set_sensitive(true);
-        wsCaptionHeightSpinner.set_range(10, 50);
-        wsCaptionHeightSpinner.set_value(this.settings.get_double("workspace-caption-height") * 1);
-        wsCaptionHeightSpinner.set_increments(1, 5);
-        wsCaptionHeightSpinner.connect("value-changed", Lang.bind(this, function(button) {
-            let s = button.get_value_as_int() / 1;
-            this.settings.set_double("workspace-caption-height", s);
-        }));
-
-
         /* Add to layout */
         let workspaceCaptionsControlGrid = new Gtk.Grid({
             row_homogeneous: false,
@@ -1108,7 +1124,8 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         workspaceCaptionsContainerGrid.attach(wsCaptionWindowCount_MoveRightButton, 4, 4, 1, 1);
 
         workspaceCaptionsContainerGrid.attach(wsCaptionWindowApps, 0, 5, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionWindowAppsUseLargeIcons, 1, 5, 1, 1);
+        //workspaceCaptionsContainerGrid.attach(wsCaptionWindowAppsUseLargeIcons, 1, 5, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionWindowAppsIconSizeSpinner, 1, 5, 1, 1);
         workspaceCaptionsContainerGrid.attach(wsCaptionWindowAppsExpand, 2, 5, 1, 1);
         workspaceCaptionsContainerGrid.attach(wsCaptionWindowApps_MoveLeftButton, 3, 5, 1, 1);
         workspaceCaptionsContainerGrid.attach(wsCaptionWindowApps_MoveRightButton, 4, 5, 1, 1);
