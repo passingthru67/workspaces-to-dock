@@ -972,19 +972,26 @@ const myWorkspaceThumbnail = new Lang.Class({
             return;
 
         let className = "";
-        let win_count = this._wsWindowApps.length;
-        let win_max = 4;
+        let winCount = 0;
+        let winMax = 4;
+
+        for (let i = 0; i < this._wsWindowApps.length; i++) {
+            let buttonActor = this._wsWindowAppsBox.get_child_at_index(i);
+            if (buttonActor.visible) {
+                winCount ++;
+            }
+        }
 
         if (!this._mySettings.get_boolean('workspace-caption-windowcount-image')) {
             // clear box images
-            for(let i = 1; i <= win_max; i++){
+            for(let i = 1; i <= winMax; i++){
                 let className = 'workspacestodock-caption-windowcount-image-'+i;
                 this._wsWindowCountBox.remove_style_class_name(className);
             }
 
             // Set label text
-            if (win_count > 0) {
-                this._wsWindowCount.set_text(""+win_count);
+            if (winCount > 0) {
+                this._wsWindowCount.set_text(""+winCount);
             } else {
                 this._wsWindowCount.set_text("");
             }
@@ -994,12 +1001,12 @@ const myWorkspaceThumbnail = new Lang.Class({
             this._wsWindowCount.set_text("");
 
             // Set background image class
-            if (win_count > win_max)
-                win_count = win_max;
+            if (winCount > winMax)
+                winCount = winMax;
 
-            for(let i = 1; i <= win_max; i++){
+            for(let i = 1; i <= winMax; i++){
                 let className = 'workspacestodock-caption-windowcount-image-'+i;
-                if (i != win_count) {
+                if (i != winCount) {
                     this._wsWindowCountBox.remove_style_class_name(className);
                 } else {
                     this._wsWindowCountBox.add_style_class_name(className);
