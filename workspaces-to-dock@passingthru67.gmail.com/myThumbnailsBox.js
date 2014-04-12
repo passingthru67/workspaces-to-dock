@@ -840,8 +840,11 @@ const myWorkspaceThumbnail = new Lang.Class({
     _closeAllMetaWindows: function(menuItem, event, thumbnail) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _closeAllMetaWindows");
         for (let i = 0; i < thumbnail._wsWindowApps.length; i++) {
-            // Delete metaWindow
-            thumbnail._wsWindowApps[i].metaWin.delete(global.get_current_time());
+            let buttonActor = thumbnail._wsWindowAppsBox.get_child_at_index(i);
+            if (buttonActor.visible) {
+                // Delete metaWindow
+                thumbnail._wsWindowApps[i].metaWin.delete(global.get_current_time());
+            }
 
             // NOTE: bug quiting all GIMP windows
             // even tried thumbnail._wsWindowApps[i].app.request_quit();
