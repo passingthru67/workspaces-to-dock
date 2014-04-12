@@ -47,10 +47,11 @@ const WORKSPACE_KEEP_ALIVE_TIME = 100;
 
 const OVERRIDE_SCHEMA = 'org.gnome.shell.overrides';
 
-const CAPTION_APP_ICON_NORMAL_SIZE = 16;
-const CAPTION_APP_ICON_NORMAL_SIZE_ZOOMED = 24;
-const CAPTION_APP_ICON_LARGE_SIZE = 24;
-const CAPTION_APP_ICON_LARGE_SIZE_ZOOMED = 32;
+//const CAPTION_APP_ICON_NORMAL_SIZE = 16;
+//const CAPTION_APP_ICON_NORMAL_SIZE_ZOOMED = 24;
+//const CAPTION_APP_ICON_LARGE_SIZE = 24;
+//const CAPTION_APP_ICON_LARGE_SIZE_ZOOMED = 32;
+const CAPTION_APP_ICON_ZOOM = 8;
 const CAPTION_APP_ICON_MENU_SIZE = 20;
 
 const PREFS_DIALOG = 'gnome-shell-extension-prefs workspaces-to-dock@passingthru67.gmail.com';
@@ -88,11 +89,12 @@ const WindowAppIcon = new Lang.Class({
 
         this._icon = new IconGrid.BaseIcon(app.get_name(), iconParams);
         this._icon.actor.add_style_class_name('workspacestodock-caption-windowapps-button-icon');
-        if (this._mySettings.get_boolean('workspace-caption-large-icons')) {
-            this._icon.setIconSize(CAPTION_APP_ICON_LARGE_SIZE);
-        } else {
-            this._icon.setIconSize(CAPTION_APP_ICON_NORMAL_SIZE);
-        }
+        this._icon.setIconSize(this._mySettings.get_double('workspace-caption-taskbar-icon-size'));
+        //if (this._mySettings.get_boolean('workspace-caption-large-icons')) {
+            //this._icon.setIconSize(CAPTION_APP_ICON_LARGE_SIZE);
+        //} else {
+            //this._icon.setIconSize(CAPTION_APP_ICON_NORMAL_SIZE);
+        //}
 
         this.actor = new St.Button({style_class:'workspacestodock-caption-windowapps-button'});
         this.actor.set_child(this._icon.actor);
@@ -107,21 +109,24 @@ const WindowAppIcon = new Lang.Class({
     _onButtonEnter: function(actor, event) {
         if (_DEBUG_) global.log("windowAppIcon: _onButtonEnter");
         let icon = actor._delegate._icon;
-        if (this._mySettings.get_boolean('workspace-caption-large-icons')) {
-            icon.setIconSize(CAPTION_APP_ICON_LARGE_SIZE_ZOOMED);
-        } else {
-            icon.setIconSize(CAPTION_APP_ICON_NORMAL_SIZE_ZOOMED);
-        }
+        let zoomSize = this._mySettings.get_double('workspace-caption-taskbar-icon-size') + CAPTION_APP_ICON_ZOOM;
+        icon.setIconSize(zoomSize);
+        //if (this._mySettings.get_boolean('workspace-caption-large-icons')) {
+            //icon.setIconSize(CAPTION_APP_ICON_LARGE_SIZE_ZOOMED);
+        //} else {
+            //icon.setIconSize(CAPTION_APP_ICON_NORMAL_SIZE_ZOOMED);
+        //}
     },
 
     _onButtonLeave: function(actor, event) {
         if (_DEBUG_) global.log("windowAppIcon: _onButtonLeave");
         let icon = actor._delegate._icon;
-        if (this._mySettings.get_boolean('workspace-caption-large-icons')) {
-            icon.setIconSize(CAPTION_APP_ICON_LARGE_SIZE);
-        } else {
-            icon.setIconSize(CAPTION_APP_ICON_NORMAL_SIZE);
-        }
+        icon.setIconSize(this._mySettings.get_double('workspace-caption-taskbar-icon-size'));
+        //if (this._mySettings.get_boolean('workspace-caption-large-icons')) {
+            //icon.setIconSize(CAPTION_APP_ICON_LARGE_SIZE);
+        //} else {
+            //icon.setIconSize(CAPTION_APP_ICON_NORMAL_SIZE);
+        //}
     }
 
 });
@@ -586,11 +591,12 @@ const myWorkspaceThumbnail = new Lang.Class({
                     if (this._wsWindowAppsBox) {
                         let children = this._wsWindowAppsBox.get_children();
                         for (let i=0; i < children.length; i++) {
-                            if (this._mySettings.get_boolean('workspace-caption-large-icons')) {
-                                children[i]._delegate._icon.setIconSize(CAPTION_APP_ICON_LARGE_SIZE);
-                            } else {
-                                children[i]._delegate._icon.setIconSize(CAPTION_APP_ICON_NORMAL_SIZE);
-                            }
+                            children[i]._delegate._icon.setIconSize(this._mySettings.get_double('workspace-caption-taskbar-icon-size'));
+                            //if (this._mySettings.get_boolean('workspace-caption-large-icons')) {
+                                //children[i]._delegate._icon.setIconSize(CAPTION_APP_ICON_LARGE_SIZE);
+                            //} else {
+                                //children[i]._delegate._icon.setIconSize(CAPTION_APP_ICON_NORMAL_SIZE);
+                            //}
                         }
                     }
                 } else {
@@ -1503,7 +1509,8 @@ const myThumbnailsBox = new Lang.Class({
         let captionBackgroundHeight = 0;
         if (this._mySettings.get_boolean('workspace-captions')) {
             captionBackgroundHeight = this._mySettings.get_double('workspace-caption-height');
-            captionHeight = Math.max(captionBackgroundHeight, CAPTION_APP_ICON_LARGE_SIZE_ZOOMED+4);
+            let zoomSize = this._mySettings.get_double('workspace-caption-taskbar-icon-size') + CAPTION_APP_ICON_ZOOM;
+            captionHeight = Math.max(captionBackgroundHeight+4, zoomSize+4); // +4 needed for padding
         }
 
         spacing = spacing + captionBackgroundHeight;

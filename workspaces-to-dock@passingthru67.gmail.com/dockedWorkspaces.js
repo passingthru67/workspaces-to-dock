@@ -645,8 +645,7 @@ dockedWorkspaces.prototype = {
             // hide and show thumbnailsBox to reset workspace apps in caption
             this._refreshThumbnails();
         }));
-
-        this._settings.connect('changed::workspace-caption-large-icons', Lang.bind(this, function() {
+        this._settings.connect('changed::workspace-caption-taskbar-icon-size', Lang.bind(this, function() {
             // hide and show thumbnailsBox to reset workspace apps in caption
             this._refreshThumbnails();
         }));
