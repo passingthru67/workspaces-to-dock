@@ -41,6 +41,16 @@
       <summary>Intellihide mode options</summary>
       <description>Select type of intellihide mode</description>
     </key>
+    <key type="b" name="ignore-top-panel">
+      <default>true</default>
+      <summary>Ignore top panel menus</summary>
+      <description>Enable or disable dodging menu window belonging to the top panel</description>
+    </key>
+    <key type="b" name="ignore-message-tray">
+      <default>true</default>
+      <summary>Ignore message tray menus</summary>
+      <description>Enable or disable dodging menu windows belonging to the message tray</description>
+    </key>
     <key type="b" name="dock-edge-visible">
       <default>false</default>
       <summary>Leave dock edge visible when slid out</summary>
@@ -50,11 +60,6 @@
       <default>false</default>
       <summary>Disable scroll to prevent workspace switching when dock is slid out</summary>
       <description>Disable scroll to prevent workspace switching when dock is slid out.</description>
-    </key>
-    <key type="b" name="require-click-to-show">
-      <default>false</default>
-      <summary>Dock requires hover+click to show when window is maximized</summary>
-      <description>Enable or disable requiring hover+click to show dock when window is maximized</description>
     </key>
     <key type="b" name="require-pressure-to-show">
       <default>true</default>
@@ -116,10 +121,10 @@
       <summary>Show workspace captions</summary>
       <description>Enable or disable workspace captions.</description>
     </key>
-    <key type="b" name="workspace-captions-support">
-      <default>false</default>
-      <summary>User theme supports workspace captions</summary>
-      <description>Enable or disable user theme support - Enable if workspace caption support is provided by user theme.</description>
+    <key type="d" name="workspace-caption-height">
+      <default>22</default>
+      <summary>Workspace caption height</summary>
+      <description>Set the workspace caption height.</description>
     </key>
     <key type="as" name="workspace-caption-items">
       <default>['number:false', 'spacer:true']</default>
@@ -130,6 +135,11 @@
       <default>true</default>
       <summary>Show workspace window count using images</summary>
       <description>Enable or disable using images for workspace window count.</description>
+    </key>
+    <key type="d" name="workspace-caption-taskbar-icon-size">
+      <default>24</default>
+      <summary>Workspace caption taskbar icon size</summary>
+      <description>Set the workspace caption taskbar icon size.</description>
     </key>
     <key type="b" name="workspace-caption-large-icons">
       <default>false</default>

@@ -65,7 +65,7 @@
 }
 .workspacestodock-caption-windowapps-button:hover > .workspacestodock-caption-windowapps-button-icon {
 }
-.workspacestodock-caption-windowapps-button:active > .workspacestodock-caption-windowapps-button-icon {
+.workspacestodock-caption-windowapps-button-active > .workspacestodock-caption-windowapps-button-icon {
     /*border: 1px solid rgba(255,255,255,0.5);*/
     background-gradient-start: rgba(255,255,255,0.1);
     background-gradient-end: rgba(255,255,255,0.5);

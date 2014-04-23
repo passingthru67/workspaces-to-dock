@@ -18,7 +18,7 @@ const Gtk = imports.gi.Gtk;
 
 const Main = imports.ui.main;
 const PopupMenu = imports.ui.popupMenu;
-let GrabHelper = null; // Gnome Shell 3.4 doesn't have a grabhelper
+const GrabHelper = imports.ui.grabHelper;
 
 const ViewSelector = imports.ui.viewSelector;
 const Tweener = imports.ui.tweener;
@@ -69,11 +69,6 @@ let GSFunctions = {};
 
 let intellihide = function(dock, settings, gsCurrentVersion) {
     this._gsCurrentVersion = gsCurrentVersion;
-
-    // Define gnome shell 3.6+ grabHelper
-    if (this._gsCurrentVersion[1] > 4)
-        GrabHelper = imports.ui.grabHelper;
-
     this._init(dock, settings);
 }
 
@@ -200,126 +195,53 @@ intellihide.prototype = {
             ],
             // update when monitor changes, for instance in multimonitor when monitors are attached
             [
-                global.screen,
+                Main.layoutManager,
                 'monitors-changed',
                 Lang.bind(this, this._onMonitorsChanged)
+            ],
+            [
+                Main.messageTray._grabHelper,
+                'focus-grabbed',
+                Lang.bind(this, this._onTrayFocusGrabbed)
+            ],
+            [
+                Main.messageTray._grabHelper,
+                'focus-ungrabbed',
+                Lang.bind(this, this._onTrayFocusUngrabbed)
+            ],
+            [
+                Main.panel.menuManager._grabHelper,
+                'focus-grabbed',
+                Lang.bind(this, this._onPanelFocusGrabbed)
+            ],
+            [
+                Main.panel.menuManager._grabHelper,
+                'focus-ungrabbed',
+                Lang.bind(this, this._onPanelFocusUngrabbed)
+            ],
+            [
+                Main.overview.viewSelector,
+                'page-changed',
+                Lang.bind(this, this._overviewPageChanged)
             ]
         );
 
-        // Connect global signals based on gnome shell version
-        if (this._gsCurrentVersion[1] == 4) {
-            // Gnome Shell 3.4 signals
-            this._signalHandler.push(
+        // if background manager valid, Connect grabHelper signals
+        let primaryIndex = Main.layoutManager.primaryIndex;
+        if (Main.layoutManager._bgManagers[primaryIndex]) {
+            this._signalHandler.pushWithLabel(
+                'bgManagerSignals',
                 [
-                    Main.messageTray._focusGrabber,
+                    Main.layoutManager._bgManagers[primaryIndex].background.actor._backgroundManager._grabHelper,
                     'focus-grabbed',
-                    Lang.bind(this, this._onTrayFocusGrabbed)
+                    Lang.bind(this, this._onPanelFocusGrabbed)
                 ],
                 [
-                    Main.messageTray._focusGrabber,
+                    Main.layoutManager._bgManagers[primaryIndex].background.actor._backgroundManager._grabHelper,
                     'focus-ungrabbed',
-                    Lang.bind(this, this._onTrayFocusUngrabbed)
-                ],
-                [
-                    Main.panel._menus,
-                    'menu-added',
-                    Lang.bind(this, this._onPanelMenuAdded)
+                    Lang.bind(this, this._onPanelFocusUngrabbed)
                 ]
             );
-
-            // Detect gnome panel popup menus
-            for (let i = 0; i < Main.panel._menus._menus.length; i++) {
-                this._signalHandler.push([Main.panel._menus._menus[i].menu, 'open-state-changed', Lang.bind(this, this._onPanelMenuStateChange)]);
-            }
-
-            // Detect viewSelector Tab signals in overview mode
-            for (let i = 0; i < Main.overview._viewSelector._tabs.length; i++) {
-                this._signalHandler.push([Main.overview._viewSelector._tabs[i], 'activated', Lang.bind(this, this._overviewTabChanged)]);
-            }
-
-            // Detect Search started and cancelled
-            this._signalHandler.push([Main.overview._viewSelector._searchTab, 'activated', Lang.bind(this, this._searchStarted)]);
-            this._signalHandler.push([Main.overview._viewSelector._searchTab, 'search-cancelled', Lang.bind(this, this._searchCancelled)]);
-
-        } else {
-
-            // Gnome Shell 3.6+ (GS3.6 - GS3.10) signals
-            this._signalHandler.push(
-                [
-                    Main.messageTray._grabHelper,
-                    'focus-grabbed',
-                    Lang.bind(this, this._onTrayFocusGrabbed)
-                ],
-                [
-                    Main.messageTray._grabHelper,
-                    'focus-ungrabbed',
-                    Lang.bind(this, this._onTrayFocusUngrabbed)
-                ]
-            );
-
-            if (this._gsCurrentVersion[1] == 6) {
-                // Gnome Shell 3.6 signals
-                this._signalHandler.push(
-                    [
-                        Main.panel.menuManager,
-                        'menu-added',
-                        Lang.bind(this, this._onPanelMenuAdded)
-                    ],
-                    [
-                        Main.overview._viewSelector,
-                        'show-page',
-                        Lang.bind(this, this._overviewPageChanged)
-                    ]
-                );
-                // Detect gnome panel popup menus
-                for (let i = 0; i < Main.panel.menuManager._menus.length; i++) {
-                    this._signalHandler.push([Main.panel.menuManager._menus[i].menu, 'open-state-changed', Lang.bind(this, this._onPanelMenuStateChange)]);
-                }
-            } else {
-                // Gnome Shell 3.8+ (GS3.8 - GS3.10) panel and background menus use the grabHelper
-                this._signalHandler.push(
-                    [
-                        Main.panel.menuManager._grabHelper,
-                        'focus-grabbed',
-                        Lang.bind(this, this._onPanelFocusGrabbed)
-                    ],
-                    [
-                        Main.panel.menuManager._grabHelper,
-                        'focus-ungrabbed',
-                        Lang.bind(this, this._onPanelFocusUngrabbed)
-                    ],
-                    [
-                        Main.layoutManager._bgManagers[0].background.actor._backgroundManager._grabHelper,
-                        'focus-grabbed',
-                        Lang.bind(this, this._onPanelFocusGrabbed)
-                    ],
-                    [
-                        Main.layoutManager._bgManagers[0].background.actor._backgroundManager._grabHelper,
-                        'focus-ungrabbed',
-                        Lang.bind(this, this._onPanelFocusUngrabbed)
-                    ]
-                );
-
-                if (this._gsCurrentVersion[1] == 8) {
-                    // Gnome Shell 3.8 signals
-                    this._signalHandler.push(
-                        [
-                            Main.overview._viewSelector,
-                            'page-changed',
-                            Lang.bind(this, this._overviewPageChanged)
-                        ]
-                    );
-                } else {
-                    // Gnome Shell 3.10+ signals
-                    this._signalHandler.push(
-                        [
-                            Main.overview.viewSelector,
-                            'page-changed',
-                            Lang.bind(this, this._overviewPageChanged)
-                        ]
-                    );
-                }
-            }
         }
         if (_DEBUG_) global.log("intellihide: init - signals being captured");
 
@@ -351,89 +273,31 @@ intellihide.prototype = {
     // Called during init to override/extend gnome shell functions
     _overrideGnomeShellFunctions: function() {
         if (_DEBUG_) global.log("intellihide: _overrideGnomeShellFunctions");
-        if (this._gsCurrentVersion[1] < 8) {
-            // Extend the PopupMenuManager addMenu function to emit a signal when new menus are added
-            GSFunctions['PopupMenuManager_addMenu'] = PopupMenu.PopupMenuManager.prototype.addMenu;
-            PopupMenu.PopupMenuManager.prototype.addMenu = function(menu, position) {
-                let ret = GSFunctions['PopupMenuManager_addMenu'].call(this, menu, position);
-                this.emit("menu-added", menu);
-                return ret;
-            };
-            Signals.addSignalMethods(PopupMenu.PopupMenuManager.prototype);
-        }
-
-        if (this._gsCurrentVersion[1] == 6) {
-            // Override the ViewSelector showPage function to emit a signal when overview page changes
-            // Copied from Gnome Shell .. emit 'show-page' added
-            GSFunctions['ViewSelector_showPage'] = ViewSelector.ViewSelector.prototype._showPage;
-            ViewSelector.ViewSelector.prototype._showPage = function(page) {
-                if(page == this._activePage)
-                    return;
-
-                if(this._activePage) {
-                    Tweener.addTween(this._activePage,
-                                     { opacity: 0,
-                                       time: 0.1,
-                                       transition: 'easeOutQuad',
-                                       onComplete: Lang.bind(this,
-                                           function() {
-                                               this._activePage.hide();
-                                               this._activePage = page;
-                                           })
-                                     });
-                }
-
-                page.show();
-                this.emit('show-page', page);
-                Tweener.addTween(page,
-                                 { opacity: 255,
-                                   time: 0.1,
-                                   transition: 'easeOutQuad'
-                                 });
-            };
-            // NOTE: Signal methods already added by parent
-        }
-
-        if (this._gsCurrentVersion[1] > 4) {
-            // Extend the GrabHelper grab function to emit a signal when focus is grabbed
-            GSFunctions['GrabHelper_grab'] = GrabHelper.GrabHelper.prototype.grab;
-            GrabHelper.GrabHelper.prototype.grab = function(params) {
-                let ret = GSFunctions['GrabHelper_grab'].call(this, params);
-                if (ret)
-                    this.emit('focus-grabbed');
-                return ret;
-            };
-            // Extend the GrabHelper ungrab function to emit a signal when focus is ungrabbed
-            GSFunctions['GrabHelper_ungrab'] = GrabHelper.GrabHelper.prototype.ungrab;
-            GrabHelper.GrabHelper.prototype.ungrab = function(params) {
-                let ret = GSFunctions['GrabHelper_ungrab'].call(this, params);
-                this.emit('focus-ungrabbed');
-                return ret;
-            };
-            Signals.addSignalMethods(GrabHelper.GrabHelper.prototype);
-        }
+        // Extend the GrabHelper grab function to emit a signal when focus is grabbed
+        GSFunctions['GrabHelper_grab'] = GrabHelper.GrabHelper.prototype.grab;
+        GrabHelper.GrabHelper.prototype.grab = function(params) {
+            let ret = GSFunctions['GrabHelper_grab'].call(this, params);
+            if (ret)
+                this.emit('focus-grabbed');
+            return ret;
+        };
+        // Extend the GrabHelper ungrab function to emit a signal when focus is ungrabbed
+        GSFunctions['GrabHelper_ungrab'] = GrabHelper.GrabHelper.prototype.ungrab;
+        GrabHelper.GrabHelper.prototype.ungrab = function(params) {
+            let ret = GSFunctions['GrabHelper_ungrab'].call(this, params);
+            this.emit('focus-ungrabbed');
+            return ret;
+        };
+        Signals.addSignalMethods(GrabHelper.GrabHelper.prototype);
     },
 
     // main function called during destroy to restore gnome shell functions
     _restoreGnomeShellFunctions: function() {
         if (_DEBUG_) global.log("intellihide: _restoreGnomeShellFunctions");
-        let p;
-        if (this._gsCurrentVersion[1] < 8) {
-            // Restore normal PopupMenuManager addMenu function
-            PopupMenu.PopupMenuManager.prototype.addMenu = GSFunctions['PopupMenuManager_addMenu'];
-        }
-
-        if (this._gsCurrentVersion[1] == 6) {
-            // Restore normal ViewSelector showPage function
-            ViewSelector.ViewSelector.prototype._showPage = GSFunctions['ViewSelector_showPage'];
-        }
-
-        if (this._gsCurrentVersion[1] > 4) {
-            // Restore normal GrabHelper grab function
-            GrabHelper.GrabHelper.prototype.grab = GSFunctions['GrabHelper_grab'];
-            // Restore normal GrabHelper ungrab function
-            GrabHelper.GrabHelper.prototype.ungrab = GSFunctions['GrabHelper_ungrab'];
-        }
+        // Restore normal GrabHelper grab function
+        GrabHelper.GrabHelper.prototype.grab = GSFunctions['GrabHelper_grab'];
+        // Restore normal GrabHelper ungrab function
+        GrabHelper.GrabHelper.prototype.ungrab = GSFunctions['GrabHelper_ungrab'];
     },
 
     // handler to bind settings when preferences changed
@@ -488,7 +352,28 @@ intellihide.prototype = {
 
     // handler for when monitor changes
     _onMonitorsChanged: function() {
-        if (_DEBUG_) global.log("intellihide: _onMonitorsChanged");
+		if (_DEBUG_) global.log("intellihide: _onMonitorsChanged");
+        // disconnect bgManager signals
+        this._signalHandler.disconnectWithLabel('bgManagerSignals');
+
+        // if background manager valid, Connect grabHelper signals
+        let primaryIndex = Main.layoutManager.primaryIndex;
+        if (Main.layoutManager._bgManagers[primaryIndex]) {
+            this._signalHandler.pushWithLabel(
+                'bgManagerSignals',
+                [
+                    Main.layoutManager._bgManagers[primaryIndex].background.actor._backgroundManager._grabHelper,
+                    'focus-grabbed',
+                    Lang.bind(this, this._onPanelFocusGrabbed)
+                ],
+                [
+                    Main.layoutManager._bgManagers[primaryIndex].background.actor._backgroundManager._grabHelper,
+                    'focus-ungrabbed',
+                    Lang.bind(this, this._onPanelFocusUngrabbed)
+                ]
+            );
+        }
+
         this._updateDockVisibility();
     },
 
@@ -523,15 +408,10 @@ intellihide.prototype = {
             this._toggledOverviewOnDrag = false;
 
             // Should we hide the dock?
-            // GS34-36 switches overview mode to workspaces when item is dragged, therefore we don't want to hide dock.
             // GS38+ remains in same overview mode, therefore we need to detect mode to determine if we should hide dock.
-            let viewSelector = this._gsCurrentVersion[1] < 10 ? Main.overview._viewSelector : Main.overview.viewSelector;
             if (this._inOverview) {
-                if (this._gsCurrentVersion[1] < 6) {
-                    if (viewSelector._activeTab.id != "windows") this._hide();
-                } else {
-                    if (viewSelector._activePage != viewSelector._workspacesPage) this._hide();
-                }
+                if (Main.overview.viewSelector._activePage != Main.overview.viewSelector._workspacesPage)
+                    this._hide();
             }
         }
     },
@@ -543,15 +423,10 @@ intellihide.prototype = {
             this._toggledOverviewOnDrag = false;
 
             // Should we hide the dock?
-            // GS34-36 switches overview mode to workspaces when item is dragged, therefore we don't want to hide dock.
             // GS38+ remains in same overview mode, therefore we need to detect mode to determine if we should hide dock.
-            let viewSelector = this._gsCurrentVersion[1] < 10 ? Main.overview._viewSelector : Main.overview.viewSelector;
             if (this._inOverview) {
-                if (this._gsCurrentVersion[1] < 6) {
-                    if (viewSelector._activeTab.id != "windows") this._hide();
-                } else {
-                    if (viewSelector._activePage != viewSelector._workspacesPage) this._hide();
-                }
+                if (Main.overview.viewSelector._activePage != Main.overview.viewSelector._workspacesPage)
+                    this._hide();
             }
         }
     },
@@ -578,32 +453,19 @@ intellihide.prototype = {
         }
     },
 
-    // handler for when Gnome Shell 3.4 overview tab is changed
-    // for example, when Applications button is clicked the workspaces dock is hidden
-    // or when search is started the workspaces dock is hidden
-    _overviewTabChanged: function(source, page) {
-        if (_DEBUG_) global.log("intellihide: _overviewTabChanged");
-        if (Main.overview._viewSelector._activeTab.id == "windows") {
-            this._show();
-        } else {
-            this._hide();
-        }
-    },
-
     // handler for when Gnome Shell 3.6+ overview page is changed (GS36+)
     // for example, when Applications button is clicked the workspaces dock is hidden
     // or when search is started the workspaces dock is hidden
     _overviewPageChanged: function(source, page) {
         if (_DEBUG_) global.log("intellihide: _overviewPageChanged");
-        let viewSelector = this._gsCurrentVersion[1] < 10 ? Main.overview._viewSelector : Main.overview.viewSelector;
         let newPage;
         if (page)
             newPage = page;
         else
-            newPage = viewSelector._activePage;
+            newPage = Main.overview.viewSelector._activePage;
 
         if (this._inOverview) {
-            if (newPage == viewSelector._workspacesPage) {
+            if (newPage == Main.overview.viewSelector._workspacesPage) {
                 this._show();
             } else {
                 this._hide();
@@ -611,24 +473,9 @@ intellihide.prototype = {
         }
     },
 
-    // handler for when Gnome Shell 3.4 search started (GS 34)
-    _searchStarted: function() {
-      if (_DEBUG_) global.log("intellihide: _searchStarted");
-      this._hide();
-    },
-
-    // handler for when Gnome Shell 3.4 search cancelled (GS 34)
-    _searchCancelled: function() {
-        if (_DEBUG_) global.log("intellihide: _searchCancelled");
-        if (Main.overview._viewSelector._activeTab.id == "windows") {
-            this._show();
-        } else {
-            this._hide();
-        }
-    },
-
     // handler for when panel focus is grabbed (GS 38+)
     _onPanelFocusGrabbed: function(source, event) {
+        if (this._settings.get_boolean('ignore-top-panel')) return;
         let idx = source._grabStack.length - 1;
         let focusedActor = source._grabStack[idx].actor;
         let [rx, ry] = focusedActor.get_transformed_position();
@@ -643,11 +490,12 @@ intellihide.prototype = {
 
     // handler for when panel focus is ungrabbed (GS 38+)
     _onPanelFocusUngrabbed: function(source, event) {
+        if (this._settings.get_boolean('ignore-top-panel')) return;
         if (_DEBUG_) global.log("intellihide: onPanelFocusUnGrabbed");
-        let viewSelector = this._gsCurrentVersion[1] < 10 ? Main.overview._viewSelector : Main.overview.viewSelector;
         this._disableIntellihide = false;
         if (this._inOverview) {
-            if (viewSelector._activePage == viewSelector._workspacesPage) this._show();
+            if (Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage)
+                this._show();
         } else {
             this._updateDockVisibility();
         }
@@ -655,22 +503,19 @@ intellihide.prototype = {
 
     // handler for when messageTray focus is grabbed (GS 34+)
     _onTrayFocusGrabbed: function(source, event) {
-        let focusedActor;
-        if (this._gsCurrentVersion[1] < 6) {
-            focusedActor = source.actor;
-        } else {
-            let idx = source._grabStack.length - 1;
-            focusedActor = source._grabStack[idx].actor;
-            if (focusedActor.get_name() == "message-tray") {
-                let [rx, ry] = focusedActor.get_transformed_position();
-                let [rwidth, rheight] = focusedActor.get_size();
-                let test = (ry - rheight < this._dock.staticBox.y2) && (ry > this._dock.staticBox.y1);
-                if (test) {
-                    this._disableIntellihide = true;
-                    this._hide();
-                }
-                return;
+        if (this._settings.get_boolean('ignore-message-tray')) return;
+        if (_DEBUG_) global.log("intellihide: _onTrayFocusGrabbed");
+        let idx = source._grabStack.length - 1;
+        let focusedActor = source._grabStack[idx].actor;
+        if (focusedActor.get_name() == "message-tray") {
+            let [rx, ry] = focusedActor.get_transformed_position();
+            let [rwidth, rheight] = focusedActor.get_size();
+            let test = (ry - rheight < this._dock.staticBox.y2) && (ry > this._dock.staticBox.y1);
+            if (test) {
+                this._disableIntellihide = true;
+                this._hide();
             }
+            return;
         }
         let [rx, ry] = focusedActor.get_transformed_position();
         let [rwidth, rheight] = focusedActor.get_size();
@@ -684,51 +529,15 @@ intellihide.prototype = {
 
     // handler for when messageTray focus is ungrabbed (GS 34+)
     _onTrayFocusUngrabbed: function(source, event) {
+        if (this._settings.get_boolean('ignore-message-tray')) return;
         if (_DEBUG_) global.log("intellihide: onTrayFocusUnGrabbed");
-        let viewSelector = this._gsCurrentVersion[1] < 10 ? Main.overview._viewSelector : Main.overview.viewSelector;
         this._disableIntellihide = false;
         if (this._inOverview) {
-            if (this._gsCurrentVersion[1] < 6) {
-                if (viewSelector._activeTab.id == "windows") this._show();
-            } else {
-                if (viewSelector._activePage == viewSelector._workspacesPage) this._show();
-            }
+            if (Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage)
+                this._show();
         } else {
             this._updateDockVisibility();
         }
-    },
-
-    // handler for when panel menu state is changed (GS34-GS36)
-    _onPanelMenuStateChange: function(menu, open) {
-        if (open) {
-            if (_DEBUG_) global.log("intellihide: _onPanelMenuStateChange - open");
-            let [rx, ry] = menu.actor.get_transformed_position();
-            let [rwidth, rheight] = menu.actor.get_size();
-            let test = (rx < this._dock.staticBox.x2) && (rx + rwidth > this._dock.staticBox.x1) && (ry < this._dock.staticBox.y2) && (ry + rheight > this._dock.staticBox.y1);
-            if (test) {
-                this._disableIntellihide = true;
-                this._hide();
-            }
-        } else {
-            if (_DEBUG_) global.log("intellihide: _onPanelMenuStateChange - closed");
-            this._disableIntellihide = false;
-            if (this._inOverview) {
-                if (this._gsCurrentVersion[1] < 6) {
-                    if (Main.overview._viewSelector._activeTab.id == "windows") this._show();
-                } else {
-                    if (Main.overview._viewSelector._activePage == Main.overview._viewSelector._workspacesPage) this._show();
-                }
-            } else {
-                this._updateDockVisibility();
-            }
-        }
-    },
-
-    // handler for when panel menu is added (GS 34-GS36)
-    _onPanelMenuAdded: function(source, menu) {
-        if (_DEBUG_) global.log("intellihide: _onPanelMenuAdded");
-        // We need to connect signals for new panel menus added after initialization
-        this._signalHandler.push([menu, 'open-state-changed', Lang.bind(this, this._onPanelMenuStateChange)]);
     },
 
     // handler for when window move begins
@@ -779,15 +588,15 @@ intellihide.prototype = {
     },
 
     // intellihide function to hide dock
-    _hide: function(nonreactive) {
+    _hide: function(metaOverlap) {
         this.status = false;
         if (this._settings.get_boolean('dock-fixed')) {
             if (_DEBUG_) global.log("intellihide: _hide - fadeOutDock");
-            if (nonreactive) {
-                // hide and make stage nonreactive so meta popup windows receive hover and clicks
+            if (metaOverlap) {
+                // meta popup overlap initiated this hide
                 this._dock.fadeOutDock(0, 0, true);
             } else {
-                // panel or messagetray initiated this hide .. still reactive
+                // toppanel or messagetray or overview change initiated this hide
                 this._dock.fadeOutDock(0, 0, false);
             }
         } else {
@@ -864,7 +673,7 @@ intellihide.prototype = {
 
                 if (_DEBUG_) global.log("intellihide: updateDockVisiblity - overlaps = "+overlaps);
                 if (overlaps) {
-                    this._hide(true); // hide and make stage nonreactive so meta popup windows receive hover and clicks
+                    this._hide(true);
                 } else {
                     this._show();
                 }
