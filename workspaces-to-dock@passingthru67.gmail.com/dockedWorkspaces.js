@@ -98,6 +98,7 @@ dockedWorkspaces.prototype = {
         this._pressureBarrier = null;
         this._barrier = null;
         this._messageTrayShowing = false;
+        this._removeBarrierTimeoutId = 0;
 
         // Override Gnome Shell functions
         this._overrideGnomeShellFunctions();
@@ -303,6 +304,9 @@ dockedWorkspaces.prototype = {
 
         // Remove existing barrier
         this._removeBarrier();
+
+        if (this._removeBarrierTimeoutId > 0)
+            Mainloop.source_remove(this._removeBarrierTimeoutId);
 
         // Destroy main clutter actor: this should be sufficient
         // From clutter documentation:
