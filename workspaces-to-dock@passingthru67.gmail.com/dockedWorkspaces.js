@@ -196,6 +196,11 @@ dockedWorkspaces.prototype = {
                 Main.messageTray,
                 'hiding',
                 Lang.bind(this, this._onMessageTrayHiding)
+            ],
+            [
+                global.screen,
+                'in-fullscreen-changed',
+                Lang.bind(this, this._updateBarrier)
             ]
         );
         if (_DEBUG_) global.log("dockedWorkspaces: init - signals being captured");
@@ -1468,7 +1473,9 @@ dockedWorkspaces.prototype = {
         // Create new barrier
         // Note: dock in fixed possition doesn't use pressure barrier
         if (_DEBUG_) global.log("dockedWorkspaces: _updateBarrier");
-        if (this._canUsePressure && this._settings.get_boolean('autohide') && this._autohideStatus && this._settings.get_boolean('require-pressure-to-show') && !this._settings.get_boolean('dock-fixed') && !this._messageTrayShowing) {
+        if (this.actor.visible && this._canUsePressure && this._settings.get_boolean('autohide')
+                    && this._autohideStatus && this._settings.get_boolean('require-pressure-to-show')
+                    && !this._settings.get_boolean('dock-fixed') && !this._messageTrayShowing) {
             let x, direction;
             if (this._rtl) {
                 x = this._monitor.x;
