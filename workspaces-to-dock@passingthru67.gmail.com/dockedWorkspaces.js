@@ -226,8 +226,13 @@ dockedWorkspaces.prototype = {
                         'DashToDockHoverSignal',
                         [
                             DashToDock.dock._box,
-                            'notify::hover',
-                            Lang.bind(this, this._onDashToDockHoverChanged)
+                            'enter-event',
+                            Lang.bind(this, this._onDashToDockEnter)
+                        ],
+                        [
+                            DashToDock.dock._box,
+                            'leave-event',
+                            Lang.bind(this, this._onDashToDockLeave)
                         ],
                         [
                             DashToDock.dock,
@@ -835,8 +840,10 @@ dockedWorkspaces.prototype = {
         //Skip if dock is not in dashtodock hover mode
         if (this._settings.get_boolean('dashtodock-hover') && DashToDock && DashToDock.dock) {
             if (Main.overview.visible == false) {
-                this._hoveringDash = true;
-                this._show();
+                if (DashToDock.dock._box.hover) {
+                    this._hoveringDash = true;
+                    this._show();
+                }
             }
         }
     },
@@ -850,20 +857,20 @@ dockedWorkspaces.prototype = {
         }
     },
 
-    // handler for DashToDock hover events
-    _onDashToDockHoverChanged: function() {
-        if (_DEBUG_) global.log("dockedWorkspaces: _onDashToDockHoverChanged");
-        //Skip if dock is not in dashtodock hover mode
+    _onDashToDockEnter: function() {
+        if (_DEBUG_) global.log("Dash ENTER");
         if (this._settings.get_boolean('dashtodock-hover') && DashToDock && DashToDock.dock && DashToDock.dock._animStatus.shown()) {
-            if (DashToDock.dock._box.hover) {
-                if (Main.overview.visible == false) {
-                    this._hoveringDash = true;
-                    this._show();
-                }
-            } else {
-                this._hoveringDash = false;
-                this._hide();
-            }
+            this._hoveringDash = true;
+            this._show();
+        }
+    },
+
+    _onDashToDockLeave: function() {
+        if (_DEBUG_) global.log("Dash LEAVE");
+        if (Main.overview.visible || !DashToDock.dock._box.hover) {
+            if (_DEBUG_) global.log("Dash NOT hovering");
+            this._hoveringDash = false;
+            this._hide();
         }
     },
 
@@ -884,8 +891,13 @@ dockedWorkspaces.prototype = {
                         'DashToDockHoverSignal',
                         [
                             DashToDock.dock._box,
-                            'notify::hover',
-                            Lang.bind(this, this._onDashToDockHoverChanged)
+                            'enter-event',
+                            Lang.bind(this, this._onDashToDockEnter)
+                        ],
+                        [
+                            DashToDock.dock._box,
+                            'leave-event',
+                            Lang.bind(this, this._onDashToDockLeave)
                         ],
                         [
                             DashToDock.dock,
