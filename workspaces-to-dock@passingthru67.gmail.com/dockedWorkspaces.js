@@ -950,7 +950,7 @@ dockedWorkspaces.prototype = {
                     // Remove barrier so that mouse pointer is released and can access monitors on other side of dock
                     // NOTE: Delay needed to keep mouse from moving past dock and re-hiding dock immediately. This
                     // gives users an opportunity to hover over the dock
-                    this._removeBarrierTimeoutId = Mainloop.timeout_add(300, Lang.bind(this, this._removeBarrier));
+                    this._removeBarrierTimeoutId = Mainloop.timeout_add(100, Lang.bind(this, this._removeBarrier));
                     if (_DEBUG_) global.log("dockedWorkspaces: _animateIN onComplete");
                 })
             });
@@ -1433,6 +1433,7 @@ dockedWorkspaces.prototype = {
     // Remove pressure barrier (GS38+ only)
     _removeBarrier: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _removeBarrier");
+        this._removeBarrierTimeoutId = 0;
         if (this._barrier) {
             if (this._pressureBarrier) {
                 this._pressureBarrier.removeBarrier(this._barrier);
