@@ -754,13 +754,15 @@ const myWorkspaceThumbnail = new Lang.Class({
             thumbnail._menu.removeAll();
 
             this._windowAppsMenuListBox = new St.BoxLayout({vertical: true});
-            for (let i=0; i < thumbnail._wsWindowApps.length; i++) {
-                let buttonActor = this._wsWindowAppsBox.get_child_at_index(i);
-                if (buttonActor.visible) {
-                    let metaWin = thumbnail._wsWindowApps[i].metaWin;
-                    let app = thumbnail._wsWindowApps[i].app;
-                    let item = new WindowAppMenuItem(app, metaWin, thumbnail);
-                    this._windowAppsMenuListBox.add_actor(item.actor);
+            if (this._wsWindowAppsBox) {
+                for (let i=0; i < thumbnail._wsWindowApps.length; i++) {
+                    let buttonActor = this._wsWindowAppsBox.get_child_at_index(i);
+                    if (buttonActor.visible) {
+                        let metaWin = thumbnail._wsWindowApps[i].metaWin;
+                        let app = thumbnail._wsWindowApps[i].app;
+                        let item = new WindowAppMenuItem(app, metaWin, thumbnail);
+                        this._windowAppsMenuListBox.add_actor(item.actor);
+                    }
                 }
             }
 
@@ -830,17 +832,19 @@ const myWorkspaceThumbnail = new Lang.Class({
 
     _closeAllMetaWindows: function(menuItem, event, thumbnail) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _closeAllMetaWindows");
-        for (let i = 0; i < thumbnail._wsWindowApps.length; i++) {
-            let buttonActor = thumbnail._wsWindowAppsBox.get_child_at_index(i);
-            if (buttonActor.visible) {
-                // Delete metaWindow
-                thumbnail._wsWindowApps[i].metaWin.delete(global.get_current_time());
-            }
+        if (this._wsWindowAppsBox) {
+            for (let i = 0; i < thumbnail._wsWindowApps.length; i++) {
+                let buttonActor = thumbnail._wsWindowAppsBox.get_child_at_index(i);
+                if (buttonActor.visible) {
+                    // Delete metaWindow
+                    thumbnail._wsWindowApps[i].metaWin.delete(global.get_current_time());
+                }
 
-            // NOTE: bug quiting all GIMP windows
-            // even tried thumbnail._wsWindowApps[i].app.request_quit();
-            // Gnome Shell has same issue .. selecting quit from panel app menu only closes current Gimp window
-            // Unity has same issue .. https://bugs.launchpad.net/ubuntu/+source/unity/+bug/1123593
+                // NOTE: bug quiting all GIMP windows
+                // even tried thumbnail._wsWindowApps[i].app.request_quit();
+                // Gnome Shell has same issue .. selecting quit from panel app menu only closes current Gimp window
+                // Unity has same issue .. https://bugs.launchpad.net/ubuntu/+source/unity/+bug/1123593
+            }
         }
     },
 
@@ -955,10 +959,12 @@ const myWorkspaceThumbnail = new Lang.Class({
         let winCount = 0;
         let winMax = 4;
 
-        for (let i = 0; i < this._wsWindowApps.length; i++) {
-            let buttonActor = this._wsWindowAppsBox.get_child_at_index(i);
-            if (buttonActor.visible) {
-                winCount ++;
+        if (this._wsWindowAppsBox) {
+            for (let i = 0; i < this._wsWindowApps.length; i++) {
+                let buttonActor = this._wsWindowAppsBox.get_child_at_index(i);
+                if (buttonActor.visible) {
+                    winCount ++;
+                }
             }
         }
 
