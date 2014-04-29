@@ -420,9 +420,10 @@ dockedWorkspaces.prototype = {
         };
 
         // Extend LayoutManager _updateRegions function to destroy/create workspace thumbnails when completed.
-        // NOTE: needed because 'monitors-changed' signal doesn't wait for queued regions to update.
+        // NOTE1: needed because 'monitors-changed' signal doesn't wait for queued regions to update.
         // We need to wait so that the screen workspace workarea is adjusted before creating workspace thumbnails.
         // Otherwise when we move the primary workspace to another monitor, the workspace thumbnails won't adjust for the top panel.
+        // NOTE2: also needed when dock-fixed is enabled/disabled to adjust for workspace area change
         GSFunctions['LayoutManager_updateRegions'] = Layout.LayoutManager.prototype._updateRegions;
         Layout.LayoutManager.prototype._updateRegions = function() {
             let ret = GSFunctions['LayoutManager_updateRegions'].call(this);
@@ -578,6 +579,13 @@ dockedWorkspaces.prototype = {
             } else {
                 this._thumbnailsBoxBackground.remove_style_class_name('workspace-thumbnails-fullheight');
             }
+
+            // Refresh thumbnails to adjust for workarea size change
+            // NOTE1: setting updateRegion=true forces a thumbnails refresh when layoutManager updates
+            // regions (see overrideGnomeShellFunctions)
+            // NOTE2: We also force thumbnails refresh on animation complete in case dock is hidden when
+            // dock-fixed is enabled.
+            this._updateRegion = true;
         }));
 
         this._settings.connect('changed::autohide', Lang.bind(this, function() {
@@ -654,6 +662,9 @@ dockedWorkspaces.prototype = {
                 this._thumbnailsBoxBackground.remove_style_class_name('workspace-thumbnails-fullheight');
             }
             this._updateSize();
+            if (this._settings.get_boolean('dock-fixed')) {
+                this._updateRegion = true;
+            }
         }));
         this._settings.connect('changed::top-margin', Lang.bind(this, function() {
             // Add or remove addtional style class when workspace is fixed and set to full height
@@ -663,6 +674,9 @@ dockedWorkspaces.prototype = {
                 this._thumbnailsBoxBackground.remove_style_class_name('workspace-thumbnails-fullheight');
             }
             this._updateSize();
+            if (this._settings.get_boolean('dock-fixed')) {
+                this._updateRegion = true;
+            }
         }));
         this._settings.connect('changed::bottom-margin', Lang.bind(this, function() {
             // Add or remove addtional style class when workspace is fixed and set to full height
@@ -672,6 +686,9 @@ dockedWorkspaces.prototype = {
                 this._thumbnailsBoxBackground.remove_style_class_name('workspace-thumbnails-fullheight');
             }
             this._updateSize();
+            if (this._settings.get_boolean('dock-fixed')) {
+                this._updateRegion = true;
+            }
         }));
 
         this._settings.connect('changed::toggle-dock-with-keyboard-shortcut', Lang.bind(this, function(){
@@ -966,6 +983,11 @@ dockedWorkspaces.prototype = {
                     // NOTE: Delay needed to keep mouse from moving past dock and re-hiding dock immediately. This
                     // gives users an opportunity to hover over the dock
                     this._removeBarrierTimeoutId = Mainloop.timeout_add(100, Lang.bind(this, this._removeBarrier));
+
+                    // Force thumbnails refresh on animation complete in case dock hidden when dock-fixed enabled.
+                    if (this._settings.get_boolean('dock-fixed')) {
+                        this._updateRegion = true;
+                    }
                     if (_DEBUG_) global.log("dockedWorkspaces: _animateIN onComplete");
                 })
             });
