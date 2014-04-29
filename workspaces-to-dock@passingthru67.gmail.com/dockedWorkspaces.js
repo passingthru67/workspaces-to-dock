@@ -64,6 +64,7 @@ dockedWorkspaces.prototype = {
     _init: function(settings) {
         // temporarily disable redisplay until initialized (prevents connected signals from trying to update dock visibility)
         this._disableRedisplay = true;
+        this._updateRegion = false;
         if (_DEBUG_) global.log("dockedWorkspaces: init - disableRediplay");
 
         // set RTL value
@@ -85,9 +86,6 @@ dockedWorkspaces.prototype = {
 
         // initialize popup menu flag
         this._popupMenuShowing = false;
-
-        // initialize monitors changed flag
-        this._monitorsChanged = true;
 
         // initialize colors with generic values
         this._defaultBackground = {red:0, green:0, blue:0};
@@ -276,6 +274,7 @@ dockedWorkspaces.prototype = {
         this.actor.set_opacity(255);
 
         this._disableRedisplay = false;
+        this._updateRegion = true;
         if (_DEBUG_) global.log("dockedWorkspaces: initialize - turn on redisplay");
 
         // Now that the dock is on the stage and custom themes are loaded
@@ -438,9 +437,9 @@ dockedWorkspaces.prototype = {
         Layout.LayoutManager.prototype._updateRegions = function() {
             let ret = GSFunctions['LayoutManager_updateRegions'].call(this);
             //this.emit('regions-updated');
-            if (self._monitorsChanged) {
+            if (self._updateRegion) {
                 self._refreshThumbnails();
-                self._monitorsChanged = false;
+                self._updateRegion = false;
             }
             return ret;
         };
@@ -1463,7 +1462,7 @@ dockedWorkspaces.prototype = {
         if (_DEBUG_) global.log("dockedWorkspaces: _onMonitorsChanged");
         this._resetPosition();
         this._redisplay();
-        this._monitorsChanged = true;
+        this._updateRegion = true;
     },
 
     _refreshThumbnails: function() {
