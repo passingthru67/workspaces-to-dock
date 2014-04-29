@@ -218,6 +218,16 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             this.settings.set_boolean('autohide', check.get_active());
         }));
 
+        let requireClickButton = new Gtk.CheckButton({
+            label: _("Require click to show the dock when window maximized"),
+            margin_left: 0,
+            margin_top: 0
+        });
+        requireClickButton.set_active(this.settings.get_boolean('require-click-to-show'));
+        requireClickButton.connect('toggled', Lang.bind(this, function(check) {
+            this.settings.set_boolean('require-click-to-show', check.get_active());
+        }));
+
         let requirePressureButton = new Gtk.CheckButton({
             label: _("Require pressure to show the dock"),
             margin_left: 0,
@@ -261,9 +271,10 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
         autohideControlGrid.attach(autohideLabel, 0, 0, 1, 1);
         autohideControlGrid.attach(autohideSwitch, 1, 0, 1, 1);
-        autohideContainerGrid.attach(requirePressureButton, 0, 0, 2, 1);
-        autohideContainerGrid.attach(pressureThresholdLabel, 0, 1, 1, 1);
-        autohideContainerGrid.attach(pressureThresholdSpinner, 1, 1, 1, 1);
+        autohideContainerGrid.attach(requireClickButton, 0, 0, 2, 1);
+        autohideContainerGrid.attach(requirePressureButton, 0, 1, 2, 1);
+        autohideContainerGrid.attach(pressureThresholdLabel, 0, 2, 1, 1);
+        autohideContainerGrid.attach(pressureThresholdSpinner, 1, 2, 1, 1);
         visibilityContainerBox.add(autohideControlGrid);
         visibilityContainerBox.add(autohideContainerGrid);
 

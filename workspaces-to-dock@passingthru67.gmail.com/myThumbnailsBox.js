@@ -1156,17 +1156,19 @@ const myThumbnailsBox = new Lang.Class({
         // ThumbnailsBox click events are passed on to dock handler if conditions are met
         // Helpful in cases where the 'dock-edge-visible' option is enabled. It provides more
         // area to click on to show the dock when the window is maximized.
-        // Skip if 'dock-edge-visible' && 'require-click-to-show' are not enabled
+
+        // Should we continue processing the button release or pass the event on to the dock handler?
+        // Continue if 'dock-edge-visible' && 'require-click-to-show' are not enabled
         if (this._mySettings.get_boolean('dock-edge-visible') && this._mySettings.get_boolean('require-click-to-show')) {
-            // Skip if window is not maximized (_hovering only true if window is maximized)
+            // Continue if window is not maximized (_hovering only true if window is maximized)
             if (this._dock._hovering) {
-                // Skip if dock is not in autohide mode for instance because it is shown by intellihide
+                // Continue if dock is not in autohide mode for instance because it is shown by intellihide
                 if (this._mySettings.get_boolean('autohide') && this._dock._autohideStatus) {
                     if (this._dock.actor.hover) {
-                        // Skip if dock is showing or shown
+                        // Continue if dock is showing or shown
                         if (this._dock._animStatus.hidden() || this._dock._animStatus.hiding()) {
-                            // pass click event on to dock handler
-                            return Clutter.EVENT_PROPAGATE;
+                            // STOP. Lets not continue but pass the click event on to dock handler
+                            return false;
                         }
                     }
                 }
