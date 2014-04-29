@@ -29,6 +29,7 @@ const IconGrid = imports.ui.iconGrid;
 const PopupMenu = imports.ui.popupMenu;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
+const Convenience = Me.imports.convenience;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 
@@ -164,6 +165,22 @@ const WindowAppMenuItem = new Lang.Class({
 
 });
 
+const myWindowClone = new Lang.Class({
+    Name: 'workspacesToDock.myWindowClone',
+    Extends: WorkspaceThumbnail.WindowClone,
+
+    _onPositionChanged: function() {
+        let rect = this.metaWindow.get_outer_rect();
+        if (_DEBUG_) global.log("window clone position changed - x="+this.realWindow.x+" y="+this.realWindow.y+" nx="+rect.x+" ny="+rect.y);
+        this.actor.set_position(this.realWindow.x, this.realWindow.y);
+        if (this.metaWindow.get_maximized()) {
+            this.actor.set_position(rect.x, rect.y);
+        } else {
+            this.actor.set_position(this.realWindow.x, this.realWindow.y);
+        }
+    }
+});
+
 const myWorkspaceThumbnail = new Lang.Class({
     Name: 'workspacesToDock.myWorkspaceThumbnail',
     Extends: WorkspaceThumbnail.WorkspaceThumbnail,
@@ -294,11 +311,11 @@ const myWorkspaceThumbnail = new Lang.Class({
             win = actor.meta_window;
         }
         let activeWorkspace = global.screen.get_active_workspace();
-		if (this._settings.get_boolean('workspaces-only-on-primary')) {
-	        return (this.metaWorkspace == activeWorkspace && !win.skip_taskbar && win.is_on_all_workspaces());
-		} else {
-	        return (win.located_on_workspace(this.metaWorkspace) && !win.skip_taskbar && win.showing_on_its_workspace());
-		}
+        if (this._settings.get_boolean('workspaces-only-on-primary')) {
+            return (this.metaWorkspace == activeWorkspace && !win.skip_taskbar && win.is_on_all_workspaces());
+        } else {
+            return (win.located_on_workspace(this.metaWorkspace) && !win.skip_taskbar && win.showing_on_its_workspace());
+        }
     },
 
     _doAddWindow : function(metaWin) {
@@ -393,7 +410,7 @@ const myWorkspaceThumbnail = new Lang.Class({
     // Create a clone of a (non-desktop) window and add it to the window list
     _addWindowClone : function(win, refresh) {
         if (_DEBUG_ && !this._removed) global.log("myWorkspaceThumbnail: _addWindowClone for metaWorkspace "+this.metaWorkspace.index());
-        let clone = new WorkspaceThumbnail.WindowClone(win);
+        let clone = new myWindowClone(win);
 
         clone.connect('selected',
                       Lang.bind(this, function(clone, time) {
@@ -1087,28 +1104,66 @@ const myThumbnailsBox = new Lang.Class({
 
         this.actor.connect('button-press-event', function() { return Clutter.EVENT_STOP; });
         this.actor.connect('button-release-event', Lang.bind(this, this._onButtonRelease));
+        this.actor.connect('destroy', Lang.bind(this, this._onDestroy));
 
-        //Main.overview.connect('showing',
-        //                      Lang.bind(this, this._createThumbnails));
-        //Main.overview.connect('hidden',
-        //                      Lang.bind(this, this._destroyThumbnails));
-
-        Main.overview.connect('item-drag-begin',
-                              Lang.bind(this, this._onDragBegin));
-        Main.overview.connect('item-drag-end',
-                              Lang.bind(this, this._onDragEnd));
-        Main.overview.connect('item-drag-cancelled',
-                              Lang.bind(this, this._onDragCancelled));
-        Main.overview.connect('window-drag-begin',
-                              Lang.bind(this, this._onDragBegin));
-        Main.overview.connect('window-drag-end',
-                              Lang.bind(this, this._onDragEnd));
-        Main.overview.connect('window-drag-cancelled',
-                              Lang.bind(this, this._onDragCancelled));
+        // Connect global signals
+        this._signalHandler = new Convenience.globalSignalHandler();
+        this._signalHandler.push(
+            [
+                Main.overview,
+                'item-drag-begin',
+                Lang.bind(this,this._onDragBegin)
+            ],
+            [
+                Main.overview,
+                'item-drag-cancelled',
+                Lang.bind(this,this._onDragCancelled)
+            ],
+            [
+                Main.overview,
+                'item-drag-end',
+                Lang.bind(this,this._onDragEnd)
+            ],
+            [
+                Main.overview,
+                'window-drag-begin',
+                Lang.bind(this,this._onDragBegin)
+            ],
+            [
+                Main.overview,
+                'window-drag-cancelled',
+                Lang.bind(this,this._onDragCancelled)
+            ],
+            [
+                Main.overview,
+                'window-drag-end',
+                Lang.bind(this,this._onDragEnd)
+            ],
+            [
+                global.window_manager,
+                'maximize',
+                Lang.bind(this, this.refreshThumbnails)
+            ],
+            [
+                global.window_manager,
+                'unmaximize',
+                Lang.bind(this, this.refreshThumbnails)
+            ],
+            [
+                global.screen,
+                'in-fullscreen-changed',
+                Lang.bind(this, this.refreshThumbnails)
+            ]
+        );
 
         this._settings = new Gio.Settings({ schema: OVERRIDE_SCHEMA });
         this._settings.connect('changed::dynamic-workspaces',
             Lang.bind(this, this._updateSwitcherVisibility));
+    },
+
+    _onDestroy: function() {
+        // Disconnect global signals
+        this._signalHandler.disconnect();
     },
 
     // override _createThumbnails to remove global n-workspaces notification
