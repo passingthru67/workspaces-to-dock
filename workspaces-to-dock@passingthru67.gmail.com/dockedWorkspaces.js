@@ -822,7 +822,7 @@ dockedWorkspaces.prototype = {
 
     // handler for DashToDock hover events
     _onDashToDockHoverChanged: function() {
-        if (_DEBUG_) global.log("dockedWorkspaces: _onDashToDockHoverChanged");
+        if (_DEBUG_) global.log("Dash HOVER Changed");
         //Skip if dock is not in dashtodock hover mode
         if (this._settings.get_boolean('dashtodock-hover') && DashToDock && DashToDock.dock) {
             if (DashToDock.dock._box.hover) {
@@ -1586,7 +1586,7 @@ dockedWorkspaces.prototype = {
             this.actor.sync_hover();
         }
 
-        if (!(this._hoveringDash || this.actor.hover) || !this._settings.get_boolean('autohide')) {
+        if (!((this._hoveringDash && !Main.overview.visible) || this.actor.hover) || !this._settings.get_boolean('autohide')) {
             if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - mouse not hovering OR dock not using autohide, so animate out");
             this._animateOut(this._settings.get_double('animation-time'), 0);
             delay = this._settings.get_double('animation-time');
