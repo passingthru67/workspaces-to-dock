@@ -29,6 +29,7 @@ const IconGrid = imports.ui.iconGrid;
 const PopupMenu = imports.ui.popupMenu;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
+const Convenience = Me.imports.convenience;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 
@@ -164,6 +165,22 @@ const WindowAppMenuItem = new Lang.Class({
 
 });
 
+const myWindowClone = new Lang.Class({
+    Name: 'workspacesToDock.myWindowClone',
+    Extends: WorkspaceThumbnail.WindowClone,
+
+    _onPositionChanged: function() {
+        let rect = this.metaWindow.get_outer_rect();
+        if (_DEBUG_) global.log("window clone position changed - x="+this.realWindow.x+" y="+this.realWindow.y+" nx="+rect.x+" ny="+rect.y);
+        this.actor.set_position(this.realWindow.x, this.realWindow.y);
+        if (this.metaWindow.get_maximized()) {
+            this.actor.set_position(rect.x, rect.y);
+        } else {
+            this.actor.set_position(this.realWindow.x, this.realWindow.y);
+        }
+    }
+});
+
 const myWorkspaceThumbnail = new Lang.Class({
     Name: 'workspacesToDock.myWorkspaceThumbnail',
     Extends: WorkspaceThumbnail.WorkspaceThumbnail,
@@ -294,11 +311,11 @@ const myWorkspaceThumbnail = new Lang.Class({
             win = actor.meta_window;
         }
         let activeWorkspace = global.screen.get_active_workspace();
-		if (this._settings.get_boolean('workspaces-only-on-primary')) {
-	        return (this.metaWorkspace == activeWorkspace && !win.skip_taskbar && win.is_on_all_workspaces());
-		} else {
-	        return (win.located_on_workspace(this.metaWorkspace) && !win.skip_taskbar && win.showing_on_its_workspace());
-		}
+        if (this._settings.get_boolean('workspaces-only-on-primary')) {
+            return (this.metaWorkspace == activeWorkspace && !win.skip_taskbar && win.is_on_all_workspaces());
+        } else {
+            return (win.located_on_workspace(this.metaWorkspace) && !win.skip_taskbar && win.showing_on_its_workspace());
+        }
     },
 
     _doAddWindow : function(metaWin) {
@@ -393,7 +410,7 @@ const myWorkspaceThumbnail = new Lang.Class({
     // Create a clone of a (non-desktop) window and add it to the window list
     _addWindowClone : function(win, refresh) {
         if (_DEBUG_ && !this._removed) global.log("myWorkspaceThumbnail: _addWindowClone for metaWorkspace "+this.metaWorkspace.index());
-        let clone = new WorkspaceThumbnail.WindowClone(win);
+        let clone = new myWindowClone(win);
 
         clone.connect('selected',
                       Lang.bind(this, function(clone, time) {
@@ -754,13 +771,15 @@ const myWorkspaceThumbnail = new Lang.Class({
             thumbnail._menu.removeAll();
 
             this._windowAppsMenuListBox = new St.BoxLayout({vertical: true});
-            for (let i=0; i < thumbnail._wsWindowApps.length; i++) {
-                let buttonActor = this._wsWindowAppsBox.get_child_at_index(i);
-                if (buttonActor.visible) {
-                    let metaWin = thumbnail._wsWindowApps[i].metaWin;
-                    let app = thumbnail._wsWindowApps[i].app;
-                    let item = new WindowAppMenuItem(app, metaWin, thumbnail);
-                    this._windowAppsMenuListBox.add_actor(item.actor);
+            if (this._wsWindowAppsBox) {
+                for (let i=0; i < thumbnail._wsWindowApps.length; i++) {
+                    let buttonActor = this._wsWindowAppsBox.get_child_at_index(i);
+                    if (buttonActor.visible) {
+                        let metaWin = thumbnail._wsWindowApps[i].metaWin;
+                        let app = thumbnail._wsWindowApps[i].app;
+                        let item = new WindowAppMenuItem(app, metaWin, thumbnail);
+                        this._windowAppsMenuListBox.add_actor(item.actor);
+                    }
                 }
             }
 
@@ -830,17 +849,19 @@ const myWorkspaceThumbnail = new Lang.Class({
 
     _closeAllMetaWindows: function(menuItem, event, thumbnail) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _closeAllMetaWindows");
-        for (let i = 0; i < thumbnail._wsWindowApps.length; i++) {
-            let buttonActor = thumbnail._wsWindowAppsBox.get_child_at_index(i);
-            if (buttonActor.visible) {
-                // Delete metaWindow
-                thumbnail._wsWindowApps[i].metaWin.delete(global.get_current_time());
-            }
+        if (this._wsWindowAppsBox) {
+            for (let i = 0; i < thumbnail._wsWindowApps.length; i++) {
+                let buttonActor = thumbnail._wsWindowAppsBox.get_child_at_index(i);
+                if (buttonActor.visible) {
+                    // Delete metaWindow
+                    thumbnail._wsWindowApps[i].metaWin.delete(global.get_current_time());
+                }
 
-            // NOTE: bug quiting all GIMP windows
-            // even tried thumbnail._wsWindowApps[i].app.request_quit();
-            // Gnome Shell has same issue .. selecting quit from panel app menu only closes current Gimp window
-            // Unity has same issue .. https://bugs.launchpad.net/ubuntu/+source/unity/+bug/1123593
+                // NOTE: bug quiting all GIMP windows
+                // even tried thumbnail._wsWindowApps[i].app.request_quit();
+                // Gnome Shell has same issue .. selecting quit from panel app menu only closes current Gimp window
+                // Unity has same issue .. https://bugs.launchpad.net/ubuntu/+source/unity/+bug/1123593
+            }
         }
     },
 
@@ -955,10 +976,12 @@ const myWorkspaceThumbnail = new Lang.Class({
         let winCount = 0;
         let winMax = 4;
 
-        for (let i = 0; i < this._wsWindowApps.length; i++) {
-            let buttonActor = this._wsWindowAppsBox.get_child_at_index(i);
-            if (buttonActor.visible) {
-                winCount ++;
+        if (this._wsWindowAppsBox) {
+            for (let i = 0; i < this._wsWindowApps.length; i++) {
+                let buttonActor = this._wsWindowAppsBox.get_child_at_index(i);
+                if (buttonActor.visible) {
+                    winCount ++;
+                }
             }
         }
 
@@ -1081,28 +1104,66 @@ const myThumbnailsBox = new Lang.Class({
 
         this.actor.connect('button-press-event', function() { return Clutter.EVENT_STOP; });
         this.actor.connect('button-release-event', Lang.bind(this, this._onButtonRelease));
+        this.actor.connect('destroy', Lang.bind(this, this._onDestroy));
 
-        //Main.overview.connect('showing',
-        //                      Lang.bind(this, this._createThumbnails));
-        //Main.overview.connect('hidden',
-        //                      Lang.bind(this, this._destroyThumbnails));
-
-        Main.overview.connect('item-drag-begin',
-                              Lang.bind(this, this._onDragBegin));
-        Main.overview.connect('item-drag-end',
-                              Lang.bind(this, this._onDragEnd));
-        Main.overview.connect('item-drag-cancelled',
-                              Lang.bind(this, this._onDragCancelled));
-        Main.overview.connect('window-drag-begin',
-                              Lang.bind(this, this._onDragBegin));
-        Main.overview.connect('window-drag-end',
-                              Lang.bind(this, this._onDragEnd));
-        Main.overview.connect('window-drag-cancelled',
-                              Lang.bind(this, this._onDragCancelled));
+        // Connect global signals
+        this._signalHandler = new Convenience.globalSignalHandler();
+        this._signalHandler.push(
+            [
+                Main.overview,
+                'item-drag-begin',
+                Lang.bind(this,this._onDragBegin)
+            ],
+            [
+                Main.overview,
+                'item-drag-cancelled',
+                Lang.bind(this,this._onDragCancelled)
+            ],
+            [
+                Main.overview,
+                'item-drag-end',
+                Lang.bind(this,this._onDragEnd)
+            ],
+            [
+                Main.overview,
+                'window-drag-begin',
+                Lang.bind(this,this._onDragBegin)
+            ],
+            [
+                Main.overview,
+                'window-drag-cancelled',
+                Lang.bind(this,this._onDragCancelled)
+            ],
+            [
+                Main.overview,
+                'window-drag-end',
+                Lang.bind(this,this._onDragEnd)
+            ],
+            [
+                global.window_manager,
+                'maximize',
+                Lang.bind(this, this.refreshThumbnails)
+            ],
+            [
+                global.window_manager,
+                'unmaximize',
+                Lang.bind(this, this.refreshThumbnails)
+            ],
+            [
+                global.screen,
+                'in-fullscreen-changed',
+                Lang.bind(this, this.refreshThumbnails)
+            ]
+        );
 
         this._settings = new Gio.Settings({ schema: OVERRIDE_SCHEMA });
         this._settings.connect('changed::dynamic-workspaces',
             Lang.bind(this, this._updateSwitcherVisibility));
+    },
+
+    _onDestroy: function() {
+        // Disconnect global signals
+        this._signalHandler.disconnect();
     },
 
     // override _createThumbnails to remove global n-workspaces notification
@@ -1150,17 +1211,19 @@ const myThumbnailsBox = new Lang.Class({
         // ThumbnailsBox click events are passed on to dock handler if conditions are met
         // Helpful in cases where the 'dock-edge-visible' option is enabled. It provides more
         // area to click on to show the dock when the window is maximized.
-        // Skip if 'dock-edge-visible' && 'require-click-to-show' are not enabled
+
+        // Should we continue processing the button release or pass the event on to the dock handler?
+        // Continue if 'dock-edge-visible' && 'require-click-to-show' are not enabled
         if (this._mySettings.get_boolean('dock-edge-visible') && this._mySettings.get_boolean('require-click-to-show')) {
-            // Skip if window is not maximized (_hovering only true if window is maximized)
+            // Continue if window is not maximized (_hovering only true if window is maximized)
             if (this._dock._hovering) {
-                // Skip if dock is not in autohide mode for instance because it is shown by intellihide
+                // Continue if dock is not in autohide mode for instance because it is shown by intellihide
                 if (this._mySettings.get_boolean('autohide') && this._dock._autohideStatus) {
                     if (this._dock.actor.hover) {
-                        // Skip if dock is showing or shown
+                        // Continue if dock is showing or shown
                         if (this._dock._animStatus.hidden() || this._dock._animStatus.hiding()) {
-                            // pass click event on to dock handler
-                            return Clutter.EVENT_PROPAGATE;
+                            // STOP. Lets not continue but pass the click event on to dock handler
+                            return false;
                         }
                     }
                 }

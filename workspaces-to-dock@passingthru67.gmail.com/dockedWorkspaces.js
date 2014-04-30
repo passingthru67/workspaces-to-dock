@@ -64,6 +64,7 @@ dockedWorkspaces.prototype = {
     _init: function(settings) {
         // temporarily disable redisplay until initialized (prevents connected signals from trying to update dock visibility)
         this._disableRedisplay = true;
+        this._updateRegion = false;
         if (_DEBUG_) global.log("dockedWorkspaces: init - disableRediplay");
 
         // set RTL value
@@ -86,9 +87,6 @@ dockedWorkspaces.prototype = {
         // initialize popup menu flag
         this._popupMenuShowing = false;
 
-        // initialize monitors changed flag
-        this._monitorsChanged = true;
-
         // initialize colors with generic values
         this._defaultBackground = {red:0, green:0, blue:0};
         this._customBackground = {red:0, green:0, blue:0};
@@ -100,6 +98,7 @@ dockedWorkspaces.prototype = {
         this._pressureBarrier = null;
         this._barrier = null;
         this._messageTrayShowing = false;
+        this._removeBarrierTimeoutId = 0;
 
         // Override Gnome Shell functions
         this._overrideGnomeShellFunctions();
@@ -120,6 +119,7 @@ dockedWorkspaces.prototype = {
         });
         this.actor.connect("notify::hover", Lang.bind(this, this._hoverChanged));
         this.actor.connect("scroll-event", Lang.bind(this, this._onScrollEvent));
+        this.actor.connect("button-release-event", Lang.bind(this, this._onDockClicked));
         this._realizeId = this.actor.connect("realize", Lang.bind(this, this._initialize));
 
         // Sometimes Main.wm._workspaceSwitcherPopup is null when first loading the
@@ -196,6 +196,11 @@ dockedWorkspaces.prototype = {
                 Main.messageTray,
                 'hiding',
                 Lang.bind(this, this._onMessageTrayHiding)
+            ],
+            [
+                global.screen,
+                'in-fullscreen-changed',
+                Lang.bind(this, this._updateBarrier)
             ]
         );
         if (_DEBUG_) global.log("dockedWorkspaces: init - signals being captured");
@@ -223,6 +228,11 @@ dockedWorkspaces.prototype = {
                             DashToDock.dock._box,
                             'notify::hover',
                             Lang.bind(this, this._onDashToDockHoverChanged)
+                        ],
+                        [
+                            DashToDock.dock._box,
+                            'leave-event',
+                            Lang.bind(this, this._onDashToDockLeave)
                         ],
                         [
                             DashToDock.dock,
@@ -270,6 +280,7 @@ dockedWorkspaces.prototype = {
         this.actor.set_opacity(255);
 
         this._disableRedisplay = false;
+        this._updateRegion = true;
         if (_DEBUG_) global.log("dockedWorkspaces: initialize - turn on redisplay");
 
         // Now that the dock is on the stage and custom themes are loaded
@@ -299,6 +310,9 @@ dockedWorkspaces.prototype = {
         // Remove existing barrier
         this._removeBarrier();
 
+        if (this._removeBarrierTimeoutId > 0)
+            Mainloop.source_remove(this._removeBarrierTimeoutId);
+
         // Destroy main clutter actor: this should be sufficient
         // From clutter documentation:
         // If the actor is inside a container, the actor will be removed.
@@ -320,6 +334,7 @@ dockedWorkspaces.prototype = {
             if (self._settings.get_boolean('toggle-overview')) {
                 let button = event.get_button();
                 if (button == 3) { //right click
+                    // pass right-click event on allowing it to bubble up to thumbnailsBox
                     return Clutter.EVENT_PROPAGATE;
                 }
             }
@@ -424,16 +439,17 @@ dockedWorkspaces.prototype = {
         };
 
         // Extend LayoutManager _updateRegions function to destroy/create workspace thumbnails when completed.
-        // NOTE: needed because 'monitors-changed' signal doesn't wait for queued regions to update.
+        // NOTE1: needed because 'monitors-changed' signal doesn't wait for queued regions to update.
         // We need to wait so that the screen workspace workarea is adjusted before creating workspace thumbnails.
         // Otherwise when we move the primary workspace to another monitor, the workspace thumbnails won't adjust for the top panel.
+        // NOTE2: also needed when dock-fixed is enabled/disabled to adjust for workspace area change
         GSFunctions['LayoutManager_updateRegions'] = Layout.LayoutManager.prototype._updateRegions;
         Layout.LayoutManager.prototype._updateRegions = function() {
             let ret = GSFunctions['LayoutManager_updateRegions'].call(this);
             //this.emit('regions-updated');
-            if (self._monitorsChanged) {
+            if (self._updateRegion) {
                 self._refreshThumbnails();
-                self._monitorsChanged = false;
+                self._updateRegion = false;
             }
             return ret;
         };
@@ -582,6 +598,13 @@ dockedWorkspaces.prototype = {
             } else {
                 this._thumbnailsBoxBackground.remove_style_class_name('workspace-thumbnails-fullheight');
             }
+
+            // Refresh thumbnails to adjust for workarea size change
+            // NOTE1: setting updateRegion=true forces a thumbnails refresh when layoutManager updates
+            // regions (see overrideGnomeShellFunctions)
+            // NOTE2: We also force thumbnails refresh on animation complete in case dock is hidden when
+            // dock-fixed is enabled.
+            this._updateRegion = true;
         }));
 
         this._settings.connect('changed::autohide', Lang.bind(this, function() {
@@ -658,6 +681,9 @@ dockedWorkspaces.prototype = {
                 this._thumbnailsBoxBackground.remove_style_class_name('workspace-thumbnails-fullheight');
             }
             this._updateSize();
+            if (this._settings.get_boolean('dock-fixed')) {
+                this._updateRegion = true;
+            }
         }));
         this._settings.connect('changed::top-margin', Lang.bind(this, function() {
             // Add or remove addtional style class when workspace is fixed and set to full height
@@ -667,6 +693,9 @@ dockedWorkspaces.prototype = {
                 this._thumbnailsBoxBackground.remove_style_class_name('workspace-thumbnails-fullheight');
             }
             this._updateSize();
+            if (this._settings.get_boolean('dock-fixed')) {
+                this._updateRegion = true;
+            }
         }));
         this._settings.connect('changed::bottom-margin', Lang.bind(this, function() {
             // Add or remove addtional style class when workspace is fixed and set to full height
@@ -676,6 +705,9 @@ dockedWorkspaces.prototype = {
                 this._thumbnailsBoxBackground.remove_style_class_name('workspace-thumbnails-fullheight');
             }
             this._updateSize();
+            if (this._settings.get_boolean('dock-fixed')) {
+                this._updateRegion = true;
+            }
         }));
 
         this._settings.connect('changed::toggle-dock-with-keyboard-shortcut', Lang.bind(this, function(){
@@ -737,12 +769,61 @@ dockedWorkspaces.prototype = {
             }
         }
 
+        if (this._settings.get_boolean('require-click-to-show')) {
+            // check if metaWin is maximized
+            let activeWorkspace = global.screen.get_active_workspace_index();
+            let maximized = false;
+            let windows = global.get_window_actors();
+            for (let i = windows.length-1; i >= 0; i--) {
+                if (windows[i].get_workspace() == activeWorkspace) {
+                    if(_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - window is on active workspace");
+                    let metaWin = windows[i].get_meta_window();
+                    if(_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - window class = "+metaWin.get_wm_class());
+                    if (metaWin.appears_focused && metaWin.maximized_horizontally) {
+                        maximized = true;
+                        if (_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - window is focused and maximized");
+                        break;
+                    }
+                }
+            }
+            // set hovering flag if maximized
+            // used by the _onDockClicked function (hover+click)
+            if (maximized) {
+                if (this.actor.hover) {
+                    this._hovering = true;
+                    return;
+                } else {
+                    this._hovering = false;
+                }
+            } else {
+                this._hovering = false;
+            }
+        }
+
         //Skip if dock is not in autohide mode for instance because it is shown by intellihide
         if (this._settings.get_boolean('autohide') && this._autohideStatus) {
             if (this.actor.hover) {
                 this._show();
             } else {
                 this._hide();
+            }
+        }
+    },
+
+    // handler for mouse click events - works in conjuction with hover event to show dock for maxmized windows
+    _onDockClicked: function() {
+        if (_DEBUG_) global.log("dockedWorkspaces: _onDockClicked");
+        if (this._settings.get_boolean('require-click-to-show')) {
+            if (this._hovering) {
+                //Skip if dock is not in autohide mode for instance because it is shown by intellihide
+                if (this._settings.get_boolean('autohide') && this._autohideStatus) {
+                    if (this.actor.hover) {
+                        this._show();
+                    } else {
+                        this._hide();
+                    }
+                }
+                this._hovering = false;
             }
         }
     },
@@ -755,18 +836,20 @@ dockedWorkspaces.prototype = {
     },
 
     _onDashToDockShowing: function() {
-        if (_DEBUG_) global.log("dockedWorkspaces: _onDashToDockShowing");
+        if (_DEBUG_) global.log("Dash SHOWING");
         //Skip if dock is not in dashtodock hover mode
         if (this._settings.get_boolean('dashtodock-hover') && DashToDock && DashToDock.dock) {
             if (Main.overview.visible == false) {
-                this._hoveringDash = true;
-                this._show();
+                if (DashToDock.dock._box.hover) {
+                    this._hoveringDash = true;
+                    this._show();
+                }
             }
         }
     },
 
     _onDashToDockHiding: function() {
-        if (_DEBUG_) global.log("dockedWorkspaces: _onDashToDockHiding");
+        if (_DEBUG_) global.log("Dash HIDING");
         //Skip if dock is not in dashtodock hover mode
         if (this._settings.get_boolean('dashtodock-hover') && DashToDock && DashToDock.dock) {
             this._hoveringDash = false;
@@ -774,9 +857,14 @@ dockedWorkspaces.prototype = {
         }
     },
 
+    _onDashToDockLeave: function() {
+        if (_DEBUG_) global.log("Dash Button LEAVE");
+        this._hoveringDash = false;
+    },
+
     // handler for DashToDock hover events
     _onDashToDockHoverChanged: function() {
-        if (_DEBUG_) global.log("dockedWorkspaces: _onDashToDockHoverChanged");
+        if (_DEBUG_) global.log("Dash HOVER Changed");
         //Skip if dock is not in dashtodock hover mode
         if (this._settings.get_boolean('dashtodock-hover') && DashToDock && DashToDock.dock && DashToDock.dock._animStatus.shown()) {
             if (DashToDock.dock._box.hover) {
@@ -810,6 +898,11 @@ dockedWorkspaces.prototype = {
                             DashToDock.dock._box,
                             'notify::hover',
                             Lang.bind(this, this._onDashToDockHoverChanged)
+                        ],
+                        [
+                            DashToDock.dock._box,
+                            'leave-event',
+                            Lang.bind(this, this._onDashToDockLeave)
                         ],
                         [
                             DashToDock.dock,
@@ -950,7 +1043,12 @@ dockedWorkspaces.prototype = {
                     // Remove barrier so that mouse pointer is released and can access monitors on other side of dock
                     // NOTE: Delay needed to keep mouse from moving past dock and re-hiding dock immediately. This
                     // gives users an opportunity to hover over the dock
-                    this._removeBarrierTimeoutId = Mainloop.timeout_add(300, Lang.bind(this, this._removeBarrier));
+                    this._removeBarrierTimeoutId = Mainloop.timeout_add(100, Lang.bind(this, this._removeBarrier));
+
+                    // Force thumbnails refresh on animation complete in case dock hidden when dock-fixed enabled.
+                    if (this._settings.get_boolean('dock-fixed')) {
+                        this._updateRegion = true;
+                    }
                     if (_DEBUG_) global.log("dockedWorkspaces: _animateIN onComplete");
                 })
             });
@@ -1187,7 +1285,7 @@ dockedWorkspaces.prototype = {
         themeContext.set_theme (newTheme);
 
         if (!this._disableRedisplay) {
-			this._refreshThumbnails();
+            this._refreshThumbnails();
         }
 
         return true;
@@ -1407,7 +1505,7 @@ dockedWorkspaces.prototype = {
         if (_DEBUG_) global.log("dockedWorkspaces: _onMonitorsChanged");
         this._resetPosition();
         this._redisplay();
-        this._monitorsChanged = true;
+        this._updateRegion = true;
     },
 
     _refreshThumbnails: function() {
@@ -1433,6 +1531,7 @@ dockedWorkspaces.prototype = {
     // Remove pressure barrier (GS38+ only)
     _removeBarrier: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _removeBarrier");
+        this._removeBarrierTimeoutId = 0;
         if (this._barrier) {
             if (this._pressureBarrier) {
                 this._pressureBarrier.removeBarrier(this._barrier);
@@ -1467,7 +1566,9 @@ dockedWorkspaces.prototype = {
         // Create new barrier
         // Note: dock in fixed possition doesn't use pressure barrier
         if (_DEBUG_) global.log("dockedWorkspaces: _updateBarrier");
-        if (this._canUsePressure && this._settings.get_boolean('autohide') && this._autohideStatus && this._settings.get_boolean('require-pressure-to-show') && !this._settings.get_boolean('dock-fixed') && !this._messageTrayShowing) {
+        if (this.actor.visible && this._canUsePressure && this._settings.get_boolean('autohide')
+                    && this._autohideStatus && this._settings.get_boolean('require-pressure-to-show')
+                    && !this._settings.get_boolean('dock-fixed') && !this._messageTrayShowing) {
             let x, direction;
             if (this._rtl) {
                 x = this._monitor.x;
@@ -1542,7 +1643,7 @@ dockedWorkspaces.prototype = {
             this.actor.sync_hover();
         }
 
-        if (!(this._hoveringDash || this.actor.hover) || !this._settings.get_boolean('autohide')) {
+        if (!((this._hoveringDash && !Main.overview.visible) || this.actor.hover) || !this._settings.get_boolean('autohide')) {
             if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - mouse not hovering OR dock not using autohide, so animate out");
             this._animateOut(this._settings.get_double('animation-time'), 0);
             delay = this._settings.get_double('animation-time');
