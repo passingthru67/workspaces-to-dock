@@ -42,7 +42,7 @@ Behavior Settings:
     **Leave the dock edge visible when slid out** - Option to leave the dock edge visible when in the slid out or hidden state. This option makes the dock more easily accessible in dual monitor configurations where the second monitor is to the right.
 
     **Disable scroll to prevent workspace switching when slid out** - Option to disable mouse scrolling to prevent accidentally switching workspaces when the dock is hidden.
-    
+
     **Autohide : Show the dock on mouse hover** - When enabled, the dock shows when the mouse touches the right edge of screen. When disabled, the dock remains hidden unless the intellihide option is on or overview mode is entered.
 
     **Require pressure to show the dock** - Require mouse pressure against the edge of the screen to show the dock. This option helps eliminate accidentally triggering the dock when using vertical scroll bars. It also helps with accessing the dock in multi-monitor configurations where the 2nd monitor is to the right of the dock. Unfortunately, this feature requires Gnome Shell 3.8+ and an XServer installation that implements pressure barriers.
@@ -181,6 +181,14 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
+**version 19 (Gnome 3.10), version 20 (Gnome 3.12) (May 1, 2014)**
+
+- Behavior updated to be more consistant with Gnome Shell 3.10+
+- Better support for multi-monitor setups
+- Better taskbar app tracking over workspaces
+- Option to customize the caption taskbar and icon sizes
+- Bug fixes
+
 **version 18 for Gnome 3.12 (Mar 16, 2014)**
 
 - Support for Gnome Shell 3.12
