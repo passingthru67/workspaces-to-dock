@@ -1,6 +1,6 @@
 {
     "name": "Workspaces to Dock",
-    "description": "A Gnome Shell extension that transforms the workspaces of the overview mode into an intellihide dock.  The dock is positioned and sized to maintain tight integration with the Gnome Shell.\n\nThe latest release provides Gnome Shell 3.10 compatibility and other various enhancements.\n\nPlease see the Github homepage for details on installation, settings, known issues, and version features. A backport is also available on Github for Gnome Shell 3.2 users (v6 only).",
+    "description": "A Gnome Shell extension that transforms the workspaces of the overview mode into an intellihide dock.  The dock is positioned and sized to maintain tight integration with the Gnome Shell.",
     "original-author": "passingthru67@gmail.com",
     "shell-version": ["3.10"],
     "url": "https://github.com/passingthru67/workspaces-to-dock",
