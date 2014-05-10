@@ -307,11 +307,12 @@ dockedWorkspaces.prototype = {
         // Unbind keyboard shortcuts
         this._unbindDockKeyboardShortcut();
 
-        // Remove existing barrier
-        this._removeBarrier();
-
+        // Removed barrier timeout
         if (this._removeBarrierTimeoutId > 0)
             Mainloop.source_remove(this._removeBarrierTimeoutId);
+
+        // Remove existing barrier
+        this._removeBarrier();
 
         // Destroy main clutter actor: this should be sufficient
         // From clutter documentation:
@@ -1531,7 +1532,6 @@ dockedWorkspaces.prototype = {
     // Remove pressure barrier (GS38+ only)
     _removeBarrier: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _removeBarrier");
-        this._removeBarrierTimeoutId = 0;
         if (this._barrier) {
             if (this._pressureBarrier) {
                 this._pressureBarrier.removeBarrier(this._barrier);
@@ -1539,6 +1539,8 @@ dockedWorkspaces.prototype = {
             this._barrier.destroy();
             this._barrier = null;
         }
+        this._removeBarrierTimeoutId = 0;
+        return false;
     },
 
     _onMessageTrayShowing: function() {
