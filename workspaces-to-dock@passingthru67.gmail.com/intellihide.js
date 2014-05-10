@@ -565,6 +565,7 @@ intellihide.prototype = {
             if (this._windowChangedTimeout > 0)
                 Mainloop.source_remove(this._windowChangedTimeout);
 
+            this._windowChangedTimeout = 0
             this._updateDockVisibility();
         }
     },
