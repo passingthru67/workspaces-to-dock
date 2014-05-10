@@ -17,6 +17,7 @@ const Shell = imports.gi.Shell;
 const Signals = imports.signals;
 const St = imports.gi.St;
 const Mainloop = imports.mainloop;
+const DND = imports.ui.dnd;
 
 const Main = imports.ui.main;
 const Dash = imports.ui.dash;
@@ -168,6 +169,57 @@ const WindowAppMenuItem = new Lang.Class({
 const myWindowClone = new Lang.Class({
     Name: 'workspacesToDock.myWindowClone',
     Extends: WorkspaceThumbnail.WindowClone,
+
+    _init : function(realWindow) {
+        this.clone = new Clutter.Clone({ source: realWindow.get_texture() });
+
+        /* Can't use a Shell.GenericContainer because of DND and reparenting... */
+        this.actor = new Clutter.Actor({ layout_manager: new WorkspaceThumbnail.PrimaryActorLayout(this.clone),
+                                         reactive: true });
+        this.actor._delegate = this;
+        this.actor.add_child(this.clone);
+        this.realWindow = realWindow;
+        this.metaWindow = realWindow.meta_window;
+
+        this.clone._updateId = this.metaWindow.connect('position-changed',
+                                                       Lang.bind(this, this._onPositionChanged));
+        this.clone._destroyId = this.realWindow.connect('destroy', Lang.bind(this, function() {
+            // First destroy the clone and then destroy everything
+            // This will ensure that we never see it in the _disconnectSignals loop
+            this.clone.destroy();
+            this.destroy();
+        }));
+        this._onPositionChanged();
+
+        this.actor.connect('button-release-event',
+                           Lang.bind(this, this._onButtonRelease));
+
+        this.actor.connect('destroy', Lang.bind(this, this._onDestroy));
+
+        this._draggable = DND.makeDraggable(this.actor,
+                                            { restoreOnSuccess: true,
+                                              dragActorMaxSize: Workspace.WINDOW_DND_SIZE,
+                                              dragActorOpacity: Workspace.DRAGGING_WINDOW_OPACITY });
+        this._draggable.connect('drag-begin', Lang.bind(this, this._onDragBegin));
+        this._draggable.connect('drag-cancelled', Lang.bind(this, this._onDragCancelled));
+        this._draggable.connect('drag-end', Lang.bind(this, this._onDragEnd));
+        this.inDrag = false;
+
+        let iter = Lang.bind(this, function(win) {
+            let actor = win.get_compositor_private();
+
+            if (!actor)
+                return false;
+            if (!win.is_attached_dialog())
+                return false;
+
+            this._doAddAttachedDialog(win, actor);
+            win.foreach_transient(iter);
+
+            return true;
+        });
+        this.metaWindow.foreach_transient(iter);
+    },
 
     _onPositionChanged: function() {
         let rect = this.metaWindow.get_outer_rect();
