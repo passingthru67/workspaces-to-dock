@@ -173,7 +173,7 @@ const myWindowClone = new Lang.Class({
         let rect = this.metaWindow.get_outer_rect();
         if (_DEBUG_) global.log("window clone position changed - x="+this.realWindow.x+" y="+this.realWindow.y+" nx="+rect.x+" ny="+rect.y);
         this.actor.set_position(this.realWindow.x, this.realWindow.y);
-        if (this.metaWindow.get_maximized()) {
+        if (this.metaWindow.get_maximized() && rect) {
             this.actor.set_position(rect.x, rect.y);
         } else {
             this.actor.set_position(this.realWindow.x, this.realWindow.y);
