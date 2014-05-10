@@ -181,6 +181,9 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
+**version 21 for Gnome 3.12 (May 12, 2014)**
+- Bug fixes
+
 **version 19 (Gnome 3.10), version 20 (Gnome 3.12) (May 1, 2014)**
 
 - Behavior updated to be more consistant with Gnome Shell 3.10+
