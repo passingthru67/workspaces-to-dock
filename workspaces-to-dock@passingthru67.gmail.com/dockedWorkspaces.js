@@ -39,7 +39,7 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const Extension = Me.imports.extension;
 const Convenience = Me.imports.convenience;
-const MyThumbnailsBox = Me.imports.myThumbnailsBox;
+const MyWorkspaceThumbnail = Me.imports.myWorkspaceThumbnail;
 
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
@@ -104,7 +104,7 @@ dockedWorkspaces.prototype = {
         this._overrideGnomeShellFunctions();
 
         // Create a new thumbnailsbox object
-        this._thumbnailsBox = new MyThumbnailsBox.myThumbnailsBox(this);
+        this._thumbnailsBox = new MyWorkspaceThumbnail.myThumbnailsBox(this);
         if (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0) {
             this._thumbnailsBoxBackground = this._thumbnailsBox._background;
         } else {
