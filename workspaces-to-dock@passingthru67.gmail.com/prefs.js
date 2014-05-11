@@ -879,6 +879,28 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             this.settings.set_double("workspace-caption-taskbar-icon-size", s);
         }));
 
+        // Workspace captions - Popupmenu Icon Size
+        let wsCaptionMenuIconSizeLabel = new Gtk.Label({
+            label: _("Popup Menu Icon Size [px]"),
+            use_markup: true,
+            xalign: 0,
+            hexpand: true
+        });
+
+        let wsCaptionMenuIconSizeSpinner = new Gtk.SpinButton({
+            halign: Gtk.Align.END,
+            margin_top: 0,
+            margin_bottom: 0
+        });
+        wsCaptionMenuIconSizeSpinner.set_sensitive(true);
+        wsCaptionMenuIconSizeSpinner.set_range(10, 50);
+        wsCaptionMenuIconSizeSpinner.set_value(this.settings.get_double("workspace-caption-menu-icon-size") * 1);
+        wsCaptionMenuIconSizeSpinner.set_increments(1, 5);
+        wsCaptionMenuIconSizeSpinner.connect("value-changed", Lang.bind(this, function(button) {
+            let s = button.get_value_as_int() / 1;
+            this.settings.set_double("workspace-caption-menu-icon-size", s);
+        }));
+
         // Workspace Captions - Number
         let wsCaptionNumberButton =  new Gtk.CheckButton({
             label: _("Show workspace number"),
@@ -1115,31 +1137,34 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         workspaceCaptionsContainerGrid.attach(wsCaptionWindowAppsIconSizeLabel, 0, 2, 1, 1);
         workspaceCaptionsContainerGrid.attach(wsCaptionWindowAppsIconSizeSpinner, 2, 2, 3, 1);
 
-        workspaceCaptionsContainerGrid.attach(wsCaptionNumberButton, 0, 3, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionNumberExpand, 2, 3, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionNumber_MoveLeftButton, 3, 3, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionNumber_MoveRightButton, 4, 3, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionMenuIconSizeLabel, 0, 3, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionMenuIconSizeSpinner, 2, 3, 3, 1);
 
-        workspaceCaptionsContainerGrid.attach(wsCaptionNameButton, 0, 4, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionNameExpand, 2, 4, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionName_MoveLeftButton, 3, 4, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionName_MoveRightButton, 4, 4, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionNumberButton, 0, 4, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionNumberExpand, 2, 4, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionNumber_MoveLeftButton, 3, 4, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionNumber_MoveRightButton, 4, 4, 1, 1);
 
-        workspaceCaptionsContainerGrid.attach(wsCaptionWindowCount, 0, 5, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionWindowCountUseImage, 1, 5, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionWindowCountExpand, 2, 5, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionWindowCount_MoveLeftButton, 3, 5, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionWindowCount_MoveRightButton, 4, 5, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionNameButton, 0, 5, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionNameExpand, 2, 5, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionName_MoveLeftButton, 3, 5, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionName_MoveRightButton, 4, 5, 1, 1);
 
-        workspaceCaptionsContainerGrid.attach(wsCaptionWindowApps, 0, 6, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionWindowAppsExpand, 2, 6, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionWindowApps_MoveLeftButton, 3, 6, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionWindowApps_MoveRightButton, 4, 6, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionWindowCount, 0, 6, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionWindowCountUseImage, 1, 6, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionWindowCountExpand, 2, 6, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionWindowCount_MoveLeftButton, 3, 6, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionWindowCount_MoveRightButton, 4, 6, 1, 1);
 
-        workspaceCaptionsContainerGrid.attach(wsCaptionSpacer, 0, 7, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionSpacerExpand, 2, 7, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionSpacer_MoveLeftButton, 3, 7, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionSpacer_MoveRightButton, 4, 7, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionWindowApps, 0, 7, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionWindowAppsExpand, 2, 7, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionWindowApps_MoveLeftButton, 3, 7, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionWindowApps_MoveRightButton, 4, 7, 1, 1);
+
+        workspaceCaptionsContainerGrid.attach(wsCaptionSpacer, 0, 8, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionSpacerExpand, 2, 8, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionSpacer_MoveLeftButton, 3, 8, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionSpacer_MoveRightButton, 4, 8, 1, 1);
 
         /* Bind interactions */
         this.settings.bind('workspace-captions', workspaceCaptionsContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);

@@ -50,7 +50,6 @@ const WORKSPACE_KEEP_ALIVE_TIME = 100;
 const OVERRIDE_SCHEMA = 'org.gnome.shell.overrides';
 
 const CAPTION_APP_ICON_ZOOM = 8;
-const CAPTION_APP_ICON_MENU_SIZE = 20;
 
 const PREFS_DIALOG = 'gnome-shell-extension-prefs workspaces-to-dock@passingthru67.gmail.com';
 
@@ -119,23 +118,24 @@ const WindowAppMenuItem = new Lang.Class({
 
     _init: function(app, metaWin, thumbnail) {
         this._gsCurrentVersion = thumbnail._gsCurrentVersion;
+        this._mySettings = thumbnail._mySettings;
+
         let iconParams = {setSizeManually: true, showLabel: false};
         iconParams['createIcon'] = Lang.bind(this, function(iconSize){ return app.create_icon_texture(iconSize);});
 
         this._icon = new IconGrid.BaseIcon(app.get_name(), iconParams);
         this._icon.actor.add_style_class_name('workspacestodock-caption-windowapps-menu-icon');
-        this._icon.setIconSize(CAPTION_APP_ICON_MENU_SIZE);
+        this._icon.setIconSize(this._mySettings.get_double('workspace-caption-menu-icon-size'));
         this._label = new St.Label({ text: app.get_name(), style_class: 'workspacestodock-caption-windowapps-menu-label' });
 
         this._buttonBox = new St.BoxLayout({style_class:'workspacestodock-caption-windowapps-menu-button'});
         this._buttonBox.add(this._icon.actor, {x_fill: false, y_fill: false, x_align: St.Align.START, y_align: St.Align.MIDDLE});
         this._buttonBox.add(this._label, {x_fill: true, y_fill: false, x_align: St.Align.START, y_align: St.Align.MIDDLE, expand: true});
 
-        //this._closeIcon = new St.Icon({ icon_name: 'window-close-symbolic', style_class: 'popup-menu-icon' });
-
         this._closeButton = new St.Button({style_class:'workspacestodock-caption-windowapps-menu-close'});
         this._closeButton.add_style_class_name('window-close');
-        //this._closeButton.set_size(CAPTION_APP_ICON_MENU_SIZE, CAPTION_APP_ICON_MENU_SIZE);
+        //this._closeIcon = new St.Icon({ icon_name: 'window-close-symbolic', style_class: 'popup-menu-icon' });
+        //this._closeButton.set_size(this._mySettings.get_double('workspace-caption-menu-icon-size'), this._mySettings.get_double('workspace-caption-menu-icon-size'));
         //this._closeButton.set_child(this._closeIcon);
 
         this.actor = new St.BoxLayout({reactive: true, style_class: 'popup-menu-item workspacestodock-caption-windowapps-menu-item'});

@@ -146,10 +146,10 @@
       <summary>Workspace caption taskbar icon size</summary>
       <description>Set the workspace caption taskbar icon size.</description>
     </key>
-    <key type="b" name="workspace-caption-large-icons">
-      <default>false</default>
-      <summary>Show workspace window apps using large icons</summary>
-      <description>Enable or disable using large icons for workspace window apps (taskbar).</description>
+    <key type="d" name="workspace-caption-menu-icon-size">
+      <default>20</default>
+      <summary>Workspace caption popup menu icon size</summary>
+      <description>Set the workspace caption popup menu icon size.</description>
     </key>
     <key type="b" name="toggle-overview">
       <default>true</default>
