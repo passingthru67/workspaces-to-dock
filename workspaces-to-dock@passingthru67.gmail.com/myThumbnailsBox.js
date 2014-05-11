@@ -170,7 +170,8 @@ const myWindowClone = new Lang.Class({
     Name: 'workspacesToDock.myWindowClone',
     Extends: WorkspaceThumbnail.WindowClone,
 
-    _init : function(realWindow) {
+    _init : function(realWindow, thumbnail) {
+        this._mySettings = thumbnail._mySettings;
         this.clone = new Clutter.Clone({ source: realWindow.get_texture() });
 
         /* Can't use a Shell.GenericContainer because of DND and reparenting... */
@@ -230,6 +231,18 @@ const myWindowClone = new Lang.Class({
         } else {
             this.actor.set_position(this.realWindow.x, this.realWindow.y);
         }
+    },
+
+    _onButtonRelease : function (actor, event) {
+        if (this._mySettings.get_boolean('toggle-overview')) {
+            let button = event.get_button();
+            if (button == 3) {
+                // pass right-click event on allowing it to bubble up to thumbnailsBox
+                return Clutter.EVENT_PROPAGATE;
+            }
+        }
+        this.emit('selected', event.get_time());
+        return Clutter.EVENT_STOP;
     }
 });
 
@@ -466,7 +479,7 @@ const myWorkspaceThumbnail = new Lang.Class({
     // Create a clone of a (non-desktop) window and add it to the window list
     _addWindowClone : function(win, refresh) {
         if (_DEBUG_ && !this._removed) global.log("myWorkspaceThumbnail: _addWindowClone for metaWorkspace "+this.metaWorkspace.index());
-        let clone = new myWindowClone(win);
+        let clone = new myWindowClone(win, this);
 
         clone.connect('selected',
                       Lang.bind(this, function(clone, time) {
@@ -1209,6 +1222,16 @@ const myThumbnailsBox = new Lang.Class({
                 global.screen,
                 'in-fullscreen-changed',
                 Lang.bind(this, this.refreshThumbnails)
+            ],
+            [
+                global.screen,
+                'workspace-added',
+                Lang.bind(this, this._onWorkspaceAdded)
+            ],
+            [
+                global.screen,
+                'workspace-removed',
+                Lang.bind(this, this._onWorkspaceRemoved)
             ]
         );
 
@@ -1220,6 +1243,50 @@ const myThumbnailsBox = new Lang.Class({
     _onDestroy: function() {
         // Disconnect global signals
         this._signalHandler.disconnect();
+    },
+
+    // handler for when workspace is added
+    _onWorkspaceAdded: function() {
+        let NumMyWorkspaces = this._thumbnails.length;
+        let NumGlobalWorkspaces = global.screen.n_workspaces;
+        let active = global.screen.get_active_workspace_index();
+
+        // NumMyWorkspaces == NumGlobalWorkspaces shouldn't happen, but does when Firefox started.
+        // Assume that a workspace thumbnail is still in process of being removed from _thumbnailsBox
+        if (_DEBUG_) global.log("dockedWorkspaces: _workspacesAdded - thumbnail being added  .. ws="+NumGlobalWorkspaces+" th="+NumMyWorkspaces);
+        if (NumMyWorkspaces == NumGlobalWorkspaces)
+            NumMyWorkspaces --;
+
+        if (NumGlobalWorkspaces > NumMyWorkspaces)
+            this.addThumbnails(NumMyWorkspaces, NumGlobalWorkspaces - NumMyWorkspaces);
+    },
+
+    // handler for when workspace is removed
+    _onWorkspaceRemoved: function() {
+        let NumMyWorkspaces = this._thumbnails.length;
+        let NumGlobalWorkspaces = global.screen.n_workspaces;
+        let active = global.screen.get_active_workspace_index();
+
+        // TODO: Not sure if this is an issue?
+        if (_DEBUG_) global.log("dockedWorkspaces: _workspacesRemoved - thumbnails being removed .. ws="+NumGlobalWorkspaces+" th="+NumMyWorkspaces);
+        if (NumMyWorkspaces == NumGlobalWorkspaces)
+            return;
+
+        let removedIndex;
+        //let removedNum = NumMyWorkspaces - NumGlobalWorkspaces;
+        let removedNum = 1;
+        for (let w = 0; w < NumMyWorkspaces; w++) {
+            let metaWorkspace = global.screen.get_workspace_by_index(w);
+            if (this._thumbnails[w].metaWorkspace != metaWorkspace) {
+                removedIndex = w;
+                break;
+            }
+        }
+
+        if (removedIndex != null) {
+            if (_DEBUG_) global.log("dockedWorkspaces: _workspacesRemoved - thumbnail index being removed is = "+removedIndex);
+            this.removeThumbnails(removedIndex, removedNum);
+        }
     },
 
     // override _createThumbnails to remove global n-workspaces notification

@@ -173,16 +173,6 @@ dockedWorkspaces.prototype = {
                 Lang.bind(this, this._onExtensionSystemStateChanged)
             ],
             [
-                global.screen,
-                'workspace-added',
-                Lang.bind(this, this._workspacesAdded)
-            ],
-            [
-                global.screen,
-                'workspace-removed',
-                Lang.bind(this, this._workspacesRemoved)
-            ],
-            [
                 Main.overview.viewSelector,
                 'notify::y',
                 Lang.bind(this, this._updateYPosition)
@@ -327,21 +317,7 @@ dockedWorkspaces.prototype = {
     // function called during init to override gnome shell 3.4/3.6/3.8
     _overrideGnomeShellFunctions: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _overrideGnomeShellFunctions");
-        // Override the WorkspaceClone onButtonRelease function to allow right click events to bubble up
-        // Copied from Gnome Shell .. right click detection added .. returns false to bubble
         let self = this;
-        GSFunctions['WindowClone_onButtonRelease'] = WorkspaceThumbnail.WindowClone.prototype._onButtonRelease;
-        WorkspaceThumbnail.WindowClone.prototype._onButtonRelease = function (actor, event) {
-            if (self._settings.get_boolean('toggle-overview')) {
-                let button = event.get_button();
-                if (button == 3) { //right click
-                    // pass right-click event on allowing it to bubble up to thumbnailsBox
-                    return Clutter.EVENT_PROPAGATE;
-                }
-            }
-            this.emit('selected', event.get_time());
-            return Clutter.EVENT_STOP;
-        };
 
         // Force normal workspaces to be always zoomed
         // GS38 moved things to the overviewControls thumbnailsSlider
@@ -459,9 +435,6 @@ dockedWorkspaces.prototype = {
     // function called during destroy to restore gnome shell 3.4/3.6/3.8
     _restoreGnomeShellFunctions: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _restoreGnomeShellFunctions");
-        // Restore normal WindowClone onButtonRelease function
-        WorkspaceThumbnail.WindowClone.prototype._onButtonRelease = GSFunctions['WindowClone_onButtonRelease'];
-
         // Restore normal workspaces to previous zoom setting
         OverviewControls.ThumbnailsSlider.prototype._getAlwaysZoomOut = GSFunctions['ThumbnailsSlider_getAlwaysZoomOut'];
 
@@ -476,64 +449,6 @@ dockedWorkspaces.prototype = {
 
         // Restore normal LayoutManager _updateRegions function
         Layout.LayoutManager.prototype._updateRegions = GSFunctions['LayoutManager_updateRegions'];
-    },
-
-    // handler for when workspace is restacked
-    _workspacesRestacked: function() {
-        if (_DEBUG_) global.log("dockedWorkspaces: _workspacesRestacked");
-        let stack = global.get_window_actors();
-        let stackIndices = {};
-        for (let i = 0; i < stack.length; i++) {
-            // Use the stable sequence for an integer to use as a hash key
-            stackIndices[stack[i].get_meta_window().get_stable_sequence()] = i;
-        }
-        this._thumbnailsBox.syncStacking(stackIndices);
-    },
-
-    // handler for when workspace is added
-    _workspacesAdded: function() {
-        let NumMyWorkspaces = this._thumbnailsBox._thumbnails.length;
-        let NumGlobalWorkspaces = global.screen.n_workspaces;
-        let active = global.screen.get_active_workspace_index();
-        //if (_DEBUG_) global.log("dockedWorkspaces: _workspacesAdded - numThumbs = "+NumMyWorkspaces+" numWSpaces = "+NumGlobalWorkspaces);
-
-        // NumMyWorkspaces == NumGlobalWorkspaces shouldn't happen, but does when Firefox started.
-        // Assume that a workspace thumbnail is still in process of being removed from _thumbnailsBox
-        if (_DEBUG_) global.log("dockedWorkspaces: _workspacesAdded - thumbnail being added  .. ws="+NumGlobalWorkspaces+" th="+NumMyWorkspaces);
-        if (NumMyWorkspaces == NumGlobalWorkspaces)
-            NumMyWorkspaces --;
-
-        if (NumGlobalWorkspaces > NumMyWorkspaces)
-            this._thumbnailsBox.addThumbnails(NumMyWorkspaces, NumGlobalWorkspaces - NumMyWorkspaces);
-    },
-
-    // handler for when workspace is removed
-    _workspacesRemoved: function() {
-        let NumMyWorkspaces = this._thumbnailsBox._thumbnails.length;
-        let NumGlobalWorkspaces = global.screen.n_workspaces;
-        let active = global.screen.get_active_workspace_index();
-        //if (_DEBUG_) global.log("dockedWorkspaces: _workspacesRemoved - numThumbs = "+NumMyWorkspaces+" numWSpaces = "+NumGlobalWorkspaces);
-
-        // TODO: Not sure if this is an issue?
-        if (_DEBUG_) global.log("dockedWorkspaces: _workspacesRemoved - thumbnails being removed .. ws="+NumGlobalWorkspaces+" th="+NumMyWorkspaces);
-        if (NumMyWorkspaces == NumGlobalWorkspaces)
-            return;
-
-        let removedIndex;
-        //let removedNum = NumMyWorkspaces - NumGlobalWorkspaces;
-        let removedNum = 1;
-        for (let w = 0; w < NumMyWorkspaces; w++) {
-            let metaWorkspace = global.screen.get_workspace_by_index(w);
-            if (this._thumbnailsBox._thumbnails[w].metaWorkspace != metaWorkspace) {
-                removedIndex = w;
-                break;
-            }
-        }
-
-        if (removedIndex != null) {
-            if (_DEBUG_) global.log("dockedWorkspaces: _workspacesRemoved - thumbnail index being removed is = "+removedIndex);
-            this._thumbnailsBox.removeThumbnails(removedIndex, removedNum);
-        }
     },
 
     // handler for when thumbnailsBox is resized
