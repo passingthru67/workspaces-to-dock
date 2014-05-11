@@ -24,10 +24,7 @@ const IconTheme = imports.gi.Gtk.IconTheme;
 
 const Main = imports.ui.main;
 const WorkspacesView = imports.ui.workspacesView;
-const Workspace = imports.ui.workspace;
 const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
-const ViewSelector = imports.ui.viewSelector;
-const Overview = imports.ui.overview;
 const Tweener = imports.ui.tweener;
 const WorkspaceSwitcherPopup = imports.ui.workspaceSwitcherPopup;
 const OverviewControls = imports.ui.overviewControls;
@@ -36,13 +33,11 @@ const MessageTray = imports.ui.messageTray;
 
 const ExtensionSystem = imports.ui.extensionSystem;
 const ExtensionUtils = imports.misc.extensionUtils;
+const Config = imports.misc.config;
 const Me = ExtensionUtils.getCurrentExtension();
 const Extension = Me.imports.extension;
 const Convenience = Me.imports.convenience;
 const MyWorkspaceThumbnail = Me.imports.myWorkspaceThumbnail;
-
-const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
-const _ = Gettext.gettext;
 
 const DashToDock_UUID = "dash-to-dock@micxgx.gmail.com";
 let DashToDock = null;
@@ -54,14 +49,14 @@ const PRESSURE_TIMEOUT = 1000;
 
 let GSFunctions = {};
 
-function dockedWorkspaces(settings, gsCurrentVersion) {
-    this._gsCurrentVersion = gsCurrentVersion;
-    this._init(settings);
-}
+const DockedWorkspaces = new Lang.Class({
+    Name: 'workspacesToDock.dockedWorkspaces',
 
-dockedWorkspaces.prototype = {
+    _init: function() {
+        this._gsCurrentVersion = Config.PACKAGE_VERSION.split('.');
+        this._settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
+        this._signalHandler = new Convenience.globalSignalHandler();
 
-    _init: function(settings) {
         // temporarily disable redisplay until initialized (prevents connected signals from trying to update dock visibility)
         this._disableRedisplay = true;
         this._updateRegion = false;
@@ -72,17 +67,14 @@ dockedWorkspaces.prototype = {
         if (_DEBUG_) global.log("dockedWorkspaces: init - rtl = "+this._rtl);
 
         // Load settings
-        this._settings = settings;
         this._bindSettingsChanges();
-
-        this._signalHandler = new Convenience.globalSignalHandler();
 
         // Authohide current status. Not to be confused with autohide enable/disagle global (g)settings
         // Initially set to null - will be set during first enable/disable autohide
         this._autohideStatus = null;
 
         // initialize animation status object
-        this._animStatus = new animationStatus(true);
+        this._animStatus = new AnimationStatus(true);
 
         // initialize popup menu flag
         this._popupMenuShowing = false;
@@ -455,7 +447,7 @@ dockedWorkspaces.prototype = {
                 // Adjust width for dash
                 let dashWidth = 0;
                 if (DashToDock && DashToDock.dock) {
-                    let dashMonitorIndex = DashToDock.settings.get_int('preferred-monitor');
+                    let dashMonitorIndex = DashToDock.dock._settings.get_int('preferred-monitor');
                     if (dashMonitorIndex < 0 || dashMonitorIndex >= Main.layoutManager.monitors.length) {
                         dashMonitorIndex = this._primaryIndex;
                     }
@@ -1661,18 +1653,15 @@ dockedWorkspaces.prototype = {
         }
     }
 
-};
-Signals.addSignalMethods(dockedWorkspaces.prototype);
+});
+Signals.addSignalMethods(DockedWorkspaces.prototype);
 
 /*
  * Store animation status in a perhaps overcomplicated way.
  * status is true for visible, false for hidden
  */
-function animationStatus(initialStatus) {
-    this._init(initialStatus);
-}
-
-animationStatus.prototype = {
+const AnimationStatus = new Lang.Class({
+    Name: 'workspacesToDock.animationStatus',
 
     _init: function(initialStatus) {
         this.status = initialStatus;
@@ -1745,4 +1734,4 @@ animationStatus.prototype = {
         else
             return false;
     }
-}
+});
