@@ -430,6 +430,86 @@ dockedWorkspaces.prototype = {
             }
             return ret;
         };
+
+        // Override geometry calculations of activities overview to use workspaces-to-dock instead of the default thumbnailsbox.
+        // NOTE: This is needed for when the dock is positioned on a secondary monitor and also for when the shortcuts panel is visible
+        // causing the dock to be wider than normal.
+        GSFunctions['WorkspacesDisplay_updateWorkspacesActualGeometry'] = WorkspacesView.WorkspacesDisplay.prototype._updateWorkspacesActualGeometry;
+        WorkspacesView.WorkspacesDisplay.prototype._updateWorkspacesActualGeometry = function() {
+            global.log("WORKSPACESDISPLAY - _UPDATE ACTUALGEOMETRY");
+            if (!this._workspacesViews.length)
+                return;
+
+            let [x, y] = Main.overview._controls.actor.get_transformed_position();
+            let spacing = Main.overview._controls.actor.get_theme_node().get_length('spacing');
+            let monitors = Main.layoutManager.monitors;
+            for (let i = 0; i < monitors.length; i++) {
+                let geometry = { x: monitors[i].x, y: monitors[i].y, width: monitors[i].width, height: monitors[i].height };
+
+                // Adjust y and height for primary top panel
+                if (i == this._primaryIndex) {
+                    geometry.y += y;
+                    geometry.height -= y;
+                }
+
+                // Adjust width for dash
+                let dashWidth = 0;
+                if (DashToDock && DashToDock.dock) {
+                    let dashMonitorIndex = DashToDock.settings.get_int('preferred-monitor');
+                    if (dashMonitorIndex < 0 || dashMonitorIndex >= Main.layoutManager.monitors.length) {
+                        dashMonitorIndex = this._primaryIndex;
+                    }
+                    if (i == dashMonitorIndex) {
+                        dashWidth = DashToDock.dock._box.width + spacing;
+                    }
+                } else {
+                    if (i == this._primaryIndex) {
+                        dashWidth = Main.overview._controls._dashSlider.getVisibleWidth() + spacing;
+                    }
+                }
+                geometry.width -= dashWidth;
+
+                // Adjust width for workspaces thumbnails
+                let thumbnailsWidth = 0;
+                let thumbnailsMonitorIndex = self._settings.get_int('preferred-monitor');
+                if (thumbnailsMonitorIndex < 0 || thumbnailsMonitorIndex >= Main.layoutManager.monitors.length) {
+                    thumbnailsMonitorIndex = this._primaryIndex;
+                }
+                if (i == thumbnailsMonitorIndex) {
+                    thumbnailsWidth = (self.staticBox.x2 - self.staticBox.x1) + spacing;
+                }
+                geometry.width -= thumbnailsWidth;
+
+                // Adjust x for relevant dock
+                if (this.actor.get_text_direction() == Clutter.TextDirection.LTR) {
+                    geometry.x += dashWidth;
+                } else {
+                    geometry.x += thumbnailsWidth;
+                }
+
+                global.log("MONITOR = "+i);
+                this._workspacesViews[i].setMyActualGeometry(geometry);
+            }
+        };
+
+        // This override is needed to prevent calls from updateWorkspacesActualGeometry bound to the workspacesDisplay object
+        // without destroying and recreating Main.overview.viewSelector._workspacesDisplay.
+        // We replace this function with a new setMyActualGeometry function (see below)
+        // TODO: This is very hackish. We need to find a better way to accomplish this
+        GSFunctions['WorkspacesViewBase_setActualGeometry'] = WorkspacesView.WorkspacesViewBase.prototype.setActualGeometry;
+        WorkspacesView.WorkspacesViewBase.prototype.setActualGeometry = function(geom) {
+            global.log("WORKSPACESVIEW - setActualGeometry");
+            //GSFunctions['WorkspacesView_setActualGeometry'].call(this, geom);
+            return;
+        };
+
+        // This additional function replaces the WorkspacesView setActualGeometry function above.
+        // TODO: This is very hackish. We need to find a better way to accomplish this
+        WorkspacesView.WorkspacesViewBase.prototype.setMyActualGeometry = function(geom) {
+            global.log("WORKSPACESVIEW - setMyActualGeometry");
+            this._actualGeometry = geom;
+            this._syncGeometry();
+        };
     },
 
     // function called during destroy to restore gnome shell 3.4/3.6/3.8
@@ -449,6 +529,13 @@ dockedWorkspaces.prototype = {
 
         // Restore normal LayoutManager _updateRegions function
         Layout.LayoutManager.prototype._updateRegions = GSFunctions['LayoutManager_updateRegions'];
+
+        // Restore normal WorkspacesDisplay _updateworksapgesActualGeometray function
+        WorkspacesView.WorkspacesDisplay.prototype._updateWorkspacesActualGeometry = GSFunctions['WorkspacesDisplay_updateWorkspacesActualGeometry'];
+
+        // Restore normal WorkspacesView _setActualGeometry function
+        WorkspacesView.WorkspacesViewBase.prototype.setActualGeometry = GSFunctions['WorkspacesViewBase_setActualGeometry'];
+        WorkspacesView.WorkspacesViewBase.prototype.setMyActualGeometry = null;
     },
 
     // handler for when thumbnailsBox is resized
