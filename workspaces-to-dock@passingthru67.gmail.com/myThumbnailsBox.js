@@ -893,44 +893,38 @@ const myWorkspaceThumbnail = new Lang.Class({
             }
         } else if (action == WindowAppsUpdateAction.REMOVE) {
             if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - wsWindowApps exists");
-            if (metaWin.minimized) {
-                if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - metaWin minimized = "+metaWin.get_wm_class());
-                // Don't remove minimized windows
-            } else {
-                if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - metaWin closed = "+metaWin.get_wm_class());
-                let index = -1;
-                if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window buttons count = "+this._wsWindowApps.length);
-                for (let i = 0; i < this._wsWindowApps.length; i++) {
-                    if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button at index "+i+" is "+this._wsWindowApps[i].metaWin.get_wm_class());
-                    if (this._wsWindowApps[i].metaWin == metaWin) {
-                        if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button found at index = "+i);
-                        index = i;
-                        break;
-                    }
+            if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - metaWin closed = "+metaWin.get_wm_class());
+            let index = -1;
+            if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window buttons count = "+this._wsWindowApps.length);
+            for (let i = 0; i < this._wsWindowApps.length; i++) {
+                if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button at index "+i+" is "+this._wsWindowApps[i].metaWin.get_wm_class());
+                if (this._wsWindowApps[i].metaWin == metaWin) {
+                    if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button found at index = "+i);
+                    index = i;
+                    break;
                 }
-                if (index > -1) {
-                    if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - Splicing wsWindowAppsButtons at "+index);
-                    // Disconnect window focused signal
-                    metaWin.disconnect(this._wsWindowApps[index].signalFocusedId);
+            }
+            if (index > -1) {
+                if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - Splicing wsWindowAppsButtons at "+index);
+                // Disconnect window focused signal
+                metaWin.disconnect(this._wsWindowApps[index].signalFocusedId);
 
-                    // Remove button from windowApps list and windowAppsBox container
-                    this._wsWindowApps.splice(index, 1);
-                    if (this._wsWindowAppsBox) {
-                        let buttonActor = this._wsWindowAppsBox.get_child_at_index(index);
-                        if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - Removing button at index "+index);
-                        this._wsWindowAppsBox.remove_actor(buttonActor);
-                        buttonActor.destroy();
+                // Remove button from windowApps list and windowAppsBox container
+                this._wsWindowApps.splice(index, 1);
+                if (this._wsWindowAppsBox) {
+                    let buttonActor = this._wsWindowAppsBox.get_child_at_index(index);
+                    if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - Removing button at index "+index);
+                    this._wsWindowAppsBox.remove_actor(buttonActor);
+                    buttonActor.destroy();
+                }
+
+                // Remove menuItem
+                if (this._windowAppsMenuListBox) {
+                    let menuItemActor = this._windowAppsMenuListBox.get_child_at_index(index);
+                    if (menuItemActor) {
+                        this._windowAppsMenuListBox.remove_actor(menuItemActor);
+                        menuItemActor.destroy();
                     }
-
-                    // Remove menuItem
-                    if (this._windowAppsMenuListBox) {
-                        let menuItemActor = this._windowAppsMenuListBox.get_child_at_index(index);
-                        if (menuItemActor) {
-                            this._windowAppsMenuListBox.remove_actor(menuItemActor);
-                            menuItemActor.destroy();
-                        }
-                    }
-
                 }
             }
         }
