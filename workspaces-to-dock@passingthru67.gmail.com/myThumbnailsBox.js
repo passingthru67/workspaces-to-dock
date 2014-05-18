@@ -221,6 +221,21 @@ const myWindowClone = new Lang.Class({
         this.metaWindow.foreach_transient(iter);
     },
 
+    _disconnectSignals: function() {
+        let self = this;
+        this.actor.get_children().forEach(function(child) {
+            let realWindow;
+            if (child == self.clone) {
+                realWindow = self.realWindow;
+            } else {
+                realWindow = child.source;
+            }
+
+            realWindow.meta_window.disconnect(child._updateId);
+            realWindow.disconnect(child._destroyId);
+        });
+    },
+
     _onPositionChanged: function() {
         let rect = this.metaWindow.get_outer_rect();
         if (_DEBUG_) global.log("window clone position changed - x="+this.realWindow.x+" y="+this.realWindow.y+" nx="+rect.x+" ny="+rect.y);
