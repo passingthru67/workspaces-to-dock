@@ -46,9 +46,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         let notebookBehaviorSettingsTitle = new Gtk.Label({
             label: _("Behavior"),
             use_markup: true,
-            xalign: 0,
-            margin_top: 5,
-            margin_bottom: 5,
+            xalign: 0
         });
 
 
@@ -467,9 +465,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         let notebookAppearanceSettingsTitle = new Gtk.Label({
             label: _("Appearance"),
             use_markup: true,
-            xalign: 0,
-            margin_top: 5,
-            margin_bottom: 5,
+            xalign: 0
         });
 
 
@@ -793,9 +789,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         let notebookAdditionalSettingsTitle = new Gtk.Label({
             label: _("Additional"),
             use_markup: true,
-            xalign: 0,
-            margin_top: 5,
-            margin_bottom: 5,
+            xalign: 0
         });
 
 
@@ -838,7 +832,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
         // Workspace Captions - Height
         let wsCaptionHeightLabel = new Gtk.Label({
-            label: _("Caption Height [px]"),
+            label: _("Caption height [px]"),
             use_markup: true,
             xalign: 0,
             hexpand: true
@@ -859,7 +853,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
         // Workspace Captions - Window Apps (taskbar) Icon Size
         let wsCaptionWindowAppsIconSizeLabel = new Gtk.Label({
-            label: _("Taskbar Icon Size [px]"),
+            label: _("Taskbar icon size [px]"),
             use_markup: true,
             xalign: 0,
             hexpand: true
@@ -881,7 +875,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
         // Workspace captions - Popupmenu Icon Size
         let wsCaptionMenuIconSizeLabel = new Gtk.Label({
-            label: _("Popup Menu Icon Size [px]"),
+            label: _("Caption menu tasklist icon size [px]"),
             use_markup: true,
             xalign: 0,
             hexpand: true
