@@ -38,6 +38,7 @@ const Me = ExtensionUtils.getCurrentExtension();
 const Extension = Me.imports.extension;
 const Convenience = Me.imports.convenience;
 const MyWorkspaceThumbnail = Me.imports.myWorkspaceThumbnail;
+const ShortcutsPanel = Me.imports.shortcutsPanel;
 
 const DashToDock_UUID = "dash-to-dock@micxgx.gmail.com";
 let DashToDock = null;
@@ -102,6 +103,8 @@ const DockedWorkspaces = new Lang.Class({
         } else {
             this._thumbnailsBoxBackground = this._thumbnailsBox.actor;
         }
+
+        this._shortcutsPanel = new ShortcutsPanel.ShortcutsPanel();
 
         // Create the main container, turn on track hover, add hoverChange signal
         this.actor = new St.BoxLayout({
@@ -237,6 +240,8 @@ const DockedWorkspaces = new Lang.Class({
 
         // Add workspaces to the main container actor and then to the Chrome.
         this.actor.add_actor(this._thumbnailsBox.actor);
+        this.actor.add_actor(this._shortcutsPanel.actor);
+
         Main.layoutManager.addChrome(this.actor, {
             affectsStruts: this._settings.get_boolean('dock-fixed'),
             trackFullscreen: true
@@ -282,6 +287,8 @@ const DockedWorkspaces = new Lang.Class({
         if (_DEBUG_) global.log("dockedWorkspaces: destroying");
         // Destroy thumbnailsBox & global signals
         this._thumbnailsBox._destroyThumbnails();
+
+        this._shortcutsPanel.destroy();
 
         // Disconnect global signals
         this._signalHandler.disconnect();
@@ -417,6 +424,7 @@ const DockedWorkspaces = new Lang.Class({
             let ret = GSFunctions['LayoutManager_updateRegions'].call(this);
             //this.emit('regions-updated');
             if (self._updateRegion) {
+                global.log("UPDATE REGION - refreshThumbnails");
                 self._refreshThumbnails();
                 self._updateRegion = false;
             }
@@ -609,6 +617,17 @@ const DockedWorkspaces = new Lang.Class({
 
         this._settings.connect('changed::preferred-monitor', Lang.bind(this, function() {
             this._resetPosition();
+            this._redisplay();
+        }));
+
+        this._settings.connect('changed::show-shortcuts-panel', Lang.bind(this, function() {
+            this._updateSize();
+            this._redisplay();
+        }));
+
+        this._settings.connect('changed::shortcuts-panel-icon-size', Lang.bind(this, function() {
+            this._shortcutsPanel.refresh();
+            this._updateSize();
             this._redisplay();
         }));
 
@@ -1005,12 +1024,12 @@ const DockedWorkspaces = new Lang.Class({
         // Set final_position
         let final_position;
         if (this._rtl) {
-            final_position = this._monitor.x + this._thumbnailsBox.actor.width + DOCK_PADDING;
+            final_position = this._monitor.x + this._thumbnailsBox.actor.width + this._shortcutsPanelWidth + DOCK_PADDING;
         } else {
-            final_position = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - DOCK_PADDING;
+            final_position = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - this._shortcutsPanelWidth - DOCK_PADDING;
         }
         if (_DEBUG_) global.log("dockedWorkspaces: _animateIN - currrent_position = "+ this.actor.x+" final_position = "+final_position);
-        if (_DEBUG_) global.log("dockedWorkspaces: _animateIN - _thumbnailsBox width = "+this._thumbnailsBox.actor.width);
+        if (_DEBUG_) global.log("dockedWorkspaces: _animateIN - _thumbnailsBox width = "+this._thumbnailsBox.actor.width + this._shortcutsPanelWidth);
         if (_DEBUG_) global.log("dockedWorkspaces: _animateIN - actor width = "+this.actor.width);
 
         if (final_position !== this.actor.x) {
@@ -1125,6 +1144,10 @@ const DockedWorkspaces = new Lang.Class({
         this._thumbnailsBoxBackground.set_style('transition-duration:' + time*1000 + ';' +
             'transition-delay:' + delay*1000 + ';' +
             'background-color:' + this._defaultBackground);
+
+        this._shortcutsPanel.actor.set_style('transition-duration:' + time*1000 + ';' +
+            'transition-delay:' + delay*1000 + ';' +
+            'background-color:' + this._defaultBackground);
     },
 
     // autohide function to fade in opaque background
@@ -1132,6 +1155,10 @@ const DockedWorkspaces = new Lang.Class({
         if (_DEBUG_) global.log("dockedWorkspaces: _fadeInBackground");
         // CSS time is in ms
         this._thumbnailsBoxBackground.set_style('transition-duration:' + time*1000 + ';' +
+            'transition-delay:' + delay*1000 + ';' +
+            'background-color:' + this._customBackground);
+
+        this._shortcutsPanel.actor.set_style('transition-duration:' + time*1000 + ';' +
             'transition-delay:' + delay*1000 + ';' +
             'background-color:' + this._customBackground);
     },
@@ -1359,14 +1386,14 @@ const DockedWorkspaces = new Lang.Class({
 
     // unset dock width (called before animateIn starts)
     _unsetHiddenWidth: function() {
-        let width = this._thumbnailsBox.actor.width + DOCK_PADDING;
+        let width = this._thumbnailsBox.actor.width + this._shortcutsPanelWidth + DOCK_PADDING;
         this.actor.set_size(width, this.actor.height);
 
         // New clip coordinates
         let x1, x2;
         if (this._rtl) {
             x1 = width;
-            x2 = this._monitor.x + this._thumbnailsBox.actor.width + DOCK_PADDING - this.actor.x;
+            x2 = this._monitor.x + this._thumbnailsBox.actor.width + this._shortcutsPanelWidth + DOCK_PADDING - this.actor.x;
         } else {
             x1 = 0;
             x2 = this._monitor.x + this._monitor.width - this.actor.x;
@@ -1382,6 +1409,8 @@ const DockedWorkspaces = new Lang.Class({
     // update the dock size
     _updateSize: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _updateSize");
+        this._shortcutsPanelWidth = this._settings.get_boolean('show-shortcuts-panel') ? this._shortcutsPanel.actor.width : 0;
+
         // check if the dock is on the primary monitor
         let primary = false;
         if (this._monitor.x == Main.layoutManager.primaryMonitor.x && this._monitor.y == Main.layoutManager.primaryMonitor.y)
@@ -1392,7 +1421,7 @@ const DockedWorkspaces = new Lang.Class({
         if (this._rtl) {
             onScreenX = this._monitor.x;
         } else {
-            onScreenX = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - DOCK_PADDING;
+            onScreenX = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - this._shortcutsPanelWidth - DOCK_PADDING;
         }
 
         // Update height
@@ -1413,12 +1442,12 @@ const DockedWorkspaces = new Lang.Class({
         }
 
         //// skip updating if size is same
-        //if ((this.actor.y == y) && (this.actor.width == this._thumbnailsBox.actor.width + DOCK_PADDING) && (this.actor.height == height)) {
+        //if ((this.actor.y == y) && (this.actor.width == this._thumbnailsBox.actor.width + this._shortcutsPanelWidth + DOCK_PADDING) && (this.actor.height == height)) {
             //return;
         //}
 
         // Updating size also resets the position of the staticBox (used to detect window overlaps)
-        this.staticBox.init_rect(onScreenX, y, this._thumbnailsBox.actor.width + DOCK_PADDING, height);
+        this.staticBox.init_rect(onScreenX, y, this._thumbnailsBox.actor.width + this._shortcutsPanelWidth + DOCK_PADDING, height);
 
         // Updating size shouldn't reset the x position of the dock unless in fixed-position
         // especially if it's in the hidden slid out position
@@ -1436,7 +1465,7 @@ const DockedWorkspaces = new Lang.Class({
                 width = DOCK_PADDING + DOCK_HIDDEN_WIDTH;
             }
         } else {
-            width = this._thumbnailsBox.actor.width + DOCK_PADDING;
+            width = this._thumbnailsBox.actor.width + this._shortcutsPanelWidth + DOCK_PADDING;
         }
         this.actor.set_size(width, height);
 
@@ -1466,14 +1495,14 @@ const DockedWorkspaces = new Lang.Class({
             boxPosition = this.actor.width - DOCK_PADDING;
             onScreenX = this._monitor.x;
             if (this._settings.get_boolean('dock-edge-visible')) {
-                offScreenX = this._monitor.x - this._thumbnailsBox.actor.width + DOCK_EDGE_VISIBLE_WIDTH + DOCK_PADDING;
+                offScreenX = this._monitor.x - this._thumbnailsBox.actor.width - this._shortcutsPanelWidth + DOCK_EDGE_VISIBLE_WIDTH + DOCK_PADDING;
             } else {
-                offScreenX = this._monitor.x - this._thumbnailsBox.actor.width + DOCK_PADDING;
+                offScreenX = this._monitor.x - this._thumbnailsBox.actor.width - this._shortcutsPanelWidth + DOCK_PADDING;
                     }
         } else {
             anchorPoint = Clutter.Gravity.NORTH_WEST;
             boxPosition = DOCK_PADDING;
-            onScreenX = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - DOCK_PADDING;
+            onScreenX = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - this._shortcutsPanelWidth - DOCK_PADDING;
             if (this._settings.get_boolean('dock-edge-visible')) {
                 offScreenX = this._monitor.x + this._monitor.width - DOCK_PADDING - DOCK_EDGE_VISIBLE_WIDTH;
             } else {
@@ -1597,8 +1626,8 @@ const DockedWorkspaces = new Lang.Class({
         // to mantain its position in respect to the screen.
         let x1, x2;
         if (this._rtl) {
-            x1 = this._thumbnailsBox.actor.width + DOCK_PADDING;
-            x2 = this._monitor.x + this._thumbnailsBox.actor.width + DOCK_PADDING - this.actor.x;
+            x1 = this._thumbnailsBox.actor.width + this._shortcutsPanelWidth + DOCK_PADDING;
+            x2 = this._monitor.x + this._thumbnailsBox.actor.width + this._shortcutsPanelWidth + DOCK_PADDING - this.actor.x;
         } else {
             x1 = 0;
             x2 = this._monitor.x + this._monitor.width - this.actor.x;

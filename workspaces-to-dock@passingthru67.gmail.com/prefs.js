@@ -1212,8 +1212,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
 
 
-        /* DASH-TO-DOCK WIDGETS*/
-
+        /* DashToDock Hover */
         let dashToDockHoverLabel = new Gtk.Label({
             label: _("Show the dock when hovering over Dash-To-Dock extension"),
             xalign: 0,
@@ -1234,10 +1233,102 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             column_homogeneous: false,
             margin_top: 0,
             margin_left: 0,
-            margin_bottom: 20
+            margin_bottom: 0
         });
         dashIntegrationControlGrid.attach(dashToDockHoverLabel, 0, 0, 1, 1);
         dashIntegrationControlGrid.attach(dashToDockHoverSwitch, 1, 0, 1, 1);
+
+        /* Shortcuts Panel */
+        let shortcutsPanelLabel = new Gtk.Label({
+            label: _("Show a favorites shortcut panel (experimental)"),
+            xalign: 0,
+            hexpand: true
+        });
+
+        let shortcutsPanelSwitch = new Gtk.Switch ({
+            halign: Gtk.Align.END
+        });
+        shortcutsPanelSwitch.set_active(this.settings.get_boolean('show-shortcuts-panel'));
+        shortcutsPanelSwitch.connect('notify::active', Lang.bind(this, function(check) {
+            this.settings.set_boolean('show-shortcuts-panel', check.get_active());
+        }));
+
+        let shortcutsPanelIconSizeLabel = new Gtk.Label({
+            label: _("Shortcuts panel icon size [px]"),
+            use_markup: true,
+            xalign: 0,
+            hexpand: true
+        });
+
+        let shortcutsPanelIconSizeSpinner = new Gtk.SpinButton({
+            halign: Gtk.Align.END,
+            margin_top: 0,
+            margin_bottom: 0
+        });
+        shortcutsPanelIconSizeSpinner.set_sensitive(true);
+        shortcutsPanelIconSizeSpinner.set_range(12, 64);
+        shortcutsPanelIconSizeSpinner.set_value(this.settings.get_double("shortcuts-panel-icon-size") * 1);
+        shortcutsPanelIconSizeSpinner.set_increments(1, 5);
+        shortcutsPanelIconSizeSpinner.connect("value-changed", Lang.bind(this, function(button) {
+            let s = button.get_value_as_int() / 1;
+            this.settings.set_double("shortcuts-panel-icon-size", s);
+        }));
+
+        let shortcutsPanelShowRunning = new Gtk.CheckButton({
+            label: _("Show running applications"),
+            margin_left: 0,
+            margin_top: 0
+        });
+        shortcutsPanelShowRunning.set_active(this.settings.get_boolean('shortcuts-panel-show-running'));
+        shortcutsPanelShowRunning.connect('toggled', Lang.bind(this, function(check) {
+            this.settings.set_boolean('shortcuts-panel-show-running', check.get_active());
+        }));
+
+        let shortcutsPanelShowPlaces = new Gtk.CheckButton({
+            label: _("Show places"),
+            margin_left: 0,
+            margin_top: 0
+        });
+        shortcutsPanelShowPlaces.set_active(this.settings.get_boolean('shortcuts-panel-show-places'));
+        shortcutsPanelShowPlaces.connect('toggled', Lang.bind(this, function(check) {
+            this.settings.set_boolean('shortcuts-panel-show-places', check.get_active());
+        }));
+
+        let shortcutsPanelAppsbuttonAtBottom = new Gtk.CheckButton({
+            label: _("Show the applications button at the bottom"),
+            margin_left: 0,
+            margin_top: 0
+        });
+        shortcutsPanelAppsbuttonAtBottom.set_active(this.settings.get_boolean('shortcuts-panel-appsbutton-at-bottom'));
+        shortcutsPanelAppsbuttonAtBottom.connect('toggled', Lang.bind(this, function(check) {
+            this.settings.set_boolean('shortcuts-panel-appsbutton-at-bottom', check.get_active());
+        }));
+
+
+        /* Add to layout */
+        let shortcutsPanelControlGrid = new Gtk.Grid({
+            row_homogeneous: false,
+            column_homogeneous: false,
+            margin_top: 0,
+            margin_left: 0
+        });
+        let shortcutsPanelContainerGrid = new Gtk.Grid({
+            row_homogeneous: false,
+            column_homogeneous: false,
+            margin_top: 0,
+            margin_left: 10,
+            margin_bottom: 10
+        });
+        shortcutsPanelControlGrid.attach(shortcutsPanelLabel, 0, 0, 1, 1);
+        shortcutsPanelControlGrid.attach(shortcutsPanelSwitch, 1, 0, 1, 1);
+        shortcutsPanelContainerGrid.attach(shortcutsPanelIconSizeLabel, 0, 0, 1, 1);
+        shortcutsPanelContainerGrid.attach(shortcutsPanelIconSizeSpinner, 1, 0, 1, 1);
+        shortcutsPanelContainerGrid.attach(shortcutsPanelShowRunning, 0, 1, 1, 1);
+        shortcutsPanelContainerGrid.attach(shortcutsPanelShowPlaces, 0, 2, 1, 1);
+        shortcutsPanelContainerGrid.attach(shortcutsPanelAppsbuttonAtBottom, 0, 3, 1, 1);
+
+        /* Bind interactions */
+        this.settings.bind('show-shortcuts-panel', shortcutsPanelContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
 
 
         /* ADD TO NOTEBOOK PAGE */
@@ -1248,6 +1339,8 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         notebookAdditionalSettings.add(customActionsControlGrid);
         notebookAdditionalSettings.add(dashIntegrationTitle);
         notebookAdditionalSettings.add(dashIntegrationControlGrid);
+        notebookAdditionalSettings.add(shortcutsPanelControlGrid);
+        notebookAdditionalSettings.add(shortcutsPanelContainerGrid);
         notebook.append_page(notebookAdditionalSettings, notebookAdditionalSettingsTitle);
 
 

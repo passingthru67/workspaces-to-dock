@@ -171,5 +171,30 @@
       <summary>Dock shown on Dash-To-Dock mouse over</summary>
       <description>Enable or disable Dash-To-Dock hover mode</description>
     </key>
+    <key type="b" name="show-shortcuts-panel">
+      <default>false</default>
+      <summary>Show a shortcuts panel beside the workspaces thumbnail</summary>
+      <description>Show a shortcuts panel beside the workspaces thubmanail</description>
+    </key>
+    <key type="d" name="shortcuts-panel-icon-size">
+      <default>32</default>
+      <summary>Shortcuts panel icon size</summary>
+      <description>Set the shortcuts panel icon size.</description>
+    </key>
+    <key type="b" name="shortcuts-panel-show-running">
+      <default>false</default>
+      <summary>Show runnings apps on the shortcuts panel</summary>
+      <description>Show runnings apps on shortcuts panel</description>
+    </key>
+    <key type="b" name="shortcuts-panel-show-places">
+      <default>true</default>
+      <summary>Show places on the shortcuts panel</summary>
+      <description>Show places on the shortcuts panel</description>
+    </key>
+    <key type="b" name="shortcuts-panel-appsbutton-at-bottom">
+      <default>false</default>
+      <summary>Show applications button at the bottom of the shortcuts panel</summary>
+      <description>Show applications button at the bottom of the shortcuts panel</description>
+    </key>
   </schema>
 </schemalist>
