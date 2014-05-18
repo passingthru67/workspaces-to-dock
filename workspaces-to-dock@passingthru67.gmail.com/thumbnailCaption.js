@@ -35,8 +35,8 @@ const WindowAppsUpdateAction = {
     CLEARALL: 2
 }
 
-const WindowAppIcon = new Lang.Class({
-    Name: 'workspacesToDock.windowAppIcon',
+const TaskbarIcon = new Lang.Class({
+    Name: 'workspacesToDock.taskbarIcon',
 
     _init: function(app, metaWin, caption) {
         this._metaWin = metaWin;
@@ -64,14 +64,14 @@ const WindowAppIcon = new Lang.Class({
     },
 
     _onButtonEnter: function(actor, event) {
-        if (_DEBUG_) global.log("windowAppIcon: _onButtonEnter");
+        if (_DEBUG_) global.log("TaskbarIcon: _onButtonEnter");
         let icon = actor._delegate._icon;
         let zoomSize = this._mySettings.get_double('workspace-caption-taskbar-icon-size') + CAPTION_APP_ICON_ZOOM;
         icon.setIconSize(zoomSize);
     },
 
     _onButtonLeave: function(actor, event) {
-        if (_DEBUG_) global.log("windowAppIcon: _onButtonLeave");
+        if (_DEBUG_) global.log("TaskbarIcon: _onButtonLeave");
         let icon = actor._delegate._icon;
         icon.setIconSize(this._mySettings.get_double('workspace-caption-taskbar-icon-size'));
     },
@@ -88,8 +88,8 @@ const WindowAppIcon = new Lang.Class({
     }
 });
 
-const WindowAppMenuItem = new Lang.Class({
-    Name: 'workspacesToDock.windowAppMenuItem',
+const MenuTaskListItem = new Lang.Class({
+    Name: 'workspacesToDock.menuTaskListItem',
 
     _init: function(app, metaWin, caption) {
         this._metaWin = metaWin;
@@ -131,12 +131,12 @@ const WindowAppMenuItem = new Lang.Class({
     },
 
     _onItemEnter: function(actor, event) {
-        if (_DEBUG_) global.log("windowAppMenuItem: _onButtonEnter");
+        if (_DEBUG_) global.log("MenuTaskListItem: _onButtonEnter");
         this.actor.add_style_pseudo_class('active');
     },
 
     _onItemLeave: function(actor, event) {
-        if (_DEBUG_) global.log("windowAppMenuItem: _onButtonLeave");
+        if (_DEBUG_) global.log("MenuTaskListItem: _onButtonLeave");
         this.actor.remove_style_pseudo_class('active');
     },
 
@@ -157,7 +157,6 @@ const WindowAppMenuItem = new Lang.Class({
     }
 });
 
-
 const ThumbnailCaption = new Lang.Class({
     Name: 'workspacesToDock.thumbnailCaption',
 
@@ -166,7 +165,6 @@ const ThumbnailCaption = new Lang.Class({
         this._settings = new Gio.Settings({ schema: MyWorkspaceThumbnail.OVERRIDE_SCHEMA });
         this._mySettings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
 
-        // wsCaptionContainer
         this.actor = new St.Bin({
             name: 'workspacestodockCaptionContainer',
             reactive: false,
@@ -182,11 +180,10 @@ const ThumbnailCaption = new Lang.Class({
             style_class: 'workspacestodock-workspace-caption-background'
         });
 
-
-        this._wsWindowApps = [];
-        this._wsWindowAppsBox = null;
-        this._windowAppsMenuListBox = null;
-        this._windowAppsRealizeId = 0;
+        this._taskBar = [];
+        this._taskBarBox = null;
+        this._menuTaskListBox = null;
+        this._thumbnailRealizeId = 0;
 
         this._afterWindowAddedId = this._thumbnail.metaWorkspace.connect_after('window-added',
                                                           Lang.bind(this, this._onAfterWindowAdded));
@@ -200,14 +197,14 @@ const ThumbnailCaption = new Lang.Class({
         this._menuManager = new PopupMenu.PopupMenuManager(this);
 
         this._initCaption();
-        this._windowAppsRealizeId = this._thumbnail.actor.connect("realize", Lang.bind(this, this._initWindowApps));
+        this._thumbnailRealizeId = this._thumbnail.actor.connect("realize", Lang.bind(this, this._initTaskbar));
     },
 
     destroy: function() {
         this.workspaceRemoved();
-        if (this._wsWindowAppsBox) {
-            this._wsWindowAppsBox.destroy_all_children();
-            this._wsWindowAppsBox = null;
+        if (this._taskBarBox) {
+            this._taskBarBox.destroy_all_children();
+            this._taskBarBox = null;
         }
         if (this._menu) {
             this._menu.close();
@@ -232,10 +229,10 @@ const ThumbnailCaption = new Lang.Class({
             this._switchWorkspaceNotifyId = 0;
         }
 
-        for (let i = 0; i < this._wsWindowApps.length; i++) {
-            this._wsWindowApps[i].metaWin.disconnect(this._wsWindowApps[i].signalFocusedId);
+        for (let i = 0; i < this._taskBar.length; i++) {
+            this._taskBar[i].metaWin.disconnect(this._taskBar[i].signalFocusedId);
         }
-        this._wsWindowApps = [];
+        this._taskBar = [];
     },
 
     // Tests if @actor belongs to this workspace and monitor
@@ -349,12 +346,12 @@ const ThumbnailCaption = new Lang.Class({
                         this._wsCaption.add(this._wsWindowCountBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END, expand: expandState});
                         break;
                     case "windowapps":
-                        this._wsWindowAppsBox = new St.BoxLayout({
+                        this._taskBarBox = new St.BoxLayout({
                             name: 'workspacestodockCaptionWindowApps',
                             reactive: false,
                             style_class: 'workspacestodock-caption-windowapps'
                         });
-                        this._wsCaption.add(this._wsWindowAppsBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END, expand: expandState});
+                        this._wsCaption.add(this._taskBarBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END, expand: expandState});
                         break;
                     case "spacer":
                         this._wsSpacer = new St.Label({
@@ -382,12 +379,11 @@ const ThumbnailCaption = new Lang.Class({
             this._thumbnail.actor.set_style("background-color: rgba(0,0,0,0.0)");
 
             // Create menu and menuitems
-            let rtl = Clutter.get_default_text_direction() == Clutter.TextDirection.RTL;
-            if (rtl) {
-                this._menu = new PopupMenu.PopupMenu(this._wsCaption, 0.5, St.Side.LEFT);
-            } else {
-                this._menu = new PopupMenu.PopupMenu(this._wsCaption, 0.5, St.Side.RIGHT);
+            let side = St.Side.RIGHT;
+            if (Clutter.get_default_text_direction() == Clutter.TextDirection.RTL) {
+                side = St.Side.LEFT;
             }
+            this._menu = new PopupMenu.PopupMenu(this._wsCaption, 0.5, side);
 
             // Set popup menu boxpointer point to center vertically on caption background
             // Otherwise the point lands at the top of the caption background because
@@ -402,8 +398,8 @@ const ThumbnailCaption = new Lang.Class({
                     this._thumbnail._thumbnailsBox.setPopupMenuFlag(true);
 
                     // Set windowAppsBox icons back to normal (not zoomed)
-                    if (this._wsWindowAppsBox) {
-                        let children = this._wsWindowAppsBox.get_children();
+                    if (this._taskBarBox) {
+                        let children = this._taskBarBox.get_children();
                         for (let i=0; i < children.length; i++) {
                             children[i]._delegate._icon.setIconSize(this._mySettings.get_double('workspace-caption-taskbar-icon-size'));
                         }
@@ -432,30 +428,30 @@ const ThumbnailCaption = new Lang.Class({
 
     },
 
-    // function initializes the window app icons for the caption taskbar
-    _initWindowApps: function() {
-        if (_DEBUG_ && !this._thumbnail._removed) global.log("myWorkspaceThumbnail: _initWindowApps for metaWorkspace "+this._thumbnail.metaWorkspace.index());
-        if(this._windowAppsRealizeId > 0){
-            this._thumbnail.actor.disconnect(this._windowAppsRealizeId);
-            this._windowAppsRealizeId = 0;
+    // function initializes the taskbar icons
+    _initTaskbar: function() {
+        if (_DEBUG_ && !this._thumbnail._removed) global.log("myWorkspaceThumbnail: _initTaskbar for metaWorkspace "+this._thumbnail.metaWorkspace.index());
+        if(this._thumbnailRealizeId > 0){
+            this._thumbnail.actor.disconnect(this._thumbnailRealizeId);
+            this._thumbnailRealizeId = 0;
         } else {
             return;
         }
 
-        // Create initial buttons for windows on workspace
+        // Create initial task icons for app windows on workspace
         let windows = global.get_window_actors();
-        if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps - window count = "+windows.length);
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: _initTaskbar - window count = "+windows.length);
         for (let i = 0; i < windows.length; i++) {
             let metaWin = windows[i].get_meta_window();
             if (!metaWin)
                 continue;
 
-            if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps - add window buttons");
+            if (_DEBUG_) global.log("myWorkspaceThumbnail: _initTaskbar - add window buttons");
             let tracker = Shell.WindowTracker.get_default();
             let app = tracker.get_window_app(metaWin);
             if (app) {
-                if (_DEBUG_) global.log("myWorkspaceThumbnail: _initWindowApps - window button app = "+app.get_name());
-                let button = new WindowAppIcon(app, metaWin, this);
+                if (_DEBUG_) global.log("myWorkspaceThumbnail: _initTaskbar - window button app = "+app.get_name());
+                let button = new TaskbarIcon(app, metaWin, this);
                 if (metaWin.has_focus()) {
                     button.actor.add_style_class_name('workspacestodock-caption-windowapps-button-active');
                 }
@@ -468,14 +464,14 @@ const ThumbnailCaption = new Lang.Class({
                     button.actor.visible = false;
                 }
 
-                if (this._wsWindowAppsBox) {
-                    this._wsWindowAppsBox.add(button.actor, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
+                if (this._taskBarBox) {
+                    this._taskBarBox.add(button.actor, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
                 }
                 let winInfo = {};
                 winInfo.app = app;
                 winInfo.metaWin = metaWin;
                 winInfo.signalFocusedId = metaWin.connect('notify::appears-focused', Lang.bind(this, this._onWindowChanged, metaWin));
-                this._wsWindowApps.push(winInfo);
+                this._taskBar.push(winInfo);
             }
         }
 
@@ -501,11 +497,11 @@ const ThumbnailCaption = new Lang.Class({
 
                 // Show taskbar icon if already present
                 let index = -1;
-                for (let i = 0; i < this._wsWindowApps.length; i++) {
-                    if (this._wsWindowApps[i].metaWin == metaWin) {
+                for (let i = 0; i < this._taskBar.length; i++) {
+                    if (this._taskBar[i].metaWin == metaWin) {
                         index = i;
-                        if (this._wsWindowAppsBox) {
-                            let buttonActor = this._wsWindowAppsBox.get_child_at_index(index);
+                        if (this._taskBarBox) {
+                            let buttonActor = this._taskBarBox.get_child_at_index(index);
                             buttonActor.visible = true;
                         }
                         break;
@@ -517,11 +513,11 @@ const ThumbnailCaption = new Lang.Class({
             } else {
                 // Hide taskbar icon
                 let index = -1;
-                for (let i = 0; i < this._wsWindowApps.length; i++) {
-                    if (this._wsWindowApps[i].metaWin == metaWin) {
+                for (let i = 0; i < this._taskBar.length; i++) {
+                    if (this._taskBar[i].metaWin == metaWin) {
                         index = i;
-                        if (this._wsWindowAppsBox) {
-                            let buttonActor = this._wsWindowAppsBox.get_child_at_index(index);
+                        if (this._taskBarBox) {
+                            let buttonActor = this._taskBarBox.get_child_at_index(index);
                             buttonActor.visible = false;
                         }
                         break;
@@ -546,18 +542,18 @@ const ThumbnailCaption = new Lang.Class({
 
     _onWindowChanged: function(metaWin) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _onWindowChanged - metaWin = "+metaWin.get_wm_class());
-        if (!this._wsWindowAppsBox)
+        if (!this._taskBarBox)
             return;
 
         let index = -1;
-        for (let i = 0; i < this._wsWindowApps.length; i++) {
-            if (this._wsWindowApps[i].metaWin == metaWin) {
+        for (let i = 0; i < this._taskBar.length; i++) {
+            if (this._taskBar[i].metaWin == metaWin) {
                 index = i;
                 break;
             }
         }
         if (index > -1) {
-            let buttonActor = this._wsWindowAppsBox.get_child_at_index(index);
+            let buttonActor = this._taskBarBox.get_child_at_index(index);
             if (metaWin.appears_focused) {
                 if (_DEBUG_) global.log("myWorkspaceThumbnail: _onWindowChanged - button app is focused");
                 buttonActor.add_style_class_name('workspacestodock-caption-windowapps-button-active');
@@ -579,23 +575,23 @@ const ThumbnailCaption = new Lang.Class({
         if (mouseButton == 3) {
             this._menu.removeAll();
 
-            this._windowAppsMenuListBox = new St.BoxLayout({vertical: true});
-            if (this._wsWindowAppsBox) {
-                for (let i=0; i < this._wsWindowApps.length; i++) {
-                    let buttonActor = this._wsWindowAppsBox.get_child_at_index(i);
+            this._menuTaskListBox = new St.BoxLayout({vertical: true});
+            if (this._taskBarBox) {
+                for (let i=0; i < this._taskBar.length; i++) {
+                    let buttonActor = this._taskBarBox.get_child_at_index(i);
                     if (buttonActor.visible) {
-                        let metaWin = this._wsWindowApps[i].metaWin;
-                        let app = this._wsWindowApps[i].app;
-                        let item = new WindowAppMenuItem(app, metaWin, this);
-                        this._windowAppsMenuListBox.add_actor(item.actor);
+                        let metaWin = this._taskBar[i].metaWin;
+                        let app = this._taskBar[i].app;
+                        let item = new MenuTaskListItem(app, metaWin, this);
+                        this._menuTaskListBox.add_actor(item.actor);
                     }
                 }
             }
 
             let windowAppsListsection = new PopupMenu.PopupMenuSection();
-            windowAppsListsection.actor.add_actor(this._windowAppsMenuListBox);
+            windowAppsListsection.actor.add_actor(this._menuTaskListBox);
 
-            let appsArray = this._windowAppsMenuListBox.get_children();
+            let appsArray = this._menuTaskListBox.get_children();
             if (appsArray.length  > 0) {
                 this._menu.addMenuItem(windowAppsListsection);
                 if (appsArray.length > 1) {
@@ -641,8 +637,8 @@ const ThumbnailCaption = new Lang.Class({
     closeMetaWindow: function(metaWin) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: closeMetaWindow");
         let metaWindow = metaWin;
-        for (let i = 0; i < this._wsWindowApps.length; i++) {
-            if (this._wsWindowApps[i].metaWin == metaWindow) {
+        for (let i = 0; i < this._taskBar.length; i++) {
+            if (this._taskBar[i].metaWin == metaWindow) {
                 // Delete metaWindow
                 metaWindow.delete(global.get_current_time());
             }
@@ -651,33 +647,33 @@ const ThumbnailCaption = new Lang.Class({
 
     _closeAllMetaWindows: function(menuItem, event) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _closeAllMetaWindows");
-        if (this._wsWindowAppsBox) {
-            for (let i = 0; i < this._wsWindowApps.length; i++) {
-                let buttonActor = this._wsWindowAppsBox.get_child_at_index(i);
+        if (this._taskBarBox) {
+            for (let i = 0; i < this._taskBar.length; i++) {
+                let buttonActor = this._taskBarBox.get_child_at_index(i);
                 if (buttonActor.visible) {
                     // Delete metaWindow
-                    this._wsWindowApps[i].metaWin.delete(global.get_current_time());
+                    this._taskBar[i].metaWin.delete(global.get_current_time());
                 }
 
                 // NOTE: bug quiting all GIMP windows
-                // even tried this _wsWindowApps[i].app.request_quit();
+                // even tried this _taskBar[i].app.request_quit();
                 // Gnome Shell has same issue .. selecting quit from panel app menu only closes current Gimp window
                 // Unity has same issue .. https://bugs.launchpad.net/ubuntu/+source/unity/+bug/1123593
             }
         }
     },
 
-    _updateWindowApps: function(metaWin, action) {
-        if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps");
+    updateTaskbar: function(metaWin, action) {
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: updateTaskbar");
         if (action == WindowAppsUpdateAction.ADD) {
             let index = -1;
-            for (let i = 0; i < this._wsWindowApps.length; i++) {
-                if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button at index "+i+" is "+this._wsWindowApps[i]);
-                if (this._wsWindowApps[i].metaWin == metaWin) {
-                    if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button found at index = "+i);
+            for (let i = 0; i < this._taskBar.length; i++) {
+                if (_DEBUG_) global.log("myWorkspaceThumbnail: updateTaskbar - window button at index "+i+" is "+this._taskBar[i]);
+                if (this._taskBar[i].metaWin == metaWin) {
+                    if (_DEBUG_) global.log("myWorkspaceThumbnail: updateTaskbar - window button found at index = "+i);
                     index = i;
-                    if (this._wsWindowAppsBox) {
-                        let buttonActor = this._wsWindowAppsBox.get_child_at_index(index);
+                    if (this._taskBarBox) {
+                        let buttonActor = this._taskBarBox.get_child_at_index(index);
                         if ((this._isMyWindow(metaWin, true) && this._isOverviewWindow(metaWin, true)) ||
                             (this._isMyWindow(metaWin, true) && this._isMinimizedWindow(metaWin, true)) ||
                             this._showWindowAppOnThisWorkspace(metaWin, true)) {
@@ -693,11 +689,11 @@ const ThumbnailCaption = new Lang.Class({
                 let tracker = Shell.WindowTracker.get_default();
                 if (!metaWin.skip_taskbar) {
 
-                    if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button not found .. add it");
+                    if (_DEBUG_) global.log("myWorkspaceThumbnail: updateTaskbar - window button not found .. add it");
                     let app = tracker.get_window_app(metaWin);
                     if (app) {
-                        if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button app = "+app.get_name());
-                        let button = new WindowAppIcon(app, metaWin, this);
+                        if (_DEBUG_) global.log("myWorkspaceThumbnail: updateTaskbar - window button app = "+app.get_name());
+                        let button = new TaskbarIcon(app, metaWin, this);
                         if (metaWin.has_focus()) {
                             button.actor.add_style_class_name('workspacestodock-caption-windowapps-button-active');
                         }
@@ -710,49 +706,49 @@ const ThumbnailCaption = new Lang.Class({
                             button.actor.visible = false;
                         }
 
-                        if (this._wsWindowAppsBox)
-                            this._wsWindowAppsBox.add(button.actor, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
+                        if (this._taskBarBox)
+                            this._taskBarBox.add(button.actor, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
 
                         let winInfo = {};
                         winInfo.app = app;
                         winInfo.metaWin = metaWin;
                         winInfo.signalFocusedId = metaWin.connect('notify::appears-focused', Lang.bind(this, this._onWindowChanged, metaWin));
-                        this._wsWindowApps.push(winInfo);
+                        this._taskBar.push(winInfo);
                     }
                 }
             }
         } else if (action == WindowAppsUpdateAction.REMOVE) {
-            if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - wsWindowApps exists");
-            if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - metaWin closed = "+metaWin.get_wm_class());
+            if (_DEBUG_) global.log("myWorkspaceThumbnail: updateTaskbar - wsWindowApps exists");
+            if (_DEBUG_) global.log("myWorkspaceThumbnail: updateTaskbar - metaWin closed = "+metaWin.get_wm_class());
             let index = -1;
-            if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window buttons count = "+this._wsWindowApps.length);
-            for (let i = 0; i < this._wsWindowApps.length; i++) {
-                if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button at index "+i+" is "+this._wsWindowApps[i].metaWin.get_wm_class());
-                if (this._wsWindowApps[i].metaWin == metaWin) {
-                    if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - window button found at index = "+i);
+            if (_DEBUG_) global.log("myWorkspaceThumbnail: updateTaskbar - window buttons count = "+this._taskBar.length);
+            for (let i = 0; i < this._taskBar.length; i++) {
+                if (_DEBUG_) global.log("myWorkspaceThumbnail: updateTaskbar - window button at index "+i+" is "+this._taskBar[i].metaWin.get_wm_class());
+                if (this._taskBar[i].metaWin == metaWin) {
+                    if (_DEBUG_) global.log("myWorkspaceThumbnail: updateTaskbar - window button found at index = "+i);
                     index = i;
                     break;
                 }
             }
             if (index > -1) {
-                if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - Splicing wsWindowAppsButtons at "+index);
+                if (_DEBUG_) global.log("myWorkspaceThumbnail: updateTaskbar - Splicing wsWindowAppsButtons at "+index);
                 // Disconnect window focused signal
-                metaWin.disconnect(this._wsWindowApps[index].signalFocusedId);
+                metaWin.disconnect(this._taskBar[index].signalFocusedId);
 
                 // Remove button from windowApps list and windowAppsBox container
-                this._wsWindowApps.splice(index, 1);
-                if (this._wsWindowAppsBox) {
-                    let buttonActor = this._wsWindowAppsBox.get_child_at_index(index);
-                    if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowApps - Removing button at index "+index);
-                    this._wsWindowAppsBox.remove_actor(buttonActor);
+                this._taskBar.splice(index, 1);
+                if (this._taskBarBox) {
+                    let buttonActor = this._taskBarBox.get_child_at_index(index);
+                    if (_DEBUG_) global.log("myWorkspaceThumbnail: updateTaskbar - Removing button at index "+index);
+                    this._taskBarBox.remove_actor(buttonActor);
                     buttonActor.destroy();
                 }
 
                 // Remove menuItem
-                if (this._windowAppsMenuListBox) {
-                    let menuItemActor = this._windowAppsMenuListBox.get_child_at_index(index);
+                if (this._menuTaskListBox) {
+                    let menuItemActor = this._menuTaskListBox.get_child_at_index(index);
                     if (menuItemActor) {
-                        this._windowAppsMenuListBox.remove_actor(menuItemActor);
+                        this._menuTaskListBox.remove_actor(menuItemActor);
                         menuItemActor.destroy();
                     }
                 }
@@ -772,9 +768,9 @@ const ThumbnailCaption = new Lang.Class({
         let winCount = 0;
         let winMax = 4;
 
-        if (this._wsWindowAppsBox) {
-            for (let i = 0; i < this._wsWindowApps.length; i++) {
-                let buttonActor = this._wsWindowAppsBox.get_child_at_index(i);
+        if (this._taskBarBox) {
+            for (let i = 0; i < this._taskBar.length; i++) {
+                let buttonActor = this._taskBarBox.get_child_at_index(i);
                 if (buttonActor.visible) {
                     winCount ++;
                 }
@@ -853,8 +849,8 @@ const ThumbnailCaption = new Lang.Class({
         if (this._wsWindowCountBox)
             this._wsWindowCountBox.height = captionBackgroundHeight - 2;
 
-        if (this._wsWindowAppsBox)
-            this._wsWindowAppsBox.height = captionHeight;
+        if (this._taskBarBox)
+            this._taskBarBox.height = captionHeight;
 
 
         if (i == global.screen.get_active_workspace_index()) {
@@ -884,7 +880,5 @@ const ThumbnailCaption = new Lang.Class({
             }
             if (this._wsSpacerBox) this._wsSpacerBox.remove_style_class_name('workspacestodock-caption-spacer-current');
         }
-
     }
-
 });

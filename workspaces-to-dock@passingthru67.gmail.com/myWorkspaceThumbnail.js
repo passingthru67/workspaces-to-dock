@@ -3,7 +3,7 @@
  * --------------------------------------------------------------------------------------------------------
  *  CREDITS:  Part of this code was copied from the gnome-shell-extensions framework
  *  http://git.gnome.org/browse/gnome-shell-extensions/
-  * ========================================================================================================
+ * ========================================================================================================
  */
 
 const _DEBUG_ = false;
@@ -36,16 +36,6 @@ const _ = Gettext.gettext;
 // The maximum size of a thumbnail is 1/8 the width and height of the screen
 let MAX_THUMBNAIL_SCALE = 1/8.;
 
-const RESCALE_ANIMATION_TIME = 0.2;
-const SLIDE_ANIMATION_TIME = 0.2;
-
-// When we create workspaces by dragging, we add a "cut" into the top and
-// bottom of each workspace so that the user doesn't have to hit the
-// placeholder exactly.
-const WORKSPACE_CUT_SIZE = 10;
-
-const WORKSPACE_KEEP_ALIVE_TIME = 100;
-
 const OVERRIDE_SCHEMA = 'org.gnome.shell.overrides';
 
 const ThumbnailState = {
@@ -65,6 +55,8 @@ const myWindowClone = new Lang.Class({
 
     _init : function(realWindow) {
         this._mySettings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
+        // passingthru67: Using the realWindow caused a bug where the parent window disappeared
+        // We've gone back to using the realWindow's texture as was used in Gnome 3.10
         this.clone = new Clutter.Clone({ source: realWindow.get_texture() });
 
         /* Can't use a Shell.GenericContainer because of DND and reparenting... */
@@ -117,6 +109,9 @@ const myWindowClone = new Lang.Class({
 
     _disconnectSignals: function() {
         let self = this;
+        // passingthru67: We can't use the clone's source on the parent window because
+        // we've reverted to using the realWindow texture that fixed the bug where the
+        // parent window disappeared (see _init above).
         this.actor.get_children().forEach(function(child) {
             let realWindow;
             if (child == self.clone) {
@@ -131,6 +126,8 @@ const myWindowClone = new Lang.Class({
     },
 
     _onPositionChanged: function() {
+        // passingthru67: Don't know why but windows that use Client Side Decorations (like gEdit)
+        // don't position properly when maximized or in fullscreen mode. Is it an upstream bug?
         let rect = this.metaWindow.get_outer_rect();
         if (_DEBUG_) global.log("window clone position changed - x="+this.realWindow.x+" y="+this.realWindow.y+" nx="+rect.x+" ny="+rect.y);
         this.actor.set_position(this.realWindow.x, this.realWindow.y);
@@ -255,6 +252,7 @@ const myWorkspaceThumbnail = new Lang.Class({
             let parent = metaWin.get_transient_for();
 
             // passingthru67 - BUG FIX for attachdialog issue causing gnome shell to crash
+            // The fix was to replace metaWin with parent in the while loop.
             //while (parent.is_attached_dialog())
                 //parent = metaWin.get_transient_for();
             while (parent.is_attached_dialog())
@@ -289,7 +287,7 @@ const myWorkspaceThumbnail = new Lang.Class({
         let clone = this._windows[index];
         this._windows.splice(index, 1);
 
-        // passingthru67 - refresh thumbnails is metaWin being removed is on all workspaces
+        // passingthru67 - refresh thumbnails if metaWin being removed is on all workspaces
         //if (win && this._isMyWindow(win) && metaWin.is_on_all_workspaces()) {
         if (win && metaWin.is_on_all_workspaces()) {
             for (let j = 0; j < this._windowsOnAllWorkspaces.length; j++) {
@@ -364,7 +362,6 @@ const myWorkspaceThumbnail = new Lang.Class({
     }
 
 });
-
 
 const myThumbnailsBox = new Lang.Class({
     Name: 'workspacesToDock.myThumbnailsBox',
@@ -684,7 +681,7 @@ const myThumbnailsBox = new Lang.Class({
     updateTaskbars: function(metaWin, action) {
         if (_DEBUG_) global.log("mythumbnailsBox: updateTaskbars");
         for (let i = 0; i < this._thumbnails.length; i++) {
-            this._thumbnails[i].caption._updateWindowApps(metaWin, action);
+            this._thumbnails[i].caption.updateTaskbar(metaWin, action);
         }
     },
 
@@ -808,6 +805,9 @@ const myThumbnailsBox = new Lang.Class({
     },
 
     _checkWindowsOnAllWorkspaces: function(thumbnail) {
+        // passingthru67: This is a hackish way of tracking windows visible on all workspaces
+        // TODO: Is there a signal emitted or property set by mutter metawindows that we can connect
+        // to determine when a window is set to visible-on-all-workspaces?
         let refresh = false;
         if (_DEBUG_ && thumbnail._windows.length > 0) global.log("myWorkspaceThumbnail: _checkWindowsOnAllWorkspaces - windowsOnAllWorkspaces.length = "+thumbnail._windowsOnAllWorkspaces.length);
         for (let i = 0; i < thumbnail._windows.length; i++) {
@@ -1115,7 +1115,4 @@ const myThumbnailsBox = new Lang.Class({
                            onCompleteScope: this
                          });
     }
-
-
-
 });
