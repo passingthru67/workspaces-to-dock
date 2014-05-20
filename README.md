@@ -181,6 +181,9 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
+**version 22 for Gnome 3.12 (May 20, 2014)**
+- Bug fixes
+
 **version 21 for Gnome 3.12 (May 12, 2014)**
 - Bug fixes
 
