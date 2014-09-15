@@ -196,5 +196,15 @@
       <summary>Show applications button at the bottom of the shortcuts panel</summary>
       <description>Show applications button at the bottom of the shortcuts panel</description>
     </key>
+    <key type="b" name="shortcuts-panel-popupmenu-arrow-at-top">
+      <default>false</default>
+      <summary>Show the shortcut button popup menu arrow at the top</summary>
+      <description>Show the shortcut button popup menu arrow at the top</description>
+    </key>
+    <key type="b" name="shortcuts-panel-popupmenu-hide-thumbnails">
+      <default>false</default>
+      <summary>Hide the thumbnails when the shortcut button popup menu is shown</summary>
+      <description>Hide the thumbnails when the shortcut button popup menu is shown</description>
+    </key>
   </schema>
 </schemalist>

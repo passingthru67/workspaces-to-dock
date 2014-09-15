@@ -104,7 +104,7 @@ const DockedWorkspaces = new Lang.Class({
             this._thumbnailsBoxBackground = this._thumbnailsBox.actor;
         }
 
-        this._shortcutsPanel = new ShortcutsPanel.ShortcutsPanel();
+        this._shortcutsPanel = new ShortcutsPanel.ShortcutsPanel(this);
 
         // Create the main container, turn on track hover, add hoverChange signal
         this.actor = new St.BoxLayout({

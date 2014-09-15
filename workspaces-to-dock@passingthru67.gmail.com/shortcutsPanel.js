@@ -46,6 +46,8 @@ const ShortcutButtonMenu = new Lang.Class({
     Extends: PopupMenu.PopupMenu,
 
     _init: function(source) {
+        this._mySettings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
+
         let side = St.Side.RIGHT;
         if (Clutter.get_default_text_direction() == Clutter.TextDirection.RTL)
             side = St.Side.LEFT;
@@ -140,6 +142,13 @@ const ShortcutButtonMenu = new Lang.Class({
 
     popup: function(activatingButton) {
         this._redisplay();
+
+        if (this._mySettings.get_boolean('shortcuts-panel-popupmenu-arrow-at-top')) {
+            this._arrowAlignment = 0.0;
+        } else {
+            this._arrowAlignment = 0.5;
+        }
+
         this.open();
     }
 });
@@ -148,9 +157,10 @@ Signals.addSignalMethods(ShortcutButtonMenu.prototype);
 const ShortcutButton = new Lang.Class({
     Name: 'workspacestodock.ShortcutButton',
 
-    _init: function (app, appType) {
+    _init: function (app, appType, panel) {
         this._app = app;
         this._type = appType;
+        this._panel = panel;
         this._stateChangedId = 0;
 
         this.actor = new St.Button({style_class:'app-well-app workspacestodock-shortcut-button'});
@@ -304,7 +314,7 @@ const ShortcutButton = new Lang.Class({
         this._draggable.fakeRelease();
 
         if (!this._menu) {
-            this._menu = new ShortcutButtonMenu(this, 0.5, St.Side.RIGHT);
+            this._menu = new ShortcutButtonMenu(this);
             this._menu.connect('activate-window', Lang.bind(this, function (menu, window) {
                 this._activateWindowFromMenu(window);
             }));
@@ -319,6 +329,7 @@ const ShortcutButton = new Lang.Class({
 
         this.emit('menu-state-changed', true);
 
+        this._panel.hideThumbnails();
         this.actor.set_hover(true);
         this._menu.popup();
         this._menuManager.ignoreRelease();
@@ -329,6 +340,7 @@ const ShortcutButton = new Lang.Class({
     _onMenuPoppedDown: function() {
         this.actor.sync_hover();
         this.emit('menu-state-changed', false);
+        this._panel.showThumbnails();
     },
 
     _activateWindowFromMenu: function(metaWindow) {
@@ -404,7 +416,8 @@ Signals.addSignalMethods(ShortcutButton.prototype);
 const ShortcutsPanel = new Lang.Class({
     Name: 'workspacestodock.ShortcutsPanel',
 
-    _init: function () {
+    _init: function (dock) {
+        this._dock = dock;
         this._mySettings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
         this.actor = new St.BoxLayout({ style_class: 'workspace-thumbnails workspacestodock-shortcuts-panel', vertical: true, clip_to_allocation: true });
         this.actor._delegate = this;
@@ -450,6 +463,30 @@ const ShortcutsPanel = new Lang.Class({
         this._mySettings.connect('changed::shortcuts-panel-appsbutton-at-bottom', Lang.bind(this, function() {
             this.refresh();
         }));
+    },
+
+    hideThumbnails: function() {
+        if (this._mySettings.get_boolean('shortcuts-panel-popupmenu-hide-thumbnails')) {
+            this._dock._thumbnailsBox.actor.opacity = 0;
+            this.actor.remove_style_class_name('workspacestodock-shortcuts-panel');
+            this.actor.add_style_class_name('workspacestodock-shortcuts-panel-popupmenu');
+            // for (let i = 0; i < this._dock._thumbnailsBox._thumbnails.length; i++) {
+            //     this._dock._thumbnailsBox._thumbnails[i].actor.opacity = 0;
+            // }
+            // this._dock._thumbnailsBox._indicator.opacity = 0;
+        }
+    },
+
+    showThumbnails: function() {
+        if (this._mySettings.get_boolean('shortcuts-panel-popupmenu-hide-thumbnails')) {
+            this._dock._thumbnailsBox.actor.opacity = 255;
+            this.actor.remove_style_class_name('workspacestodock-shortcuts-panel-popupmenu');
+            this.actor.add_style_class_name('workspacestodock-shortcuts-panel');
+            // for (let i = 0; i < this._dock._thumbnailsBox._thumbnails.length; i++) {
+            //     this._dock._thumbnailsBox._thumbnails[i].actor.opacity = 255;
+            // }
+            // this._dock._thumbnailsBox._indicator.opacity = 255;
+        }
     },
 
     refresh: function() {
@@ -524,7 +561,7 @@ const ShortcutsPanel = new Lang.Class({
         // Populate shortcuts panel with favorites
         for (let i = 0; i < newApps.length; ++i) {
             let app = newApps[i];
-            let shortcutButton = new ShortcutButton(app, ApplicationType.APPLICATION);
+            let shortcutButton = new ShortcutButton(app, ApplicationType.APPLICATION, this);
             this._favoriteAppsBox.add_actor(shortcutButton.actor);
         }
     },
@@ -638,7 +675,7 @@ const ShortcutsPanel = new Lang.Class({
 
     _createShortcutButton: function(app, appType) {
         let shortcutType = app ? appType : ApplicationType.APPSBUTTON;
-        let shortcutButton = new ShortcutButton(app, shortcutType);
+        let shortcutButton = new ShortcutButton(app, shortcutType, this);
         return shortcutButton.actor;
     }
 });
