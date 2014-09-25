@@ -24,10 +24,7 @@ const IconTheme = imports.gi.Gtk.IconTheme;
 
 const Main = imports.ui.main;
 const WorkspacesView = imports.ui.workspacesView;
-const Workspace = imports.ui.workspace;
 const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
-const ViewSelector = imports.ui.viewSelector;
-const Overview = imports.ui.overview;
 const Tweener = imports.ui.tweener;
 const WorkspaceSwitcherPopup = imports.ui.workspaceSwitcherPopup;
 const OverviewControls = imports.ui.overviewControls;
@@ -36,13 +33,12 @@ const MessageTray = imports.ui.messageTray;
 
 const ExtensionSystem = imports.ui.extensionSystem;
 const ExtensionUtils = imports.misc.extensionUtils;
+const Config = imports.misc.config;
 const Me = ExtensionUtils.getCurrentExtension();
 const Extension = Me.imports.extension;
 const Convenience = Me.imports.convenience;
-const MyThumbnailsBox = Me.imports.myThumbnailsBox;
-
-const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
-const _ = Gettext.gettext;
+const MyWorkspaceThumbnail = Me.imports.myWorkspaceThumbnail;
+const ShortcutsPanel = Me.imports.shortcutsPanel;
 
 const DashToDock_UUID = "dash-to-dock@micxgx.gmail.com";
 let DashToDock = null;
@@ -54,14 +50,14 @@ const PRESSURE_TIMEOUT = 1000;
 
 let GSFunctions = {};
 
-function dockedWorkspaces(settings, gsCurrentVersion) {
-    this._gsCurrentVersion = gsCurrentVersion;
-    this._init(settings);
-}
+const DockedWorkspaces = new Lang.Class({
+    Name: 'workspacesToDock.dockedWorkspaces',
 
-dockedWorkspaces.prototype = {
+    _init: function() {
+        this._gsCurrentVersion = Config.PACKAGE_VERSION.split('.');
+        this._settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
+        this._signalHandler = new Convenience.globalSignalHandler();
 
-    _init: function(settings) {
         // temporarily disable redisplay until initialized (prevents connected signals from trying to update dock visibility)
         this._disableRedisplay = true;
         this._updateRegion = false;
@@ -72,17 +68,14 @@ dockedWorkspaces.prototype = {
         if (_DEBUG_) global.log("dockedWorkspaces: init - rtl = "+this._rtl);
 
         // Load settings
-        this._settings = settings;
         this._bindSettingsChanges();
-
-        this._signalHandler = new Convenience.globalSignalHandler();
 
         // Authohide current status. Not to be confused with autohide enable/disagle global (g)settings
         // Initially set to null - will be set during first enable/disable autohide
         this._autohideStatus = null;
 
         // initialize animation status object
-        this._animStatus = new animationStatus(true);
+        this._animStatus = new AnimationStatus(true);
 
         // initialize popup menu flag
         this._popupMenuShowing = false;
@@ -104,12 +97,14 @@ dockedWorkspaces.prototype = {
         this._overrideGnomeShellFunctions();
 
         // Create a new thumbnailsbox object
-        this._thumbnailsBox = new MyThumbnailsBox.myThumbnailsBox(this);
+        this._thumbnailsBox = new MyWorkspaceThumbnail.myThumbnailsBox(this);
         if (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0) {
             this._thumbnailsBoxBackground = this._thumbnailsBox._background;
         } else {
             this._thumbnailsBoxBackground = this._thumbnailsBox.actor;
         }
+
+        this._shortcutsPanel = new ShortcutsPanel.ShortcutsPanel(this);
 
         // Create the main container, turn on track hover, add hoverChange signal
         this.actor = new St.BoxLayout({
@@ -173,16 +168,6 @@ dockedWorkspaces.prototype = {
                 Lang.bind(this, this._onExtensionSystemStateChanged)
             ],
             [
-                global.screen,
-                'workspace-added',
-                Lang.bind(this, this._workspacesAdded)
-            ],
-            [
-                global.screen,
-                'workspace-removed',
-                Lang.bind(this, this._workspacesRemoved)
-            ],
-            [
                 Main.overview.viewSelector,
                 'notify::y',
                 Lang.bind(this, this._updateYPosition)
@@ -217,9 +202,9 @@ dockedWorkspaces.prototype = {
                 if (_DEBUG_) global.log("dockeWorkspaces: init - DashToDock extension is installed and enabled");
                 DashToDock = extension.imports.extension;
                 if (DashToDock && DashToDock.dock) {
-                    // Lower the dash-to-dock below the screenShieldGroup
-                    if (Main.layoutManager.uiGroup.contains(Main.layoutManager.screenShieldGroup))
-                        Main.layoutManager.uiGroup.set_child_below_sibling(DashToDock.dock.actor, Main.layoutManager.screenShieldGroup);
+                    // // Lower the dash-to-dock below the screenShieldGroup
+                    // if (Main.layoutManager.uiGroup.contains(Main.layoutManager.screenShieldGroup))
+                    //     Main.layoutManager.uiGroup.set_child_below_sibling(DashToDock.dock.actor, Main.layoutManager.screenShieldGroup);
 
                     // Connect DashToDock hover signal
                     this._signalHandler.pushWithLabel(
@@ -255,6 +240,8 @@ dockedWorkspaces.prototype = {
 
         // Add workspaces to the main container actor and then to the Chrome.
         this.actor.add_actor(this._thumbnailsBox.actor);
+        this.actor.add_actor(this._shortcutsPanel.actor);
+
         Main.layoutManager.addChrome(this.actor, {
             affectsStruts: this._settings.get_boolean('dock-fixed'),
             trackFullscreen: true
@@ -293,13 +280,16 @@ dockedWorkspaces.prototype = {
 
         // Not really required because thumbnailsBox width signal will trigger a redisplay
         // Also found GS3.6 crashes returning from lock screen (Ubuntu GS Remix)
-        //this._redisplay();
+        // NOTE: GS3.14 thumbnailsBox width signal triggers ealier so now we need this.
+        this._redisplay();
     },
 
     destroy: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: destroying");
         // Destroy thumbnailsBox & global signals
         this._thumbnailsBox._destroyThumbnails();
+
+        this._shortcutsPanel.destroy();
 
         // Disconnect global signals
         this._signalHandler.disconnect();
@@ -327,21 +317,7 @@ dockedWorkspaces.prototype = {
     // function called during init to override gnome shell 3.4/3.6/3.8
     _overrideGnomeShellFunctions: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _overrideGnomeShellFunctions");
-        // Override the WorkspaceClone onButtonRelease function to allow right click events to bubble up
-        // Copied from Gnome Shell .. right click detection added .. returns false to bubble
         let self = this;
-        GSFunctions['WindowClone_onButtonRelease'] = WorkspaceThumbnail.WindowClone.prototype._onButtonRelease;
-        WorkspaceThumbnail.WindowClone.prototype._onButtonRelease = function (actor, event) {
-            if (self._settings.get_boolean('toggle-overview')) {
-                let button = event.get_button();
-                if (button == 3) { //right click
-                    // pass right-click event on allowing it to bubble up to thumbnailsBox
-                    return Clutter.EVENT_PROPAGATE;
-                }
-            }
-            this.emit('selected', event.get_time());
-            return Clutter.EVENT_STOP;
-        };
 
         // Force normal workspaces to be always zoomed
         // GS38 moved things to the overviewControls thumbnailsSlider
@@ -360,85 +336,6 @@ dockedWorkspaces.prototype = {
             WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = this._settings.get_double('thumbnail-size');
         };
 
-        // Remove workspaces-to-dock from desktop clone when messageTray is hidden
-        GSFunctions['MessageTray_hideDesktopClone'] = MessageTray.MessageTray.prototype._hideDesktopClone;
-        MessageTray.MessageTray.prototype._hideDesktopClone = function() {
-            //GSFunctions['MessageTray_hideDesktopClone'].call(this);
-            this._tween(this._desktopClone, '_desktopCloneState', MessageTray.State.HIDDEN,
-                        { y: 0,
-                          time: MessageTray.ANIMATION_TIME,
-                          transition: 'easeOutQuad',
-                          onComplete: Lang.bind(this, function() {
-                              this._desktopClone.destroy();
-                              this._desktopClone = null;
-                              if (this._combinedSources) {
-                                  this._combinedSources.destroy();
-                                  this._combinedSources = null;
-                              }
-                              this._bottomMonitorGeometry = null;
-                          }),
-                          onUpdate: Lang.bind(this, this._updateDesktopCloneClip)
-                        });
-        };
-
-        // Include workspaces-to-dock in desktop clone that gets shifted upward when the messageTray is shown
-        GSFunctions['MessageTray_showDesktopClone'] = MessageTray.MessageTray.prototype._showDesktopClone;
-        MessageTray.MessageTray.prototype._showDesktopClone = function() {
-            //GSFunctions['MessageTray_showDesktopClone'].call(this);
-            let bottomMonitor = Main.layoutManager.bottomMonitor;
-            this._bottomMonitorGeometry = { x: bottomMonitor.x,
-                                            y: bottomMonitor.y,
-                                            width: bottomMonitor.width,
-                                            height: bottomMonitor.height };
-
-            if (this._desktopClone)
-                this._desktopClone.destroy();
-
-            let cloneSource = Main.overview.visible ? Main.layoutManager.overviewGroup : global.window_group;
-
-            if (this._combinedSources) {
-                this._combinedSources.destroy();
-                this._combinedSources = null;
-            }
-
-            if (self._settings.get_boolean('ignore-message-tray') || self._settings.get_boolean('dock-fixed')) {
-                let normalClone = new Clutter.Clone({ source: cloneSource });
-                let workspaceClone = new Clutter.Clone({ source: self.actor });
-                this._combinedSources = new Clutter.Actor({reactive: true});
-                this._combinedSources.add_actor(normalClone);
-                this._combinedSources.add_actor(workspaceClone);
-                let workspaceChild = this._combinedSources.get_child_at_index(1);
-                workspaceChild.set_position(self.actor.x, self.actor.y);
-                if (DashToDock && DashToDock.dock) {
-                    let dashClone = new Clutter.Clone({ source: DashToDock.dock.actor });
-                    this._combinedSources.add_actor(dashClone);
-                    let dashChild = this._combinedSources.get_child_at_index(2);
-                    dashChild.set_position(DashToDock.dock.actor.x, DashToDock.dock.actor.y);
-                }
-                Main.layoutManager.uiGroup.insert_child_below(this._combinedSources, Main.layoutManager.screenShieldGroup);
-
-                this._desktopClone = new Clutter.Clone({ source: this._combinedSources,
-                                                     clip: new Clutter.Geometry(this._bottomMonitorGeometry) });
-                Main.layoutManager.uiGroup.insert_child_below(this._desktopClone, Main.layoutManager.screenShieldGroup);
-
-            } else {
-                this._desktopClone = new Clutter.Clone({ source: cloneSource,
-                                                     clip: new Clutter.Geometry(this._bottomMonitorGeometry) });
-                Main.uiGroup.insert_child_above(this._desktopClone, cloneSource);
-            }
-
-            this._desktopClone.x = 0;
-            this._desktopClone.y = 0;
-            this._desktopClone.show();
-
-            this._tween(this._desktopClone, '_desktopCloneState', MessageTray.State.SHOWN,
-                        { y: -this.actor.height,
-                          time: MessageTray.ANIMATION_TIME,
-                          transition: 'easeOutQuad',
-                          onUpdate: Lang.bind(this, this._updateDesktopCloneClip)
-                        });
-        };
-
         // Extend LayoutManager _updateRegions function to destroy/create workspace thumbnails when completed.
         // NOTE1: needed because 'monitors-changed' signal doesn't wait for queued regions to update.
         // We need to wait so that the screen workspace workarea is adjusted before creating workspace thumbnails.
@@ -449,19 +346,97 @@ dockedWorkspaces.prototype = {
             let ret = GSFunctions['LayoutManager_updateRegions'].call(this);
             //this.emit('regions-updated');
             if (self._updateRegion) {
+                global.log("UPDATE REGION - refreshThumbnails");
                 self._refreshThumbnails();
                 self._updateRegion = false;
             }
             return ret;
+        };
+
+        // Override geometry calculations of activities overview to use workspaces-to-dock instead of the default thumbnailsbox.
+        // NOTE: This is needed for when the dock is positioned on a secondary monitor and also for when the shortcuts panel is visible
+        // causing the dock to be wider than normal.
+        GSFunctions['WorkspacesDisplay_updateWorkspacesActualGeometry'] = WorkspacesView.WorkspacesDisplay.prototype._updateWorkspacesActualGeometry;
+        WorkspacesView.WorkspacesDisplay.prototype._updateWorkspacesActualGeometry = function() {
+            global.log("WORKSPACESDISPLAY - _UPDATE ACTUALGEOMETRY");
+            if (!this._workspacesViews.length)
+                return;
+
+            let [x, y] = Main.overview._controls.actor.get_transformed_position();
+            let spacing = Main.overview._controls.actor.get_theme_node().get_length('spacing');
+            let monitors = Main.layoutManager.monitors;
+            for (let i = 0; i < monitors.length; i++) {
+                let geometry = { x: monitors[i].x, y: monitors[i].y, width: monitors[i].width, height: monitors[i].height };
+
+                // Adjust y and height for primary top panel
+                if (i == this._primaryIndex) {
+                    geometry.y += y;
+                    geometry.height -= y;
+                }
+
+                // Adjust width for dash
+                let dashWidth = 0;
+                if (DashToDock && DashToDock.dock) {
+                    let dashMonitorIndex = DashToDock.dock._settings.get_int('preferred-monitor');
+                    if (dashMonitorIndex < 0 || dashMonitorIndex >= Main.layoutManager.monitors.length) {
+                        dashMonitorIndex = this._primaryIndex;
+                    }
+                    if (i == dashMonitorIndex) {
+                        dashWidth = DashToDock.dock._box.width + spacing;
+                    }
+                } else {
+                    if (i == this._primaryIndex) {
+                        dashWidth = Main.overview._controls._dashSlider.getVisibleWidth() + spacing;
+                    }
+                }
+                geometry.width -= dashWidth;
+
+                // Adjust width for workspaces thumbnails
+                let thumbnailsWidth = 0;
+                let thumbnailsMonitorIndex = self._settings.get_int('preferred-monitor');
+                if (thumbnailsMonitorIndex < 0 || thumbnailsMonitorIndex >= Main.layoutManager.monitors.length) {
+                    thumbnailsMonitorIndex = this._primaryIndex;
+                }
+                if (i == thumbnailsMonitorIndex) {
+                    thumbnailsWidth = (self.staticBox.x2 - self.staticBox.x1) + spacing;
+                }
+                geometry.width -= thumbnailsWidth;
+
+                // Adjust x for relevant dock
+                if (this.actor.get_text_direction() == Clutter.TextDirection.LTR) {
+                    geometry.x += dashWidth;
+                } else {
+                    geometry.x += thumbnailsWidth;
+                }
+
+                global.log("MONITOR = "+i);
+                this._workspacesViews[i].setMyActualGeometry(geometry);
+            }
+        };
+
+        // This override is needed to prevent calls from updateWorkspacesActualGeometry bound to the workspacesDisplay object
+        // without destroying and recreating Main.overview.viewSelector._workspacesDisplay.
+        // We replace this function with a new setMyActualGeometry function (see below)
+        // TODO: This is very hackish. We need to find a better way to accomplish this
+        GSFunctions['WorkspacesViewBase_setActualGeometry'] = WorkspacesView.WorkspacesViewBase.prototype.setActualGeometry;
+        WorkspacesView.WorkspacesViewBase.prototype.setActualGeometry = function(geom) {
+            global.log("WORKSPACESVIEW - setActualGeometry");
+            //GSFunctions['WorkspacesView_setActualGeometry'].call(this, geom);
+            return;
+        };
+
+        // This additional function replaces the WorkspacesView setActualGeometry function above.
+        // TODO: This is very hackish. We need to find a better way to accomplish this
+        WorkspacesView.WorkspacesViewBase.prototype.setMyActualGeometry = function(geom) {
+            global.log("WORKSPACESVIEW - setMyActualGeometry");
+            this._actualGeometry = geom;
+            this._syncActualGeometry();
         };
     },
 
     // function called during destroy to restore gnome shell 3.4/3.6/3.8
     _restoreGnomeShellFunctions: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _restoreGnomeShellFunctions");
-        // Restore normal WindowClone onButtonRelease function
-        WorkspaceThumbnail.WindowClone.prototype._onButtonRelease = GSFunctions['WindowClone_onButtonRelease'];
-
         // Restore normal workspaces to previous zoom setting
         OverviewControls.ThumbnailsSlider.prototype._getAlwaysZoomOut = GSFunctions['ThumbnailsSlider_getAlwaysZoomOut'];
 
@@ -471,69 +446,15 @@ dockedWorkspaces.prototype = {
         // Restore MAX_THUMBNAIL_SCALE to default value
         WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = GSFunctions['WorkspaceThumbnail_MAX_THUMBNAIL_SCALE'];
 
-        MessageTray.MessageTray.prototype._hideDesktopClone = GSFunctions['MessageTray_hideDesktopClone'];
-        MessageTray.MessageTray.prototype._showDesktopClone = GSFunctions['MessageTray_showDesktopClone'];
-
         // Restore normal LayoutManager _updateRegions function
         Layout.LayoutManager.prototype._updateRegions = GSFunctions['LayoutManager_updateRegions'];
-    },
 
-    // handler for when workspace is restacked
-    _workspacesRestacked: function() {
-        if (_DEBUG_) global.log("dockedWorkspaces: _workspacesRestacked");
-        let stack = global.get_window_actors();
-        let stackIndices = {};
-        for (let i = 0; i < stack.length; i++) {
-            // Use the stable sequence for an integer to use as a hash key
-            stackIndices[stack[i].get_meta_window().get_stable_sequence()] = i;
-        }
-        this._thumbnailsBox.syncStacking(stackIndices);
-    },
+        // Restore normal WorkspacesDisplay _updateworksapgesActualGeometray function
+        WorkspacesView.WorkspacesDisplay.prototype._updateWorkspacesActualGeometry = GSFunctions['WorkspacesDisplay_updateWorkspacesActualGeometry'];
 
-    // handler for when workspace is added
-    _workspacesAdded: function() {
-        let NumMyWorkspaces = this._thumbnailsBox._thumbnails.length;
-        let NumGlobalWorkspaces = global.screen.n_workspaces;
-        let active = global.screen.get_active_workspace_index();
-        //if (_DEBUG_) global.log("dockedWorkspaces: _workspacesAdded - numThumbs = "+NumMyWorkspaces+" numWSpaces = "+NumGlobalWorkspaces);
-
-        // NumMyWorkspaces == NumGlobalWorkspaces shouldn't happen, but does when Firefox started.
-        // Assume that a workspace thumbnail is still in process of being removed from _thumbnailsBox
-        if (_DEBUG_) global.log("dockedWorkspaces: _workspacesAdded - thumbnail being added  .. ws="+NumGlobalWorkspaces+" th="+NumMyWorkspaces);
-        if (NumMyWorkspaces == NumGlobalWorkspaces)
-            NumMyWorkspaces --;
-
-        if (NumGlobalWorkspaces > NumMyWorkspaces)
-            this._thumbnailsBox.addThumbnails(NumMyWorkspaces, NumGlobalWorkspaces - NumMyWorkspaces);
-    },
-
-    // handler for when workspace is removed
-    _workspacesRemoved: function() {
-        let NumMyWorkspaces = this._thumbnailsBox._thumbnails.length;
-        let NumGlobalWorkspaces = global.screen.n_workspaces;
-        let active = global.screen.get_active_workspace_index();
-        //if (_DEBUG_) global.log("dockedWorkspaces: _workspacesRemoved - numThumbs = "+NumMyWorkspaces+" numWSpaces = "+NumGlobalWorkspaces);
-
-        // TODO: Not sure if this is an issue?
-        if (_DEBUG_) global.log("dockedWorkspaces: _workspacesRemoved - thumbnails being removed .. ws="+NumGlobalWorkspaces+" th="+NumMyWorkspaces);
-        if (NumMyWorkspaces == NumGlobalWorkspaces)
-            return;
-
-        let removedIndex;
-        //let removedNum = NumMyWorkspaces - NumGlobalWorkspaces;
-        let removedNum = 1;
-        for (let w = 0; w < NumMyWorkspaces; w++) {
-            let metaWorkspace = global.screen.get_workspace_by_index(w);
-            if (this._thumbnailsBox._thumbnails[w].metaWorkspace != metaWorkspace) {
-                removedIndex = w;
-                break;
-            }
-        }
-
-        if (removedIndex != null) {
-            if (_DEBUG_) global.log("dockedWorkspaces: _workspacesRemoved - thumbnail index being removed is = "+removedIndex);
-            this._thumbnailsBox.removeThumbnails(removedIndex, removedNum);
-        }
+        // Restore normal WorkspacesView _setActualGeometry function
+        WorkspacesView.WorkspacesViewBase.prototype.setActualGeometry = GSFunctions['WorkspacesViewBase_setActualGeometry'];
+        WorkspacesView.WorkspacesViewBase.prototype.setMyActualGeometry = null;
     },
 
     // handler for when thumbnailsBox is resized
@@ -615,6 +536,17 @@ dockedWorkspaces.prototype = {
 
         this._settings.connect('changed::preferred-monitor', Lang.bind(this, function() {
             this._resetPosition();
+            this._redisplay();
+        }));
+
+        this._settings.connect('changed::show-shortcuts-panel', Lang.bind(this, function() {
+            this._updateSize();
+            this._redisplay();
+        }));
+
+        this._settings.connect('changed::shortcuts-panel-icon-size', Lang.bind(this, function() {
+            this._shortcutsPanel.refresh();
+            this._updateSize();
             this._redisplay();
         }));
 
@@ -772,13 +704,13 @@ dockedWorkspaces.prototype = {
 
         if (this._settings.get_boolean('require-click-to-show')) {
             // check if metaWin is maximized
-            let activeWorkspace = global.screen.get_active_workspace_index();
+            let activeWorkspace = global.screen.get_active_workspace();
             let maximized = false;
             let windows = global.get_window_actors();
             for (let i = windows.length-1; i >= 0; i--) {
-                if (windows[i].get_workspace() == activeWorkspace) {
+                let metaWin = windows[i].get_meta_window();
+                if (metaWin.get_workspace() == activeWorkspace) {
                     if(_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - window is on active workspace");
-                    let metaWin = windows[i].get_meta_window();
                     if(_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - window class = "+metaWin.get_wm_class());
                     if (metaWin.appears_focused && metaWin.maximized_horizontally) {
                         maximized = true;
@@ -888,9 +820,9 @@ dockedWorkspaces.prototype = {
             if (extension.state == ExtensionSystem.ExtensionState.ENABLED) {
                 DashToDock = extension.imports.extension;
                 if (DashToDock && DashToDock.dock) {
-                    // Lower the dash-to-dock below the screenShieldGroup
-                    if (Main.layoutManager.uiGroup.contains(Main.layoutManager.screenShieldGroup))
-                        Main.layoutManager.uiGroup.set_child_below_sibling(DashToDock.dock.actor, Main.layoutManager.screenShieldGroup);
+                    // // Lower the dash-to-dock below the screenShieldGroup
+                    // if (Main.layoutManager.uiGroup.contains(Main.layoutManager.screenShieldGroup))
+                    //     Main.layoutManager.uiGroup.set_child_below_sibling(DashToDock.dock.actor, Main.layoutManager.screenShieldGroup);
 
                     // Connect DashToDock hover signal
                     this._signalHandler.pushWithLabel(
@@ -1011,12 +943,12 @@ dockedWorkspaces.prototype = {
         // Set final_position
         let final_position;
         if (this._rtl) {
-            final_position = this._monitor.x + this._thumbnailsBox.actor.width + DOCK_PADDING;
+            final_position = this._monitor.x + this._thumbnailsBox.actor.width + this._shortcutsPanelWidth + DOCK_PADDING;
         } else {
-            final_position = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - DOCK_PADDING;
+            final_position = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - this._shortcutsPanelWidth - DOCK_PADDING;
         }
         if (_DEBUG_) global.log("dockedWorkspaces: _animateIN - currrent_position = "+ this.actor.x+" final_position = "+final_position);
-        if (_DEBUG_) global.log("dockedWorkspaces: _animateIN - _thumbnailsBox width = "+this._thumbnailsBox.actor.width);
+        if (_DEBUG_) global.log("dockedWorkspaces: _animateIN - _thumbnailsBox width = "+this._thumbnailsBox.actor.width + this._shortcutsPanelWidth);
         if (_DEBUG_) global.log("dockedWorkspaces: _animateIN - actor width = "+this.actor.width);
 
         if (final_position !== this.actor.x) {
@@ -1131,6 +1063,10 @@ dockedWorkspaces.prototype = {
         this._thumbnailsBoxBackground.set_style('transition-duration:' + time*1000 + ';' +
             'transition-delay:' + delay*1000 + ';' +
             'background-color:' + this._defaultBackground);
+
+        this._shortcutsPanel.actor.set_style('transition-duration:' + time*1000 + ';' +
+            'transition-delay:' + delay*1000 + ';' +
+            'background-color:' + this._defaultBackground);
     },
 
     // autohide function to fade in opaque background
@@ -1138,6 +1074,10 @@ dockedWorkspaces.prototype = {
         if (_DEBUG_) global.log("dockedWorkspaces: _fadeInBackground");
         // CSS time is in ms
         this._thumbnailsBoxBackground.set_style('transition-duration:' + time*1000 + ';' +
+            'transition-delay:' + delay*1000 + ';' +
+            'background-color:' + this._customBackground);
+
+        this._shortcutsPanel.actor.set_style('transition-duration:' + time*1000 + ';' +
             'transition-delay:' + delay*1000 + ';' +
             'background-color:' + this._customBackground);
     },
@@ -1365,14 +1305,14 @@ dockedWorkspaces.prototype = {
 
     // unset dock width (called before animateIn starts)
     _unsetHiddenWidth: function() {
-        let width = this._thumbnailsBox.actor.width + DOCK_PADDING;
+        let width = this._thumbnailsBox.actor.width + this._shortcutsPanelWidth + DOCK_PADDING;
         this.actor.set_size(width, this.actor.height);
 
         // New clip coordinates
         let x1, x2;
         if (this._rtl) {
             x1 = width;
-            x2 = this._monitor.x + this._thumbnailsBox.actor.width + DOCK_PADDING - this.actor.x;
+            x2 = this._monitor.x + this._thumbnailsBox.actor.width + this._shortcutsPanelWidth + DOCK_PADDING - this.actor.x;
         } else {
             x1 = 0;
             x2 = this._monitor.x + this._monitor.width - this.actor.x;
@@ -1388,6 +1328,8 @@ dockedWorkspaces.prototype = {
     // update the dock size
     _updateSize: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _updateSize");
+        this._shortcutsPanelWidth = this._settings.get_boolean('show-shortcuts-panel') ? this._shortcutsPanel.actor.width : 0;
+
         // check if the dock is on the primary monitor
         let primary = false;
         if (this._monitor.x == Main.layoutManager.primaryMonitor.x && this._monitor.y == Main.layoutManager.primaryMonitor.y)
@@ -1398,7 +1340,7 @@ dockedWorkspaces.prototype = {
         if (this._rtl) {
             onScreenX = this._monitor.x;
         } else {
-            onScreenX = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - DOCK_PADDING;
+            onScreenX = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - this._shortcutsPanelWidth - DOCK_PADDING;
         }
 
         // Update height
@@ -1417,14 +1359,15 @@ dockedWorkspaces.prototype = {
             y = this._monitor.y + Main.panel.actor.height + Main.overview._searchEntryBin.y + Main.overview._searchEntryBin.height;
             height = this._monitor.height - (Main.overview._searchEntryBin.y + Main.overview._searchEntryBin.height + Main.messageTray.actor.height);
         }
+        this.yPosition = y;
 
         //// skip updating if size is same
-        //if ((this.actor.y == y) && (this.actor.width == this._thumbnailsBox.actor.width + DOCK_PADDING) && (this.actor.height == height)) {
+        //if ((this.actor.y == y) && (this.actor.width == this._thumbnailsBox.actor.width + this._shortcutsPanelWidth + DOCK_PADDING) && (this.actor.height == height)) {
             //return;
         //}
 
         // Updating size also resets the position of the staticBox (used to detect window overlaps)
-        this.staticBox.init_rect(onScreenX, y, this._thumbnailsBox.actor.width + DOCK_PADDING, height);
+        this.staticBox.init_rect(onScreenX, y, this._thumbnailsBox.actor.width + this._shortcutsPanelWidth + DOCK_PADDING, height);
 
         // Updating size shouldn't reset the x position of the dock unless in fixed-position
         // especially if it's in the hidden slid out position
@@ -1442,7 +1385,7 @@ dockedWorkspaces.prototype = {
                 width = DOCK_PADDING + DOCK_HIDDEN_WIDTH;
             }
         } else {
-            width = this._thumbnailsBox.actor.width + DOCK_PADDING;
+            width = this._thumbnailsBox.actor.width + this._shortcutsPanelWidth + DOCK_PADDING;
         }
         this.actor.set_size(width, height);
 
@@ -1472,14 +1415,14 @@ dockedWorkspaces.prototype = {
             boxPosition = this.actor.width - DOCK_PADDING;
             onScreenX = this._monitor.x;
             if (this._settings.get_boolean('dock-edge-visible')) {
-                offScreenX = this._monitor.x - this._thumbnailsBox.actor.width + DOCK_EDGE_VISIBLE_WIDTH + DOCK_PADDING;
+                offScreenX = this._monitor.x - this._thumbnailsBox.actor.width - this._shortcutsPanelWidth + DOCK_EDGE_VISIBLE_WIDTH + DOCK_PADDING;
             } else {
-                offScreenX = this._monitor.x - this._thumbnailsBox.actor.width + DOCK_PADDING;
+                offScreenX = this._monitor.x - this._thumbnailsBox.actor.width - this._shortcutsPanelWidth + DOCK_PADDING;
                     }
         } else {
             anchorPoint = Clutter.Gravity.NORTH_WEST;
             boxPosition = DOCK_PADDING;
-            onScreenX = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - DOCK_PADDING;
+            onScreenX = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - this._shortcutsPanelWidth - DOCK_PADDING;
             if (this._settings.get_boolean('dock-edge-visible')) {
                 offScreenX = this._monitor.x + this._monitor.width - DOCK_PADDING - DOCK_EDGE_VISIBLE_WIDTH;
             } else {
@@ -1544,11 +1487,38 @@ dockedWorkspaces.prototype = {
     },
 
     _onMessageTrayShowing: function() {
+        if ((this._settings.get_boolean('ignore-message-tray') && !this._autohideStatus) || this._settings.get_boolean('dock-fixed')) {
+            // Temporary move the dock below the top panel so that it slide below it.
+            //this.actor.lower(Main.layoutManager.panelBox);
+
+            // Remove other tweens that could mess with the state machine
+            Tweener.removeTweens(this.actor);
+            Tweener.addTween(this.actor, {
+                  y: this.yPosition - Main.messageTray.actor.height,
+                  time: MessageTray.ANIMATION_TIME,
+                  transition: 'easeOutQuad'
+                });
+        }
+
         this._messageTrayShowing = true;
         this._updateBarrier();
     },
 
     _onMessageTrayHiding: function() {
+        if ((this._settings.get_boolean('ignore-message-tray') && !this._autohideStatus) || this._settings.get_boolean('dock-fixed')) {
+            // Remove other tweens that could mess with the state machine
+            Tweener.removeTweens(this.actor);
+            Tweener.addTween(this.actor, {
+                  y: this.yPosition,
+                  time: MessageTray.ANIMATION_TIME,
+                  transition: 'easeOutQuad',
+                  onComplete: Lang.bind(this, function(){
+                      // Reset desired dock stack order (on top to accept dnd of app icons)
+                      //this.actor.raise(global.top_window_group);
+                    })
+                });
+        }
+
         this._messageTrayShowing = false;
         this._updateBarrier();
     },
@@ -1603,8 +1573,8 @@ dockedWorkspaces.prototype = {
         // to mantain its position in respect to the screen.
         let x1, x2;
         if (this._rtl) {
-            x1 = this._thumbnailsBox.actor.width + DOCK_PADDING;
-            x2 = this._monitor.x + this._thumbnailsBox.actor.width + DOCK_PADDING - this.actor.x;
+            x1 = this._thumbnailsBox.actor.width + this._shortcutsPanelWidth + DOCK_PADDING;
+            x2 = this._monitor.x + this._thumbnailsBox.actor.width + this._shortcutsPanelWidth + DOCK_PADDING - this.actor.x;
         } else {
             x1 = 0;
             x2 = this._monitor.x + this._monitor.width - this.actor.x;
@@ -1659,18 +1629,15 @@ dockedWorkspaces.prototype = {
         }
     }
 
-};
-Signals.addSignalMethods(dockedWorkspaces.prototype);
+});
+Signals.addSignalMethods(DockedWorkspaces.prototype);
 
 /*
  * Store animation status in a perhaps overcomplicated way.
  * status is true for visible, false for hidden
  */
-function animationStatus(initialStatus) {
-    this._init(initialStatus);
-}
-
-animationStatus.prototype = {
+const AnimationStatus = new Lang.Class({
+    Name: 'workspacesToDock.animationStatus',
 
     _init: function(initialStatus) {
         this.status = initialStatus;
@@ -1743,4 +1710,4 @@ animationStatus.prototype = {
         else
             return false;
     }
-}
+});

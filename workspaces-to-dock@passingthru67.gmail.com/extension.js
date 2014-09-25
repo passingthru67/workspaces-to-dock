@@ -18,12 +18,7 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 const Intellihide = Me.imports.intellihide;
 const DockedWorkspaces = Me.imports.dockedWorkspaces;
-const GSVersion = Config.PACKAGE_VERSION.split('.');
 
-const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
-const _ = Gettext.gettext;
-
-let settings;
 let intellihide;
 let dock;
 let workspacesToDockStylesheet = null;
@@ -91,9 +86,8 @@ function init() {
 function enable() {
     if (_DEBUG_) global.log("WorkspacesToDock: ENABLE");
     loadStylesheet();
-    settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
-    dock = new DockedWorkspaces.dockedWorkspaces(settings, GSVersion);
-    intellihide = new Intellihide.intellihide(dock, settings, GSVersion);
+    dock = new DockedWorkspaces.DockedWorkspaces();
+    intellihide = new Intellihide.Intellihide(dock);
 }
 
 function disable() {
@@ -101,10 +95,8 @@ function disable() {
     unloadStylesheet();
     intellihide.destroy();
     dock.destroy();
-    settings.run_dispose();
 
     dock = null;
     intellihide = null;
-    settings = null;
 }
 

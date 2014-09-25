@@ -146,10 +146,10 @@
       <summary>Workspace caption taskbar icon size</summary>
       <description>Set the workspace caption taskbar icon size.</description>
     </key>
-    <key type="b" name="workspace-caption-large-icons">
-      <default>false</default>
-      <summary>Show workspace window apps using large icons</summary>
-      <description>Enable or disable using large icons for workspace window apps (taskbar).</description>
+    <key type="d" name="workspace-caption-menu-icon-size">
+      <default>20</default>
+      <summary>Workspace caption popup menu icon size</summary>
+      <description>Set the workspace caption popup menu icon size.</description>
     </key>
     <key type="b" name="toggle-overview">
       <default>true</default>
@@ -170,6 +170,41 @@
       <default>false</default>
       <summary>Dock shown on Dash-To-Dock mouse over</summary>
       <description>Enable or disable Dash-To-Dock hover mode</description>
+    </key>
+    <key type="b" name="show-shortcuts-panel">
+      <default>false</default>
+      <summary>Show a shortcuts panel beside the workspaces thumbnail</summary>
+      <description>Show a shortcuts panel beside the workspaces thubmanail</description>
+    </key>
+    <key type="d" name="shortcuts-panel-icon-size">
+      <default>32</default>
+      <summary>Shortcuts panel icon size</summary>
+      <description>Set the shortcuts panel icon size.</description>
+    </key>
+    <key type="b" name="shortcuts-panel-show-running">
+      <default>false</default>
+      <summary>Show runnings apps on the shortcuts panel</summary>
+      <description>Show runnings apps on shortcuts panel</description>
+    </key>
+    <key type="b" name="shortcuts-panel-show-places">
+      <default>true</default>
+      <summary>Show places on the shortcuts panel</summary>
+      <description>Show places on the shortcuts panel</description>
+    </key>
+    <key type="b" name="shortcuts-panel-appsbutton-at-bottom">
+      <default>false</default>
+      <summary>Show applications button at the bottom of the shortcuts panel</summary>
+      <description>Show applications button at the bottom of the shortcuts panel</description>
+    </key>
+    <key type="b" name="shortcuts-panel-popupmenu-arrow-at-top">
+      <default>false</default>
+      <summary>Show the shortcut button popup menu arrow at the top</summary>
+      <description>Show the shortcut button popup menu arrow at the top</description>
+    </key>
+    <key type="b" name="shortcuts-panel-popupmenu-hide-thumbnails">
+      <default>false</default>
+      <summary>Hide the thumbnails when the shortcut button popup menu is shown</summary>
+      <description>Hide the thumbnails when the shortcut button popup menu is shown</description>
     </key>
   </schema>
 </schemalist>

@@ -14,15 +14,10 @@ const Mainloop = imports.mainloop;
 const Signals = imports.signals;
 const Shell = imports.gi.Shell;
 const Gdk = imports.gi.Gdk;
-const Gtk = imports.gi.Gtk;
 
 const Main = imports.ui.main;
-const PopupMenu = imports.ui.popupMenu;
 const GrabHelper = imports.ui.grabHelper;
-
-const ViewSelector = imports.ui.viewSelector;
-const Tweener = imports.ui.tweener;
-const Params = imports.misc.params;
+const Config = imports.misc.config;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
@@ -67,14 +62,17 @@ let GSFunctions = {};
  *
 */
 
-let intellihide = function(dock, settings, gsCurrentVersion) {
-    this._gsCurrentVersion = gsCurrentVersion;
-    this._init(dock, settings);
-}
+const Intellihide = new Lang.Class({
+    Name: 'workspacesToDock.intellihide',
 
-intellihide.prototype = {
+    _init: function(dock) {
+        this._gsCurrentVersion = Config.PACKAGE_VERSION.split('.');
+        this._settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
+        this._signalHandler = new Convenience.globalSignalHandler();
 
-    _init: function(dock, settings) {
+        // Dock object
+        this._dock = dock;
+
         // temporarily disable intellihide until initialized (prevents connected signals from trying to update dock visibility)
         this._disableIntellihide = true;
         if (_DEBUG_) global.log("intellihide: init - disaableIntellihide");
@@ -83,19 +81,14 @@ intellihide.prototype = {
         this._overrideGnomeShellFunctions();
 
         // Load settings
-        this._settings = settings;
         this._bindSettingsChanges();
 
-        this._signalHandler = new Convenience.globalSignalHandler();
         this._tracker = Shell.WindowTracker.get_default();
         this._topWindow = null;
         this._focusedWin = null;
 
         // initial intellihide status is null
         this.status = null;
-
-        // Dock object
-        this._dock = dock;
 
         // Keep track of the current overview mode (I mean if it is on/off)
         this._inOverview = false;
@@ -232,12 +225,12 @@ intellihide.prototype = {
             this._signalHandler.pushWithLabel(
                 'bgManagerSignals',
                 [
-                    Main.layoutManager._bgManagers[primaryIndex].background.actor._backgroundManager._grabHelper,
+                    Main.layoutManager._bgManagers[primaryIndex].backgroundActor._backgroundManager._grabHelper,
                     'focus-grabbed',
                     Lang.bind(this, this._onPanelFocusGrabbed)
                 ],
                 [
-                    Main.layoutManager._bgManagers[primaryIndex].background.actor._backgroundManager._grabHelper,
+                    Main.layoutManager._bgManagers[primaryIndex].backgroundActor._backgroundManager._grabHelper,
                     'focus-ungrabbed',
                     Lang.bind(this, this._onPanelFocusUngrabbed)
                 ]
@@ -352,7 +345,7 @@ intellihide.prototype = {
 
     // handler for when monitor changes
     _onMonitorsChanged: function() {
-		if (_DEBUG_) global.log("intellihide: _onMonitorsChanged");
+        if (_DEBUG_) global.log("intellihide: _onMonitorsChanged");
         // disconnect bgManager signals
         this._signalHandler.disconnectWithLabel('bgManagerSignals');
 
@@ -781,5 +774,4 @@ intellihide.prototype = {
 
         return false;
     }
-
-};
+});
