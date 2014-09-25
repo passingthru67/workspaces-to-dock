@@ -280,7 +280,8 @@ const DockedWorkspaces = new Lang.Class({
 
         // Not really required because thumbnailsBox width signal will trigger a redisplay
         // Also found GS3.6 crashes returning from lock screen (Ubuntu GS Remix)
-        //this._redisplay();
+        // NOTE: GS3.14 thumbnailsBox width signal triggers ealier so now we need this.
+        this._redisplay();
     },
 
     destroy: function() {
@@ -429,7 +430,7 @@ const DockedWorkspaces = new Lang.Class({
         WorkspacesView.WorkspacesViewBase.prototype.setMyActualGeometry = function(geom) {
             global.log("WORKSPACESVIEW - setMyActualGeometry");
             this._actualGeometry = geom;
-            this._syncGeometry();
+            this._syncActualGeometry();
         };
     },
 
@@ -703,13 +704,13 @@ const DockedWorkspaces = new Lang.Class({
 
         if (this._settings.get_boolean('require-click-to-show')) {
             // check if metaWin is maximized
-            let activeWorkspace = global.screen.get_active_workspace_index();
+            let activeWorkspace = global.screen.get_active_workspace();
             let maximized = false;
             let windows = global.get_window_actors();
             for (let i = windows.length-1; i >= 0; i--) {
-                if (windows[i].get_workspace() == activeWorkspace) {
+                let metaWin = windows[i].get_meta_window();
+                if (metaWin.get_workspace() == activeWorkspace) {
                     if(_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - window is on active workspace");
-                    let metaWin = windows[i].get_meta_window();
                     if(_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - window class = "+metaWin.get_wm_class());
                     if (metaWin.appears_focused && metaWin.maximized_horizontally) {
                         maximized = true;
@@ -1358,7 +1359,7 @@ const DockedWorkspaces = new Lang.Class({
             y = this._monitor.y + Main.panel.actor.height + Main.overview._searchEntryBin.y + Main.overview._searchEntryBin.height;
             height = this._monitor.height - (Main.overview._searchEntryBin.y + Main.overview._searchEntryBin.height + Main.messageTray.actor.height);
         }
-	    this.yPosition = y;
+        this.yPosition = y;
 
         //// skip updating if size is same
         //if ((this.actor.y == y) && (this.actor.width == this._thumbnailsBox.actor.width + this._shortcutsPanelWidth + DOCK_PADDING) && (this.actor.height == height)) {
@@ -1486,37 +1487,37 @@ const DockedWorkspaces = new Lang.Class({
     },
 
     _onMessageTrayShowing: function() {
-    	if ((this._settings.get_boolean('ignore-message-tray') && !this._autohideStatus) || this._settings.get_boolean('dock-fixed')) {
-    		// Temporary move the dock below the top panel so that it slide below it.
-    		//this.actor.lower(Main.layoutManager.panelBox);
+        if ((this._settings.get_boolean('ignore-message-tray') && !this._autohideStatus) || this._settings.get_boolean('dock-fixed')) {
+            // Temporary move the dock below the top panel so that it slide below it.
+            //this.actor.lower(Main.layoutManager.panelBox);
 
-    		// Remove other tweens that could mess with the state machine
-    		Tweener.removeTweens(this.actor);
-    		Tweener.addTween(this.actor, {
-    		      y: this.yPosition - Main.messageTray.actor.height,
-    		      time: MessageTray.ANIMATION_TIME,
-    		      transition: 'easeOutQuad'
-    		    });
-    	}
+            // Remove other tweens that could mess with the state machine
+            Tweener.removeTweens(this.actor);
+            Tweener.addTween(this.actor, {
+                  y: this.yPosition - Main.messageTray.actor.height,
+                  time: MessageTray.ANIMATION_TIME,
+                  transition: 'easeOutQuad'
+                });
+        }
 
         this._messageTrayShowing = true;
         this._updateBarrier();
     },
 
     _onMessageTrayHiding: function() {
-    	if ((this._settings.get_boolean('ignore-message-tray') && !this._autohideStatus) || this._settings.get_boolean('dock-fixed')) {
-    		// Remove other tweens that could mess with the state machine
-    		Tweener.removeTweens(this.actor);
-    		Tweener.addTween(this.actor, {
-    		      y: this.yPosition,
-    		      time: MessageTray.ANIMATION_TIME,
-    		      transition: 'easeOutQuad',
-    		      onComplete: Lang.bind(this, function(){
-    		          // Reset desired dock stack order (on top to accept dnd of app icons)
-    		          //this.actor.raise(global.top_window_group);
-    		        })
-    		    });
-    	}
+        if ((this._settings.get_boolean('ignore-message-tray') && !this._autohideStatus) || this._settings.get_boolean('dock-fixed')) {
+            // Remove other tweens that could mess with the state machine
+            Tweener.removeTweens(this.actor);
+            Tweener.addTween(this.actor, {
+                  y: this.yPosition,
+                  time: MessageTray.ANIMATION_TIME,
+                  transition: 'easeOutQuad',
+                  onComplete: Lang.bind(this, function(){
+                      // Reset desired dock stack order (on top to accept dnd of app icons)
+                      //this.actor.raise(global.top_window_group);
+                    })
+                });
+        }
 
         this._messageTrayShowing = false;
         this._updateBarrier();

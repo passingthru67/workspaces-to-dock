@@ -225,12 +225,12 @@ const Intellihide = new Lang.Class({
             this._signalHandler.pushWithLabel(
                 'bgManagerSignals',
                 [
-                    Main.layoutManager._bgManagers[primaryIndex].background.actor._backgroundManager._grabHelper,
+                    Main.layoutManager._bgManagers[primaryIndex].backgroundActor._backgroundManager._grabHelper,
                     'focus-grabbed',
                     Lang.bind(this, this._onPanelFocusGrabbed)
                 ],
                 [
-                    Main.layoutManager._bgManagers[primaryIndex].background.actor._backgroundManager._grabHelper,
+                    Main.layoutManager._bgManagers[primaryIndex].backgroundActor._backgroundManager._grabHelper,
                     'focus-ungrabbed',
                     Lang.bind(this, this._onPanelFocusUngrabbed)
                 ]
@@ -345,7 +345,7 @@ const Intellihide = new Lang.Class({
 
     // handler for when monitor changes
     _onMonitorsChanged: function() {
-		if (_DEBUG_) global.log("intellihide: _onMonitorsChanged");
+        if (_DEBUG_) global.log("intellihide: _onMonitorsChanged");
         // disconnect bgManager signals
         this._signalHandler.disconnectWithLabel('bgManagerSignals');
 

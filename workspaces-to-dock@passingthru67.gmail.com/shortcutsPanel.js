@@ -588,7 +588,7 @@ const ShortcutsPanel = new Lang.Class({
         let favorites = this._appFavorites.getFavoriteMap();
 
         // Get running apps
-        let running = this._appSystem.get_default().get_running();
+        let running = this._appSystem.get_running();
         for (let i = 0; i < running.length; i++) {
             let app = running[i];
             if (app.get_id() in favorites)
