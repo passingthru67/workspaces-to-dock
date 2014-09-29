@@ -117,17 +117,6 @@ const DockedWorkspaces = new Lang.Class({
         this.actor.connect("button-release-event", Lang.bind(this, this._onDockClicked));
         this._realizeId = this.actor.connect("realize", Lang.bind(this, this._initialize));
 
-        // Sometimes Main.wm._workspaceSwitcherPopup is null when first loading the
-        // extension causing scroll-event problems
-        if (Main.wm._workspaceSwitcherPopup == null) {
-            Main.wm._workspaceSwitcherPopup = new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup();
-            // additional fix for gnome shell 3.6 workspaceSwitcherPopup
-            // popup is destroy and not just hidden in 3.6
-            Main.wm._workspaceSwitcherPopup.connect('destroy', function() {
-                Main.wm._workspaceSwitcherPopup = null;
-            });
-        }
-
         // Create the staticbox that stores the size and position where the dock is shown for determining window overlaps
         // note: used by intellihide module to check window overlap
         this.staticBox = new Clutter.ActorBox({
@@ -866,13 +855,31 @@ const DockedWorkspaces = new Lang.Class({
             return Clutter.EVENT_STOP;
 
         let activeWs = global.screen.get_active_workspace();
-        let ws;
-        if (event.get_scroll_direction() == Clutter.ScrollDirection.UP) {
-            ws = activeWs.get_neighbor(Meta.MotionDirection.UP);
-        } else if (event.get_scroll_direction() == Clutter.ScrollDirection.DOWN) {
-            ws = activeWs.get_neighbor(Meta.MotionDirection.DOWN);
+        let direction;
+        switch (event.get_scroll_direction()) {
+        case Clutter.ScrollDirection.UP:
+            direction = Meta.MotionDirection.UP;
+            break;
+        case Clutter.ScrollDirection.DOWN:
+            direction = Meta.MotionDirection.DOWN;
+            break;
         }
+
+        let ws = activeWs.get_neighbor(direction);
         Main.wm.actionMoveWorkspace(ws);
+
+        if (Main.wm._workspaceSwitcherPopup == null) {
+            Main.wm._workspaceSwitcherPopup = new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup();
+            // additional fix for gnome shell 3.6 workspaceSwitcherPopup
+            // popup is destroy and not just hidden in 3.6
+            Main.wm._workspaceSwitcherPopup.connect('destroy', function() {
+                Main.wm._workspaceSwitcherPopup = null;
+            });
+        }
+
+        Main.wm._workspaceSwitcherPopup.display(direction, ws.index());
+        Main.wm.actionMoveWorkspace(ws);
+
         return Clutter.EVENT_STOP;
     },
 
