@@ -449,6 +449,9 @@ const ShortcutsPanel = new Lang.Class({
         if (this._appStateChangedId > 0) this._appSystem.disconnect(this._appStateChangedId);
         if (this._favoritesChangedId > 0) this._appFavorites.disconnect(this._favoritesChangedId);
 
+        // Disconnect GSettings signals
+        this._mySettings.run_dispose();
+
         // Destroy main clutter actor
         this.actor.destroy();
     },

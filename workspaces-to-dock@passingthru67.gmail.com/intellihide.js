@@ -257,6 +257,9 @@ const Intellihide = new Lang.Class({
         // Disconnect global signals
         this._signalHandler.disconnect();
 
+        // Disconnect GSettings signals
+        this._settings.run_dispose();
+
         if (this._windowChangedTimeout > 0)
             Mainloop.source_remove(this._windowChangedTimeout); // Just to be sure
 

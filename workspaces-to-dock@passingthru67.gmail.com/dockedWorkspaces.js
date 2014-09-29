@@ -283,6 +283,9 @@ const DockedWorkspaces = new Lang.Class({
         // Disconnect global signals
         this._signalHandler.disconnect();
 
+        // Disconnect GSettings signals
+        this._settings.run_dispose();
+
         // Unbind keyboard shortcuts
         this._unbindDockKeyboardShortcut();
 
