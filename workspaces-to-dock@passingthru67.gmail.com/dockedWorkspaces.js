@@ -784,7 +784,9 @@ const DockedWorkspaces = new Lang.Class({
 
     _onDashToDockLeave: function() {
         if (_DEBUG_) global.log("Dash Button LEAVE");
-        this._hoveringDash = false;
+        // NOTE: Causing workspaces-to-dock to hide when switching workspaces in Gnome 3.14.
+        // Remove until a workaround can be found.
+        // this._hoveringDash = false;
     },
 
     // handler for DashToDock hover events
