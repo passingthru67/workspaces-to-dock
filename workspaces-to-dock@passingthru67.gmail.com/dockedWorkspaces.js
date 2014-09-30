@@ -338,7 +338,7 @@ const DockedWorkspaces = new Lang.Class({
             let ret = GSFunctions['LayoutManager_updateRegions'].call(this);
             //this.emit('regions-updated');
             if (self._updateRegion) {
-                global.log("UPDATE REGION - refreshThumbnails");
+                if (_DEBUG_) global.log("UPDATE REGION - refreshThumbnails");
                 self._refreshThumbnails();
                 self._updateRegion = false;
             }
@@ -350,7 +350,7 @@ const DockedWorkspaces = new Lang.Class({
         // causing the dock to be wider than normal.
         GSFunctions['WorkspacesDisplay_updateWorkspacesActualGeometry'] = WorkspacesView.WorkspacesDisplay.prototype._updateWorkspacesActualGeometry;
         WorkspacesView.WorkspacesDisplay.prototype._updateWorkspacesActualGeometry = function() {
-            global.log("WORKSPACESDISPLAY - _UPDATE ACTUALGEOMETRY");
+            if (_DEBUG_) global.log("WORKSPACESDISPLAY - _UPDATE ACTUALGEOMETRY");
             if (!this._workspacesViews.length)
                 return;
 
@@ -401,7 +401,7 @@ const DockedWorkspaces = new Lang.Class({
                     geometry.x += thumbnailsWidth;
                 }
 
-                global.log("MONITOR = "+i);
+                if (_DEBUG_) global.log("MONITOR = "+i);
                 this._workspacesViews[i].setMyActualGeometry(geometry);
             }
         };
@@ -412,7 +412,7 @@ const DockedWorkspaces = new Lang.Class({
         // TODO: This is very hackish. We need to find a better way to accomplish this
         GSFunctions['WorkspacesViewBase_setActualGeometry'] = WorkspacesView.WorkspacesViewBase.prototype.setActualGeometry;
         WorkspacesView.WorkspacesViewBase.prototype.setActualGeometry = function(geom) {
-            global.log("WORKSPACESVIEW - setActualGeometry");
+            if (_DEBUG_) global.log("WORKSPACESVIEW - setActualGeometry");
             //GSFunctions['WorkspacesView_setActualGeometry'].call(this, geom);
             return;
         };
@@ -420,7 +420,7 @@ const DockedWorkspaces = new Lang.Class({
         // This additional function replaces the WorkspacesView setActualGeometry function above.
         // TODO: This is very hackish. We need to find a better way to accomplish this
         WorkspacesView.WorkspacesViewBase.prototype.setMyActualGeometry = function(geom) {
-            global.log("WORKSPACESVIEW - setMyActualGeometry");
+            if (_DEBUG_) global.log("WORKSPACESVIEW - setMyActualGeometry");
             this._actualGeometry = geom;
             this._syncActualGeometry();
         };
@@ -1307,6 +1307,7 @@ const DockedWorkspaces = new Lang.Class({
         }
         let y1= 0;
         let y2 = this._monitor.y + this._monitor.height;
+        // SANITY CHECK: ------------------
         //if (_DEBUG_) global.log("dockedWorkspaces: _setHiddenWidth C.X1 = "+Math.round(x1)+" C.X2 = "+Math.round(x2)+" C.R = "+(x2-x1)+" ACTOR.X = "+Math.round(this.actor.x)+" ACTOR.W = "+this.actor.width);
 
         // Apply the clip
@@ -1329,6 +1330,7 @@ const DockedWorkspaces = new Lang.Class({
         }
         let y1= 0;
         let y2 = this._monitor.y + this._monitor.height;
+        // SANITY CHECK: ------------------
         //if (_DEBUG_) global.log("dockedWorkspaces: _unsetHiddenWidth C.X1 = "+Math.round(x1)+" C.X2 = "+Math.round(x2)+" C.R = "+(x2-x1)+" ACTOR.X = "+Math.round(this.actor.x)+" ACTOR.W = "+this.actor.width);
 
         // Apply the clip
@@ -1591,6 +1593,7 @@ const DockedWorkspaces = new Lang.Class({
         }
         let y1 = 0;
         let y2 = this._monitor.y + this._monitor.height;
+        // SANITY CHECK: ------------------
         //if (_DEBUG_) global.log("_updateClip C.X1 = "+Math.round(x1)+" C.X2 = "+Math.round(x2)+" C.R = "+(x2-x1)+" ACTOR.X = "+Math.round(this.actor.x)+" ACTOR.W = "+this.actor.width);
 
         // Apply the clip
