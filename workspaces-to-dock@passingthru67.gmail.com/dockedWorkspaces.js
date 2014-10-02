@@ -870,18 +870,20 @@ const DockedWorkspaces = new Lang.Class({
             break;
         }
 
-        let ws = activeWs.get_neighbor(direction);
+        if (direction) {
+            let ws = activeWs.get_neighbor(direction);
 
-        // NOTE: removed until a workaround is found to prevent the popup from grabbing focus.
-        // if (Main.wm._workspaceSwitcherPopup == null) {
-        //     Main.wm._workspaceSwitcherPopup = new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup();
-        //     Main.wm._workspaceSwitcherPopup.connect('destroy', function() {
-        //         Main.wm._workspaceSwitcherPopup = null;
-        //     });
-        // }
-        // Main.wm._workspaceSwitcherPopup.display(direction, ws.index());
+            // NOTE: removed until a workaround is found to prevent the popup from grabbing focus.
+            // if (Main.wm._workspaceSwitcherPopup == null) {
+            //     Main.wm._workspaceSwitcherPopup = new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup();
+            //     Main.wm._workspaceSwitcherPopup.connect('destroy', function() {
+            //         Main.wm._workspaceSwitcherPopup = null;
+            //     });
+            // }
+            // Main.wm._workspaceSwitcherPopup.display(direction, ws.index());
 
-        Main.wm.actionMoveWorkspace(ws);
+            Main.wm.actionMoveWorkspace(ws);
+        }
 
         return Clutter.EVENT_STOP;
     },
