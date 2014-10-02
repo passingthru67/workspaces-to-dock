@@ -30,7 +30,6 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 
 const PlaceDisplay = Me.imports.placeDisplay;
 const Convenience = Me.imports.convenience;
-let settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
 
 const MENU_POPUP_TIMEOUT = 600;
 
@@ -46,7 +45,7 @@ const ShortcutButtonMenu = new Lang.Class({
     Extends: PopupMenu.PopupMenu,
 
     _init: function(source) {
-        this._mySettings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
+        this._settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
 
         let side = St.Side.RIGHT;
         if (Clutter.get_default_text_direction() == Clutter.TextDirection.RTL)
@@ -143,7 +142,7 @@ const ShortcutButtonMenu = new Lang.Class({
     popup: function(activatingButton) {
         this._redisplay();
 
-        if (this._mySettings.get_boolean('shortcuts-panel-popupmenu-arrow-at-top')) {
+        if (this._settings.get_boolean('shortcuts-panel-popupmenu-arrow-at-top')) {
             this._arrowAlignment = 0.0;
         } else {
             this._arrowAlignment = 0.5;
@@ -162,11 +161,13 @@ const ShortcutButton = new Lang.Class({
         this._type = appType;
         this._panel = panel;
         this._stateChangedId = 0;
+        this._settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
 
         this.actor = new St.Button({style_class:'app-well-app workspacestodock-shortcut-button'});
         this.actor._delegate = this;
 
-        this._iconSize = settings.get_double('shortcuts-panel-icon-size');
+
+        this._iconSize = this._settings.get_double('shortcuts-panel-icon-size');
         let iconParams = {setSizeManually: true, showLabel: false};
 
         if (appType == ApplicationType.APPLICATION) {
@@ -418,7 +419,7 @@ const ShortcutsPanel = new Lang.Class({
 
     _init: function (dock) {
         this._dock = dock;
-        this._mySettings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
+        this._settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
         this.actor = new St.BoxLayout({ style_class: 'workspace-thumbnails workspacestodock-shortcuts-panel', vertical: true, clip_to_allocation: true });
         this.actor._delegate = this;
 
@@ -449,24 +450,27 @@ const ShortcutsPanel = new Lang.Class({
         if (this._appStateChangedId > 0) this._appSystem.disconnect(this._appStateChangedId);
         if (this._favoritesChangedId > 0) this._appFavorites.disconnect(this._favoritesChangedId);
 
+        // Disconnect GSettings signals
+        this._settings.run_dispose();
+
         // Destroy main clutter actor
         this.actor.destroy();
     },
 
     _bindSettingsChanges: function() {
-        this._mySettings.connect('changed::shortcuts-panel-show-running', Lang.bind(this, function() {
+        this._settings.connect('changed::shortcuts-panel-show-running', Lang.bind(this, function() {
             this.refresh();
         }));
-        this._mySettings.connect('changed::shortcuts-panel-show-places', Lang.bind(this, function() {
+        this._settings.connect('changed::shortcuts-panel-show-places', Lang.bind(this, function() {
             this.refresh();
         }));
-        this._mySettings.connect('changed::shortcuts-panel-appsbutton-at-bottom', Lang.bind(this, function() {
+        this._settings.connect('changed::shortcuts-panel-appsbutton-at-bottom', Lang.bind(this, function() {
             this.refresh();
         }));
     },
 
     hideThumbnails: function() {
-        if (this._mySettings.get_boolean('shortcuts-panel-popupmenu-hide-thumbnails')) {
+        if (this._settings.get_boolean('shortcuts-panel-popupmenu-hide-thumbnails')) {
             this._dock._thumbnailsBox.actor.opacity = 0;
             this.actor.remove_style_class_name('workspacestodock-shortcuts-panel');
             this.actor.add_style_class_name('workspacestodock-shortcuts-panel-popupmenu');
@@ -478,7 +482,7 @@ const ShortcutsPanel = new Lang.Class({
     },
 
     showThumbnails: function() {
-        if (this._mySettings.get_boolean('shortcuts-panel-popupmenu-hide-thumbnails')) {
+        if (this._settings.get_boolean('shortcuts-panel-popupmenu-hide-thumbnails')) {
             this._dock._thumbnailsBox.actor.opacity = 255;
             this.actor.remove_style_class_name('workspacestodock-shortcuts-panel-popupmenu');
             this.actor.add_style_class_name('workspacestodock-shortcuts-panel');
@@ -505,13 +509,13 @@ const ShortcutsPanel = new Lang.Class({
         this._updateFavoriteApps();
 
         // Add Running Apps Box
-        if (this._mySettings.get_boolean('shortcuts-panel-show-running')) {
+        if (this._settings.get_boolean('shortcuts-panel-show-running')) {
             this._runningAppsBox = new St.BoxLayout({ vertical: true, style_class: 'workspacestodock-shortcuts-panel workspacestodock-shortcuts-panel-running' });
             this.actor.add_actor(this._runningAppsBox);
             this._updateRunningApps();
         }
 
-        if (this._mySettings.get_boolean('shortcuts-panel-show-places')) {
+        if (this._settings.get_boolean('shortcuts-panel-show-places')) {
             let separator = new Separator.HorizontalSeparator({ style_class: 'popup-separator-menu-item workspacestodock-shortcut-panel-separator' });
             this.actor.add(separator.actor, { expand: false });
 
@@ -532,7 +536,7 @@ const ShortcutsPanel = new Lang.Class({
 
         // Add Apps Button to top or bottom of shortcuts panel
         let shortcutButton = new ShortcutButton(null, ApplicationType.APPSBUTTON);
-        if (this._mySettings.get_boolean('shortcuts-panel-appsbutton-at-bottom')) {
+        if (this._settings.get_boolean('shortcuts-panel-appsbutton-at-bottom')) {
             let filler = new Separator.HorizontalSeparator({ style_class: 'popup-separator-menu-item workspacestodock-shortcut-panel-filler' });
             this.actor.add(filler.actor, { expand: true });
             this.actor.add_actor(shortcutButton.actor);
