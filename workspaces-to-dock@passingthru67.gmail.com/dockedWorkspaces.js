@@ -217,10 +217,6 @@ dockedWorkspaces.prototype = {
                 if (_DEBUG_) global.log("dockeWorkspaces: init - DashToDock extension is installed and enabled");
                 DashToDock = extension.imports.extension;
                 if (DashToDock && DashToDock.dock) {
-                    // // Lower the dash-to-dock below the screenShieldGroup
-                    // if (Main.layoutManager.uiGroup.contains(Main.layoutManager.screenShieldGroup))
-                    //     Main.layoutManager.uiGroup.set_child_below_sibling(DashToDock.dock.actor, Main.layoutManager.screenShieldGroup);
-
                     // Connect DashToDock hover signal
                     this._signalHandler.pushWithLabel(
                         'DashToDockHoverSignal',
@@ -806,10 +802,6 @@ dockedWorkspaces.prototype = {
             if (extension.state == ExtensionSystem.ExtensionState.ENABLED) {
                 DashToDock = extension.imports.extension;
                 if (DashToDock && DashToDock.dock) {
-                    // // Lower the dash-to-dock below the screenShieldGroup
-                    // if (Main.layoutManager.uiGroup.contains(Main.layoutManager.screenShieldGroup))
-                    //     Main.layoutManager.uiGroup.set_child_below_sibling(DashToDock.dock.actor, Main.layoutManager.screenShieldGroup);
-
                     // Connect DashToDock hover signal
                     this._signalHandler.pushWithLabel(
                         'DashToDockHoverSignal',
