@@ -181,6 +181,9 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
+**version 24 for Gnome 3.14 (October 2, 2014)**
+- Bug fixes
+
 **version 23 for Gnome 3.14 (September 27, 2014)**
 - Added experimental favorites panel
 - Reworked implementation of dock shift when message tray visible
