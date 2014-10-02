@@ -1269,7 +1269,7 @@ dockedWorkspaces.prototype = {
             y = this._monitor.y + Main.panel.actor.height + Main.overview._searchEntryBin.y + Main.overview._searchEntryBin.height;
             height = this._monitor.height - (Main.overview._searchEntryBin.y + Main.overview._searchEntryBin.height + Main.messageTray.actor.height);
         }
-	    this.yPosition = y;
+        this.yPosition = y;
 
         //// skip updating if size is same
         //if ((this.actor.y == y) && (this.actor.width == this._thumbnailsBox.actor.width + DOCK_PADDING) && (this.actor.height == height)) {
@@ -1396,37 +1396,37 @@ dockedWorkspaces.prototype = {
     },
 
     _onMessageTrayShowing: function() {
-    	if ((this._settings.get_boolean('ignore-message-tray') && !this._autohideStatus) || this._settings.get_boolean('dock-fixed')) {
-    		// Temporary move the dock below the top panel so that it slide below it.
-    		//this.actor.lower(Main.layoutManager.panelBox);
+        if ((this._settings.get_boolean('ignore-message-tray') && !this._autohideStatus) || this._settings.get_boolean('dock-fixed')) {
+            // Temporary move the dock below the top panel so that it slide below it.
+            //this.actor.lower(Main.layoutManager.panelBox);
 
-    		// Remove other tweens that could mess with the state machine
-    		Tweener.removeTweens(this.actor);
-    		Tweener.addTween(this.actor, {
-    		      y: this.yPosition - Main.messageTray.actor.height,
-    		      time: MessageTray.ANIMATION_TIME,
-    		      transition: 'easeOutQuad'
-    		    });
-    	}
+            // Remove other tweens that could mess with the state machine
+            Tweener.removeTweens(this.actor);
+            Tweener.addTween(this.actor, {
+                  y: this.yPosition - Main.messageTray.actor.height,
+                  time: MessageTray.ANIMATION_TIME,
+                  transition: 'easeOutQuad'
+                });
+        }
 
         this._messageTrayShowing = true;
         this._updateBarrier();
     },
 
     _onMessageTrayHiding: function() {
-    	if ((this._settings.get_boolean('ignore-message-tray') && !this._autohideStatus) || this._settings.get_boolean('dock-fixed')) {
-    		// Remove other tweens that could mess with the state machine
-    		Tweener.removeTweens(this.actor);
-    		Tweener.addTween(this.actor, {
-    		      y: this.yPosition,
-    		      time: MessageTray.ANIMATION_TIME,
-    		      transition: 'easeOutQuad',
-    		      onComplete: Lang.bind(this, function(){
-    		          // Reset desired dock stack order (on top to accept dnd of app icons)
-    		          //this.actor.raise(global.top_window_group);
-    		        })
-    		    });
-    	}
+        if ((this._settings.get_boolean('ignore-message-tray') && !this._autohideStatus) || this._settings.get_boolean('dock-fixed')) {
+            // Remove other tweens that could mess with the state machine
+            Tweener.removeTweens(this.actor);
+            Tweener.addTween(this.actor, {
+                  y: this.yPosition,
+                  time: MessageTray.ANIMATION_TIME,
+                  transition: 'easeOutQuad',
+                  onComplete: Lang.bind(this, function(){
+                      // Reset desired dock stack order (on top to accept dnd of app icons)
+                      //this.actor.raise(global.top_window_group);
+                    })
+                });
+        }
 
         this._messageTrayShowing = false;
         this._updateBarrier();
