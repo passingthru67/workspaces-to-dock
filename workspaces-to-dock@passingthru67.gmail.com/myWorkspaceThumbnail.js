@@ -599,7 +599,7 @@ const myThumbnailsBox = new Lang.Class({
                         // Continue if dock is showing or shown
                         if (this._dock._animStatus.hidden() || this._dock._animStatus.hiding()) {
                             // STOP. Lets not continue but pass the click event on to dock handler
-                            return false;
+                            return Clutter.EVENT_PROPAGATE;
                         }
                     }
                 }
@@ -809,14 +809,12 @@ const myThumbnailsBox = new Lang.Class({
         if (this._thumbnails.length == 0) // not visible
             return;
 
-        let themeNode, contentBox;
-        themeNode = this.actor.get_theme_node();
+        let themeNode = this.actor.get_theme_node();
 
         let portholeWidth = this._porthole.width;
         let portholeHeight = this._porthole.height;
 
-        let spacing;
-        spacing = themeNode.get_length('spacing');
+        let spacing = themeNode.get_length('spacing');
 
         // passingthru67 - Caption area below thumbnail used to display thumbnail labels
         let captionHeight = 0;
@@ -846,8 +844,7 @@ const myThumbnailsBox = new Lang.Class({
             totalSpacing = (nWorkspaces - 1) * spacing;
         }
 
-        let avail;
-        avail = (box.y2 - box.y1) - totalSpacing;
+        let avail = (box.y2 - box.y1) - totalSpacing;
 
         let newScale = (avail / nWorkspaces) / portholeHeight;
         if (this._mySettings.get_boolean('customize-thumbnail')) {
@@ -881,8 +878,6 @@ const myThumbnailsBox = new Lang.Class({
         else
             slideOffset = thumbnailWidth + themeNode.get_padding(St.Side.RIGHT);
 
-        let childBox = new Clutter.ActorBox();
-
         let indicatorY1 = this._indicatorY;
         let indicatorY2;
         // when not animating, the workspace position overrides this._indicatorY
@@ -902,8 +897,7 @@ const myThumbnailsBox = new Lang.Class({
             }));
         }
 
-        // Passingthru67 - GS 3.10.1 moved this here but already defined above
-        //let childBox = new Clutter.ActorBox();
+        let childBox = new Clutter.ActorBox();
 
         for (let i = 0; i < this._thumbnails.length; i++) {
             let thumbnail = this._thumbnails[i];
