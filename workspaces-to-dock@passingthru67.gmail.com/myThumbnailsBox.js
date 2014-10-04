@@ -1041,12 +1041,12 @@ const myWorkspaceThumbnail = new Lang.Class({
         let winCount = 0;
         let winMax = 4;
 
-        if (this._wsWindowAppsBox) {
-            for (let i = 0; i < this._wsWindowApps.length; i++) {
-                let buttonActor = this._wsWindowAppsBox.get_child_at_index(i);
-                if (buttonActor.visible) {
-                    winCount ++;
-                }
+        for (let i = 0; i < this._wsWindowApps.length; i++) {
+            let metaWin = this._wsWindowApps[i].metaWin;
+            if ((this._isMyWindow(metaWin, true) && this._isOverviewWindow(metaWin, true)) ||
+                (this._isMyWindow(metaWin, true) && this._isMinimizedWindow(metaWin, true)) ||
+                this._showWindowAppOnThisWorkspace(metaWin, true)) {
+                winCount ++;
             }
         }
 
