@@ -363,11 +363,20 @@ dockedWorkspaces.prototype = {
         // NOTE2: also needed when dock-fixed is enabled/disabled to adjust for workspace area change
         GSFunctions['LayoutManager_updateRegions'] = Layout.LayoutManager.prototype._updateRegions;
         Layout.LayoutManager.prototype._updateRegions = function() {
+            let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
             let ret = GSFunctions['LayoutManager_updateRegions'].call(this);
-            //this.emit('regions-updated');
-            if (self._updateRegion) {
-                self._refreshThumbnails();
+            // SANITY CHECK:
+            //if (_DEBUG_) global.log("dockedWorkspaces: LAYOUTMANAGER UPDATEREGIONS - workArea W= "+workArea.width + "   H= "+workArea.height+ "  CURRENT W="+self._workAreaWidth+"   H="+self._workAreaHeight+"    FORCED?="+self._updateRegion);
+            //TODO: Add this.emit('regions-updated') signal instead of code below?
+            if (workArea.width != self._workAreaWidth || workArea.height != self._workAreaHeight || self._updateRegion) {
+                if (_DEBUG_) global.log("dockedWorkspaces: UPDATEREGIONS - workArea changed or update forced");
+                self._workAreaWidth = workArea.width;
+                self._workAreaHeight = workArea.height;
                 self._updateRegion = false;
+                self._refreshThumbnails();
+                if (self._animStatus.shown() || self._animStatus.showing()) {
+                    self._workAreaChanged = true;
+                }
             }
             return ret;
         };
@@ -929,6 +938,7 @@ dockedWorkspaces.prototype = {
         if (_DEBUG_) global.log("dockedWorkspaces: _animateIN - _thumbnailsBox width = "+this._thumbnailsBox.actor.width);
         if (_DEBUG_) global.log("dockedWorkspaces: _animateIN - actor width = "+this.actor.width);
 
+        this._workAreaChanged = false;
         if (final_position !== this.actor.x) {
             this._animStatus.queue(true);
             Tweener.addTween(this.actor, {
@@ -956,11 +966,13 @@ dockedWorkspaces.prototype = {
                     // gives users an opportunity to hover over the dock
                     this._removeBarrierTimeoutId = Mainloop.timeout_add(100, Lang.bind(this, this._removeBarrier));
 
-                    // Force thumbnails refresh on animation complete in case dock hidden when dock-fixed enabled.
-                    if (this._settings.get_boolean('dock-fixed')) {
-                        this._updateRegion = true;
-                    }
                     if (_DEBUG_) global.log("dockedWorkspaces: _animateIN onComplete");
+                    if (this._workAreaChanged && !this._settings.get_boolean('dock-fixed')) {
+                        if (_DEBUG_) global.log("dockedWorkspaces: RE-ANIMATEIN");
+                        this._workAreaChanged = false;
+                        this._removeAnimations();
+                        this._animateIn(this._settings.get_double('animation-time'), 0);
+                    }
                 })
             });
         } else {
@@ -1084,6 +1096,11 @@ dockedWorkspaces.prototype = {
         for (let i = 0; i < this._thumbnailsBox._thumbnails.length; i++) {
             let thumbnail = this._thumbnailsBox._thumbnails[i];
             thumbnail.setWindowClonesReactiveState(true);
+        }
+
+        if (!this._workAreaHeight || !this._workAreaWidth) {
+            this._updateRegion = true;
+            Main.layoutManager._updateRegions();
         }
     },
 
