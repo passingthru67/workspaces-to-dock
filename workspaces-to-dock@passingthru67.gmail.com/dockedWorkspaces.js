@@ -340,6 +340,19 @@ dockedWorkspaces.prototype = {
             WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = this._settings.get_double('thumbnail-size');
         };
 
+        // Override the LayoutManager to reset the _updateRegionIdle flag after the dock is initialized.
+        // This forces a region update at startup or when returning from the lock screen.
+        GSFunctions['LayoutManager_queueUpdateRegions'] = Layout.LayoutManager.prototype._queueUpdateRegions;
+        Layout.LayoutManager.prototype._queueUpdateRegions = function() {
+            if (self._overrideComplete && this._updateRegionIdle) {
+                Mainloop.source_remove(this._updateRegionIdle);
+                delete this._updateRegionIdle;
+                delete self._overrideComplete;
+            }
+            let ret = GSFunctions['LayoutManager_queueUpdateRegions'].call(this);
+            return ret;
+        };
+
         // Extend LayoutManager _updateRegions function to destroy/create workspace thumbnails when completed.
         // NOTE1: needed because 'monitors-changed' signal doesn't wait for queued regions to update.
         // We need to wait so that the screen workspace workarea is adjusted before creating workspace thumbnails.
@@ -350,20 +363,22 @@ dockedWorkspaces.prototype = {
             let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
             let ret = GSFunctions['LayoutManager_updateRegions'].call(this);
             // SANITY CHECK:
-            //if (_DEBUG_) global.log("dockedWorkspaces: LAYOUTMANAGER UPDATEREGIONS - workArea W= "+workArea.width + "   H= "+workArea.height+ "  CURRENT W="+self._workAreaWidth+"   H="+self._workAreaHeight+"    FORCED?="+self._updateRegion);
-            //TODO: Add this.emit('regions-updated') signal instead of code below?
+            // if (_DEBUG_) global.log("dockedWorkspaces: LAYOUTMANAGER UPDATE - workArea W= "+workArea.width + "   H= "+workArea.height+ "  CURRENT W="+self._workAreaWidth+"   H="+self._workAreaHeight+"    FORCED?="+self._updateRegion);
             if (workArea.width != self._workAreaWidth || workArea.height != self._workAreaHeight || self._updateRegion) {
-                if (_DEBUG_) global.log("dockedWorkspaces: UPDATEREGIONS - workArea changed or update forced");
-                self._workAreaWidth = workArea.width;
-                self._workAreaHeight = workArea.height;
-                self._updateRegion = false;
-                self._refreshThumbnails();
-                if (self._animStatus.shown() || self._animStatus.showing()) {
-                    self._workAreaChanged = true;
+                if (self._animStatus.showing()) {
+                    if (_DEBUG_) global.log("dockedWorkspaces: UPDATEREGIONS - animation showing though");
+                    self._workAreaChangedDuringAnimation = true;
+                } else {
+                    if (_DEBUG_) global.log("dockedWorkspaces: UPDATEREGIONS - workArea changed or update forced");
+                    self._updateRegion = false;
+                    self._refreshThumbnails();
                 }
             }
             return ret;
         };
+
+        this._overrideComplete = true;
+        if (_DEBUG_) global.log("OVERRIDE GNOME SHELL");
     },
 
     // function called during destroy to restore gnome shell 3.4/3.6/3.8
@@ -382,7 +397,10 @@ dockedWorkspaces.prototype = {
         WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = GSFunctions['WorkspaceThumbnail_MAX_THUMBNAIL_SCALE'];
 
         // Restore normal LayoutManager _updateRegions function
+        Layout.LayoutManager.prototype._queueUpdateRegions = GSFunctions['LayoutManager_queueUpdateRegions'];
         Layout.LayoutManager.prototype._updateRegions = GSFunctions['LayoutManager_updateRegions'];
+
+        if (_DEBUG_) global.log("RESTORE GNOME SHELL");
     },
 
     // handler for when workspace is restacked
@@ -880,7 +898,7 @@ dockedWorkspaces.prototype = {
         if (_DEBUG_) global.log("dockedWorkspaces: _animateIN - _thumbnailsBox width = "+this._thumbnailsBox.actor.width);
         if (_DEBUG_) global.log("dockedWorkspaces: _animateIN - actor width = "+this.actor.width);
 
-        this._workAreaChanged = false;
+        this._workAreaChangedDuringAnimation = false;
         if (final_position !== this.actor.x) {
             this._animStatus.queue(true);
             Tweener.addTween(this.actor, {
@@ -909,9 +927,11 @@ dockedWorkspaces.prototype = {
                     this._removeBarrierTimeoutId = Mainloop.timeout_add(100, Lang.bind(this, this._removeBarrier));
 
                     if (_DEBUG_) global.log("dockedWorkspaces: _animateIN onComplete");
-                    if (this._workAreaChanged && !this._settings.get_boolean('dock-fixed')) {
+                    if (this._workAreaChangedDuringAnimation && !this._settings.get_boolean('dock-fixed')) {
                         if (_DEBUG_) global.log("dockedWorkspaces: RE-ANIMATEIN");
-                        this._workAreaChanged = false;
+                        this._workAreaChangedDuringAnimation = false;
+                        this._updateRegion = false;
+                        this._refreshThumbnails();
                         this._removeAnimations();
                         this._animateIn(this._settings.get_double('animation-time'), 0);
                     }
@@ -1381,6 +1401,9 @@ dockedWorkspaces.prototype = {
 
     _refreshThumbnails: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _refreshThumbnails");
+        let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
+        this._workAreaWidth = workArea.width;
+        this._workAreaHeight = workArea.height;
         this._thumbnailsBox._destroyThumbnails();
         this._thumbnailsBox._createThumbnails();
     },
