@@ -361,7 +361,7 @@ dockedWorkspaces.prototype = {
         GSFunctions['LayoutManager_queueUpdateRegions'] = Layout.LayoutManager.prototype._queueUpdateRegions;
         Layout.LayoutManager.prototype._queueUpdateRegions = function() {
             if (self._overrideComplete && this._updateRegionIdle) {
-                Mainloop.source_remove(this._updateRegionIdle);
+                Meta.later_remove(this._updateRegionIdle);
                 delete this._updateRegionIdle;
                 delete self._overrideComplete;
             }
