@@ -3,7 +3,7 @@ workspaces-to-dock
 
 A Gnome Shell extension that transforms the workspaces of the overview mode into an intellihide dock.  The dock is positioned and sized to maintain tight integration with the Gnome Shell.
 
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Screenshot.png)
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/gnome-3.12/Screenshot.png)
 
 
 Installation:
@@ -27,7 +27,7 @@ The extension can be configured using `gnome-shell-extension-prefs`. No shell re
 Behavior Settings:
 ------------------
 
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Prefs-Behavior.png)
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/gnome-3.12/Prefs-Behavior.png)
 
 - **Visibility:**
 
@@ -65,7 +65,7 @@ Behavior Settings:
 Appearance Settings:
 --------------------
 
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Prefs-Appearance.png)
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/gnome-3.12/Prefs-Appearance.png)
 
 - **Background:**
 
@@ -97,13 +97,13 @@ Appearance Settings:
 Additional Settings:
 --------------------
 
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Prefs-Additional.png)
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/gnome-3.12/Prefs-Additional.png)
 
 - **Workspace Captions:**
 
     **Add captions to workspace thumbnails** - Adds captions to the workspace thumbnails. Right clicking on the workspace caption displays a popup menu with options to close applications or show the extension preferences dialog. (See image below)
 
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Popup.png)
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/gnome-3.12/Popup.png)
 
 - **Caption Items:**
 
@@ -118,7 +118,7 @@ Additional Settings:
     **Show a spacer/filler** - When enabled, a spacer is inserted in the caption. It can be expanded to take up available space or its position can be adjusted using the arrow buttons.
 
 Below are examples of the workspace (thumbnail) caption in various configurations
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Thumbnails.png)
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/gnome-3.12/Thumbnails.png)
 
 - **Custom Actions:**
 
@@ -181,6 +181,20 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
+**version 26 for Gnome 3.12 (October 8, 2014)**
+- Bug fixes
+
+**version 25 for Gnome 3.10 (October 4, 2014)**
+- Bug fixes
+
+**version 24 for Gnome 3.14 (October 2, 2014)**
+- Bug fixes
+
+**version 23 for Gnome 3.14 (September 27, 2014)**
+- Added experimental favorites panel
+- Reworked implementation of dock shift when message tray visible
+- Refactored code for legibility
+
 **version 22 for Gnome 3.12 (May 20, 2014)**
 - Bug fixes
 
