@@ -1,185 +1,292 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
-"POT-Creation-Date: \n"
+"Project-Id-Version: Workspaces-To-Dock\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-10-27 21:00+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jonatan Zeidler <jonatan_zeidler@gmx.de>\n"
-"Language-Team: \n"
+"Language-Team: German <jonatan_zeidler@gmx.de>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=iso-8859-1\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 1.5.4\n"
+"Language: de\n"
+"X-Poedit-SourceCharset: UTF-8\n"
 
-#: extension.js, dockedWorkspaces.js
-msgid "Unknown version number"
-msgstr "Unbekannte Versionsnummer"
-
-#: prefs.js
+#: prefs.js:47
 msgid "Behavior"
 msgstr "Verhalten"
 
+#: prefs.js:56
 msgid "<b>Visibility</b>"
 msgstr "<b>Sichtbarkeit</b>"
 
+#: prefs.js:67
 msgid "Dock is fixed and always visible"
 msgstr "Die Dock hat eine feste Position und ist immer sichtbar"
 
+#: prefs.js:105
 msgid "Animation time [ms]"
 msgstr "Animationsdauer [ms]"
 
+#: prefs.js:126
 msgid "Show delay [ms]"
-msgstr "Einblendeverzˆgerung [ms]"
+msgstr "Einblendeverz√∂gerung [ms]"
 
+#: prefs.js:145
 msgid "Hide delay [ms]"
-msgstr "Ausblendeverzˆgerung [ms]"
+msgstr "Ausblendeverz√∂gerung [ms]"
 
+#: prefs.js:164
 msgid "Leave the dock edge visible when slid out"
 msgstr "Dock-Kante sichtbar lassen beim Ausblenden"
 
-msgid "Autohide : Show the dock on mouse hover"
-msgstr "Autoverstecken"
+#: prefs.js:174
+msgid "Disable scroll to prevent workspace switching when slid out"
+msgstr ""
+"Scrollen deaktivieren, um versehentliches Wechseln der Arbeitsfl√§che zu "
+"verhindern"
 
+#: prefs.js:203
+msgid "<b>Autohide</b> : Show the dock on mouse hover"
+msgstr "<b>Autoverstecken</b>: Dock bei Mausber√ºhrung anzeigen"
+
+#: prefs.js:220
 msgid "Require click to show the dock when window maximized"
 msgstr ""
-"Mit der Maus dr¸berfahren und klicken, um Dock anzuzeigen, wenn Fenster "
+"Mit der Maus dr√ºberfahren und klicken, um Dock anzuzeigen, wenn Fenster "
 "maximiert ist"
 
-msgid "Require pressure to show the dock (GS3.8+)"
-msgstr "Das Dock nur bei Druck anzeigen (GS3.8+)"
+#: prefs.js:230
+msgid "Require pressure to show the dock"
+msgstr "Dock nur anzeigen bei Druck durch die Maus "
 
-msgid "Pressure threshold [px] (GS3.8+)"
-msgstr "Druckschwelle [px] (GS3.8+)"
+#: prefs.js:240
+msgid "Pressure threshold [px]"
+msgstr "Druckschwelle [px]"
 
-msgid "Intellihide : Show the dock unless a window overlaps"
-msgstr "Intelligentes Verstecken"
+#: prefs.js:288
+msgid "<b>Intellihide</b> : Show the dock unless a window overlaps"
+msgstr ""
+"<b>Intelligentes Verstecken</b>: Dock anzeigen, solange kein Fenster im Weg "
+"ist"
 
+#: prefs.js:305
 msgid "Dodge all windows"
 msgstr "Allen Fenstern ausweichen"
 
+#: prefs.js:313
 msgid "Dodge all instances of focused app"
 msgstr "Allen Fenstern des fokusierten Programms ausweichen"
 
+#: prefs.js:322
 msgid "Dodge only top instance of focused app"
 msgstr "Nur dem aktuell fokusiertem Fenster ausweichen"
 
-msgid "Toggle the dock with a keyboard shortcut"
-msgstr "Das Dock mit einem Tastenk¸rzel ˆffnen"
+#: prefs.js:346
+msgid "Ignore top panel menus"
+msgstr "Men√ºs der oberen Leiste ignorieren"
 
-msgid "Invalid accelerator. Try F12, <Super>space, <Ctrl><Alt><Shift>w, etc."
+#: prefs.js:356
+msgid "Ignore message tray menus + shift dock upward when tray is shown"
 msgstr ""
-"Ung¸ltige Unterst¸tzungstaste. Mˆglich sind F12, <Super>Leertaste, "
-"<Strg><Alt><Shift>w, etc."
+"Men√ºs der Benachrichtigungsleiste ignorieren, aber Dock bei sichtbarer "
+"Leiste nach oben schieben"
 
-msgid "Appearance"
-msgstr "Erscheinungsbild"
-
-msgid "<b>Background</b>"
-msgstr "<b>Hintergrund</b>"
-
-msgid "Customize the dock background opacity"
-msgstr "Dock-Hintergrundtransparenz anpassen"
-
-msgid "Opacity"
-msgstr "Transparenz"
-
-msgid "Only when the dock is shown by autohide"
-msgstr "Nur im Autoverstecken-Modus"
-
-msgid "<b>Position</b>"
-msgstr "<b>Position</b>"
-
-msgid "Show the dock on the following monitor (if attached)"
-msgstr "Zeige Dock auf folgendem Monitor (falls angeschlossen)"
-
-msgid "Primary (default)"
-msgstr "Hauptmonitor (Vorgabe)"
-
-msgid "1"
-msgstr "1"
-
-msgid "2"
-msgstr "2"
-
-msgid "3"
-msgstr "3"
-
-msgid "4"
-msgstr "4"
-
-msgid "<b>Height</b>"
-msgstr "<b>Hˆhe</b>"
-
-msgid "Extend the height of the dock to fill the screen"
-msgstr "Die Hˆhe auf die Bildschirmhˆhe ausdehnen"
-
-msgid "Top margin"
-msgstr "Oberer Rand"
-
-msgid "Bottom margin"
-msgstr "Unterer Rand"
-
-msgid "<b>Thumbnails</b>"
-msgstr "<b>Vorschaubilder</b>"
-
-msgid "Customize the workspace thumbnail size"
-msgstr "Die Bildgrˆﬂe der Arbeitsfl‰chenvorschau festlegen"
-
-msgid "Thumbnail size"
-msgstr "Vorschaubildgrˆﬂe"
-
-msgid "Additional"
-msgstr "Weitere"
-
-msgid "<b>Workspace Captions</b>"
-msgstr "<b>Arbeitsfl‰chenbeschriftungen</b>"
-
-msgid "Add captions to workspace thumbnails"
-msgstr "Beschriftung auf Arbeitsfl‰chenvorschau anzeigen"
-
-msgid "User theme supports workspaces-to-dock captions"
-msgstr "Nutzerthema unterst¸tzt workspaces-to-dock-Beschriftungen"
-
-msgid "Show workspace number"
-msgstr "Arbeitsfl‰chennummer"
-
-msgid "Show workspace name"
-msgstr "Arbeitsfl‰chennamen"
-
-msgid "Show workspace window count"
-msgstr "Fensteranzahl"
-
-msgid "Show workspace taskbar (apps)"
-msgstr "Zeige Arbeitsfl‰chen-Task-Leiste (Programmsymbole)"
-
-msgid "Show a spacer/filler"
-msgstr "Platzhalter"
-
-msgid "Use image"
-msgstr "Nutze Bild"
-
-msgid "Large icons"
-msgstr "Groﬂe Symbole"
-
-msgid "Expand"
-msgstr "Ausdehnen"
-
+#: prefs.js:393
 msgid "<b>Custom Actions</b>"
 msgstr "<b>Aktionen anpassen</b>"
 
+#: prefs.js:403
 msgid "Toggle Gnome Shell's overview mode with right click"
-msgstr "Mit Rechtsklick zur ‹bersicht wechseln"
+msgstr "Mit Rechtsklick zur √úbersicht wechseln"
 
+#: prefs.js:430
+msgid "Toggle the dock with a keyboard shortcut"
+msgstr "Das Dock mit einem Tastenk√ºrzel √∂ffnen"
+
+#: prefs.js:453
+msgid "Invalid accelerator. Try F12, <Super>space, <Ctrl><Alt><Shift>w, etc."
+msgstr ""
+"Ung√ºltige Unterst√ºtzungstaste. M√∂glich sind F12, <Super>Leertaste, "
+"<Strg><Alt><Shift>w, etc."
+
+#: prefs.js:505
+msgid "Appearance"
+msgstr "Erscheinungsbild"
+
+#: prefs.js:514
+msgid "<b>Background</b>"
+msgstr "<b>Hintergrund</b>"
+
+#: prefs.js:525
+msgid "Customize the dock background opacity"
+msgstr "Dock-Hintergrundtransparenz anpassen"
+
+#: prefs.js:539
+msgid "Opacity"
+msgstr "Transparenz"
+
+#: prefs.js:560
+msgid "Only when the dock is shown by autohide"
+msgstr "Nur im Autoverstecken-Modus"
+
+#: prefs.js:592
+msgid "<b>Position</b>"
+msgstr "<b>Position</b>"
+
+#: prefs.js:602
+msgid "Show the dock on the following monitor (if attached)"
+msgstr "Zeige Dock auf folgendem Monitor (falls angeschlossen)"
+
+#: prefs.js:604
+msgid "Primary (default)"
+msgstr "Hauptmonitor (Vorgabe)"
+
+#: prefs.js:605
+msgid "1"
+msgstr "1"
+
+#: prefs.js:606
+msgid "2"
+msgstr "2"
+
+#: prefs.js:607
+msgid "3"
+msgstr "3"
+
+#: prefs.js:608
+msgid "4"
+msgstr "4"
+
+#: prefs.js:636
+msgid "<b>Height</b>"
+msgstr "<b>H√∂he</b>"
+
+#: prefs.js:647
+msgid "Extend the height of the dock to fill the screen"
+msgstr "Die H√∂he auf die Bildschirmh√∂he ausdehnen"
+
+#: prefs.js:661
+msgid "Top margin"
+msgstr "Oberer Rand"
+
+#: prefs.js:684
+msgid "Bottom margin"
+msgstr "Unterer Rand"
+
+#: prefs.js:733
+msgid "<b>Thumbnails</b>"
+msgstr "<b>Vorschaubilder</b>"
+
+#: prefs.js:744
+msgid "Customize the workspace thumbnail size"
+msgstr "Die Bildgr√∂√üe der Arbeitsfl√§chenvorschau festlegen"
+
+#: prefs.js:758
+msgid "Thumbnail size"
+msgstr "Vorschaubildgr√∂√üe"
+
+#: prefs.js:829
+msgid "Additional"
+msgstr "Weitere"
+
+#: prefs.js:838
+msgid "<b>Workspace Captions</b>"
+msgstr "<b>Arbeitsfl√§chenbeschriftungen</b>"
+
+#: prefs.js:858
+msgid "Add captions to workspace thumbnails"
+msgstr "Beschriftung auf Arbeitsfl√§chenvorschau anzeigen"
+
+#: prefs.js:874
+msgid "Caption height [px]"
+msgstr "H√∂he der Beschriftung [px]"
+
+#: prefs.js:895
+msgid "Taskbar icon size [px]"
+msgstr "Gr√∂√üe der Programmsymbole [px]"
+
+#: prefs.js:917
+msgid "Caption menu tasklist icon size [px]"
+msgstr "Symbolgr√∂√üe der Men√ºbeschriftungen der Anwendungenliste [px]"
+
+#: prefs.js:939
+msgid "Show workspace number"
+msgstr "Arbeitsfl√§chennummer"
+
+#: prefs.js:951 prefs.js:992 prefs.js:1042 prefs.js:1083 prefs.js:1124
+msgid "Expand"
+msgstr "Ausdehnen"
+
+#: prefs.js:979
+msgid "Show workspace name"
+msgstr "Arbeitsfl√§chennamen"
+
+#: prefs.js:1019
+msgid "Show workspace window count"
+msgstr "Fensteranzahl"
+
+#: prefs.js:1033
+msgid "Use image"
+msgstr "Nutze Bild"
+
+#: prefs.js:1070
+msgid "Show workspace taskbar (apps)"
+msgstr "Zeige Arbeitsfl√§chen-Task-Leiste (Programmsymbole)"
+
+#: prefs.js:1110
+msgid "Show a spacer/filler"
+msgstr "Platzhalter"
+
+#: prefs.js:1246
 msgid "<b>Dash Integration</b>"
 msgstr "<b>Dash-Integration</b>"
 
+#: prefs.js:1256
 msgid "Show the dock when hovering over Dash-To-Dock extension"
 msgstr ""
-"Zeige Arbeitsfl‰chen, wenn sich die Maus ¸ber der Dash-To-Dock-Erweiterung "
+"Zeige Arbeitsfl√§chen, wenn sich die Maus √ºber der Dash-To-Dock-Erweiterung "
 "befindet"
 
-#: myThumbnailsBox.js
-msgid "Close all applications"
-msgstr "Alle Anwendungen schlieﬂen"
+#: prefs.js:1282
+msgid "Show a favorites shortcut panel (experimental)"
+msgstr "Favoritenleiste anzeigen (experimentell)"
 
-msgid "Extension preferences"
-msgstr "Erweiterungseinstellungen"
+#: prefs.js:1296
+msgid "Shortcuts panel icon size [px]"
+msgstr "Symbolgr√∂√üe der Favoritenleiste [px]"
+
+#: prefs.js:1317
+msgid "Show running applications"
+msgstr "Laufende Anwendungen anzeigen"
+
+#: prefs.js:1327
+msgid "Show places"
+msgstr "Orte anzeigen"
+
+#: prefs.js:1337
+msgid "Show the applications button at the bottom"
+msgstr "Anwendungenknopf unten anzeigen"
+
+#: prefs.js:1347
+msgid "Show the shortcut button popup menu arrow at the top"
+msgstr "Favoritenknopf-Aufklappmen√º-Pfeil oben anzeigen"
+
+#: prefs.js:1357
+msgid "Hide thumbnails when the shortcut button popup menu is shown"
+msgstr ""
+"Vorschaubilder ausblenden, wenn das Favoritenknopf-Aufklappmen√º angezeigt "
+"wird"
+
+#~ msgid "Unknown version number"
+#~ msgstr "Unbekannte Versionsnummer"
+
+#~ msgid "User theme supports workspaces-to-dock captions"
+#~ msgstr "Nutzerthema unterst√ºtzt workspaces-to-dock-Beschriftungen"
+
+#~ msgid "Large icons"
+#~ msgstr "Gro√üe Symbole"
+
+#~ msgid "Extension preferences"
+#~ msgstr "Erweiterungseinstellungen"
