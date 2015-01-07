@@ -370,7 +370,9 @@ const DockedWorkspaces = new Lang.Class({
                         dashMonitorIndex = this._primaryIndex;
                     }
                     if (i == dashMonitorIndex) {
-                        dashWidth = DashToDock.dock._box.width + spacing;
+                        if( DashToDock.dock._settings.get_enum('dock-position') == St.Side.LEFT ||
+                            DashToDock.dock._settings.get_enum('dock-position') == St.Side.RIGHT )
+                                dashWidth = DashToDock.dock._box.width + spacing;
                     }
                 } else {
                     if (i == this._primaryIndex) {
