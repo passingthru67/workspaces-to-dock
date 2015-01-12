@@ -41,6 +41,7 @@ const MyWorkspaceThumbnail = Me.imports.myWorkspaceThumbnail;
 const ShortcutsPanel = Me.imports.shortcutsPanel;
 
 const DashToDock_UUID = "dash-to-dock@micxgx.gmail.com";
+let DashToDockExtension = null;
 let DashToDock = null;
 
 const DOCK_PADDING = 1;
@@ -185,12 +186,16 @@ const DockedWorkspaces = new Lang.Class({
 
         // Connect DashToDock hover signal if the extension is already loaded and enabled
         this._hoveringDash = false;
-        let extension = ExtensionUtils.extensions[DashToDock_UUID];
-        if (extension) {
-            if (extension.state == ExtensionSystem.ExtensionState.ENABLED) {
+        DashToDockExtension = ExtensionUtils.extensions[DashToDock_UUID];
+        if (DashToDockExtension) {
+            if (DashToDockExtension.state == ExtensionSystem.ExtensionState.ENABLED) {
                 if (_DEBUG_) global.log("dockeWorkspaces: init - DashToDock extension is installed and enabled");
-                DashToDock = extension.imports.extension;
+                DashToDock = DashToDockExtension.imports.extension;
                 if (DashToDock && DashToDock.dock) {
+                    var keys = DashToDock.dock._settings.list_keys();
+                    if (keys.indexOf('dock-position') > -1) {
+                        DashToDockExtension.hasDockPositionKey = true;
+                    }
                     // Connect DashToDock hover signal
                     this._signalHandler.pushWithLabel(
                         'DashToDockHoverSignal',
@@ -370,9 +375,14 @@ const DockedWorkspaces = new Lang.Class({
                         dashMonitorIndex = this._primaryIndex;
                     }
                     if (i == dashMonitorIndex) {
-                        if( DashToDock.dock._settings.get_enum('dock-position') == St.Side.LEFT ||
-                            DashToDock.dock._settings.get_enum('dock-position') == St.Side.RIGHT )
-                                dashWidth = DashToDock.dock._box.width + spacing;
+                        if (DashToDockExtension.hasDockPositionKey)  {
+                            if (DashToDock.dock._settings.get_enum('dock-position') == St.Side.LEFT ||
+                                DashToDock.dock._settings.get_enum('dock-position') == St.Side.RIGHT) {
+                                    dashWidth = DashToDock.dock._box.width + spacing;
+                            }
+                        } else {
+                            dashWidth = DashToDock.dock._box.width + spacing;
+                        }
                     }
                 } else {
                     if (i == this._primaryIndex) {
@@ -809,9 +819,14 @@ const DockedWorkspaces = new Lang.Class({
         // Only looking for DashToDock state changes
         if (extension.uuid == DashToDock_UUID) {
             if (_DEBUG_) global.log("dockedWorkspaces: _onExtensionSystemStateChanged for "+extension.uuid+" state= "+extension.state);
-            if (extension.state == ExtensionSystem.ExtensionState.ENABLED) {
-                DashToDock = extension.imports.extension;
+            DashToDockExtension = extension;
+            if (DashToDockExtension.state == ExtensionSystem.ExtensionState.ENABLED) {
+                DashToDock = DashToDockExtension.imports.extension;
                 if (DashToDock && DashToDock.dock) {
+                    var keys = DashToDock.dock._settings.list_keys();
+                    if (keys.indexOf('dock-position') > -1) {
+                        DashToDockExtension.hasDockPositionKey = true;
+                    }
                     // Connect DashToDock hover signal
                     this._signalHandler.pushWithLabel(
                         'DashToDockHoverSignal',
