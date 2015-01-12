@@ -886,14 +886,19 @@ const DockedWorkspaces = new Lang.Class({
         if (direction) {
             let ws = activeWs.get_neighbor(direction);
 
-            // NOTE: removed until a workaround is found to prevent the popup from grabbing focus.
-            // if (Main.wm._workspaceSwitcherPopup == null) {
-            //     Main.wm._workspaceSwitcherPopup = new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup();
-            //     Main.wm._workspaceSwitcherPopup.connect('destroy', function() {
-            //         Main.wm._workspaceSwitcherPopup = null;
-            //     });
-            // }
-            // Main.wm._workspaceSwitcherPopup.display(direction, ws.index());
+            if (Main.wm._workspaceSwitcherPopup == null)
+                Main.wm._workspaceSwitcherPopup = new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup();
+
+            // Set the workspaceSwitcherPopup actor to non reactive,
+            // to prevent it from grabbing focus away from the dock
+            Main.wm._workspaceSwitcherPopup.actor.reactive = false;
+            Main.wm._workspaceSwitcherPopup.connect('destroy', function() {
+                Main.wm._workspaceSwitcherPopup = null;
+            });
+
+            // Do not show wokspaceSwitcher in overview
+            if (!Main.overview.visible)
+                Main.wm._workspaceSwitcherPopup.display(direction, ws.index());
 
             Main.wm.actionMoveWorkspace(ws);
         }
