@@ -768,12 +768,12 @@ const ThumbnailCaption = new Lang.Class({
         let winCount = 0;
         let winMax = 4;
 
-        if (this._taskBarBox) {
-            for (let i = 0; i < this._taskBar.length; i++) {
-                let buttonActor = this._taskBarBox.get_child_at_index(i);
-                if (buttonActor.visible) {
-                    winCount ++;
-                }
+        for (let i = 0; i < this._taskBar.length; i++) {
+            let metaWin = this._taskBar[i].metaWin;
+            if ((this._isMyWindow(metaWin, true) && this._isOverviewWindow(metaWin, true)) ||
+                (this._isMyWindow(metaWin, true) && this._isMinimizedWindow(metaWin, true)) ||
+                this._showWindowAppOnThisWorkspace(metaWin, true)) {
+                winCount ++;
             }
         }
 
