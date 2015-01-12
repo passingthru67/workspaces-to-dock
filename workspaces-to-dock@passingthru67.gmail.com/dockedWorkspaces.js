@@ -355,16 +355,20 @@ const DockedWorkspaces = new Lang.Class({
             if (!this._workspacesViews.length)
                 return;
 
-            let [x, y] = Main.overview._controls.actor.get_transformed_position();
+            let [x, y] = this.actor.get_transformed_position();
+            let allocation = this.actor.allocation;
+            let width = allocation.x2 - allocation.x1;
+            let height = allocation.y2 - allocation.y1;
+
             let spacing = Main.overview._controls.actor.get_theme_node().get_length('spacing');
             let monitors = Main.layoutManager.monitors;
             for (let i = 0; i < monitors.length; i++) {
                 let geometry = { x: monitors[i].x, y: monitors[i].y, width: monitors[i].width, height: monitors[i].height };
 
-                // Adjust y and height for primary top panel
+                // Adjust y and height for primary overview geometry (top panel, etc.)
                 if (i == this._primaryIndex) {
-                    geometry.y += y;
-                    geometry.height -= y;
+                    geometry.y = y;
+                    geometry.height = height;
                 }
 
                 // Adjust width for dash
