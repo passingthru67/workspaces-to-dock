@@ -181,6 +181,16 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
+**version 27 for Gnome 3.14 (January 12, 2015)**
+- Bug fixes
+- Dash-To-Dock bottom position compatibility
+
+**version 26 for Gnome 3.12 (October 8, 2014)**
+- Bug fixes
+
+**version 25 for Gnome 3.10 (October 4, 2014)**
+- Bug fixes
+
 **version 24 for Gnome 3.14 (October 2, 2014)**
 - Bug fixes
 
