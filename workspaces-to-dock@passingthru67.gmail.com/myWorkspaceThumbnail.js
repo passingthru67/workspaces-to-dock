@@ -507,7 +507,7 @@ const myThumbnailsBox = new Lang.Class({
     // handler for when workspace is added
     _onWorkspaceAdded: function() {
         // -------------------------------------------------------------------
-        // TODO: GS3.14 now checks for valid thumbnails with code below
+        // TODO: GS3.14+ now checks for valid thumbnails with code below
         // This should fix the issues experienced in the past where the number
         // of thumbnails didn't match the number of global workspaces.
         // let validThumbnails = this._thumbnails.filter(function(t) {
@@ -532,7 +532,7 @@ const myThumbnailsBox = new Lang.Class({
     // handler for when workspace is removed
     _onWorkspaceRemoved: function() {
         // -------------------------------------------------------------------
-        // TODO: GS3.14 now checks for valid thumbnails with code below
+        // TODO: GS3.14+ now checks for valid thumbnails with code below
         // This should fix the issues experienced in the past where the number
         // of thumbnails didn't match the number of global workspaces.
         // let validThumbnails = this._thumbnails.filter(function(t) {

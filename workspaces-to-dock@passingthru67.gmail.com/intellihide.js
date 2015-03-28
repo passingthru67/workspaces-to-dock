@@ -192,16 +192,6 @@ const Intellihide = new Lang.Class({
                 'monitors-changed',
                 Lang.bind(this, this._onMonitorsChanged)
             ],
-            // [
-            //     Main.messageTray._grabHelper,
-            //     'focus-grabbed',
-            //     Lang.bind(this, this._onTrayFocusGrabbed)
-            // ],
-            // [
-            //     Main.messageTray._grabHelper,
-            //     'focus-ungrabbed',
-            //     Lang.bind(this, this._onTrayFocusUngrabbed)
-            // ],
             [
                 Main.panel.menuManager._grabHelper,
                 'focus-grabbed',

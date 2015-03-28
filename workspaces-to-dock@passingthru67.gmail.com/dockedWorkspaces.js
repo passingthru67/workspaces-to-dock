@@ -320,16 +320,6 @@ const DockedWorkspaces = new Lang.Class({
                 'notify::y',
                 Lang.bind(this, this._updateYPosition)
             ],
-            // [
-            //     Main.messageTray,
-            //     'showing',
-            //     Lang.bind(this, this._onMessageTrayShowing)
-            // ],
-            // [
-            //     Main.messageTray,
-            //     'hiding',
-            //     Lang.bind(this, this._onMessageTrayHiding)
-            // ],
             [
                 global.screen,
                 'in-fullscreen-changed',
@@ -411,10 +401,6 @@ const DockedWorkspaces = new Lang.Class({
         Main.uiGroup.add_child(this.actor);
         Main.layoutManager._trackActor(this._slider, {trackFullscreen: true});
 
-        // // Lower the dock below the screenShieldGroup so that panel and messageTray popups can receive focus & clicks
-        // if (Main.layoutManager.uiGroup.contains(Main.layoutManager.screenShieldGroup))
-        //     Main.layoutManager.uiGroup.set_child_below_sibling(this.actor, Main.layoutManager.screenShieldGroup);
-
         // Place the dock in the approprite overview controls group
         if (this._position ==  St.Side.LEFT)
             Main.overview._controls._group.insert_child_at_index(this.actor, this._rtl? -1:0); // insert at first
@@ -462,9 +448,7 @@ const DockedWorkspaces = new Lang.Class({
         this._updatePressureBarrier();
         this._updateBarrier();
 
-        // Not really required because thumbnailsBox width signal will trigger a redisplay
-        // Also found GS3.6 crashes returning from lock screen (Ubuntu GS Remix)
-        // NOTE: GS3.14 thumbnailsBox width signal triggers ealier so now we need this.
+        // NOTE: GS3.14+ thumbnailsBox width signal triggers ealier so now we need this.
         this._redisplay();
     },
 
@@ -1755,43 +1739,6 @@ const DockedWorkspaces = new Lang.Class({
         }
         this._removeBarrierTimeoutId = 0;
         return false;
-    },
-
-    _onMessageTrayShowing: function() {
-        if ((this._settings.get_boolean('ignore-message-tray') && !this._autohideStatus) || this._settings.get_boolean('dock-fixed')) {
-            // Temporary move the dock below the top panel so that it slide below it.
-            //this.actor.lower(Main.layoutManager.panelBox);
-
-            // Remove other tweens that could mess with the state machine
-            Tweener.removeTweens(this.actor);
-            Tweener.addTween(this.actor, {
-                  y: this.yPosition - Main.messageTray.actor.height,
-                  time: MessageTray.ANIMATION_TIME,
-                  transition: 'easeOutQuad'
-                });
-        }
-
-        this._messageTrayShowing = true;
-        this._updateBarrier();
-    },
-
-    _onMessageTrayHiding: function() {
-        if ((this._settings.get_boolean('ignore-message-tray') && !this._autohideStatus) || this._settings.get_boolean('dock-fixed')) {
-            // Remove other tweens that could mess with the state machine
-            Tweener.removeTweens(this.actor);
-            Tweener.addTween(this.actor, {
-                  y: this.yPosition,
-                  time: MessageTray.ANIMATION_TIME,
-                  transition: 'easeOutQuad',
-                  onComplete: Lang.bind(this, function(){
-                      // Reset desired dock stack order (on top to accept dnd of app icons)
-                      //this.actor.raise(global.top_window_group);
-                    })
-                });
-        }
-
-        this._messageTrayShowing = false;
-        this._updateBarrier();
     },
 
     // Update pressure barrier size (GS38+ only)
