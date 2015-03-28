@@ -1,4 +1,3 @@
-const _DEBUG_ = false;
 
 const IconTheme = imports.gi.Gtk.IconTheme;
 const GLib = imports.gi.GLib;
@@ -420,7 +419,11 @@ const ShortcutsPanel = new Lang.Class({
     _init: function (dock) {
         this._dock = dock;
         this._settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
-        this.actor = new St.BoxLayout({ style_class: 'workspace-thumbnails workspacestodock-shortcuts-panel', vertical: true, clip_to_allocation: true });
+        if (dock._isHorizontal) {
+            this.actor = new St.BoxLayout({ style_class: 'workspace-thumbnails workspacestodock-shortcuts-panel', vertical: false, clip_to_allocation: true });
+        } else {
+            this.actor = new St.BoxLayout({ style_class: 'workspace-thumbnails workspacestodock-shortcuts-panel', vertical: true, clip_to_allocation: true });
+        }
         this.actor._delegate = this;
 
         this._appSystem = Shell.AppSystem.get_default();

@@ -1,10 +1,25 @@
+#workspacestodockContainerWrapper {
+
+}
 #workspacestodockContainer {
 }
-#workspacestodockContainer:ltr {
-    padding-left: 1px;
-}
-#workspacestodockContainer:rtl {
+/*#workspacestodockContainer:ltr {*/
+/*    padding-left: 1px;*/
+/*}*/
+/*#workspacestodockContainer:rtl {*/
+/*    padding-right: 1px;*/
+/*}*/
+
+#workspacestodockContainer.left {
+    /*padding-left: 0px;*/
     padding-right: 1px;
+}
+#workspacestodockContainer.right {
+    padding-left: 1px;
+    /*padding-right: 0px;*/
+}
+.workspace-thumbnails.left {
+    border-radius: 0px;
 }
 
 .workspace-thumbnails-fullheight {

@@ -6,7 +6,6 @@
  * ========================================================================================================
  */
 
-const _DEBUG_ = false;
 
 const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
@@ -48,6 +47,18 @@ const ThumbnailState = {
     COLLAPSING: 6,
     DESTROYED: 7
 };
+
+/* Return the actual position reverseing left and right in rtl */
+function getPosition(settings) {
+    let position = settings.get_enum('dock-position');
+    if (Clutter.get_default_text_direction() == Clutter.TextDirection.RTL) {
+        if (position == St.Side.LEFT)
+            position = St.Side.RIGHT;
+        else if (position == St.Side.RIGHT)
+            position = St.Side.LEFT;
+    }
+    return position;
+}
 
 const myWindowClone = new Lang.Class({
     Name: 'workspacesToDock.myWindowClone',
@@ -111,7 +122,6 @@ const myWindowClone = new Lang.Class({
         // passingthru67: Don't know why but windows that use Client Side Decorations (like gEdit)
         // don't position properly when maximized or in fullscreen mode. Is it an upstream bug?
         let rect = this.metaWindow.get_outer_rect();
-        if (_DEBUG_) global.log("window clone position changed - x="+this.realWindow.x+" y="+this.realWindow.y+" nx="+rect.x+" ny="+rect.y);
         this.actor.set_position(this.realWindow.x, this.realWindow.y);
         if (this.metaWindow.get_maximized() && rect) {
             this.actor.set_position(rect.x, rect.y);
@@ -164,7 +174,6 @@ const myWorkspaceThumbnail = new Lang.Class({
     },
 
     refreshWindowClones: function() {
-        if (_DEBUG_ && !this._removed) global.log("myWorkspaceThumbnail: refreshWindowClones for metaWorkspace "+this.metaWorkspace.index());
         // Disconnect window signals
         for (let i = 0; i < this._allWindows.length; i++) {
             this._allWindows[i].disconnect(this._minimizedChangedIds[i]);
@@ -196,7 +205,6 @@ const myWorkspaceThumbnail = new Lang.Class({
     },
 
     _doRemoveWindow : function(metaWin) {
-        if (_DEBUG_ && !this._removed) global.log("myWorkspaceThumbnail: _doRemoveWindow for metaWorkspace "+this.metaWorkspace.index());
         let win = metaWin.get_compositor_private();
 
         // find the position of the window in our list
@@ -223,7 +231,6 @@ const myWorkspaceThumbnail = new Lang.Class({
     },
 
     _doAddWindow : function(metaWin) {
-        if (_DEBUG_ && !this._removed) global.log("myWorkspaceThumbnail: _doAddWindow for metaWorkspace "+this.metaWorkspace.index());
         if (this._removed)
             return;
 
@@ -287,20 +294,17 @@ const myWorkspaceThumbnail = new Lang.Class({
     },
 
     workspaceRemoved: function() {
-        if (_DEBUG_) global.log("myWorkspaceThumbnail: workspaceRemoved");
         this.caption.workspaceRemoved();
         this.parent();
     },
 
     _onDestroy: function(actor) {
-        if (_DEBUG_) global.log("myWorkspaceThumbnail: _onDestroy");
         this.caption.destroy();
         this.parent(actor);
     },
 
     // Create a clone of a (non-desktop) window and add it to the window list
     _addWindowClone : function(win, refresh) {
-        if (_DEBUG_ && !this._removed) global.log("myWorkspaceThumbnail: _addWindowClone for metaWorkspace "+this.metaWorkspace.index());
         let clone = new myWindowClone(win);
 
         clone.connect('selected',
@@ -368,6 +372,9 @@ const myThumbnailsBox = new Lang.Class({
         this._dock = dock;
         this._gsCurrentVersion = Config.PACKAGE_VERSION.split('.');
         this._mySettings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
+        this._position = getPosition(this._mySettings);
+        this._isHorizontal = (this._position == St.Side.TOP ||
+                              this._position == St.Side.BOTTOM);
 
         // override _init to remove create/destroy thumbnails when showing/hiding overview
         this.actor = new Shell.GenericContainer({ reactive: true,
@@ -377,6 +384,10 @@ const myThumbnailsBox = new Lang.Class({
         this.actor.connect('get-preferred-height', Lang.bind(this, this._getPreferredHeight));
         this.actor.connect('allocate', Lang.bind(this, this._allocate));
         this.actor._delegate = this;
+
+        if (this._position == St.Side.LEFT) {
+            this.actor.add_style_class_name('left');
+        }
 
         // Add addtional style class when workspace is fixed and set to full height
         if (this._mySettings.get_boolean('dock-fixed') && this._mySettings.get_boolean('extend-height') && this._mySettings.get_double('top-margin') == 0) {
@@ -403,6 +414,7 @@ const myThumbnailsBox = new Lang.Class({
         this._stateUpdateQueued = false;
         this._animatingIndicator = false;
         this._indicatorY = 0; // only used when _animatingIndicator is true
+        this._indicatorX = 0; // passingthru67 - added for dock position isHorizontal
 
         this._stateCounts = {};
         for (let key in ThumbnailState)
@@ -501,7 +513,6 @@ const myThumbnailsBox = new Lang.Class({
 
         // NumMyWorkspaces == NumGlobalWorkspaces shouldn't happen, but does when Firefox started.
         // Assume that a workspace thumbnail is still in process of being removed from _thumbnailsBox
-        if (_DEBUG_) global.log("dockedWorkspaces: _workspacesAdded - thumbnail being added  .. ws="+NumGlobalWorkspaces+" th="+NumMyWorkspaces);
         if (NumMyWorkspaces == NumGlobalWorkspaces)
             NumMyWorkspaces --;
 
@@ -525,7 +536,6 @@ const myThumbnailsBox = new Lang.Class({
         let active = global.screen.get_active_workspace_index();
 
         // TODO: Not sure if this is an issue?
-        if (_DEBUG_) global.log("dockedWorkspaces: _workspacesRemoved - thumbnails being removed .. ws="+NumGlobalWorkspaces+" th="+NumMyWorkspaces);
         if (NumMyWorkspaces == NumGlobalWorkspaces)
             return;
 
@@ -541,14 +551,12 @@ const myThumbnailsBox = new Lang.Class({
         }
 
         if (removedIndex != null) {
-            if (_DEBUG_) global.log("dockedWorkspaces: _workspacesRemoved - thumbnail index being removed is = "+removedIndex);
             this.removeThumbnails(removedIndex, removedNum);
         }
     },
 
     // override _createThumbnails to remove global n-workspaces notification
     _createThumbnails: function() {
-        if (_DEBUG_) global.log("mythumbnailsBox: _createThumbnails");
         this._switchWorkspaceNotifyId =
             global.window_manager.connect('switch-workspace',
                                           Lang.bind(this, this._activeWorkspaceChanged));
@@ -574,7 +582,6 @@ const myThumbnailsBox = new Lang.Class({
     },
 
     refreshThumbnails: function() {
-        if (_DEBUG_) global.log("mythumbnailsBox: refreshThumbnails");
         for (let i = 0; i < this._thumbnails.length; i++) {
             this._thumbnails[i].refreshWindowClones();
             this._thumbnails[i].caption.activeWorkspaceChanged();
@@ -583,7 +590,6 @@ const myThumbnailsBox = new Lang.Class({
 
     // override _onButtonRelease to provide customized click actions (i.e. overview on right click)
     _onButtonRelease: function(actor, event) {
-        if (_DEBUG_) global.log("mythumbnailsBox: _onButtonRelease");
         // ThumbnailsBox click events are passed on to dock handler if conditions are met
         // Helpful in cases where the 'dock-edge-visible' option is enabled. It provides more
         // area to click on to show the dock when the window is maximized.
@@ -637,7 +643,6 @@ const myThumbnailsBox = new Lang.Class({
 
     // override addThumbnails to provide workspace thumbnail labels
     addThumbnails: function(start, count) {
-        if (_DEBUG_) global.log("mythumbnailsBox: addThumbnails");
         this._ensurePorthole();
         for (let k = start; k < start + count; k++) {
             let metaWorkspace = global.screen.get_workspace_by_index(k);
@@ -669,15 +674,24 @@ const myThumbnailsBox = new Lang.Class({
         this._spliceIndex = -1;
     },
 
+    // passingthru67 - added set indicatorX for when position isHorizontal
+    set indicatorX(indicatorX) {
+        this._indicatorX = indicatorX;
+        this.actor.queue_relayout();
+    },
+
+    // passingthru67 - added get indicatorX for when position isHorizontal
+    get indicatorX() {
+        return this._indicatorX;
+    },
+
     updateTaskbars: function(metaWin, action) {
-        if (_DEBUG_) global.log("mythumbnailsBox: updateTaskbars");
         for (let i = 0; i < this._thumbnails.length; i++) {
             this._thumbnails[i].caption.updateTaskbar(metaWin, action);
         }
     },
 
     setPopupMenuFlag: function(showing) {
-        if (_DEBUG_) global.log("mythumbnailsBox: setPopupMenuFlag");
         this._dock.setPopupMenuFlag(showing);
     },
 
@@ -704,27 +718,45 @@ const myThumbnailsBox = new Lang.Class({
 
         let nWorkspaces = global.screen.n_workspaces;
 
-        // passingthru67 - add 5px to totalSpacing calculation
-        // otherwise scale doesn't kick in soon enough and total thumbnails height is greater than height of dock
-        // why is 5px needed? spacing was already adjusted in gnome-shell.css from 7px to 27px (GS36 11px to ?)
-        // does it have anything to do with a border added by St.Bin in WorkspaceThumbnails _background?
-        //let totalSpacing = (nWorkspaces - 1) * spacing;
-        let totalSpacing;
-        if (this._mySettings.get_boolean('workspace-captions')) {
-            totalSpacing = (nWorkspaces - 1) * (spacing + 5);
-        } else {
-            totalSpacing = (nWorkspaces - 1) * spacing;
-        }
+        if (this._isHorizontal) {
+            let totalSpacing = (nWorkspaces - 1) * spacing;
 
-        let maxScale;
-        if (this._mySettings.get_boolean('customize-thumbnail')) {
-            maxScale = this._mySettings.get_double('thumbnail-size');
-        } else {
-            maxScale = MAX_THUMBNAIL_SCALE;
-        }
+            let avail = forWidth - totalSpacing;
 
-        alloc.min_size = totalSpacing;
-        alloc.natural_size = totalSpacing + nWorkspaces * this._porthole.height * maxScale;
+            let scale = (avail / nWorkspaces) / this._porthole.width;
+            if (this._mySettings.get_boolean('customize-thumbnail')) {
+                scale = Math.min(scale, this._mySettings.get_double('thumbnail-size'));
+            } else {
+                scale = Math.min(scale, MAX_THUMBNAIL_SCALE);
+            }
+
+            let height = Math.round(this._porthole.height * scale);
+            alloc.min_size = height;
+            alloc.natural_size = height;
+
+        } else {
+            // passingthru67 - add 5px to totalSpacing calculation
+            // otherwise scale doesn't kick in soon enough and total thumbnails height is greater than height of dock
+            // why is 5px needed? spacing was already adjusted in gnome-shell.css from 7px to 27px (GS36 11px to ?)
+            // does it have anything to do with a border added by St.Bin in WorkspaceThumbnails _background?
+            //let totalSpacing = (nWorkspaces - 1) * spacing;
+            let totalSpacing;
+            if (this._mySettings.get_boolean('workspace-captions')) {
+                totalSpacing = (nWorkspaces - 1) * (spacing + 5);
+            } else {
+                totalSpacing = (nWorkspaces - 1) * spacing;
+            }
+
+            let maxScale;
+            if (this._mySettings.get_boolean('customize-thumbnail')) {
+                maxScale = this._mySettings.get_double('thumbnail-size');
+            } else {
+                maxScale = MAX_THUMBNAIL_SCALE;
+            }
+
+            alloc.min_size = totalSpacing;
+            alloc.natural_size = totalSpacing + nWorkspaces * this._porthole.height * maxScale;
+        }
     },
 
     _getPreferredWidth: function(actor, forHeight, alloc) {
@@ -743,30 +775,45 @@ const myThumbnailsBox = new Lang.Class({
 
         let nWorkspaces = global.screen.n_workspaces;
 
-        // passingthru67 - add 5px to totalSpacing calculation
-        // otherwise scale doesn't kick in soon enough and total thumbnails height is greater than height of dock
-        // why is 5px needed? spacing was already adjusted in gnome-shell.css from 7px to 27px (GS36 11px to ?)
-        // does it have anything to do with a border added by St.Bin in WorkspaceThumbnails _background?
-        //let totalSpacing = (nWorkspaces - 1) * spacing;
-        let totalSpacing;
-        if (this._mySettings.get_boolean('workspace-captions')) {
-            totalSpacing = (nWorkspaces - 1) * (spacing + 5);
+        if (this._isHorizontal) {
+            let totalSpacing = (nWorkspaces - 1) * spacing;
+
+            let maxScale;
+            if (this._mySettings.get_boolean('customize-thumbnail')) {
+                maxScale = this._mySettings.get_double('thumbnail-size');
+            } else {
+                maxScale = MAX_THUMBNAIL_SCALE;
+            }
+
+            alloc.min_size = totalSpacing;
+            alloc.natural_size = totalSpacing + nWorkspaces * this._porthole.width * maxScale;
+
         } else {
-            totalSpacing = (nWorkspaces - 1) * spacing;
+            // passingthru67 - add 5px to totalSpacing calculation
+            // otherwise scale doesn't kick in soon enough and total thumbnails height is greater than height of dock
+            // why is 5px needed? spacing was already adjusted in gnome-shell.css from 7px to 27px (GS36 11px to ?)
+            // does it have anything to do with a border added by St.Bin in WorkspaceThumbnails _background?
+            //let totalSpacing = (nWorkspaces - 1) * spacing;
+            let totalSpacing;
+            if (this._mySettings.get_boolean('workspace-captions') && !this._isHorizontal) {
+                totalSpacing = (nWorkspaces - 1) * (spacing + 5);
+            } else {
+                totalSpacing = (nWorkspaces - 1) * spacing;
+            }
+
+            let avail = forHeight - totalSpacing;
+
+            let scale = (avail / nWorkspaces) / this._porthole.height;
+            if (this._mySettings.get_boolean('customize-thumbnail')) {
+                scale = Math.min(scale, this._mySettings.get_double('thumbnail-size'));
+            } else {
+                scale = Math.min(scale, MAX_THUMBNAIL_SCALE);
+            }
+
+            let width = Math.round(this._porthole.width * scale);
+            alloc.min_size = width;
+            alloc.natural_size = width;
         }
-
-        let avail = forHeight - totalSpacing;
-
-        let scale = (avail / nWorkspaces) / this._porthole.height;
-        if (this._mySettings.get_boolean('customize-thumbnail')) {
-            scale = Math.min(scale, this._mySettings.get_double('thumbnail-size'));
-        } else {
-            scale = Math.min(scale, MAX_THUMBNAIL_SCALE);
-        }
-
-        let width = Math.round(this._porthole.width * scale);
-        alloc.min_size = width;
-        alloc.natural_size = width;
     },
 
     _checkWindowsOnAllWorkspaces: function(thumbnail) {
@@ -774,7 +821,6 @@ const myThumbnailsBox = new Lang.Class({
         // TODO: Is there a signal emitted or property set by mutter metawindows that we can connect
         // to determine when a window is set to visible-on-all-workspaces?
         let refresh = false;
-        if (_DEBUG_ && thumbnail._windows.length > 0) global.log("myWorkspaceThumbnail: _checkWindowsOnAllWorkspaces - windowsOnAllWorkspaces.length = "+thumbnail._windowsOnAllWorkspaces.length);
         for (let i = 0; i < thumbnail._windows.length; i++) {
             let clone = thumbnail._windows[i];
             let realWindow = clone.realWindow;
@@ -784,16 +830,12 @@ const myThumbnailsBox = new Lang.Class({
                 if (metaWindow == thumbnail._windowsOnAllWorkspaces[j]) {
                     alreadyPushed = true;
                     if (!metaWindow.is_on_all_workspaces()) {
-                        if (_DEBUG_) global.log("myWorkspaceThumbnail: _checkWindowsOnAllWorkspaces - REFRESH THUMBNAILS - window removed from windowsOnAllWorkspaces");
                         thumbnail._windowsOnAllWorkspaces.splice(j, 1);
                         refresh = true;
                     }
                 }
             }
-            if (_DEBUG_ && alreadyPushed) global.log("myWorkspaceThumbnail: _checkWindowsOnAllWorkspaces - "+metaWindow.get_wm_class()+" in windowsOnAllWorkspaces. isMyWindow = "+ thumbnail._isMyWindow(realWindow)+", is_on_all_workspaces = "+metaWindow.is_on_all_workspaces());
-            if (_DEBUG_ && !alreadyPushed) global.log("myWorkspaceThumbnail: _checkWindowsOnAllWorkspaces - "+metaWindow.get_wm_class()+" not in windowsOnAllWorkspaces. isMyWindow = "+ thumbnail._isMyWindow(realWindow)+", is_on_all_workspaces = "+metaWindow.is_on_all_workspaces());
             if (!alreadyPushed && metaWindow.is_on_all_workspaces()) {
-                if (_DEBUG_) global.log("myWorkspaceThumbnail: _checkWindowsOnAllWorkspaces - REFRESH THUMBNAILS - window added to windowsOnAllWorkspaces");
                 thumbnail._windowsOnAllWorkspaces.push(metaWindow);
                 refresh = true;
             }
@@ -838,21 +880,25 @@ const myThumbnailsBox = new Lang.Class({
         // does it have anything to do with a border added by St.Bin in WorkspaceThumbnails _background?
         //let totalSpacing = (nWorkspaces - 1) * spacing;
         let totalSpacing;
-        if (this._mySettings.get_boolean('workspace-captions')) {
+        if (this._mySettings.get_boolean('workspace-captions') && !this._isHorizontal) {
             totalSpacing = (nWorkspaces - 1) * (spacing + 5);
         } else {
             totalSpacing = (nWorkspaces - 1) * spacing;
         }
 
         let avail = (box.y2 - box.y1) - totalSpacing;
+        if (this._isHorizontal)
+            avail = (box.x2 - box.x1) - totalSpacing;
 
         let newScale = (avail / nWorkspaces) / portholeHeight;
+        if (this._isHorizontal)
+            newScale = (avail / nWorkspaces) / portholeWidth;
+
         if (this._mySettings.get_boolean('customize-thumbnail')) {
             newScale = Math.min(newScale, this._mySettings.get_double('thumbnail-size'));
         } else {
             newScale = Math.min(newScale, MAX_THUMBNAIL_SCALE);
         }
-        if (_DEBUG_) global.log("mythumbnailsBox: _allocate - newScale = "+newScale+" targetScale = "+this._targetScale);
         if (newScale != this._targetScale) {
             if (this._targetScale > 0) {
                 // We don't do the tween immediately because we need to observe the ordering
@@ -867,19 +913,38 @@ const myThumbnailsBox = new Lang.Class({
             this._queueUpdateStates();
         }
 
-        let thumbnailHeight = portholeHeight * this._scale;
-        let thumbnailWidth = Math.round(portholeWidth * this._scale);
-        let roundedHScale = thumbnailWidth / portholeWidth;
-        if (_DEBUG_) global.log("mythumbnailsBox: _allocate - thumbnailH = "+thumbnailHeight+" thumbnailW = "+thumbnailWidth);
+        let thumbnailHeight, thumbnailWidth, roundedHScale, roundedVScale;
+        // passingthru67 - roundedVScale used instead of roundedHscale when position isHorizontal
+        if (this._isHorizontal) {
+            thumbnailWidth = portholeWidth * this._scale;
+            thumbnailHeight = Math.round(portholeHeight * this._scale);
+            roundedVScale = thumbnailHeight / portholeHeight;
+        } else {
+            thumbnailHeight = portholeHeight * this._scale;
+            thumbnailWidth = Math.round(portholeWidth * this._scale);
+            roundedHScale = thumbnailWidth / portholeWidth;
+        }
 
         let slideOffset; // X offset when thumbnail is fully slid offscreen
-        if (rtl)
+        // if (rtl)
+        //     slideOffset = - (thumbnailWidth + themeNode.get_padding(St.Side.LEFT));
+        // else
+        //     slideOffset = thumbnailWidth + themeNode.get_padding(St.Side.RIGHT);
+        if (this._position == St.Side.LEFT)
             slideOffset = - (thumbnailWidth + themeNode.get_padding(St.Side.LEFT));
-        else
+        else if (this._position == St.Side.RIGHT)
             slideOffset = thumbnailWidth + themeNode.get_padding(St.Side.RIGHT);
+        else if (this._position == St.Side.TOP)
+            slideOffset = - (thumbnailHeight + themeNode.get_padding(St.Side.TOP));
+        else if (this._position == St.Side.BOTTOM)
+            slideOffset = thumbnailHeight + themeNode.get_padding(St.Side.BOTTOM);
 
         let indicatorY1 = this._indicatorY;
         let indicatorY2;
+        let indicatorX1 = this._indicatorX;
+        let indicatorX2;
+        // passingthru67 - indicatorX used instead of indicatorY when position isHorizontal
+
         // when not animating, the workspace position overrides this._indicatorY
         let indicatorWorkspace = !this._animatingIndicator ? global.screen.get_active_workspace() : null;
         let indicatorThemeNode = this._indicator.get_theme_node();
@@ -890,6 +955,8 @@ const myThumbnailsBox = new Lang.Class({
         let indicatorRightFullBorder = indicatorThemeNode.get_padding(St.Side.RIGHT) + indicatorThemeNode.get_border_width(St.Side.RIGHT);
 
         let y = box.y1;
+        let x = box.x1;
+        // passingthru67 - x used instead of y when position isHorizontal
 
         if (this._dropPlaceholderPos == -1) {
             Meta.later_add(Meta.LaterType.BEFORE_REDRAW, Lang.bind(this, function() {
@@ -899,94 +966,178 @@ const myThumbnailsBox = new Lang.Class({
 
         let childBox = new Clutter.ActorBox();
 
-        for (let i = 0; i < this._thumbnails.length; i++) {
-            let thumbnail = this._thumbnails[i];
+        if (this._isHorizontal) {
+            for (let i = 0; i < this._thumbnails.length; i++) {
+                let thumbnail = this._thumbnails[i];
 
-            if (i > 0)
-                y += spacing - Math.round(thumbnail.collapseFraction * spacing);
+                let y1, y2;
+                if (rtl) {
+                    y1 = box.y1 + slideOffset * thumbnail.slidePosition;
+                    y2 = y1 + thumbnailHeight;
+                } else {
+                    y1 = box.y2 - thumbnailHeight + slideOffset * thumbnail.slidePosition;
+                    y2 = y1 + thumbnailHeight;
+                }
 
-            let x1, x2;
-            if (rtl) {
-                x1 = box.x1 + slideOffset * thumbnail.slidePosition;
-                x2 = x1 + thumbnailWidth;
-            } else {
-                x1 = box.x2 - thumbnailWidth + slideOffset * thumbnail.slidePosition;
-                x2 = x1 + thumbnailWidth;
-            }
+                if (i > 0)
+                    x += spacing - Math.round(thumbnail.collapseFraction * spacing);
 
-            if (i == this._dropPlaceholderPos) {
-                let [minHeight, placeholderHeight] = this._dropPlaceholder.get_preferred_height(-1);
+                if (i == this._dropPlaceholderPos) {
+                    let [minWidth, placeholderWidth] = this._dropPlaceholder.get_preferred_width(-1);
+                    childBox.y1 = y1;
+                    childBox.y2 = y1 + thumbnailHeight;
+                    childBox.x1 = Math.round(x);
+                    childBox.x2 = Math.round(x + placeholderWidth);
+                    this._dropPlaceholder.allocate(childBox, flags);
+                    Meta.later_add(Meta.LaterType.BEFORE_REDRAW, Lang.bind(this, function() {
+                        this._dropPlaceholder.show();
+                    }));
+                    x += placeholderWidth + spacing;
+                }
+
+                // We might end up with thumbnailHeight being something like 99.33
+                // pixels. To make this work and not end up with a gap at the bottom,
+                // we need some thumbnails to be 99 pixels and some 100 pixels height;
+                // we compute an actual scale separately for each thumbnail.
+                let x1 = Math.round(x);
+                let x2 = Math.round(x + thumbnailWidth);
+                roundedHScale = (x2 - x1) / portholeWidth;
+
+                if (thumbnail.metaWorkspace == indicatorWorkspace) {
+                    indicatorX1 = x1;
+                    indicatorX2 = x2;
+
+                    // passingthru67 - check if window-visible_on_all_workspaces state changed
+                    // if so, then we need to refresh thumbnails
+                    let refresh = this._checkWindowsOnAllWorkspaces(thumbnail);
+                    if (refresh) this.refreshThumbnails();
+                }
+
+                // Allocating a scaled actor is funny - x1/y1 correspond to the origin
+                // of the actor, but x2/y2 are increased by the *unscaled* size.
                 childBox.x1 = x1;
-                childBox.x2 = x1 + thumbnailWidth;
-                childBox.y1 = Math.round(y);
-                childBox.y2 = Math.round(y + placeholderHeight);
-                this._dropPlaceholder.allocate(childBox, flags);
-                Meta.later_add(Meta.LaterType.BEFORE_REDRAW, Lang.bind(this, function() {
-                    this._dropPlaceholder.show();
-                }));
-                y += placeholderHeight + spacing;
+                childBox.x2 = x1 + portholeWidth;
+                childBox.y1 = y1;
+                // passingthru67 - size needs to include caption area
+                //childBox.y2 = y1 + portholeHeight;
+                childBox.y2 = y1 + portholeHeight + (captionBackgroundHeight/roundedVScale);
+
+                thumbnail.actor.set_scale(roundedHScale, roundedVScale);
+                thumbnail.actor.allocate(childBox, flags);
+
+                // passingthru67 - set WorkspaceThumbnail labels
+                if (this._mySettings.get_boolean('workspace-captions'))
+                    this._updateThumbnailCaption(thumbnail, i, captionHeight, captionBackgroundHeight);
+
+                // We round the collapsing portion so that we don't get thumbnails resizing
+                // during an animation due to differences in rounded, but leave the uncollapsed
+                // portion unrounded so that non-animating we end up with the right total
+                x += thumbnailWidth - Math.round(thumbnailWidth * thumbnail.collapseFraction);
             }
 
-            // We might end up with thumbnailHeight being something like 99.33
-            // pixels. To make this work and not end up with a gap at the bottom,
-            // we need some thumbnails to be 99 pixels and some 100 pixels height;
-            // we compute an actual scale separately for each thumbnail.
-            let y1 = Math.round(y);
-            let y2 = Math.round(y + thumbnailHeight);
-            let roundedVScale = (y2 - y1) / portholeHeight;
-
-            if (thumbnail.metaWorkspace == indicatorWorkspace) {
-                indicatorY1 = y1;
-                indicatorY2 = y2;
-
-                // passingthru67 - check if window-visible_on_all_workspaces state changed
-                // if so, then we need to refresh thumbnails
-                let refresh = this._checkWindowsOnAllWorkspaces(thumbnail);
-                if (refresh) this.refreshThumbnails();
+            if (this._position == St.Side.TOP) {
+                childBox.y1 = box.y1;
+                childBox.y2 = box.y1 + thumbnailHeight;
+            } else {
+                childBox.y1 = box.y2 - thumbnailHeight;
+                childBox.y2 = box.y2;
             }
+            childBox.y1 -= indicatorTopFullBorder;
+            childBox.y2 += indicatorBottomFullBorder;
+            childBox.x1 = indicatorX1 - indicatorLeftFullBorder;
+            childBox.x2 = (indicatorX2 ? indicatorX2 : (indicatorX1 + thumbnailWidth)) + indicatorRightFullBorder;
 
-            // Allocating a scaled actor is funny - x1/y1 correspond to the origin
-            // of the actor, but x2/y2 are increased by the *unscaled* size.
-            childBox.x1 = x1;
-            childBox.x2 = x1 + portholeWidth;
-            childBox.y1 = y1;
-            // passingthru67 - size needs to include caption area
-            //childBox.y2 = y1 + portholeHeight;
-            childBox.y2 = y1 + portholeHeight + (captionBackgroundHeight/roundedVScale);
-
-            thumbnail.actor.set_scale(roundedHScale, roundedVScale);
-            thumbnail.actor.allocate(childBox, flags);
-
-            // passingthru67 - set WorkspaceThumbnail labels
-            if (this._mySettings.get_boolean('workspace-captions'))
-                this._updateThumbnailCaption(thumbnail, i, captionHeight, captionBackgroundHeight);
-
-            // We round the collapsing portion so that we don't get thumbnails resizing
-            // during an animation due to differences in rounded, but leave the uncollapsed
-            // portion unrounded so that non-animating we end up with the right total
-            y += thumbnailHeight - Math.round(thumbnailHeight * thumbnail.collapseFraction);
-        }
-
-        if (rtl) {
-            childBox.x1 = box.x1;
-            childBox.x2 = box.x1 + thumbnailWidth;
         } else {
-            childBox.x1 = box.x2 - thumbnailWidth;
-            childBox.x2 = box.x2;
+            for (let i = 0; i < this._thumbnails.length; i++) {
+                let thumbnail = this._thumbnails[i];
+
+                if (i > 0)
+                    y += spacing - Math.round(thumbnail.collapseFraction * spacing);
+
+                let x1, x2;
+                if (rtl) {
+                    x1 = box.x1 + slideOffset * thumbnail.slidePosition;
+                    x2 = x1 + thumbnailWidth;
+                } else {
+                    x1 = box.x2 - thumbnailWidth + slideOffset * thumbnail.slidePosition;
+                    x2 = x1 + thumbnailWidth;
+                }
+
+                if (i == this._dropPlaceholderPos) {
+                    let [minHeight, placeholderHeight] = this._dropPlaceholder.get_preferred_height(-1);
+                    childBox.x1 = x1;
+                    childBox.x2 = x1 + thumbnailWidth;
+                    childBox.y1 = Math.round(y);
+                    childBox.y2 = Math.round(y + placeholderHeight);
+                    this._dropPlaceholder.allocate(childBox, flags);
+                    Meta.later_add(Meta.LaterType.BEFORE_REDRAW, Lang.bind(this, function() {
+                        this._dropPlaceholder.show();
+                    }));
+                    y += placeholderHeight + spacing;
+                }
+
+                // We might end up with thumbnailHeight being something like 99.33
+                // pixels. To make this work and not end up with a gap at the bottom,
+                // we need some thumbnails to be 99 pixels and some 100 pixels height;
+                // we compute an actual scale separately for each thumbnail.
+                let y1 = Math.round(y);
+                let y2 = Math.round(y + thumbnailHeight);
+                // let roundedVScale = (y2 - y1) / portholeHeight;
+                // passingthru67 - roundedVScale now defined above with roundedHScale
+                roundedVScale = (y2 - y1) / portholeHeight;
+
+                if (thumbnail.metaWorkspace == indicatorWorkspace) {
+                    indicatorY1 = y1;
+                    indicatorY2 = y2;
+
+                    // passingthru67 - check if window-visible_on_all_workspaces state changed
+                    // if so, then we need to refresh thumbnails
+                    let refresh = this._checkWindowsOnAllWorkspaces(thumbnail);
+                    if (refresh) this.refreshThumbnails();
+                }
+
+                // Allocating a scaled actor is funny - x1/y1 correspond to the origin
+                // of the actor, but x2/y2 are increased by the *unscaled* size.
+                childBox.x1 = x1;
+                childBox.x2 = x1 + portholeWidth;
+                childBox.y1 = y1;
+                // passingthru67 - size needs to include caption area
+                //childBox.y2 = y1 + portholeHeight;
+                childBox.y2 = y1 + portholeHeight + (captionBackgroundHeight/roundedVScale);
+
+                thumbnail.actor.set_scale(roundedHScale, roundedVScale);
+                thumbnail.actor.allocate(childBox, flags);
+
+                // passingthru67 - set WorkspaceThumbnail labels
+                if (this._mySettings.get_boolean('workspace-captions'))
+                    this._updateThumbnailCaption(thumbnail, i, captionHeight, captionBackgroundHeight);
+
+                // We round the collapsing portion so that we don't get thumbnails resizing
+                // during an animation due to differences in rounded, but leave the uncollapsed
+                // portion unrounded so that non-animating we end up with the right total
+                y += thumbnailHeight - Math.round(thumbnailHeight * thumbnail.collapseFraction);
+            }
+
+            if (rtl) {
+                childBox.x1 = box.x1;
+                childBox.x2 = box.x1 + thumbnailWidth;
+            } else {
+                childBox.x1 = box.x2 - thumbnailWidth;
+                childBox.x2 = box.x2;
+            }
+            childBox.x1 -= indicatorLeftFullBorder;
+            childBox.x2 += indicatorRightFullBorder;
+            childBox.y1 = indicatorY1 - indicatorTopFullBorder;
+            // passingthru67 - indicator needs to include caption
+            //childBox.y2 = (indicatorY2 ? indicatorY2 : (indicatorY1 + thumbnailHeight)) + indicatorBottomFullBorder;
+            childBox.y2 = (indicatorY2 ? indicatorY2 + captionBackgroundHeight : (indicatorY1 + thumbnailHeight + captionBackgroundHeight)) + indicatorBottomFullBorder;
         }
-        childBox.x1 -= indicatorLeftFullBorder;
-        childBox.x2 += indicatorRightFullBorder;
-        childBox.y1 = indicatorY1 - indicatorTopFullBorder;
-        // passingthru67 - indicator needs to include caption
-        //childBox.y2 = (indicatorY2 ? indicatorY2 : (indicatorY1 + thumbnailHeight)) + indicatorBottomFullBorder;
-        childBox.y2 = (indicatorY2 ? indicatorY2 + captionBackgroundHeight : (indicatorY1 + thumbnailHeight + captionBackgroundHeight)) + indicatorBottomFullBorder;
 
         this._indicator.allocate(childBox, flags);
     },
 
     // override _activeWorkspaceChanged to eliminate errors thrown
     _activeWorkspaceChanged: function(wm, from, to, direction) {
-        if (_DEBUG_) global.log("mythumbnailsBox: _activeWorkspaceChanged - thumbnail count = "+this._thumbnails.length);
         let thumbnail;
         let activeWorkspace = global.screen.get_active_workspace();
         for (let i = 0; i < this._thumbnails.length; i++) {
@@ -1006,18 +1157,33 @@ const myThumbnailsBox = new Lang.Class({
 
         this._animatingIndicator = true;
         let indicatorThemeNode = this._indicator.get_theme_node();
-        let indicatorTopFullBorder = indicatorThemeNode.get_padding(St.Side.TOP) + indicatorThemeNode.get_border_width(St.Side.TOP);
-        this.indicatorY = this._indicator.allocation.y1 + indicatorTopFullBorder;
 
-        Tweener.addTween(this,
-                         { indicatorY: thumbnail.actor.allocation.y1,
-                           time: WorkspacesView.WORKSPACE_SWITCH_TIME,
-                           transition: 'easeOutQuad',
-                           onComplete: function() {
-                               this._animatingIndicator = false;
-                               this._queueUpdateStates();
-                           },
-                           onCompleteScope: this
-                         });
+        if (this._isHorizontal) {
+            let indicatorLeftFullBorder = indicatorThemeNode.get_padding(St.Side.LEFT) + indicatorThemeNode.get_border_width(St.Side.LEFT);
+            this.indicatorX = this._indicator.allocation.x1 + indicatorLeftFullBorder;
+            Tweener.addTween(this,
+                             { indicatorX: thumbnail.actor.allocation.x1,
+                               time: WorkspacesView.WORKSPACE_SWITCH_TIME,
+                               transition: 'easeOutQuad',
+                               onComplete: function() {
+                                  this._animatingIndicator = false;
+                                  this._queueUpdateStates();
+                               },
+                               onCompleteScope: this
+                             });
+        } else {
+            let indicatorTopFullBorder = indicatorThemeNode.get_padding(St.Side.TOP) + indicatorThemeNode.get_border_width(St.Side.TOP);
+            this.indicatorY = this._indicator.allocation.y1 + indicatorTopFullBorder;
+            Tweener.addTween(this,
+                             { indicatorY: thumbnail.actor.allocation.y1,
+                               time: WorkspacesView.WORKSPACE_SWITCH_TIME,
+                               transition: 'easeOutQuad',
+                               onComplete: function() {
+                                   this._animatingIndicator = false;
+                                   this._queueUpdateStates();
+                               },
+                               onCompleteScope: this
+                             });
+        }
     }
 });

@@ -21,6 +21,7 @@ const DockedWorkspaces = Me.imports.dockedWorkspaces;
 
 let intellihide;
 let dock;
+let settings;
 let workspacesToDockStylesheet = null;
 
 function loadStylesheet() {
@@ -88,6 +89,8 @@ function enable() {
     loadStylesheet();
     dock = new DockedWorkspaces.DockedWorkspaces();
     intellihide = new Intellihide.Intellihide(dock);
+    settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
+    bindSettingsChanges();
 }
 
 function disable() {
@@ -95,8 +98,19 @@ function disable() {
     unloadStylesheet();
     intellihide.destroy();
     dock.destroy();
+    settings.run_dispose();
 
     dock = null;
     intellihide = null;
+    settings = null;
+}
+
+function bindSettingsChanges() {
+    // It's easier to just reload the extension when the dock position changes
+    // rather than working out all changes to the different containers.
+    settings.connect('changed::dock-position', function(){
+        disable();
+        enable();
+    });
 }
 

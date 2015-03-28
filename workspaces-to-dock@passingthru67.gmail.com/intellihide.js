@@ -6,7 +6,6 @@
  * ========================================================================================================
  */
 
-const _DEBUG_ = false;
 
 const Lang = imports.lang;
 const Meta = imports.gi.Meta;
@@ -75,7 +74,6 @@ const Intellihide = new Lang.Class({
 
         // temporarily disable intellihide until initialized (prevents connected signals from trying to update dock visibility)
         this._disableIntellihide = true;
-        if (_DEBUG_) global.log("intellihide: init - disaableIntellihide");
 
         // Override Gnome Shell functions
         this._overrideGnomeShellFunctions();
@@ -236,24 +234,20 @@ const Intellihide = new Lang.Class({
                 ]
             );
         }
-        if (_DEBUG_) global.log("intellihide: init - signals being captured");
 
         // Start main loop and bind initialize function
         Mainloop.idle_add(Lang.bind(this, this._initialize));
     },
 
     _initialize: function() {
-        if (_DEBUG_) global.log("intellihide: initializing");
         // enable intellihide now
         this._disableIntellihide = false;
-        if (_DEBUG_) global.log("intellihide: initialize - turn on intellihide");
 
         // updte dock visibility
         this._updateDockVisibility();
     },
 
     destroy: function() {
-        if (_DEBUG_) global.log("intellihide: destroying");
         // Disconnect global signals
         this._signalHandler.disconnect();
 
@@ -268,7 +262,6 @@ const Intellihide = new Lang.Class({
 
     // Called during init to override/extend gnome shell functions
     _overrideGnomeShellFunctions: function() {
-        if (_DEBUG_) global.log("intellihide: _overrideGnomeShellFunctions");
         // Extend the GrabHelper grab function to emit a signal when focus is grabbed
         GSFunctions['GrabHelper_grab'] = GrabHelper.GrabHelper.prototype.grab;
         GrabHelper.GrabHelper.prototype.grab = function(params) {
@@ -289,7 +282,6 @@ const Intellihide = new Lang.Class({
 
     // main function called during destroy to restore gnome shell functions
     _restoreGnomeShellFunctions: function() {
-        if (_DEBUG_) global.log("intellihide: _restoreGnomeShellFunctions");
         // Restore normal GrabHelper grab function
         GrabHelper.GrabHelper.prototype.grab = GSFunctions['GrabHelper_grab'];
         // Restore normal GrabHelper ungrab function
@@ -299,17 +291,14 @@ const Intellihide = new Lang.Class({
     // handler to bind settings when preferences changed
     _bindSettingsChanges: function() {
         this._settings.connect('changed::intellihide', Lang.bind(this, function() {
-            if (_DEBUG_) global.log("intellihide: _bindSettingsChanges for intellihide");
             this._updateDockVisibility();
         }));
 
         this._settings.connect('changed::intellihide-option', Lang.bind(this, function(){
-            if (_DEBUG_) global.log("intellihide: _bindSettingsChanges for intellihide-option");
             this._updateDockVisibility();
         }));
 
         this._settings.connect('changed::dock-fixed', Lang.bind(this, function() {
-            if (_DEBUG_) global.log("intellihide: _bindSettingsChanges for dock-fixed");
             if (this._settings.get_boolean('dock-fixed')) {
                 this.status = true; // Since the dock is now shown
             } else {
@@ -324,31 +313,26 @@ const Intellihide = new Lang.Class({
 
     // handler for when dock size-position is changed
     _onDockSettingsChanged: function() {
-        if (_DEBUG_) global.log("intellihide: _onDockSettingsChanged");
         this._updateDockVisibility();
     },
 
     // handler for when window is maximized
     _onWindowMaximized: function() {
-        if (_DEBUG_) global.log("intellihide: _onWindowMaximized");
         this._updateDockVisibility();
     },
 
     // handler for when window is unmaximized
     _onWindowUnmaximized: function() {
-        if (_DEBUG_) global.log("intellihide: _onWindowUnmaximized");
         this._updateDockVisibility();
     },
 
     // handler for when screen is restacked
     _onScreenRestacked: function() {
-        if (_DEBUG_) global.log("intellihide: _onScreenRestacked");
         this._updateDockVisibility();
     },
 
     // handler for when monitor changes
     _onMonitorsChanged: function() {
-        if (_DEBUG_) global.log("intellihide: _onMonitorsChanged");
         // disconnect bgManager signals
         this._signalHandler.disconnectWithLabel('bgManagerSignals');
 
@@ -375,23 +359,19 @@ const Intellihide = new Lang.Class({
 
     // handler for when thumbnail windows dragging started
     _onWindowDragBegin: function() {
-        if (_DEBUG_) global.log("intellihide: _onWindowDragBegin");
         Main.overview.show();
     },
 
     // handler for when thumbnail windows dragging cancelled
     _onWindowDragCancelled: function() {
-        if (_DEBUG_) global.log("intellihide: _onWindowDragCancelled");
     },
 
     // handler for when thumbnail windows dragging ended
     _onWindowDragEnd: function() {
-        if (_DEBUG_) global.log("intellihide: _onWindowDragEnd");
     },
 
     // handler for when app icon dragging started
     _onItemDragBegin: function() {
-        if (_DEBUG_) global.log("intellihide: _onItemDragBegin");
         Main.overview.show();
         this._toggledOverviewOnDrag = true;
         this._show();
@@ -399,7 +379,6 @@ const Intellihide = new Lang.Class({
 
     // handler for when app icon dragging cancelled
     _onItemDragCancelled: function() {
-        if (_DEBUG_) global.log("intellihide: _onItemDragCancelled");
         if (this._toggledOverviewOnDrag) {
             this._toggledOverviewOnDrag = false;
 
@@ -414,7 +393,6 @@ const Intellihide = new Lang.Class({
 
     // handler for when app icon dragging ended
     _onItemDragEnd: function() {
-        if (_DEBUG_) global.log("intellihide: _onWindowDragEnd");
         if (this._toggledOverviewOnDrag) {
             this._toggledOverviewOnDrag = false;
 
@@ -429,14 +407,12 @@ const Intellihide = new Lang.Class({
 
     // handler for when overview mode exited
     _overviewExit: function() {
-        if (_DEBUG_) global.log("intellihide: _overviewExit");
         this._inOverview = false;
         this._updateDockVisibility();
     },
 
     // handler for when overview mode entered
     _overviewEnter: function() {
-        if (_DEBUG_) global.log("intellihide: _overviewEnter");
         this._inOverview = true;
         if (OVERVIEW_MODE == IntellihideMode.SHOW) {
             this._show();
@@ -453,7 +429,6 @@ const Intellihide = new Lang.Class({
     // for example, when Applications button is clicked the workspaces dock is hidden
     // or when search is started the workspaces dock is hidden
     _overviewPageChanged: function(source, page) {
-        if (_DEBUG_) global.log("intellihide: _overviewPageChanged");
         let newPage;
         if (page)
             newPage = page;
@@ -476,8 +451,9 @@ const Intellihide = new Lang.Class({
         let focusedActor = source._grabStack[idx].actor;
         let [rx, ry] = focusedActor.get_transformed_position();
         let [rwidth, rheight] = focusedActor.get_size();
-        let test = (rx < this._dock.staticBox.x2) && (rx + rwidth > this._dock.staticBox.x1) && (ry < this._dock.staticBox.y2) && (ry + rheight > this._dock.staticBox.y1);
-        if (_DEBUG_) global.log("intellihide: onPanelFocusGrabbed actor = "+focusedActor+"  position = "+focusedActor.get_transformed_position()+" size = "+focusedActor.get_size()+" test = "+test);
+        let [dx, dy] = this._dock.actor.get_position();
+        let [dwidth, dheight] = this._dock.actor.get_size();
+        let test = (rx < dx + dwidth) && (rx + rwidth > dx) && (ry < dy + dheight) && (ry + rheight > dy);
         if (test) {
             this._disableIntellihide = true;
             this._hide();
@@ -487,7 +463,6 @@ const Intellihide = new Lang.Class({
     // handler for when panel focus is ungrabbed (GS 38+)
     _onPanelFocusUngrabbed: function(source, event) {
         if (this._settings.get_boolean('ignore-top-panel')) return;
-        if (_DEBUG_) global.log("intellihide: onPanelFocusUnGrabbed");
         this._disableIntellihide = false;
         if (this._inOverview) {
             if (Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage)
@@ -500,23 +475,23 @@ const Intellihide = new Lang.Class({
     // handler for when messageTray focus is grabbed (GS 34+)
     _onTrayFocusGrabbed: function(source, event) {
         if (this._settings.get_boolean('ignore-message-tray')) return;
-        if (_DEBUG_) global.log("intellihide: _onTrayFocusGrabbed");
         let idx = source._grabStack.length - 1;
         let focusedActor = source._grabStack[idx].actor;
+        let [rx, ry] = focusedActor.get_transformed_position();
+        let [rwidth, rheight] = focusedActor.get_size();
+        let [dx, dy] = this._dock.actor.get_position();
+        let [dwidth, dheight] = this._dock.actor.get_size();
+
         if (focusedActor.get_name() == "message-tray") {
-            let [rx, ry] = focusedActor.get_transformed_position();
-            let [rwidth, rheight] = focusedActor.get_size();
-            let test = (ry - rheight < this._dock.staticBox.y2) && (ry > this._dock.staticBox.y1);
+            let test = (ry - rheight < dy + dheight) && (ry > dy);
             if (test) {
                 this._disableIntellihide = true;
                 this._hide();
             }
             return;
         }
-        let [rx, ry] = focusedActor.get_transformed_position();
-        let [rwidth, rheight] = focusedActor.get_size();
-        let test = (rx < this._dock.staticBox.x2) && (rx + rwidth > this._dock.staticBox.x1) && (ry - rheight < this._dock.staticBox.y2) && (ry > this._dock.staticBox.y1);
-        if (_DEBUG_) global.log("intellihide: onTrayFocusGrabbed actor = "+focusedActor+"  position = "+focusedActor.get_transformed_position()+" size = "+focusedActor.get_size()+" test = "+test);
+
+        let test = (rx < dx + dwidth) && (rx + rwidth > dx) && (ry - rheight < dy + dheight) && (ry > dy);
         if (test) {
             this._disableIntellihide = true;
             this._hide();
@@ -526,7 +501,6 @@ const Intellihide = new Lang.Class({
     // handler for when messageTray focus is ungrabbed (GS 34+)
     _onTrayFocusUngrabbed: function(source, event) {
         if (this._settings.get_boolean('ignore-message-tray')) return;
-        if (_DEBUG_) global.log("intellihide: onTrayFocusUnGrabbed");
         this._disableIntellihide = false;
         if (this._inOverview) {
             if (Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage)
@@ -538,7 +512,6 @@ const Intellihide = new Lang.Class({
 
     // handler for when window move begins
     _grabOpBegin: function() {
-        if (_DEBUG_) global.log("intellihide: _grabOpBegin");
         if (this._settings.get_boolean('intellihide')) {
             let INTERVAL = 100; // A good compromise between reactivity and efficiency; to be tuned.
 
@@ -556,7 +529,6 @@ const Intellihide = new Lang.Class({
 
     // handler for when window move ends
     _grabOpEnd: function() {
-        if (_DEBUG_) global.log("intellihide: _grabOpEnd");
         if (this._settings.get_boolean('intellihide')) {
             if (this._windowChangedTimeout > 0)
                 Mainloop.source_remove(this._windowChangedTimeout);
@@ -568,17 +540,14 @@ const Intellihide = new Lang.Class({
 
     // handler for when workspace is switched
     _switchWorkspace: function(shellwm, from, to, direction) {
-        if (_DEBUG_) global.log("intellihide: _switchWorkspace");
         this._updateDockVisibility();
     },
 
     // intellihide function to show dock
     _show: function() {
         if (this._settings.get_boolean('dock-fixed')) {
-            if (_DEBUG_) global.log("intellihide: _show - fadeInDock");
             this._dock.fadeInDock(0, 0);
         } else {
-            if (_DEBUG_) global.log("intellihide: _show - disableAutoHide");
             this._dock.disableAutoHide();
         }
         this.status = true;
@@ -588,7 +557,6 @@ const Intellihide = new Lang.Class({
     _hide: function(metaOverlap) {
         this.status = false;
         if (this._settings.get_boolean('dock-fixed')) {
-            if (_DEBUG_) global.log("intellihide: _hide - fadeOutDock");
             if (metaOverlap) {
                 // meta popup overlap initiated this hide
                 this._dock.fadeOutDock(0, 0, true);
@@ -597,7 +565,6 @@ const Intellihide = new Lang.Class({
                 this._dock.fadeOutDock(0, 0, false);
             }
         } else {
-            if (_DEBUG_) global.log("intellihide: _hide - enableAutoHide");
             this._dock.enableAutoHide();
         }
     },
@@ -619,7 +586,6 @@ const Intellihide = new Lang.Class({
         //else in normal mode:
         else {
             if (this._settings.get_boolean('intellihide') || this._settings.get_boolean('dock-fixed')) {
-                if (_DEBUG_) global.log("intellihide: updateDockVisibility - normal mode");
                 let overlaps = false;
                 let windows = global.get_window_actors();
 
@@ -659,7 +625,9 @@ const Intellihide = new Lang.Class({
                         let win = windows[i].get_meta_window();
                         if (win) {
                             let rect = win.get_outer_rect();
-                            let test = (rect.x < this._dock.staticBox.x2) && (rect.x + rect.width > this._dock.staticBox.x1) && (rect.y < this._dock.staticBox.y2) && (rect.y + rect.height > this._dock.staticBox.y1);
+                            let [dx, dy] = this._dock.actor.get_position();
+                            let [dwidth, dheight] = this._dock.actor.get_size();
+                            let test = (rect.x < dx + dwidth) && (rect.x + rect.width > dx) && (rect.y < dy + dheight) && (rect.y + rect.height > dy);
                             if (test) {
                                 overlaps = true;
                                 break;
@@ -668,7 +636,6 @@ const Intellihide = new Lang.Class({
                     }
                 }
 
-                if (_DEBUG_) global.log("intellihide: updateDockVisiblity - overlaps = "+overlaps);
                 if (overlaps) {
                     this._hide(true);
                 } else {
