@@ -59,6 +59,8 @@
     padding: 8px;
 }
 
+#workspacestodockContainer .popup-separator-menu-item {
+}
 .workspacestodock-shortcut-panel-separator {
     /*-gradient-height: 1px;*/
     /*-gradient-start: rgba(255,255,255,0.0);*/
@@ -66,6 +68,7 @@
     -margin-horizontal: 2px;
     /*height: 1px;*/
     /*padding: 8px 0px;*/
+    margin: 2px;
 }
 
 .workspacestodock-shortcut-panel-filler {

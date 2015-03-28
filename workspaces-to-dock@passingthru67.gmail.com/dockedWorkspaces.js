@@ -9,7 +9,7 @@
  * ========================================================================================================
  */
 
-const _DEBUG_ = true;
+const _DEBUG_ = false;
 
 const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
@@ -320,16 +320,16 @@ const DockedWorkspaces = new Lang.Class({
                 'notify::y',
                 Lang.bind(this, this._updateYPosition)
             ],
-            [
-                Main.messageTray,
-                'showing',
-                Lang.bind(this, this._onMessageTrayShowing)
-            ],
-            [
-                Main.messageTray,
-                'hiding',
-                Lang.bind(this, this._onMessageTrayHiding)
-            ],
+            // [
+            //     Main.messageTray,
+            //     'showing',
+            //     Lang.bind(this, this._onMessageTrayShowing)
+            // ],
+            // [
+            //     Main.messageTray,
+            //     'hiding',
+            //     Lang.bind(this, this._onMessageTrayHiding)
+            // ],
             [
                 global.screen,
                 'in-fullscreen-changed',
@@ -744,6 +744,7 @@ const DockedWorkspaces = new Lang.Class({
     // handler for when dock y position is updated
     _updateYPosition: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _updateYPosition");
+        global.log("dockedWorkspaces: _updateYPosition");
         this._updateSize();
     },
 
@@ -941,7 +942,7 @@ const DockedWorkspaces = new Lang.Class({
         // Create new pressure barrier based on pressure threshold setting
         if (this._canUsePressure) {
             this._pressureBarrier = new Layout.PressureBarrier(pressureThreshold, PRESSURE_TIMEOUT,
-                                Shell.KeyBindingMode.NORMAL | Shell.KeyBindingMode.OVERVIEW);
+                                Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW);
             this._pressureBarrier.connect('trigger', function(barrier){
                 self._onPressureSensed();
             });
@@ -951,7 +952,7 @@ const DockedWorkspaces = new Lang.Class({
 
     _bindDockKeyboardShortcut: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _bindDockKeyboardShortcut");
-        Main.wm.addKeybinding('dock-keyboard-shortcut', this._settings, Meta.KeyBindingFlags.NONE, Shell.KeyBindingMode.NORMAL,
+        Main.wm.addKeybinding('dock-keyboard-shortcut', this._settings, Meta.KeyBindingFlags.NONE, Shell.ActionMode.NORMAL,
             Lang.bind(this, function() {
                 if (this._autohideStatus && (this._animStatus.hidden() || this._animStatus.hiding())) {
                     this._show();
@@ -1428,22 +1429,25 @@ const DockedWorkspaces = new Lang.Class({
             themeStylesheet = Main._cssStylesheet;
 
         // Get theme directory
-        let themeDirectory = GLib.path_get_dirname(themeStylesheet);
-        if (_DEBUG_) global.log("dockedWorkspaces: _changeStylesheet - new theme = "+themeStylesheet);
+        let themeDirectory = themeStylesheet.get_path() ? GLib.path_get_dirname(themeStylesheet.get_path()) : "";
 
         // Test for workspacesToDock stylesheet
-        let newStylesheet = themeDirectory + '/extensions/workspaces-to-dock/' + filename;
-        if (!GLib.file_test(newStylesheet, GLib.FileTest.EXISTS)) {
+        let newStylesheet = null;
+        if (themeDirectory != "")
+            newStylesheet = Gio.file_new_for_path(themeDirectory + '/extensions/workspaces-to-dock/' + filename);
+
+        if (_DEBUG_) global.log("dockedWorkspaces: _changeStylesheet - test newStylesheet");
+        if (!newStylesheet || !newStylesheet.query_exists(null)) {
             if (_DEBUG_) global.log("dockedWorkspaces: _changeStylesheet - Theme doesn't support workspacesToDock .. use default stylesheet");
             let defaultStylesheet = Gio.File.new_for_path(Me.path + "/themes/default/" + filename);
             if (defaultStylesheet.query_exists(null)) {
-                newStylesheet = defaultStylesheet.get_path();
+                newStylesheet = defaultStylesheet;
             } else {
                 throw new Error(_("No Workspaces-To-Dock stylesheet found") + " (extension.js).");
             }
         }
 
-        if (Extension.workspacesToDockStylesheet && Extension.workspacesToDockStylesheet == newStylesheet) {
+        if (Extension.workspacesToDockStylesheet && Extension.workspacesToDockStylesheet.equal(newStylesheet)) {
             if (_DEBUG_) global.log("dockedWorkspaces: _changeStylesheet - No change in stylesheet. Exit");
             return false;
         }
@@ -1466,9 +1470,13 @@ const DockedWorkspaces = new Lang.Class({
         let previousStylesheet = Extension.workspacesToDockStylesheet;
         Extension.workspacesToDockStylesheet = newStylesheet;
 
+        // let newTheme = new St.Theme ({ application_stylesheet: themeStylesheet,
+        //                               default_stylesheet: Main._defaultCssStylesheet });
+
         let newTheme = new St.Theme ({ application_stylesheet: themeStylesheet });
+
         for (let i = 0; i < customStylesheets.length; i++) {
-            if (customStylesheets[i] != previousStylesheet) {
+            if (!customStylesheets[i].equal(previousStylesheet)) {
                 newTheme.load_stylesheet(customStylesheets[i]);
             }
         }
@@ -1660,8 +1668,9 @@ const DockedWorkspaces = new Lang.Class({
                     height = this._monitor.height - topMargin - bottomMargin;
                 }
             } else {
-                y = this._monitor.y + Main.panel.actor.height + Main.overview._searchEntryBin.y + Main.overview._searchEntryBin.height;
-                height = this._monitor.height - (Main.overview._searchEntryBin.y + Main.overview._searchEntryBin.height + Main.messageTray.actor.height);
+                let controlsTop = 45;
+                y = this._monitor.y + Main.panel.actor.height + controlsTop + Main.overview._searchEntryBin.height;
+                height = this._monitor.height - (y + Main.overview._searchEntryBin.height);
             }
         }
 

@@ -329,6 +329,7 @@ const ShortcutButton = new Lang.Class({
 
         this.emit('menu-state-changed', true);
 
+        this._panel.setPopupMenuFlag(true);
         this._panel.hideThumbnails();
         this.actor.set_hover(true);
         this._menu.popup();
@@ -340,6 +341,7 @@ const ShortcutButton = new Lang.Class({
     _onMenuPoppedDown: function() {
         this.actor.sync_hover();
         this.emit('menu-state-changed', false);
+        this._panel.setPopupMenuFlag(false);
         this._panel.showThumbnails();
     },
 
@@ -470,6 +472,10 @@ const ShortcutsPanel = new Lang.Class({
         this._settings.connect('changed::shortcuts-panel-appsbutton-at-bottom', Lang.bind(this, function() {
             this.refresh();
         }));
+    },
+
+    setPopupMenuFlag: function(showing) {
+        this._dock.setPopupMenuFlag(showing);
     },
 
     hideThumbnails: function() {
