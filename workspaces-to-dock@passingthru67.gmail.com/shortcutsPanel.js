@@ -1,3 +1,4 @@
+const _DEBUG_ = false;
 
 const IconTheme = imports.gi.Gtk.IconTheme;
 const GLib = imports.gi.GLib;

@@ -6,6 +6,7 @@
  * ========================================================================================================
  */
 
+const _DEBUG_ = false;
 
 const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
@@ -122,6 +123,7 @@ const myWindowClone = new Lang.Class({
         // passingthru67: Don't know why but windows that use Client Side Decorations (like gEdit)
         // don't position properly when maximized or in fullscreen mode. Is it an upstream bug?
         let rect = this.metaWindow.get_frame_rect();
+        if (_DEBUG_) global.log("window clone position changed - x="+this.realWindow.x+" y="+this.realWindow.y+" nx="+rect.x+" ny="+rect.y);
         this.actor.set_position(this.realWindow.x, this.realWindow.y);
         if (this.metaWindow.get_maximized() && rect) {
             this.actor.set_position(rect.x, rect.y);
@@ -174,6 +176,7 @@ const myWorkspaceThumbnail = new Lang.Class({
     },
 
     refreshWindowClones: function() {
+        if (_DEBUG_ && !this._removed) global.log("myWorkspaceThumbnail: refreshWindowClones for metaWorkspace "+this.metaWorkspace.index());
         // Disconnect window signals
         for (let i = 0; i < this._allWindows.length; i++) {
             this._allWindows[i].disconnect(this._minimizedChangedIds[i]);
@@ -205,6 +208,7 @@ const myWorkspaceThumbnail = new Lang.Class({
     },
 
     _doRemoveWindow : function(metaWin) {
+        if (_DEBUG_ && !this._removed) global.log("myWorkspaceThumbnail: _doRemoveWindow for metaWorkspace "+this.metaWorkspace.index());
         let win = metaWin.get_compositor_private();
 
         // find the position of the window in our list
@@ -231,6 +235,7 @@ const myWorkspaceThumbnail = new Lang.Class({
     },
 
     _doAddWindow : function(metaWin) {
+        if (_DEBUG_ && !this._removed) global.log("myWorkspaceThumbnail: _doAddWindow for metaWorkspace "+this.metaWorkspace.index());
         if (this._removed)
             return;
 
@@ -294,17 +299,20 @@ const myWorkspaceThumbnail = new Lang.Class({
     },
 
     workspaceRemoved: function() {
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: workspaceRemoved");
         this.caption.workspaceRemoved();
         this.parent();
     },
 
     _onDestroy: function(actor) {
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: _onDestroy");
         this.caption.destroy();
         this.parent(actor);
     },
 
     // Create a clone of a (non-desktop) window and add it to the window list
     _addWindowClone : function(win, refresh) {
+        if (_DEBUG_ && !this._removed) global.log("myWorkspaceThumbnail: _addWindowClone for metaWorkspace "+this.metaWorkspace.index());
         let clone = new myWindowClone(win);
 
         clone.connect('selected',
@@ -513,6 +521,7 @@ const myThumbnailsBox = new Lang.Class({
 
         // NumMyWorkspaces == NumGlobalWorkspaces shouldn't happen, but does when Firefox started.
         // Assume that a workspace thumbnail is still in process of being removed from _thumbnailsBox
+        if (_DEBUG_) global.log("dockedWorkspaces: _workspacesAdded - thumbnail being added  .. ws="+NumGlobalWorkspaces+" th="+NumMyWorkspaces);
         if (NumMyWorkspaces == NumGlobalWorkspaces)
             NumMyWorkspaces --;
 
@@ -536,6 +545,7 @@ const myThumbnailsBox = new Lang.Class({
         let active = global.screen.get_active_workspace_index();
 
         // TODO: Not sure if this is an issue?
+        if (_DEBUG_) global.log("dockedWorkspaces: _workspacesRemoved - thumbnails being removed .. ws="+NumGlobalWorkspaces+" th="+NumMyWorkspaces);
         if (NumMyWorkspaces == NumGlobalWorkspaces)
             return;
 
@@ -551,12 +561,14 @@ const myThumbnailsBox = new Lang.Class({
         }
 
         if (removedIndex != null) {
+            if (_DEBUG_) global.log("dockedWorkspaces: _workspacesRemoved - thumbnail index being removed is = "+removedIndex);
             this.removeThumbnails(removedIndex, removedNum);
         }
     },
 
     // override _createThumbnails to remove global n-workspaces notification
     _createThumbnails: function() {
+        if (_DEBUG_) global.log("mythumbnailsBox: _createThumbnails");
         this._switchWorkspaceNotifyId =
             global.window_manager.connect('switch-workspace',
                                           Lang.bind(this, this._activeWorkspaceChanged));
@@ -582,6 +594,7 @@ const myThumbnailsBox = new Lang.Class({
     },
 
     refreshThumbnails: function() {
+        if (_DEBUG_) global.log("mythumbnailsBox: refreshThumbnails");
         for (let i = 0; i < this._thumbnails.length; i++) {
             this._thumbnails[i].refreshWindowClones();
             this._thumbnails[i].caption.activeWorkspaceChanged();
@@ -590,6 +603,7 @@ const myThumbnailsBox = new Lang.Class({
 
     // override _onButtonRelease to provide customized click actions (i.e. overview on right click)
     _onButtonRelease: function(actor, event) {
+        if (_DEBUG_) global.log("mythumbnailsBox: _onButtonRelease");
         // ThumbnailsBox click events are passed on to dock handler if conditions are met
         // Helpful in cases where the 'dock-edge-visible' option is enabled. It provides more
         // area to click on to show the dock when the window is maximized.
@@ -643,6 +657,7 @@ const myThumbnailsBox = new Lang.Class({
 
     // override addThumbnails to provide workspace thumbnail labels
     addThumbnails: function(start, count) {
+        if (_DEBUG_) global.log("mythumbnailsBox: addThumbnails");
         this._ensurePorthole();
         for (let k = start; k < start + count; k++) {
             let metaWorkspace = global.screen.get_workspace_by_index(k);
@@ -686,12 +701,14 @@ const myThumbnailsBox = new Lang.Class({
     },
 
     updateTaskbars: function(metaWin, action) {
+        if (_DEBUG_) global.log("mythumbnailsBox: updateTaskbars");
         for (let i = 0; i < this._thumbnails.length; i++) {
             this._thumbnails[i].caption.updateTaskbar(metaWin, action);
         }
     },
 
     setPopupMenuFlag: function(showing) {
+        if (_DEBUG_) global.log("mythumbnailsBox: setPopupMenuFlag");
         this._dock.setPopupMenuFlag(showing);
     },
 
@@ -821,6 +838,7 @@ const myThumbnailsBox = new Lang.Class({
         // TODO: Is there a signal emitted or property set by mutter metawindows that we can connect
         // to determine when a window is set to visible-on-all-workspaces?
         let refresh = false;
+        if (_DEBUG_ && thumbnail._windows.length > 0) global.log("myWorkspaceThumbnail: _checkWindowsOnAllWorkspaces - windowsOnAllWorkspaces.length = "+thumbnail._windowsOnAllWorkspaces.length);
         for (let i = 0; i < thumbnail._windows.length; i++) {
             let clone = thumbnail._windows[i];
             let realWindow = clone.realWindow;
@@ -830,12 +848,16 @@ const myThumbnailsBox = new Lang.Class({
                 if (metaWindow == thumbnail._windowsOnAllWorkspaces[j]) {
                     alreadyPushed = true;
                     if (!metaWindow.is_on_all_workspaces()) {
+                        if (_DEBUG_) global.log("myWorkspaceThumbnail: _checkWindowsOnAllWorkspaces - REFRESH THUMBNAILS - window removed from windowsOnAllWorkspaces");
                         thumbnail._windowsOnAllWorkspaces.splice(j, 1);
                         refresh = true;
                     }
                 }
             }
+            if (_DEBUG_ && alreadyPushed) global.log("myWorkspaceThumbnail: _checkWindowsOnAllWorkspaces - "+metaWindow.get_wm_class()+" in windowsOnAllWorkspaces. isMyWindow = "+ thumbnail._isMyWindow(realWindow)+", is_on_all_workspaces = "+metaWindow.is_on_all_workspaces());
+            if (_DEBUG_ && !alreadyPushed) global.log("myWorkspaceThumbnail: _checkWindowsOnAllWorkspaces - "+metaWindow.get_wm_class()+" not in windowsOnAllWorkspaces. isMyWindow = "+ thumbnail._isMyWindow(realWindow)+", is_on_all_workspaces = "+metaWindow.is_on_all_workspaces());
             if (!alreadyPushed && metaWindow.is_on_all_workspaces()) {
+                if (_DEBUG_) global.log("myWorkspaceThumbnail: _checkWindowsOnAllWorkspaces - REFRESH THUMBNAILS - window added to windowsOnAllWorkspaces");
                 thumbnail._windowsOnAllWorkspaces.push(metaWindow);
                 refresh = true;
             }
@@ -899,6 +921,7 @@ const myThumbnailsBox = new Lang.Class({
         } else {
             newScale = Math.min(newScale, MAX_THUMBNAIL_SCALE);
         }
+        if (_DEBUG_) global.log("mythumbnailsBox: _allocate - newScale = "+newScale+" targetScale = "+this._targetScale);
         if (newScale != this._targetScale) {
             if (this._targetScale > 0) {
                 // We don't do the tween immediately because we need to observe the ordering
@@ -1138,6 +1161,7 @@ const myThumbnailsBox = new Lang.Class({
 
     // override _activeWorkspaceChanged to eliminate errors thrown
     _activeWorkspaceChanged: function(wm, from, to, direction) {
+        if (_DEBUG_) global.log("mythumbnailsBox: _activeWorkspaceChanged - thumbnail count = "+this._thumbnails.length);
         let thumbnail;
         let activeWorkspace = global.screen.get_active_workspace();
         for (let i = 0; i < this._thumbnails.length; i++) {
