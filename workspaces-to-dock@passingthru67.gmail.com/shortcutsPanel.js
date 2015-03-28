@@ -163,9 +163,14 @@ const ShortcutButton = new Lang.Class({
         this._stateChangedId = 0;
         this._settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
 
-        this.actor = new St.Button({style_class:'app-well-app workspacestodock-shortcut-button'});
-        this.actor._delegate = this;
+        this.actor = new St.Button({ style_class: 'app-well-app workspacestodock-shortcut-button',
+                                     reactive: true,
+                                     button_mask: St.ButtonMask.ONE | St.ButtonMask.TWO,
+                                     can_focus: true,
+                                     x_fill: true,
+                                     y_fill: true });
 
+        this.actor._delegate = this;
 
         this._iconSize = this._settings.get_double('shortcuts-panel-icon-size');
         let iconParams = {setSizeManually: true, showLabel: false};
@@ -184,13 +189,29 @@ const ShortcutButton = new Lang.Class({
         } else if (appType == ApplicationType.APPSBUTTON) {
             iconParams['createIcon'] = Lang.bind(this, function(iconSize){ return new St.Icon({icon_name: 'view-grid-symbolic', icon_size: iconSize});});
         }
+
+        this._dot = new St.Widget({ style_class: 'app-well-app-running-dot',
+                                    layout_manager: new Clutter.BinLayout(),
+                                    x_expand: true, y_expand: true,
+                                    x_align: Clutter.ActorAlign.CENTER,
+                                    y_align: Clutter.ActorAlign.END });
+
+        // NOTE: _iconContainer y_expand:false prevents button from growing
+        // vertically when _dot is shown and hid
+        this._iconContainer = new St.Widget({ layout_manager: new Clutter.BinLayout(),
+                                              x_expand: true, y_expand: false });
+
+        this.actor.set_child(this._iconContainer);
+        this._iconContainer.add_child(this._dot);
+
         this._icon = new IconGrid.BaseIcon(null, iconParams);
         this._icon.actor.add_style_class_name('workspacestodock-shortcut-button-icon');
         if (appType == ApplicationType.PLACE) {
             this._icon.actor.add_style_class_name('workspacestodock-shortcut-button-symbolic-icon');
         }
         this._icon.setIconSize(this._iconSize);
-        this.actor.set_child(this._icon.actor);
+
+        this._iconContainer.add_child(this._icon.actor);
 
         this._menu = null;
         this._menuManager = new PopupMenu.PopupMenuManager(this);
@@ -226,6 +247,7 @@ const ShortcutButton = new Lang.Class({
         }
 
         // Check if running state
+        this._dot.hide();
         this._onStateChanged();
     },
 
@@ -362,8 +384,10 @@ const ShortcutButton = new Lang.Class({
         } else if (this._type == ApplicationType.APPLICATION) {
             if (this._app.state != Shell.AppState.STOPPED) {
                 this.actor.add_style_class_name('running');
+                this._dot.show();
             } else {
                 this.actor.remove_style_class_name('running');
+                this._dot.hide();
             }
         }
     },
