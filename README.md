@@ -181,6 +181,10 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
+**version 28 for Gnome 3.16 (March 30, 2015)**
+- Support for Gnome Shell 3.16
+- Implement new thumbnails slider
+
 **version 27 for Gnome 3.14 (January 12, 2015)**
 - Bug fixes
 - Dash-To-Dock bottom position compatibility

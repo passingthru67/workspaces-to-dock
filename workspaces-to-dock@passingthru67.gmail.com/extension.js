@@ -21,6 +21,7 @@ const DockedWorkspaces = Me.imports.dockedWorkspaces;
 
 let intellihide;
 let dock;
+let settings;
 let workspacesToDockStylesheet = null;
 
 function loadStylesheet() {
@@ -30,24 +31,29 @@ function loadStylesheet() {
 
     // Get current theme stylesheet
     let themeStylesheet = Main._defaultCssStylesheet;
+
     if (Main._cssStylesheet != null)
         themeStylesheet = Main._cssStylesheet;
 
     // Get theme directory
-    let themeDirectory = GLib.path_get_dirname(themeStylesheet);
+    let themeDirectory = themeStylesheet.get_path() ? GLib.path_get_dirname(themeStylesheet.get_path()) : "";
 
     // Test for workspacesToDock stylesheet
-    workspacesToDockStylesheet = themeDirectory + '/extensions/workspaces-to-dock/' + filename;
-    if (!GLib.file_test(workspacesToDockStylesheet, GLib.FileTest.EXISTS)) {
+    if (themeDirectory != "")
+        workspacesToDockStylesheet = Gio.file_new_for_path(themeDirectory + '/extensions/workspaces-to-dock/' + filename);
+
+    if (_DEBUG_) global.log("WorkspacesToDock: _loadStylesheet - test workspacesToDock stylesheet");
+    if (!workspacesToDockStylesheet || !workspacesToDockStylesheet.query_exists(null)) {
         if (_DEBUG_) global.log("WorkspacesToDock: _loadStylesheet - Theme doesn't support workspacesToDock .. use default stylesheet");
         let defaultStylesheet = Gio.File.new_for_path(Me.path + "/themes/default/" + filename);
         if (defaultStylesheet.query_exists(null)) {
-            workspacesToDockStylesheet = defaultStylesheet.get_path();
+            workspacesToDockStylesheet = defaultStylesheet;
         } else {
             throw new Error(_("No Workspaces-To-Dock stylesheet found") + " (extension.js).");
         }
     }
 
+    if (_DEBUG_) global.log("WorkspacesToDock: _loadStylesheet - stylesheet valid");
     let themeContext = St.ThemeContext.get_for_stage(global.stage);
     if (!themeContext)
         return false;
@@ -57,6 +63,7 @@ function loadStylesheet() {
         return false;
 
     // Load workspacesToDock stylesheet
+    if (_DEBUG_) global.log("WorkspacesToDock: _loadStylesheet - loading stylesheet");
     theme.load_stylesheet(workspacesToDockStylesheet);
     return true;
 }
@@ -88,6 +95,8 @@ function enable() {
     loadStylesheet();
     dock = new DockedWorkspaces.DockedWorkspaces();
     intellihide = new Intellihide.Intellihide(dock);
+    settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
+    bindSettingsChanges();
 }
 
 function disable() {
@@ -95,8 +104,19 @@ function disable() {
     unloadStylesheet();
     intellihide.destroy();
     dock.destroy();
+    settings.run_dispose();
 
     dock = null;
     intellihide = null;
+    settings = null;
+}
+
+function bindSettingsChanges() {
+    // It's easier to just reload the extension when the dock position changes
+    // rather than working out all changes to the different containers.
+    settings.connect('changed::dock-position', function(){
+        disable();
+        enable();
+    });
 }
 

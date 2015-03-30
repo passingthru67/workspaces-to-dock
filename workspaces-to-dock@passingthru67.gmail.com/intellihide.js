@@ -193,16 +193,6 @@ const Intellihide = new Lang.Class({
                 Lang.bind(this, this._onMonitorsChanged)
             ],
             [
-                Main.messageTray._grabHelper,
-                'focus-grabbed',
-                Lang.bind(this, this._onTrayFocusGrabbed)
-            ],
-            [
-                Main.messageTray._grabHelper,
-                'focus-ungrabbed',
-                Lang.bind(this, this._onTrayFocusUngrabbed)
-            ],
-            [
                 Main.panel.menuManager._grabHelper,
                 'focus-grabbed',
                 Lang.bind(this, this._onPanelFocusGrabbed)
@@ -476,8 +466,10 @@ const Intellihide = new Lang.Class({
         let focusedActor = source._grabStack[idx].actor;
         let [rx, ry] = focusedActor.get_transformed_position();
         let [rwidth, rheight] = focusedActor.get_size();
-        let test = (rx < this._dock.staticBox.x2) && (rx + rwidth > this._dock.staticBox.x1) && (ry < this._dock.staticBox.y2) && (ry + rheight > this._dock.staticBox.y1);
-        if (_DEBUG_) global.log("intellihide: onPanelFocusGrabbed actor = "+focusedActor+"  position = "+focusedActor.get_transformed_position()+" size = "+focusedActor.get_size()+" test = "+test);
+        let [dx, dy] = this._dock.actor.get_position();
+        let [dwidth, dheight] = this._dock.actor.get_size();
+        let test = (rx < dx + dwidth) && (rx + rwidth > dx) && (ry < dy + dheight) && (ry + rheight > dy);
+		if (_DEBUG_) global.log("intellihide: onPanelFocusGrabbed actor = "+focusedActor+"  position = "+focusedActor.get_transformed_position()+" size = "+focusedActor.get_size()+" test = "+test);
         if (test) {
             this._disableIntellihide = true;
             this._hide();
@@ -503,20 +495,22 @@ const Intellihide = new Lang.Class({
         if (_DEBUG_) global.log("intellihide: _onTrayFocusGrabbed");
         let idx = source._grabStack.length - 1;
         let focusedActor = source._grabStack[idx].actor;
+        let [rx, ry] = focusedActor.get_transformed_position();
+        let [rwidth, rheight] = focusedActor.get_size();
+        let [dx, dy] = this._dock.actor.get_position();
+        let [dwidth, dheight] = this._dock.actor.get_size();
+
         if (focusedActor.get_name() == "message-tray") {
-            let [rx, ry] = focusedActor.get_transformed_position();
-            let [rwidth, rheight] = focusedActor.get_size();
-            let test = (ry - rheight < this._dock.staticBox.y2) && (ry > this._dock.staticBox.y1);
+            let test = (ry - rheight < dy + dheight) && (ry > dy);
             if (test) {
                 this._disableIntellihide = true;
                 this._hide();
             }
             return;
         }
-        let [rx, ry] = focusedActor.get_transformed_position();
-        let [rwidth, rheight] = focusedActor.get_size();
-        let test = (rx < this._dock.staticBox.x2) && (rx + rwidth > this._dock.staticBox.x1) && (ry - rheight < this._dock.staticBox.y2) && (ry > this._dock.staticBox.y1);
-        if (_DEBUG_) global.log("intellihide: onTrayFocusGrabbed actor = "+focusedActor+"  position = "+focusedActor.get_transformed_position()+" size = "+focusedActor.get_size()+" test = "+test);
+
+        let test = (rx < dx + dwidth) && (rx + rwidth > dx) && (ry - rheight < dy + dheight) && (ry > dy);
+		if (_DEBUG_) global.log("intellihide: onTrayFocusGrabbed actor = "+focusedActor+"  position = "+focusedActor.get_transformed_position()+" size = "+focusedActor.get_size()+" test = "+test);
         if (test) {
             this._disableIntellihide = true;
             this._hide();
@@ -658,8 +652,10 @@ const Intellihide = new Lang.Class({
                     for (let i = 0; i < windows.length; i++) {
                         let win = windows[i].get_meta_window();
                         if (win) {
-                            let rect = win.get_outer_rect();
-                            let test = (rect.x < this._dock.staticBox.x2) && (rect.x + rect.width > this._dock.staticBox.x1) && (rect.y < this._dock.staticBox.y2) && (rect.y + rect.height > this._dock.staticBox.y1);
+                            let rect = win.get_frame_rect();
+                            let [dx, dy] = this._dock.actor.get_position();
+                            let [dwidth, dheight] = this._dock.actor.get_size();
+                            let test = (rect.x < dx + dwidth) && (rect.x + rect.width > dx) && (rect.y < dy + dheight) && (rect.y + rect.height > dy);
                             if (test) {
                                 overlaps = true;
                                 break;
@@ -733,7 +729,7 @@ const Intellihide = new Lang.Class({
                 if (meta_win.get_window_type() == Meta.WindowType.TOOLTIP) {
                     let pointer = Gdk.Display.get_default().get_device_manager().get_client_pointer();
                     let [scr,x,y] = pointer.get_position();
-                    let rect = this._focusedWin.get_outer_rect();
+                    let rect = this._focusedWin.get_frame_rect();
                     let overlap = ((x > rect.x) && (x < rect.x+rect.width) && (y > rect.y) && (y < rect.y+rect.height));
                     if (!overlap)
                         return false;
