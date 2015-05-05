@@ -518,7 +518,7 @@ const DockedWorkspaces = new Lang.Class({
             let ret = GSFunctions['LayoutManager_updateRegions'].call(this);
             // SANITY CHECK:
             // if (_DEBUG_) global.log("dockedWorkspaces: LAYOUTMANAGER UPDATE - workArea W= "+workArea.width + "   H= "+workArea.height+ "  CURRENT W="+self._workAreaWidth+"   H="+self._workAreaHeight+"    FORCED?="+self._refreshThumbnailsOnRegionUpdate);
-            if (workArea.width != self._workAreaWidth || workArea.height != self._workAreaHeight || self._refreshThumbnailsOnRegionUpdate) {
+            if (self._refreshThumbnailsOnRegionUpdate) {
                 if (_DEBUG_) global.log("dockedWorkspaces: UPDATEREGIONS - workArea changed or update forced");
                 self._refreshThumbnailsOnRegionUpdate = false;
                 self._refreshThumbnails();
