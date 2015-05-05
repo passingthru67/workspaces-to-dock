@@ -168,7 +168,9 @@ const ShortcutButton = new Lang.Class({
                                      button_mask: St.ButtonMask.ONE | St.ButtonMask.TWO,
                                      can_focus: true,
                                      x_fill: true,
-                                     y_fill: true });
+                                     y_fill: true,
+                                     x_expand: false,
+                                     y_expand: false });
 
         this.actor._delegate = this;
 
@@ -199,7 +201,7 @@ const ShortcutButton = new Lang.Class({
         // NOTE: _iconContainer y_expand:false prevents button from growing
         // vertically when _dot is shown and hid
         this._iconContainer = new St.Widget({ layout_manager: new Clutter.BinLayout(),
-                                              x_expand: true, y_expand: false });
+                                              x_expand: true, y_expand: true });
 
         this.actor.set_child(this._iconContainer);
         this._iconContainer.add_child(this._dot);
@@ -247,7 +249,7 @@ const ShortcutButton = new Lang.Class({
         }
 
         // Check if running state
-        this._dot.hide();
+        this._dot.opacity = 0;
         this._onStateChanged();
     },
 
@@ -384,10 +386,10 @@ const ShortcutButton = new Lang.Class({
         } else if (this._type == ApplicationType.APPLICATION) {
             if (this._app.state != Shell.AppState.STOPPED) {
                 this.actor.add_style_class_name('running');
-                this._dot.show();
+                this._dot.opacity = 255;
             } else {
                 this.actor.remove_style_class_name('running');
-                this._dot.hide();
+                this._dot.opacity = 0;
             }
         }
     },
