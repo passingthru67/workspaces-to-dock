@@ -429,7 +429,9 @@ const Intellihide = new Lang.Class({
         if (_DEBUG_) global.log("intellihide: _overviewEnter");
         this._inOverview = true;
         if (OVERVIEW_MODE == IntellihideMode.SHOW) {
-            this._show();
+            if (Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage) {
+                this._show();
+            }
         } else if (OVERVIEW_MODE == IntellihideMode.AUTOHIDE) {
             this._hide();
         } else if (OVERVIEW_MODE == IntellihideMode.INTELLIHIDE) {
