@@ -1,8 +1,10 @@
 #!/bin/bash
+# usage: build_release [OPTION]
+# creates zip in attic/releases/master/<version_number>
+# <version_number> found in metadata.json
 #
-# @param: <version_number>
-# version_number = 0 creates zip in root
-# version_number > 0 creates zip in attic/releases/master/<version_number>
+# options:
+#     -d creates zip in root
 #
 
 APPLICATION="${0##*/}"
