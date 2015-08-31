@@ -757,46 +757,6 @@ const DockedWorkspaces = new Lang.Class({
             this._updateBackgroundOpacity();
         }));
 
-        this._settings.connect('changed::dock-fixed', Lang.bind(this, function() {
-            if (_DEBUG_) global.log("dockedWorkspaces: _bindSettingsChanges for dock-fixed");
-
-            // Main.layoutManager.removeChrome(this.actor);
-            // Main.layoutManager.addChrome(this.actor, {
-            //     affectsStruts: this._settings.get_boolean('dock-fixed'),
-            //     trackFullscreen: true
-            // });
-
-            // // Lower the dock below the screenShieldGroup so that panel and messageTray popups can receive focus & clicks
-            // if (Main.layoutManager.uiGroup.contains(Main.layoutManager.screenShieldGroup))
-            //     Main.layoutManager.uiGroup.set_child_below_sibling(this.actor, Main.layoutManager.screenShieldGroup);
-
-            if (this._settings.get_boolean('dock-fixed')) {
-                Main.layoutManager._trackActor(this.actor, {affectsStruts: true});
-                // show dock immediately when setting changes
-                this._autohideStatus = true; // It could be false but the dock could be hidden
-                this.disableAutoHide();
-            } else {
-                Main.layoutManager._untrackActor(this.actor);
-                this.emit('box-changed');
-            }
-
-            // Add or remove addtional style class when workspace is fixed and set to full height
-            if (this._settings.get_boolean('extend-height') && this._settings.get_double('top-margin') == 0) {
-                this._thumbnailsBoxBackground.add_style_class_name('workspace-thumbnails-fullheight');
-            } else {
-                this._thumbnailsBoxBackground.remove_style_class_name('workspace-thumbnails-fullheight');
-            }
-
-            // Add or remove barrier depending on if dock-fixed
-            this._updateBarrier();
-
-            // Refresh thumbnails to adjust for workarea size change
-            // NOTE1: setting _refreshThumbnailsOnRegionUpdate=true forces a thumbnails refresh when
-            // layoutManager updates regions (see overrideGnomeShellFunctions)
-            this._refreshThumbnailsOnRegionUpdate = true;
-            Main.layoutManager._queueUpdateRegions();
-        }));
-
         this._settings.connect('changed::autohide', Lang.bind(this, function() {
             this.emit('box-changed');
             this._updateBarrier();

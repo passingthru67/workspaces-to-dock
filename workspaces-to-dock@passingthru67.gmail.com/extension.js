@@ -118,5 +118,10 @@ function bindSettingsChanges() {
         disable();
         enable();
     });
+    settings.connect('changed::dock-fixed', function(){
+        disable();
+        enable();
+    });
+
 }
 
