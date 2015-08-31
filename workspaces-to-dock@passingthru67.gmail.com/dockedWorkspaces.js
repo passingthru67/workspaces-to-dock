@@ -255,11 +255,15 @@ const DockedWorkspaces = new Lang.Class({
 
         // Create the main dock container, turn on track hover, add hoverChange signal
         let positionStyleClass = ['top', 'right', 'bottom', 'left'];
+        let styleClass = positionStyleClass[this._position];
+        if (this._settings.get_boolean('dock-fixed'))
+            styleClass += " fixed";
+
         this._dock = new St.BoxLayout({
             name: 'workspacestodockContainer',
             reactive: true,
             track_hover: true,
-            style_class:positionStyleClass[this._position],
+            style_class: styleClass,
         });
         this._dock.connect("notify::hover", Lang.bind(this, this._hoverChanged));
         this._dock.connect("scroll-event", Lang.bind(this, this._onScrollEvent));
