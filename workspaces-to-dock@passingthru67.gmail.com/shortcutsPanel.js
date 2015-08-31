@@ -153,6 +153,11 @@ const ShortcutButtonMenu = new Lang.Class({
 });
 Signals.addSignalMethods(ShortcutButtonMenu.prototype);
 
+let recentlyClickedAppLoopId = 0;
+let recentlyClickedApp = null;
+let recentlyClickedAppWindows = null;
+let recentlyClickedAppIndex = 0;
+
 const ShortcutButton = new Lang.Class({
     Name: 'workspacestodock.ShortcutButton',
 
@@ -290,11 +295,17 @@ const ShortcutButton = new Lang.Class({
 
     _onClicked: function(actor, button) {
         //let event = Clutter.get_current_event();
+        let tracker = Shell.WindowTracker.get_default();
         this._removeMenuTimeout();
+
         if (button == 1) {
             if (this._type == ApplicationType.APPLICATION) {
                 if (this._app.state == Shell.AppState.RUNNING) {
-                    this._app.activate();
+                    if (this._app == tracker.focus_app && !Main.overview._shown) {
+                        this._cycleThroughWindows();
+                    } else {
+                        this._app.activate();
+                    }
                 } else {
                     this._app.open_new_window(-1);
                 }
@@ -321,6 +332,50 @@ const ShortcutButton = new Lang.Class({
             }
         }
         return Clutter.EVENT_PROPAGATE;
+    },
+
+    _cycleThroughWindows: function() {
+        // Store for a little amount of time last time app was clicked
+        // since the order changes upon window interaction
+        let MEMORY_TIME = 3000;
+
+        let appWindows = this._app.get_windows().filter(function(w) {
+            return !w.skip_taskbar;
+        });
+
+        if(recentlyClickedAppLoopId>0)
+            Mainloop.source_remove(recentlyClickedAppLoopId);
+
+        recentlyClickedAppLoopId = Mainloop.timeout_add(MEMORY_TIME, this._resetClickedApp);
+
+        // If there isn't already a list of windows for the current app,
+        // or the stored list is outdated, use the current windows list.
+        if (!recentlyClickedApp ||
+            recentlyClickedApp.get_id() != this._app.get_id() ||
+            recentlyClickedAppWindows.length != appWindows.length
+          ) {
+
+            recentlyClickedApp = this._app;
+            recentlyClickedAppWindows = appWindows;
+            recentlyClickedAppIndex = 0;
+        }
+
+        recentlyClickedAppIndex ++;
+        let index = recentlyClickedAppIndex % recentlyClickedAppWindows.length;
+        let window = recentlyClickedAppWindows[index];
+        Main.activateWindow(window);
+    },
+
+    _resetClickedApp: function() {
+        if(recentlyClickedAppLoopId>0)
+            Mainloop.source_remove(recentlyClickedAppLoopId);
+
+        recentlyClickedAppLoopId=0;
+        recentlyClickedApp =null;
+        recentlyClickedAppWindows = null;
+        recentlyClickedAppIndex = 0;
+
+        return false;
     },
 
     _removeMenuTimeout: function() {
