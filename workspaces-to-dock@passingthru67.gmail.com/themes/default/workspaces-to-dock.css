@@ -43,6 +43,10 @@
 /* shortcuts panel buttons */
 #workspacestodockContainer .app-well-app {
 }
+
+#workspacestodockContainer .workspacestodock-shortcuts-panel > StButton {
+    background-size: contain;
+}
 .workspacestodock-shortcut-button {
 }
 .workspacestodock-shortcut-button-symbolic {
@@ -58,6 +62,7 @@
     padding: 8px;
 }
 
+/* shortcuts panel items */
 #workspacestodockContainer .popup-separator-menu-item {
     margin: 2px;
 }
@@ -72,6 +77,32 @@
     -margin-horizontal: 2px;
     height: 1px;
     padding: 0px;
+}
+
+/* shortcuts panel button window count indicators */
+#workspacestodockContainer.right .workspacestodock-shortcut-button-windowcount-image-1 {
+    background-image: url('one.svg');
+}
+#workspacestodockContainer.right .workspacestodock-shortcut-button-windowcount-image-2 {
+    background-image: url('two.svg');
+}
+#workspacestodockContainer.right .workspacestodock-shortcut-button-windowcount-image-3 {
+    background-image: url('three.svg');
+}
+#workspacestodockContainer.right .workspacestodock-shortcut-button-windowcount-image-4 {
+    background-image: url('four.svg');
+}
+#workspacestodockContainer.left .workspacestodock-shortcut-button-windowcount-image-1 {
+    background-image: url('one_rtl.svg');
+}
+#workspacestodockContainer.left .workspacestodock-shortcut-button-windowcount-image-2 {
+    background-image: url('two_rtl.svg');
+}
+#workspacestodockContainer.left .workspacestodock-shortcut-button-windowcount-image-3 {
+    background-image: url('three_rtl.svg');
+}
+#workspacestodockContainer.left .workspacestodock-shortcut-button-windowcount-image-4 {
+    background-image: url('four_rtl.svg');
 }
 
 .workspacestodock-workspace-caption-container {

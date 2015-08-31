@@ -166,6 +166,8 @@ const ShortcutButton = new Lang.Class({
         this._type = appType;
         this._panel = panel;
         this._stateChangedId = 0;
+        this._countChangedId = 0;
+        this._maxN = 4;
         this._settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
 
         this.actor = new St.Button({ style_class: 'app-well-app workspacestodock-shortcut-button',
@@ -234,6 +236,7 @@ const ShortcutButton = new Lang.Class({
             this._stateChangedId = Main.overview.viewSelector._showAppsButton.connect('notify::checked', Lang.bind(this, this._onStateChanged));
         } else if (appType == ApplicationType.APPLICATION) {
             this._stateChangedId = this._app.connect('notify::state', Lang.bind(this, this._onStateChanged));
+            this._countChangedId = this._app.connect('windows-changed', Lang.bind(this, this._onCountChanged));
         }
 
         // Connect drag-n-drop signals
@@ -267,6 +270,11 @@ const ShortcutButton = new Lang.Class({
             }
         }
         this._stateChangedId = 0;
+
+        if (this._countChangedId > 0) {
+            this._app.disconnect(this._countChangedId);
+        }
+        this._countChangedId = 0;
     },
 
     _onButtonEnter: function(actor, event) {
@@ -440,11 +448,35 @@ const ShortcutButton = new Lang.Class({
             }
         } else if (this._type == ApplicationType.APPLICATION) {
             if (this._app.state != Shell.AppState.STOPPED) {
-                this.actor.add_style_class_name('running');
-                this._dot.opacity = 255;
+                if (!this._settings.get_boolean('shortcuts-panel-show-window-count-indicators')) {
+                    this._dot.opacity = 255;
+                }
+                this._onCountChanged();
             } else {
-                this.actor.remove_style_class_name('running');
                 this._dot.opacity = 0;
+                this._onCountChanged();
+            }
+        }
+    },
+
+    _onCountChanged: function() {
+        if (!this._settings.get_boolean('shortcuts-panel-show-window-count-indicators'))
+            return;
+
+        let appWindows = this._app.get_windows().filter(function(w) {
+            return !w.skip_taskbar;
+        });
+
+        let n = appWindows.length;
+        if (n > this._maxN)
+             n = this._maxN;
+
+        for (let i = 1; i <= this._maxN; i++) {
+            let className = 'workspacestodock-shortcut-button-windowcount-image-'+i;
+            if (i != n) {
+                this.actor.remove_style_class_name(className);
+            } else {
+                this.actor.add_style_class_name(className);
             }
         }
     },
@@ -549,6 +581,9 @@ const ShortcutsPanel = new Lang.Class({
             this.refresh();
         }));
         this._settings.connect('changed::shortcuts-panel-show-places', Lang.bind(this, function() {
+            this.refresh();
+        }));
+        this._settings.connect('changed::shortcuts-panel-show-window-count-indicators', Lang.bind(this, function() {
             this.refresh();
         }));
         this._settings.connect('changed::shortcuts-panel-appsbutton-at-bottom', Lang.bind(this, function() {

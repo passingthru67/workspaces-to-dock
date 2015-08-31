@@ -1370,6 +1370,16 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             this.settings.set_boolean('shortcuts-panel-show-places', check.get_active());
         }));
 
+        let shortcutsPanelShowWindowCount = new Gtk.CheckButton({
+            label: _("Show application window count indicators"),
+            margin_left: 0,
+            margin_top: 0
+        });
+        shortcutsPanelShowWindowCount.set_active(this.settings.get_boolean('shortcuts-panel-show-window-count-indicators'));
+        shortcutsPanelShowWindowCount.connect('toggled', Lang.bind(this, function(check) {
+            this.settings.set_boolean('shortcuts-panel-show-window-count-indicators', check.get_active());
+        }));
+
         let shortcutsPanelAppsbuttonAtBottom = new Gtk.CheckButton({
             label: _("Show the applications button at the bottom"),
             margin_left: 0,
@@ -1420,9 +1430,10 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         shortcutsPanelContainerGrid.attach(shortcutsPanelIconSizeSpinner, 1, 0, 1, 1);
         shortcutsPanelContainerGrid.attach(shortcutsPanelShowRunning, 0, 1, 1, 1);
         shortcutsPanelContainerGrid.attach(shortcutsPanelShowPlaces, 0, 2, 1, 1);
-        shortcutsPanelContainerGrid.attach(shortcutsPanelAppsbuttonAtBottom, 0, 3, 1, 1);
-        shortcutsPanelContainerGrid.attach(shortcutsPanelPopupMenuArrowAtTop, 0, 4, 1, 1);
-        shortcutsPanelContainerGrid.attach(shortcutsPanelPopupMenuHideThumbnails, 0, 5, 1, 1);
+        shortcutsPanelContainerGrid.attach(shortcutsPanelShowWindowCount, 0, 3, 1, 1);
+        shortcutsPanelContainerGrid.attach(shortcutsPanelAppsbuttonAtBottom, 0, 4, 1, 1);
+        shortcutsPanelContainerGrid.attach(shortcutsPanelPopupMenuArrowAtTop, 0, 5, 1, 1);
+        shortcutsPanelContainerGrid.attach(shortcutsPanelPopupMenuHideThumbnails, 0, 6, 1, 1);
 
         /* Bind interactions */
         this.settings.bind('show-shortcuts-panel', shortcutsPanelContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);

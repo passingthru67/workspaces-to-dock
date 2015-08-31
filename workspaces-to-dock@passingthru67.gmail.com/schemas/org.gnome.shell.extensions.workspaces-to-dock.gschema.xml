@@ -197,6 +197,11 @@
       <summary>Show places on the shortcuts panel</summary>
       <description>Show places on the shortcuts panel</description>
     </key>
+    <key type="b" name="shortcuts-panel-show-window-count-indicators">
+      <default>false</default>
+      <summary>Show application window count indicators</summary>
+      <description>Show application window count indicators</description>
+    </key>
     <key type="b" name="shortcuts-panel-appsbutton-at-bottom">
       <default>false</default>
       <summary>Show applications button at the bottom of the shortcuts panel</summary>
