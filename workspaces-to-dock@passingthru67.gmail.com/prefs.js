@@ -632,38 +632,52 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
         /* POSITION WIDGETS */
 
-        // let dockPositionLabel = new Gtk.Label({label: _("Show the dock in the following screen position"), hexpand:true, xalign:0});
-        // let dockPositionCombo = new Gtk.ComboBoxText({halign:Gtk.Align.END});
-        //     // NOTE: Left and right are reversed in RTL languages
-        //     dockPositionCombo.append_text(_('Top'));
-        //     if (Gtk.Widget.get_default_direction() == Gtk.TextDirection.RTL) {
-        //         dockPositionCombo.append_text(_("Left"));
-        //     } else {
-        //         dockPositionCombo.append_text(_("Right"));
-        //     }
-        //     dockPositionCombo.append_text(_("Bottom"));
-        //     if (Gtk.Widget.get_default_direction() == Gtk.TextDirection.RTL) {
-        //         dockPositionCombo.append_text(_("Right"));
-        //     } else {
-        //         dockPositionCombo.append_text(_("Left"));
-        //     }
+        let dockPositionLabel = new Gtk.Label({label: _("Show the dock at the following screen position"), hexpand:true, xalign:0});
+        let dockPositionCombo = new Gtk.ComboBoxText({halign:Gtk.Align.END});
+            // NOTE: Left and right are reversed in RTL languages
+            // dockPositionCombo.append_text(_('Top'));
+            if (Gtk.Widget.get_default_direction() == Gtk.TextDirection.RTL) {
+                dockPositionCombo.append_text(_("Left"));
+            } else {
+                dockPositionCombo.append_text(_("Right"));
+            }
+            // dockPositionCombo.append_text(_("Bottom"));
+            if (Gtk.Widget.get_default_direction() == Gtk.TextDirection.RTL) {
+                dockPositionCombo.append_text(_("Right"));
+            } else {
+                dockPositionCombo.append_text(_("Left"));
+            }
 
-        // dockPositionCombo.set_active(this.settings.get_enum('dock-position'));
+        let position = this.settings.get_enum('dock-position');
+        if (position == 1) {
+            position = 0;
+        } else if (position == 3) {
+            position = 1;
+        } else {
+            position = 1;
+        }
+        dockPositionCombo.set_active(position);
 
-        // dockPositionCombo.connect('changed', Lang.bind (this, function(widget) {
-        //         this.settings.set_enum('dock-position', widget.get_active());
-        // }));
+        dockPositionCombo.connect('changed', Lang.bind (this, function(widget) {
+                if (widget.get_active() == 0) {
+                    this.settings.set_enum('dock-position', 1);
+                }
+                if (widget.get_active() == 1) {
+                    this.settings.set_enum('dock-position', 3);
+                }
+                // this.settings.set_enum('dock-position', widget.get_active());
+        }));
 
 
         /* Add to layout */
-        // let dockPositionControlGrid = new Gtk.Grid({
-        //     row_homogeneous: false,
-        //     column_homogeneous: false,
-        //     margin_top: 0,
-        //     margin_left: 0
-        // });
-        // dockPositionControlGrid.attach(dockPositionLabel, 0, 0, 1, 1);
-        // dockPositionControlGrid.attach(dockPositionCombo, 1, 0, 1, 1);
+        let dockPositionControlGrid = new Gtk.Grid({
+            row_homogeneous: false,
+            column_homogeneous: false,
+            margin_top: 0,
+            margin_left: 0
+        });
+        dockPositionControlGrid.attach(dockPositionLabel, 0, 0, 1, 1);
+        dockPositionControlGrid.attach(dockPositionCombo, 1, 0, 1, 1);
 
 
         /* TITLE: HEIGHT SETTINGS */
@@ -842,7 +856,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         notebookAppearanceSettings.add(backgroundContainerGrid);
         notebookAppearanceSettings.add(dockPositionTitle);
         notebookAppearanceSettings.add(dockMonitorControlGrid);
-        // notebookAppearanceSettings.add(dockPositionControlGrid);
+        notebookAppearanceSettings.add(dockPositionControlGrid);
         notebookAppearanceSettings.add(dockHeightTitle);
         notebookAppearanceSettings.add(dockHeightControlGrid);
         notebookAppearanceSettings.add(dockHeightContainerGrid);

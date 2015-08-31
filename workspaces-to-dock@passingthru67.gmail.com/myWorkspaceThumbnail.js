@@ -393,9 +393,9 @@ const myThumbnailsBox = new Lang.Class({
         this.actor.connect('allocate', Lang.bind(this, this._allocate));
         this.actor._delegate = this;
 
-        if (this._position == St.Side.LEFT) {
-            this.actor.add_style_class_name('left');
-        }
+        // if (this._position == St.Side.LEFT) {
+        //     this.actor.add_style_class_name('left');
+        // }
 
         // Add addtional style class when workspace is fixed and set to full height
         if (this._mySettings.get_boolean('extend-height') && this._mySettings.get_double('top-margin') == 0) {

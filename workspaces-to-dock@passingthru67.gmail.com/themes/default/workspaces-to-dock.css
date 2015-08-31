@@ -17,18 +17,33 @@
     padding-right: 0px;
 }
 
-.workspace-thumbnails.left {
+#workspacestodockContainer.right .workspace-thumbnails {
+    border-radius: 9px 0 0 9px;
+}
+
+#workspacestodockContainer.left .workspace-thumbnails {
+    border-radius: 0 9px 9px 0;
+}
+
+#workspacestodockContainer.right .workspace-thumbnails-fullheight {
     border-radius: 0px;
 }
 
-.workspace-thumbnails-fullheight {
+#workspacestodockContainer.left .workspace-thumbnails-fullheight {
     border-radius: 0px;
 }
 
-.workspacestodock-shortcuts-panel {
+#workspacestodockContainer.right .workspacestodock-shortcuts-panel {
     border-radius: 0px;
     padding: 2px;
     spacing: 0px;
+    border-left: none;
+}
+#workspacestodockContainer.left .workspacestodock-shortcuts-panel {
+    border-radius: 0px;
+    padding: 2px;
+    spacing: 0px;
+    border-right: none;
 }
 .workspacestodock-shortcuts-panel-popupmenu {
     padding: 2px;

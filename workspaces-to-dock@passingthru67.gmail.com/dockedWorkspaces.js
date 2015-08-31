@@ -259,11 +259,16 @@ const DockedWorkspaces = new Lang.Class({
         if (this._settings.get_boolean('dock-fixed'))
             styleClass += " fixed";
 
+        let packStart = false;
+        if (this._position == St.Side.LEFT)
+            packStart = true;
+
         this._dock = new St.BoxLayout({
             name: 'workspacestodockContainer',
             reactive: true,
             track_hover: true,
             style_class: styleClass,
+            pack_start: packStart
         });
         this._dock.connect("notify::hover", Lang.bind(this, this._hoverChanged));
         this._dock.connect("scroll-event", Lang.bind(this, this._onScrollEvent));
@@ -446,7 +451,6 @@ const DockedWorkspaces = new Lang.Class({
         // Now that the dock is on the stage and custom themes are loaded
         // retrieve background color and set background opacity
         this._updateBackgroundOpacity();
-        // this._adjustPositionTheme();
 
         // Setup pressure barrier (GS38+ only)
         this._updatePressureBarrier();
@@ -501,6 +505,11 @@ const DockedWorkspaces = new Lang.Class({
             let alwaysZoomOut = true;
             return alwaysZoomOut;
         };
+
+        if (this._position == St.Side.LEFT) {
+            // Hide normal dash
+            Main.overview._controls.dash.actor.hide();
+        }
 
         // Hide normal workspaces thumbnailsBox
         Main.overview._controls._thumbnailsSlider.actor.opacity = 0;
@@ -703,6 +712,12 @@ const DockedWorkspaces = new Lang.Class({
         if (_DEBUG_) global.log("dockedWorkspaces: _restoreGnomeShellFunctions");
         // Restore normal workspaces to previous zoom setting
         OverviewControls.ThumbnailsSlider.prototype._getAlwaysZoomOut = GSFunctions['ThumbnailsSlider_getAlwaysZoomOut'];
+
+        if (this._position == St.Side.LEFT &&
+            (!DashToDock || !DashToDock.dock)) {
+                // Show normal dash (if no dash-to-dock)
+                Main.overview._controls.dash.actor.show();
+        }
 
         // Show normal workspaces thumbnailsBox
         Main.overview._controls._thumbnailsSlider.actor.opacity = 255;
@@ -1451,82 +1466,6 @@ const DockedWorkspaces = new Lang.Class({
         this._refreshThumbnails();
     },
 
-//     _adjustPositionTheme: function() {
-//         // Prevent shell crash if the actor is not on the stage.
-//         // It happens enabling/disabling repeatedly the extension
-//         if (!this._thumbnailsBox.actor.get_stage()) {
-//             return;
-//         }
-
-//         let position = getPosition(this._settings)
-
-//         let newStyle = '';
-
-//         // Remove prior style edits
-//         this._thumbnailsBox.actor.set_style(null);
-
-
-//             // obtain theme border settings
-//             let themeNode = this._thumbnailsBox.actor.get_theme_node();
-//             let borderColor = themeNode.get_border_color(St.Side.TOP);
-//             let borderWidth = themeNode.get_border_width(St.Side.TOP);
-//             let borderRadius = themeNode.get_border_radius(St.Corner.TOPLEFT);
-
-//             /* We're copying border and corner styles to right border and top-right
-//             * corner, also removing bottom border and bottom-right corner styles
-//             */
-//             let borderInner = '';
-//             let borderRadiusValue = '';
-//             let borderMissingStyle = '';
-
-//             if (this._rtl && position != St.Side.LEFT) {
-//                 borderMissingStyle = 'border-left: ' + borderWidth + 'px solid ' +
-//                       borderColor.to_string() + ';';
-//             } else if (!this._rtl && position != St.Side.RIGHT){
-//                 borderMissingStyle = 'border-right: ' + borderWidth + 'px solid ' +
-//                       borderColor.to_string() + ';';
-//             }
-
-//             switch(position) {
-//                 case St.Side.LEFT:
-//                     borderInner = 'border-left';
-//                     borderRadiusValue = '0 ' + borderRadius + 'px ' + borderRadius + 'px 0;';
-//                     break;
-//                 case St.Side.RIGHT:
-//                     borderInner = 'border-right';
-//                     borderRadiusValue = borderRadius + 'px 0 0 ' + borderRadius + 'px;';
-//                     break;
-//                 case St.Side.TOP:
-//                     borderInner = 'border-top';
-//                     borderRadiusValue = '0 0 ' + borderRadius + 'px ' + borderRadius + 'px;';
-//                     break;
-//                 case St.Side.BOTTOM:
-//                     borderInner = 'border-bottom';
-//                     borderRadiusValue = borderRadius + 'px ' + borderRadius + 'px 0 0;';
-//                     break;
-//             }
-
-//             newStyle = borderInner + ': none;' +
-//             'border-radius: ' + borderRadiusValue +
-//             borderMissingStyle;
-
-//             /* I do call set_style twice so that only yhe background get the transition.
-//             *  The transition-property css rules seems to be unsupported
-//             */
-//             this._dash._container.set_style(newStyle);
-
-//             newStyle = newStyle + 'transition-delay: 0s; transition-duration: 0.250s;';
-
-
-//         /* Customize background opacity */
-//         if ( this._settings.get_boolean('opaque-background') )
-//             newStyle = newStyle + 'background-color:'+ this._customizedBackground;
-//         else
-//             newStyle = newStyle + 'background-color:'+ this._defaultBackground;
-
-//         this._dash._container.set_style(newStyle);
-//   },
-
     // resdiplay dock called if size-position changed due to dock resizing
     _redisplay: function() {
         if (this._disableRedisplay)
@@ -1723,17 +1662,37 @@ const DockedWorkspaces = new Lang.Class({
         if (this.actor.visible && this._canUsePressure && this._settings.get_boolean('autohide')
                     && this._autohideStatus && this._settings.get_boolean('require-pressure-to-show')
                     && !this._settings.get_boolean('dock-fixed') && !this._messageTrayShowing) {
-            let x, direction;
-            if (this._rtl) {
-                x = this._monitor.x;
+
+            let x1, x2, y1, y2, direction;
+            if(this._position==St.Side.LEFT){
+                x1 = this._monitor.x;
+                x2 = this._monitor.x;
+                y1 = this.actor.y;
+                y2 = this.actor.y + this.actor.height;
                 direction = Meta.BarrierDirection.POSITIVE_X;
-            } else {
-                x = this._monitor.x + this._monitor.width;
+            } else if(this._position==St.Side.RIGHT) {
+                x1 = this._monitor.x + this._monitor.width;
+                x2 = this._monitor.x + this._monitor.width;
+                y1 = this.actor.y;
+                y2 = this.actor.y + this.actor.height;
                 direction = Meta.BarrierDirection.NEGATIVE_X;
+            } else if(this._position==St.Side.TOP) {
+                x1 = this.actor.x;
+                x2 = this.actor.x + this.actor.width;
+                y1 = this._monitor.y;
+                y2 = this._monitor.y;
+                direction = Meta.BarrierDirection.POSITIVE_Y;
+            } else if (this._position==St.Side.BOTTOM) {
+                x1 = this.actor.x;
+                x2 = this.actor.x + this.actor.width;
+                y1 = this._monitor.y + this._monitor.height;
+                y2 = this._monitor.y + this._monitor.height;
+                direction = Meta.BarrierDirection.NEGATIVE_Y;
             }
+
             this._barrier = new Meta.Barrier({display: global.display,
-                                x1: x, x2: x,
-                                y1: this.actor.y, y2: (this.actor.y + this.actor.height),
+                                x1: x1, x2: x2,
+                                y1: y1, y2: y2,
                                 directions: direction});
 
             if (this._pressureBarrier) {
