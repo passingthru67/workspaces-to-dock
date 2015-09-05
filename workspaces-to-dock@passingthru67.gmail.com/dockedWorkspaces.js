@@ -530,9 +530,8 @@ const DockedWorkspaces = new Lang.Class({
             let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
             let ret = GSFunctions['LayoutManager_updateRegions'].call(this);
             // SANITY CHECK:
-            // if (_DEBUG_) global.log("dockedWorkspaces: LAYOUTMANAGER UPDATE - workArea W= "+workArea.width + "   H= "+workArea.height+ "  CURRENT W="+self._workAreaWidth+"   H="+self._workAreaHeight+"    FORCED?="+self._refreshThumbnailsOnRegionUpdate);
+            if (_DEBUG_) global.log("dockedWorkspaces: UPDATEREGIONS - workArea W= "+workArea.width + "  H= "+workArea.height+ "  CURRENT W="+self._workAreaWidth+"  H="+self._workAreaHeight+"  FORCED?="+self._refreshThumbnailsOnRegionUpdate);
             if (self._refreshThumbnailsOnRegionUpdate) {
-                if (_DEBUG_) global.log("dockedWorkspaces: UPDATEREGIONS - workArea changed or update forced");
                 self._refreshThumbnailsOnRegionUpdate = false;
                 self._refreshThumbnails();
             } else {
@@ -941,10 +940,10 @@ const DockedWorkspaces = new Lang.Class({
 
     // handler for mouse hover events
     _hoverChanged: function() {
-        if (_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - dock.hover = "+this._dock.hover);
+        if(_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - dock.hover = "+this._dock.hover+" autohideStatus = "+this._autohideStatus);
         if (this._canUsePressure && this._settings.get_boolean('require-pressure-to-show') && this._barrier) {
             if (this._pressureSensed == false) {
-                if (_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - presureSensed = "+this._pressureSensed);
+                if(_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - presureSensed = "+this._pressureSensed+" RETURN");
                 return;
             }
         }
@@ -981,10 +980,13 @@ const DockedWorkspaces = new Lang.Class({
         }
 
         //Skip if dock is not in autohide mode for instance because it is shown by intellihide
+        if(_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - show or hide?");
         if (this._settings.get_boolean('autohide') && this._autohideStatus) {
             if (this._dock.hover) {
+                if(_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - show");
                 this._show();
             } else {
+                if(_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - hide");
                 this._hide();
             }
         }
