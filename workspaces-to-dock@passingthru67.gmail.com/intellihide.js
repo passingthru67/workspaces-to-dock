@@ -431,6 +431,8 @@ const Intellihide = new Lang.Class({
         if (OVERVIEW_MODE == IntellihideMode.SHOW) {
             if (Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage) {
                 this._show();
+            } else {
+                this._hide();
             }
         } else if (OVERVIEW_MODE == IntellihideMode.AUTOHIDE) {
             this._hide();
