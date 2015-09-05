@@ -535,6 +535,14 @@ const DockedWorkspaces = new Lang.Class({
                 if (_DEBUG_) global.log("dockedWorkspaces: UPDATEREGIONS - workArea changed or update forced");
                 self._refreshThumbnailsOnRegionUpdate = false;
                 self._refreshThumbnails();
+            } else {
+                if (self._workAreaWidth) {
+                    if (workArea.width != self._workAreaWidth) {
+                        self._refreshThumbnails();
+                    }
+                } else {
+                    self._refreshThumbnails();
+                }
             }
             return ret;
 
@@ -1607,8 +1615,10 @@ const DockedWorkspaces = new Lang.Class({
         let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
         this._workAreaWidth = workArea.width;
         this._workAreaHeight = workArea.height;
-        this._thumbnailsBox._destroyThumbnails();
-        this._thumbnailsBox._createThumbnails();
+        if (this._thumbnailsBox) {
+            this._thumbnailsBox._destroyThumbnails();
+            this._thumbnailsBox._createThumbnails();
+        }
 
         // NOTE: restarting Gnome Shell with the dock height extended leaves the top of the dock hidden
         // under the shell's top bar. Resetting the position after a thumbnail refresh (during Region Updates)
