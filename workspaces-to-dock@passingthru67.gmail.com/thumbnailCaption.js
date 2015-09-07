@@ -17,6 +17,7 @@ const Overview = imports.ui.overview;
 const Tweener = imports.ui.tweener;
 const IconGrid = imports.ui.iconGrid;
 const PopupMenu = imports.ui.popupMenu;
+const DND = imports.ui.dnd;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
@@ -39,10 +40,8 @@ const TaskbarIcon = new Lang.Class({
     Name: 'workspacesToDock.taskbarIcon',
 
     _init: function(app, metaWin, caption) {
-        this._metaWin = metaWin;
         this._caption = caption;
         this._mySettings = caption._mySettings;
-
         this._app = app;
         this._metaWin = metaWin;
 
@@ -51,6 +50,7 @@ const TaskbarIcon = new Lang.Class({
 
         this._icon = new IconGrid.BaseIcon(app.get_name(), iconParams);
         this._icon.actor.add_style_class_name('workspacestodock-caption-windowapps-button-icon');
+        this._iconSize = this._mySettings.get_double('workspace-caption-taskbar-icon-size');
         this._icon.setIconSize(this._mySettings.get_double('workspace-caption-taskbar-icon-size'));
 
         this.actor = new St.Button({style_class:'workspacestodock-caption-windowapps-button'});
@@ -61,6 +61,21 @@ const TaskbarIcon = new Lang.Class({
         this.actor.connect('button-release-event', Lang.bind(this, this._onButtonRelease));
         this.actor.connect('enter-event', Lang.bind(this, this._onButtonEnter));
         this.actor.connect('leave-event', Lang.bind(this, this._onButtonLeave));
+
+        // Connect drag-n-drop signals
+        this._draggable = DND.makeDraggable(this.actor);
+        this._draggable.connect('drag-begin', Lang.bind(this,
+            function () {
+                Main.overview.beginItemDrag(this);
+            }));
+        this._draggable.connect('drag-cancelled', Lang.bind(this,
+            function () {
+                Main.overview.cancelledItemDrag(this);
+            }));
+        this._draggable.connect('drag-end', Lang.bind(this,
+            function () {
+              Main.overview.endItemDrag(this);
+            }));
     },
 
     _onButtonEnter: function(actor, event) {
@@ -85,6 +100,16 @@ const TaskbarIcon = new Lang.Class({
             this._caption.activateMetaWindow(this._metaWin);
         }
         return Clutter.EVENT_PROPAGATE;
+    },
+
+    getDragActor: function() {
+        return this._app.create_icon_texture(this._iconSize);
+    },
+
+    // Returns the original actor that should align with the actor
+    // we show as the item is being dragged.
+    getDragActorSource: function() {
+        return this._icon.actor;
     }
 });
 
