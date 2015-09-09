@@ -259,6 +259,10 @@ const DockedWorkspaces = new Lang.Class({
         if (this._settings.get_boolean('dock-fixed'))
             styleClass += " fixed";
 
+        if (this._settings.get_boolean('extend-height') && this._settings.get_double('top-margin') == 0) {
+            styleClass += " fullheight";
+        }
+
         let packStart = false;
         if (this._position == St.Side.LEFT)
             packStart = true;
@@ -864,27 +868,27 @@ const DockedWorkspaces = new Lang.Class({
         this._settings.connect('changed::extend-height', Lang.bind(this, function() {
             // Add or remove addtional style class when workspace is fixed and set to full height
             if (this._settings.get_boolean('extend-height') && this._settings.get_double('top-margin') == 0) {
-                this._thumbnailsBoxBackground.add_style_class_name('workspace-thumbnails-fullheight');
+                this._dock.add_style_class_name('fullheight');
             } else {
-                this._thumbnailsBoxBackground.remove_style_class_name('workspace-thumbnails-fullheight');
+                this._dock.remove_style_class_name('fullheight');
             }
             this._updateSize();
         }));
         this._settings.connect('changed::top-margin', Lang.bind(this, function() {
             // Add or remove addtional style class when workspace is fixed and set to full height
             if (this._settings.get_boolean('extend-height') && this._settings.get_double('top-margin') == 0) {
-                this._thumbnailsBoxBackground.add_style_class_name('workspace-thumbnails-fullheight');
+                this._dock.add_style_class_name('fullheight');
             } else {
-                this._thumbnailsBoxBackground.remove_style_class_name('workspace-thumbnails-fullheight');
+                this._dock.remove_style_class_name('fullheight');
             }
             this._updateSize();
         }));
         this._settings.connect('changed::bottom-margin', Lang.bind(this, function() {
             // Add or remove addtional style class when workspace is fixed and set to full height
             if (this._settings.get_boolean('extend-height') && this._settings.get_double('top-margin') == 0) {
-                this._thumbnailsBoxBackground.add_style_class_name('workspace-thumbnails-fullheight');
+                this._dock.add_style_class_name('fullheight');
             } else {
-                this._thumbnailsBoxBackground.remove_style_class_name('workspace-thumbnails-fullheight');
+                this._dock.remove_style_class_name('fullheight');
             }
             this._updateSize();
         }));
