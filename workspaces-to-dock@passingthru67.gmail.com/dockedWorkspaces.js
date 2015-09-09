@@ -488,12 +488,13 @@ const DockedWorkspaces = new Lang.Class({
         // Unbind keyboard shortcuts
         this._unbindDockKeyboardShortcut();
 
-        // Removed barrier timeout
-        if (this._removeBarrierTimeoutId > 0)
-            Mainloop.source_remove(this._removeBarrierTimeoutId);
-
         // Remove existing barrier
         this._removeBarrier();
+        if (this._pressureBarrier) {
+            if (_DEBUG_) global.log("... destroying old pressureBarrier object");
+            this._pressureBarrier.destroy();
+            this._pressureBarrier = null;
+        }
 
         // Destroy main clutter actor: this should be sufficient
         // From clutter documentation:
@@ -1667,6 +1668,11 @@ const DockedWorkspaces = new Lang.Class({
             this._barrier.destroy();
             this._barrier = null;
         }
+
+        // Remove barrier timeout
+        if (this._removeBarrierTimeoutId > 0)
+            Mainloop.source_remove(this._removeBarrierTimeoutId);
+
         this._removeBarrierTimeoutId = 0;
         return false;
     },
