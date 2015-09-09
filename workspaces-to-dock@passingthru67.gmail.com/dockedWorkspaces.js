@@ -547,7 +547,8 @@ const DockedWorkspaces = new Lang.Class({
                 self._refreshThumbnails();
             } else {
                 if (self._workAreaWidth) {
-                    if (workArea.width != self._workAreaWidth) {
+                    let tolerance = workArea.width * .01;
+                    if (self._workAreaWidth < workArea.width-tolerance || self._workAreaWidth > workArea.width+tolerance) {
                         self._refreshThumbnails();
                     }
                 } else {
