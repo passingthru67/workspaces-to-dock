@@ -115,16 +115,22 @@ function bindSettingsChanges() {
     // It's easier to just reload the extension when the dock position changes
     // rather than working out all changes to the different containers.
     settings.connect('changed::dock-position', function(){
-        disable();
-        enable();
+        intellihide.destroy();
+        dock.destroy();
+        dock = new DockedWorkspaces.DockedWorkspaces();
+        intellihide = new Intellihide.Intellihide(dock);
     });
     settings.connect('changed::dock-fixed', function(){
-        disable();
-        enable();
+        intellihide.destroy();
+        dock.destroy();
+        dock = new DockedWorkspaces.DockedWorkspaces();
+        intellihide = new Intellihide.Intellihide(dock);
     });
     settings.connect('changed::shortcuts-panel-orientation', function(){
-        disable();
-        enable();
+        intellihide.destroy();
+        dock.destroy();
+        dock = new DockedWorkspaces.DockedWorkspaces();
+        intellihide = new Intellihide.Intellihide(dock);
     });
 }
 
