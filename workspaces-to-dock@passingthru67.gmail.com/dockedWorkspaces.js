@@ -259,13 +259,20 @@ const DockedWorkspaces = new Lang.Class({
         if (this._settings.get_boolean('dock-fixed'))
             styleClass += " fixed";
 
+        let shortcutsPanelOrientation = this._settings.get_enum('shortcuts-panel-orientation');
+        if (shortcutsPanelOrientation == 1) {
+            styleClass += " inside";
+        }
+
         if (this._settings.get_boolean('extend-height') && this._settings.get_double('top-margin') == 0) {
             styleClass += " fullheight";
         }
 
         let packStart = false;
-        if (this._position == St.Side.LEFT)
+        if ((this._position == St.Side.LEFT && shortcutsPanelOrientation == 0) ||
+            (this._position == St.Side.RIGHT && shortcutsPanelOrientation == 1)) {
             packStart = true;
+        }
 
         this._dock = new St.BoxLayout({
             name: 'workspacestodockContainer',

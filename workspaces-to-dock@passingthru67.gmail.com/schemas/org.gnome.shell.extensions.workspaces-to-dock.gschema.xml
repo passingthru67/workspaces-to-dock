@@ -6,6 +6,10 @@
     <value value='2' nick='BOTTOM'/>
     <value value='3' nick='LEFT'/>
   </enum>
+  <enum id='org.gnome.shell.extensions.workspaces-to-dock.orientation'>
+    <value value='0' nick='OUTSIDE'/>
+    <value value='1' nick='INSIDE'/>
+  </enum>
   <schema path="/org/gnome/shell/extensions/workspaces-to-dock/" id="org.gnome.shell.extensions.workspaces-to-dock">
     <key type="b" name="dock-fixed">
       <default>false</default>
@@ -181,6 +185,11 @@
       <default>false</default>
       <summary>Show a shortcuts panel beside the workspaces thumbnail</summary>
       <description>Show a shortcuts panel beside the workspaces thubmanail</description>
+    </key>
+    <key name="shortcuts-panel-orientation" enum="org.gnome.shell.extensions.workspaces-to-dock.orientation">
+      <default>'OUTSIDE'</default>
+      <summary>Location of the shortcuts panel in relation to the workspace thumbnails</summary>
+      <description>Location of the shortcuts panel in relation to the workspace thumbnails</description>
     </key>
     <key type="d" name="shortcuts-panel-icon-size">
       <default>32</default>

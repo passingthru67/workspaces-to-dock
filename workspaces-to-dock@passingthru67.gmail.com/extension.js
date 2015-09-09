@@ -122,6 +122,9 @@ function bindSettingsChanges() {
         disable();
         enable();
     });
-
+    settings.connect('changed::shortcuts-panel-orientation', function(){
+        disable();
+        enable();
+    });
 }
 

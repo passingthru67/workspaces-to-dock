@@ -25,6 +25,16 @@
     border-radius: 0 9px 9px 0;
 }
 
+#workspacestodockContainer.right.inside .workspace-thumbnails {
+    border-radius: 0px;
+    border-left: none;
+}
+
+#workspacestodockContainer.left.inside .workspace-thumbnails {
+    border-radius: 0px;
+    border-right: none;
+}
+
 #workspacestodockContainer.right.fullheight .workspace-thumbnails {
     border-radius: 0px;
 }
@@ -45,6 +55,20 @@
     padding: 2px;
     spacing: 0px;
     border-right: none;
+}
+
+#workspacestodockContainer.right.inside .workspacestodock-shortcuts-panel {
+    border-radius: 9px 0 0 9px;
+    padding: 2px;
+    spacing: 0px;
+    border-left: 1px;
+}
+
+#workspacestodockContainer.left.inside .workspacestodock-shortcuts-panel {
+    border-radius: 0 9px 9px 0;
+    padding: 2px;
+    spacing: 0px;
+    border-right: 1px;
 }
 
 #workspacestodockContainer.right.fullheight .workspacestodock-shortcuts-panel {

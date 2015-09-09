@@ -40,16 +40,30 @@ const ApplicationType = {
     APPSBUTTON: 3
 };
 
+const ShortcutsPanelOrientation = {
+    OUTSIDE: 0,
+    INSIDE: 1
+};
+
+/* Return the actual position reverseing left and right in rtl */
+function getPosition(settings) {
+    let position = settings.get_enum('dock-position');
+    if (Clutter.get_default_text_direction() == Clutter.TextDirection.RTL) {
+        if (position == St.Side.LEFT)
+            position = St.Side.RIGHT;
+        else if (position == St.Side.RIGHT)
+            position = St.Side.LEFT;
+    }
+    return position;
+}
+
 const ShortcutButtonMenu = new Lang.Class({
     Name: 'workspacestodock_shortcutButtonMenu',
     Extends: PopupMenu.PopupMenu,
 
     _init: function(source) {
         this._settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
-
-        let side = St.Side.RIGHT;
-        if (Clutter.get_default_text_direction() == Clutter.TextDirection.RTL)
-            side = St.Side.LEFT;
+        let side = getPosition(this._settings);
 
         this.parent(source.actor, 0.5, side);
 
@@ -597,13 +611,15 @@ const ShortcutsPanel = new Lang.Class({
 
     hideThumbnails: function() {
         if (this._settings.get_boolean('shortcuts-panel-popupmenu-hide-thumbnails')) {
-            this._dock._thumbnailsBox.actor.opacity = 0;
-            this.actor.remove_style_class_name('workspacestodock-shortcuts-panel');
-            this.actor.add_style_class_name('workspacestodock-shortcuts-panel-popupmenu');
-            // for (let i = 0; i < this._dock._thumbnailsBox._thumbnails.length; i++) {
-            //     this._dock._thumbnailsBox._thumbnails[i].actor.opacity = 0;
-            // }
-            // this._dock._thumbnailsBox._indicator.opacity = 0;
+            if (this._settings.get_enum('shortcuts-panel-orientation') == ShortcutsPanelOrientation.OUTSIDE) {
+                this._dock._thumbnailsBox.actor.opacity = 0;
+                this.actor.remove_style_class_name('workspacestodock-shortcuts-panel');
+                this.actor.add_style_class_name('workspacestodock-shortcuts-panel-popupmenu');
+                // for (let i = 0; i < this._dock._thumbnailsBox._thumbnails.length; i++) {
+                //     this._dock._thumbnailsBox._thumbnails[i].actor.opacity = 0;
+                // }
+                // this._dock._thumbnailsBox._indicator.opacity = 0;
+            }
         }
     },
 

@@ -1332,16 +1332,39 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         let shortcutsPanelLabel = new Gtk.Label({
             label: _("Show a favorites shortcut panel (experimental)"),
             xalign: 0,
-            hexpand: true
+            hexpand: true,
+            margin_top: 10
         });
 
         let shortcutsPanelSwitch = new Gtk.Switch ({
-            halign: Gtk.Align.END
+            halign: Gtk.Align.END,
+            margin_top: 10
         });
         shortcutsPanelSwitch.set_active(this.settings.get_boolean('show-shortcuts-panel'));
         shortcutsPanelSwitch.connect('notify::active', Lang.bind(this, function(check) {
             this.settings.set_boolean('show-shortcuts-panel', check.get_active());
         }));
+
+
+        let shortcutsPanelOrientationLabel = new Gtk.Label({label: _("Shortcuts panel orientation in reference to the thumbnails"),
+            hexpand:true,
+            xalign:0
+        });
+        let shortcutsPanelOrientationCombo = new Gtk.ComboBoxText({
+            halign:Gtk.Align.END
+        });
+        shortcutsPanelOrientationCombo.append_text(_('Outside'));
+        shortcutsPanelOrientationCombo.append_text(_('Inside'));
+
+        let orientation = this.settings.get_enum('shortcuts-panel-orientation');
+        if (orientation > 1)
+            orientation = 0;
+
+        shortcutsPanelOrientationCombo.set_active(orientation);
+        shortcutsPanelOrientationCombo.connect('changed', Lang.bind (this, function(widget) {
+            this.settings.set_enum('shortcuts-panel-orientation', widget.get_active());
+        }));
+
 
         let shortcutsPanelIconSizeLabel = new Gtk.Label({
             label: _("Shortcuts panel icon size [px]"),
@@ -1405,7 +1428,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }));
 
         let shortcutsPanelPopupMenuArrowAtTop = new Gtk.CheckButton({
-            label: _("Show the shortcut button popup menu arrow at the top"),
+            label: _("Show the popup menu context arrow at the top"),
             margin_left: 0,
             margin_top: 0
         });
@@ -1415,7 +1438,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }));
 
         let shortcutsPanelPopupMenuHideThumbnails = new Gtk.CheckButton({
-            label: _("Hide thumbnails when the shortcut button popup menu is shown"),
+            label: _("Hide thumbnails when popup menu is shown (outside orientation only)"),
             margin_left: 0,
             margin_top: 0
         });
@@ -1440,14 +1463,17 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
         shortcutsPanelControlGrid.attach(shortcutsPanelLabel, 0, 0, 1, 1);
         shortcutsPanelControlGrid.attach(shortcutsPanelSwitch, 1, 0, 1, 1);
-        shortcutsPanelContainerGrid.attach(shortcutsPanelIconSizeLabel, 0, 0, 1, 1);
-        shortcutsPanelContainerGrid.attach(shortcutsPanelIconSizeSpinner, 1, 0, 1, 1);
-        shortcutsPanelContainerGrid.attach(shortcutsPanelShowRunning, 0, 1, 1, 1);
-        shortcutsPanelContainerGrid.attach(shortcutsPanelShowPlaces, 0, 2, 1, 1);
-        shortcutsPanelContainerGrid.attach(shortcutsPanelShowWindowCount, 0, 3, 1, 1);
-        shortcutsPanelContainerGrid.attach(shortcutsPanelAppsbuttonAtBottom, 0, 4, 1, 1);
-        shortcutsPanelContainerGrid.attach(shortcutsPanelPopupMenuArrowAtTop, 0, 5, 1, 1);
-        shortcutsPanelContainerGrid.attach(shortcutsPanelPopupMenuHideThumbnails, 0, 6, 1, 1);
+
+        shortcutsPanelContainerGrid.attach(shortcutsPanelOrientationLabel, 0, 0, 1, 1);
+        shortcutsPanelContainerGrid.attach(shortcutsPanelOrientationCombo, 1, 0, 1, 1);
+        shortcutsPanelContainerGrid.attach(shortcutsPanelIconSizeLabel, 0, 1, 1, 1);
+        shortcutsPanelContainerGrid.attach(shortcutsPanelIconSizeSpinner, 1, 1, 1, 1);
+        shortcutsPanelContainerGrid.attach(shortcutsPanelShowRunning, 0, 2, 1, 1);
+        shortcutsPanelContainerGrid.attach(shortcutsPanelShowPlaces, 0, 3, 1, 1);
+        shortcutsPanelContainerGrid.attach(shortcutsPanelShowWindowCount, 0, 4, 1, 1);
+        shortcutsPanelContainerGrid.attach(shortcutsPanelAppsbuttonAtBottom, 0, 5, 1, 1);
+        shortcutsPanelContainerGrid.attach(shortcutsPanelPopupMenuArrowAtTop, 0, 6, 1, 1);
+        shortcutsPanelContainerGrid.attach(shortcutsPanelPopupMenuHideThumbnails, 0, 7, 1, 1);
 
         /* Bind interactions */
         this.settings.bind('show-shortcuts-panel', shortcutsPanelContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
