@@ -196,6 +196,7 @@ const DockedWorkspaces = new Lang.Class({
     Name: 'workspacestodockDockedWorkspaces',
 
     _init: function() {
+        if (_DEBUG_) global.log("dockedWorkspaces: init * * * * *");
         this._gsCurrentVersion = Config.PACKAGE_VERSION.split('.');
         this._settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
         this._signalHandler = new Convenience.globalSignalHandler();
@@ -443,7 +444,7 @@ const DockedWorkspaces = new Lang.Class({
     },
 
     _initialize: function() {
-        if (_DEBUG_) global.log("dockedWorkspaces: initializing");
+        if (_DEBUG_) global.log("dockedWorkspaces: initializing * * * * *");
         if(this._realizeId > 0){
             this.actor.disconnect(this._realizeId);
             this._realizeId = 0;
@@ -472,7 +473,7 @@ const DockedWorkspaces = new Lang.Class({
     },
 
     destroy: function() {
-        if (_DEBUG_) global.log("dockedWorkspaces: destroying");
+        if (_DEBUG_) global.log("dockedWorkspaces: destroying * * * * *");
         // Destroy thumbnailsBox & global signals
         this._thumbnailsBox._destroyThumbnails();
 
@@ -766,7 +767,6 @@ const DockedWorkspaces = new Lang.Class({
     // handler for when dock y position is updated
     _updateYPosition: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _updateYPosition");
-        global.log("dockedWorkspaces: _updateYPosition");
         this._updateSize();
     },
 
@@ -917,12 +917,14 @@ const DockedWorkspaces = new Lang.Class({
 
         // Remove existing pressure barrier
         if (this._pressureBarrier) {
+            if (_DEBUG_) global.log("... destroying old pressureBarrier object");
             this._pressureBarrier.destroy();
             this._pressureBarrier = null;
         }
 
         // Create new pressure barrier based on pressure threshold setting
         if (this._canUsePressure) {
+            if (_DEBUG_) global.log("... creating pressureBarrier object");
             this._pressureBarrier = new Layout.PressureBarrier(pressureThreshold, PRESSURE_TIMEOUT,
                                 Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW);
             this._pressureBarrier.connect('trigger', function(barrier){
@@ -1660,6 +1662,7 @@ const DockedWorkspaces = new Lang.Class({
         if (this._barrier) {
             if (this._pressureBarrier) {
                 this._pressureBarrier.removeBarrier(this._barrier);
+                if (_DEBUG_) global.log("... removing barrier from pressureBarrier object");
             }
             this._barrier.destroy();
             this._barrier = null;
@@ -1714,12 +1717,14 @@ const DockedWorkspaces = new Lang.Class({
                 direction = Meta.BarrierDirection.NEGATIVE_Y;
             }
 
+            if (_DEBUG_) global.log("... creating barrier");
             this._barrier = new Meta.Barrier({display: global.display,
                                 x1: x1, x2: x2,
                                 y1: y1, y2: y2,
                                 directions: direction});
 
             if (this._pressureBarrier) {
+                if (_DEBUG_) global.log("... adding barrier to pressureBarrier object");
                 this._pressureBarrier.addBarrier(this._barrier);
             }
         }
