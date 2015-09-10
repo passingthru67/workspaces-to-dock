@@ -1333,9 +1333,12 @@ const DockedWorkspaces = new Lang.Class({
         // NOTE: Need this for when in overviewmode applications view and dock is in fixed mode.
         // Fixed dock has opacity set to 0 but is still reactive.
         this.actor.reactive = false;
+        this._dock.reactive = false;
+        this._shortcutsPanel.setReactiveState(false);
         this._thumbnailsBox.actor.reactive = false;
         for (let i = 0; i < this._thumbnailsBox._thumbnails.length; i++) {
             let thumbnail = this._thumbnailsBox._thumbnails[i];
+            thumbnail.setCaptionReactiveState(false);
             thumbnail.setWindowClonesReactiveState(false);
         }
     },
@@ -1348,9 +1351,12 @@ const DockedWorkspaces = new Lang.Class({
 
         // Return thumbnail windowclones to reactive state
         this.actor.reactive = true;
+        this._dock.reactive = true;
+        this._shortcutsPanel.setReactiveState(true);
         this._thumbnailsBox.actor.reactive = true;
         for (let i = 0; i < this._thumbnailsBox._thumbnails.length; i++) {
             let thumbnail = this._thumbnailsBox._thumbnails[i];
+            thumbnail.setCaptionReactiveState(true);
             thumbnail.setWindowClonesReactiveState(true);
         }
 

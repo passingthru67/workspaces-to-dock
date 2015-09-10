@@ -380,10 +380,27 @@ const myWorkspaceThumbnail = new Lang.Class({
         return clone;
     },
 
+    setCaptionReactiveState: function (state) {
+        if (state == null)
+            return;
+
+        // Deactivate caption
+        this.caption._wsCaption.reactive = state;
+
+        // Deactivate caption tasbar icons
+        if (this.caption._taskBarBox) {
+            let children = this.caption._taskBarBox.get_children();
+            for (let i = 0; i < children.length; i++) {
+                children[i].reactive = state;
+            }
+        }
+    },
+
     setWindowClonesReactiveState: function (state) {
         if (state == null)
             return;
 
+        // Deactivate window clones
         for (let i = 0; i < this._windows.length; i++) {
             let clone = this._windows[i];
             clone.actor.reactive = state;

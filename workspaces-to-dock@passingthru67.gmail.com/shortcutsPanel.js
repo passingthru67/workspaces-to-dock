@@ -635,6 +635,35 @@ const ShortcutsPanel = new Lang.Class({
         }
     },
 
+    setReactiveState: function (state) {
+        if (state == null)
+            return;
+
+        // Deactivate favorites
+        if (this._favoriteAppsBox) {
+            let children = this._favoriteAppsBox.get_children();
+            for (let i = 0; i < children.length; i++) {
+                children[i].reactive = state;
+            }
+        }
+
+        // Deactivate running apps
+        if (this._runningAppsBox) {
+            let children = this._runningAppsBox.get_children();
+            for (let i = 0; i < children.length; i++) {
+                children[i].reactive = state;
+            }
+        }
+
+        // Deactivate places
+        if (this._placesBox) {
+            let children = this._placesBox.get_children();
+            for (let i = 0; i < children.length; i++) {
+                children[i].reactive = state;
+            }
+        }
+    },
+
     refresh: function() {
         this._clear();
         this._populate();
@@ -661,6 +690,9 @@ const ShortcutsPanel = new Lang.Class({
             let separator = new Separator.HorizontalSeparator({ style_class: 'popup-separator-menu-item workspacestodock-shortcut-panel-separator' });
             this.actor.add(separator.actor, { expand: false });
 
+            this._placesBox = new St.BoxLayout({ vertical: true, style_class: 'workspacestodock-shortcuts-panel workspacestodock-shortcuts-panel-places' });
+            this.actor.add_actor(this._placesBox);
+
             // Get places
             let placesManager = new PlaceDisplay.PlacesManager();
             let special = placesManager.get('special');
@@ -668,11 +700,11 @@ const ShortcutsPanel = new Lang.Class({
             let allPlaces = [];
             allPlaces = allPlaces.concat(special);
 
-            // Populate shortcuts panel with places
+            // Add places to Places Box
             for (let i = 0; i < allPlaces.length; ++i) {
                 let app = allPlaces[i];
                 let shortcutButton = new ShortcutButton(app, ApplicationType.PLACE);
-                this.actor.add_actor(shortcutButton.actor);
+                this._placesBox.add_actor(shortcutButton.actor);
             }
         }
 
