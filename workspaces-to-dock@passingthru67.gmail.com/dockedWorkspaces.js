@@ -1535,6 +1535,11 @@ const DockedWorkspaces = new Lang.Class({
         if (_DEBUG_) global.log("dockedWorkspaces: _updateSize");
         this._shortcutsPanelWidth = this._settings.get_boolean('show-shortcuts-panel') ? this._shortcutsPanel.actor.width : 0;
 
+        let dockPadding = DOCK_PADDING;
+        if (this._settings.get_boolean('dock-fixed')) {
+            dockPadding = 0;
+        }
+
         // check if the dock is on the primary monitor
         let primary = false;
         if (this._monitor.x == Main.layoutManager.primaryMonitor.x && this._monitor.y == Main.layoutManager.primaryMonitor.y)
@@ -1565,13 +1570,15 @@ const DockedWorkspaces = new Lang.Class({
 
         } else {
             // Get x position, width, and anchorpoint
-            width = this._thumbnailsBox.actor.width + this._shortcutsPanelWidth + DOCK_PADDING;
+            width = this._thumbnailsBox.actor.width + this._shortcutsPanelWidth + dockPadding;
             if (this._position == St.Side.LEFT) {
                 x = this._monitor.x;
                 anchorPoint = Clutter.Gravity.NORTH_WEST;
             } else {
-                x = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - this._shortcutsPanelWidth - DOCK_PADDING;
-                anchorPoint = Clutter.Gravity.NORTH_WEST;
+                // x = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - this._shortcutsPanelWidth - dockPadding;
+                // anchorPoint = Clutter.Gravity.NORTH_WEST;
+                x = this._monitor.x + this._monitor.width;
+                anchorPoint = Clutter.Gravity.NORTH_EAST;
             }
 
             // Get y position and height
@@ -1595,7 +1602,7 @@ const DockedWorkspaces = new Lang.Class({
         this.yPosition = y;
 
         //// skip updating if size is same
-        //if ((this.actor.y == y) && (this.actor.width == this._thumbnailsBox.actor.width + this._shortcutsPanelWidth + DOCK_PADDING) && (this.actor.height == height)) {
+        //if ((this.actor.y == y) && (this.actor.width == this._thumbnailsBox.actor.width + this._shortcutsPanelWidth + dockPadding) && (this.actor.height == height)) {
             //return;
         //}
 
@@ -1605,7 +1612,7 @@ const DockedWorkspaces = new Lang.Class({
 
         // Update size of wrapper actor and _dock inside the slider
         this.actor.set_size(width, height); // This is the whole dock wrapper
-        this._dock.set_size(width, height); // This is the actual dock inside the slider that we check for mouse hover
+        this._dock.set_size(width - dockPadding, height); // This is the actual dock inside the slider that we check for mouse hover
 
         // Set anchor points
         this.actor.move_anchor_point_from_gravity(anchorPoint);

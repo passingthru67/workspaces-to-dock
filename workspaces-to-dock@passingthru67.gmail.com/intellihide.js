@@ -14,6 +14,7 @@ const Mainloop = imports.mainloop;
 const Signals = imports.signals;
 const Shell = imports.gi.Shell;
 const Gdk = imports.gi.Gdk;
+const St = imports.gi.St;
 
 const Main = imports.ui.main;
 const GrabHelper = imports.ui.grabHelper;
@@ -659,7 +660,12 @@ const Intellihide = new Lang.Class({
                             let rect = win.get_frame_rect();
                             let [dx, dy] = this._dock.actor.get_position();
                             let [dwidth, dheight] = this._dock.actor.get_size();
-                            let test = (rect.x < dx + dwidth) && (rect.x + rect.width > dx) && (rect.y < dy + dheight) && (rect.y + rect.height > dy);
+                            let test;
+                            if (this._dock._position == St.Side.LEFT) {
+                                test = (rect.x < dx + dwidth) && (rect.x + rect.width > dx) && (rect.y < dy + dheight) && (rect.y + rect.height > dy);
+                            } else if (this._dock._position == St.Side.RIGHT) {
+                                test = (rect.x < dx) && (rect.x + rect.width > dx - dwidth) && (rect.y < dy + dheight) && (rect.y + rect.height > dy);
+                            }
                             if (test) {
                                 overlaps = true;
                                 break;

@@ -1,19 +1,8 @@
 #workspacestodockContainerWrapper {
-
 }
+
 #workspacestodockContainer {
-}
-
-#workspacestodockContainer.right {
-    padding-left: 1px;
-}
-#workspacestodockContainer.left {
-    padding-right: 1px;
-}
-#workspacestodockContainer.right.fixed {
     padding-left: 0px;
-}
-#workspacestodockContainer.left.fixed {
     padding-right: 0px;
 }
 
