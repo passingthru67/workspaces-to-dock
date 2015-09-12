@@ -1608,8 +1608,15 @@ const DockedWorkspaces = new Lang.Class({
                 let topMargin = Math.floor(this._settings.get_double('top-margin') * this._monitor.height);
                 let bottomMargin = Math.floor(this._settings.get_double('bottom-margin') * this._monitor.height);
                 if (primary) {
-                    y = this._monitor.y + Main.panel.actor.height + topMargin;
-                    height = this._monitor.height - Main.panel.actor.height - topMargin - bottomMargin;
+                    // ISSUE: Botton Panel extension moves the panel to the bottom
+                    // Check if top panel has been moved using anchor point
+                    let [pbAnchorX,pbAnchorY] = Main.layoutManager.panelBox.get_anchor_point();
+                    if (pbAnchorY < 0) {
+                        y = this._monitor.y + topMargin;
+                    } else {
+                        y = this._monitor.y + Main.layoutManager.panelBox.height + topMargin;
+                    }
+                    height = this._monitor.height - Main.layoutManager.panelBox.height - topMargin - bottomMargin;
                 } else {
                     y = this._monitor.y + topMargin;
                     height = this._monitor.height - topMargin - bottomMargin;
