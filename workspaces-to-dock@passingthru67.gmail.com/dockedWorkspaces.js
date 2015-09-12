@@ -45,7 +45,7 @@ const DashToDock_UUID = "dash-to-dock@micxgx.gmail.com";
 let DashToDockExtension = null;
 let DashToDock = null;
 
-const DOCK_PADDING = 1;
+const TRIGGER_WIDTH = 1;
 const DOCK_EDGE_VISIBLE_WIDTH = 5;
 const PRESSURE_TIMEOUT = 1000;
 
@@ -74,7 +74,7 @@ const ThumbnailsSlider = new Lang.Class({
         let localDefaults = {
             side: St.Side.LEFT,
             initialSlideValue: 1,
-            initialSlideoutSize: DOCK_PADDING
+            initialSlideoutSize: TRIGGER_WIDTH
         }
 
         let localParams = Params.parse(params, localDefaults, true);
@@ -269,18 +269,11 @@ const DockedWorkspaces = new Lang.Class({
             styleClass += " fullheight";
         }
 
-        let packStart = false;
-        if ((this._position == St.Side.LEFT && shortcutsPanelOrientation == 0) ||
-            (this._position == St.Side.RIGHT && shortcutsPanelOrientation == 1)) {
-            packStart = true;
-        }
-
         this._dock = new St.BoxLayout({
             name: 'workspacestodockContainer',
             reactive: true,
             track_hover: true,
-            style_class: styleClass,
-            pack_start: packStart
+            style_class: styleClass
         });
         this._dock.connect("notify::hover", Lang.bind(this, this._hoverChanged));
         this._dock.connect("scroll-event", Lang.bind(this, this._onScrollEvent));
@@ -394,15 +387,39 @@ const DockedWorkspaces = new Lang.Class({
         }
 
         // This is the sliding actor whose allocation is to be tracked for input regions
-        let slideoutSize = DOCK_PADDING;
+        let slideoutSize = TRIGGER_WIDTH;
         if (this._settings.get_boolean('dock-edge-visible')) {
-            slideoutSize = DOCK_PADDING + DOCK_EDGE_VISIBLE_WIDTH;
+            slideoutSize = TRIGGER_WIDTH + DOCK_EDGE_VISIBLE_WIDTH;
         }
         this._slider = new ThumbnailsSlider({side: this._position, initialSlideoutSize: slideoutSize});
 
-        // Add workspaces to the main container actor and then to the Chrome.
-        this._dock.add_actor(this._thumbnailsBox.actor);
-        this._dock.add_actor(this._shortcutsPanel.actor);
+        // Create trigger spacer
+        this._triggerSpacer = new St.Label({
+                            name: 'workspacestodockTriggerSpacer',
+                            text: ''
+                        });
+        this._triggerSpacer.width = TRIGGER_WIDTH;
+        if (this._settings.get_boolean('dock-fixed'))
+            this._triggerSpacer.width = 0;
+
+        // Add spacer, workspaces, and shortcuts panel to dock container based on dock position
+        // and shortcuts panel orientation
+        if (this._position == St.Side.RIGHT) {
+            this._dock.add_actor(this._triggerSpacer);
+        }
+        if ((this._position == St.Side.LEFT && shortcutsPanelOrientation == 0) ||
+            (this._position == St.Side.RIGHT && shortcutsPanelOrientation == 1)) {
+            this._dock.add_actor(this._shortcutsPanel.actor);
+            this._dock.add_actor(this._thumbnailsBox.actor);
+        } else {
+            this._dock.add_actor(this._thumbnailsBox.actor);
+            this._dock.add_actor(this._shortcutsPanel.actor);
+        }
+        if (this._position == St.Side.LEFT) {
+            this._dock.add_actor(this._triggerSpacer);
+        }
+
+        // Add dock to slider and main container actor and then to the Chrome.
         this._slider.add_child(this._dock);
         this.actor.set_child(this._slider);
 
@@ -452,6 +469,13 @@ const DockedWorkspaces = new Lang.Class({
 
         // Show the thumbnailsBox.  We need it to calculate the width of the dock.
         this._thumbnailsBox._createThumbnails();
+
+        // Set shortcuts panel visibility
+        if (this._settings.get_boolean('show-shortcuts-panel')) {
+            this._shortcutsPanel.actor.show();
+        } else {
+            this._shortcutsPanel.actor.hide();
+        }
 
         // Set initial position and opacity
         this._resetPosition();
@@ -803,6 +827,11 @@ const DockedWorkspaces = new Lang.Class({
         }));
 
         this._settings.connect('changed::show-shortcuts-panel', Lang.bind(this, function() {
+            if (this._settings.get_boolean('show-shortcuts-panel')) {
+                this._shortcutsPanel.actor.show();
+            } else {
+                this._shortcutsPanel.actor.hide();
+            }
             this._updateSize();
             this._redisplay();
         }));
@@ -814,9 +843,9 @@ const DockedWorkspaces = new Lang.Class({
         }));
 
         this._settings.connect('changed::dock-edge-visible', Lang.bind(this, function() {
-            let slideoutSize = DOCK_PADDING;
+            let slideoutSize = TRIGGER_WIDTH;
             if (this._settings.get_boolean('dock-edge-visible')) {
-                slideoutSize = DOCK_PADDING + DOCK_EDGE_VISIBLE_WIDTH;
+                slideoutSize = TRIGGER_WIDTH + DOCK_EDGE_VISIBLE_WIDTH;
             }
             this._slider.slideoutSize = slideoutSize;
             if (this._autohideStatus) {
@@ -1535,11 +1564,6 @@ const DockedWorkspaces = new Lang.Class({
         if (_DEBUG_) global.log("dockedWorkspaces: _updateSize");
         this._shortcutsPanelWidth = this._settings.get_boolean('show-shortcuts-panel') ? this._shortcutsPanel.actor.width : 0;
 
-        let dockPadding = DOCK_PADDING;
-        if (this._settings.get_boolean('dock-fixed')) {
-            dockPadding = 0;
-        }
-
         // check if the dock is on the primary monitor
         let primary = false;
         if (this._monitor.x == Main.layoutManager.primaryMonitor.x && this._monitor.y == Main.layoutManager.primaryMonitor.y)
@@ -1570,13 +1594,11 @@ const DockedWorkspaces = new Lang.Class({
 
         } else {
             // Get x position, width, and anchorpoint
-            width = this._thumbnailsBox.actor.width + this._shortcutsPanelWidth + dockPadding;
+            width = this._thumbnailsBox.actor.width + this._shortcutsPanelWidth;
             if (this._position == St.Side.LEFT) {
                 x = this._monitor.x;
                 anchorPoint = Clutter.Gravity.NORTH_WEST;
             } else {
-                // x = this._monitor.x + this._monitor.width - this._thumbnailsBox.actor.width - this._shortcutsPanelWidth - dockPadding;
-                // anchorPoint = Clutter.Gravity.NORTH_WEST;
                 x = this._monitor.x + this._monitor.width;
                 anchorPoint = Clutter.Gravity.NORTH_EAST;
             }
@@ -1602,7 +1624,7 @@ const DockedWorkspaces = new Lang.Class({
         this.yPosition = y;
 
         //// skip updating if size is same
-        //if ((this.actor.y == y) && (this.actor.width == this._thumbnailsBox.actor.width + this._shortcutsPanelWidth + dockPadding) && (this.actor.height == height)) {
+        //if ((this.actor.y == y) && (this.actor.width == this._thumbnailsBox.actor.width + this._shortcutsPanelWidth) && (this.actor.height == height)) {
             //return;
         //}
 
@@ -1611,8 +1633,8 @@ const DockedWorkspaces = new Lang.Class({
         if (_DEBUG_) global.log("dockedWorkspaces: _updateSize new x = "+x+" y = "+y);
 
         // Update size of wrapper actor and _dock inside the slider
-        this.actor.set_size(width, height); // This is the whole dock wrapper
-        this._dock.set_size(width - dockPadding, height); // This is the actual dock inside the slider that we check for mouse hover
+        this.actor.set_size(width + this._triggerSpacer.width, height); // This is the whole dock wrapper
+        this._dock.set_size(width + this._triggerSpacer.width, height); // This is the actual dock inside the slider that we check for mouse hover
 
         // Set anchor points
         this.actor.move_anchor_point_from_gravity(anchorPoint);
