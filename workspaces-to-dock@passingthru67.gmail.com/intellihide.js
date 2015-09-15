@@ -494,47 +494,6 @@ const Intellihide = new Lang.Class({
         }
     },
 
-    // handler for when messageTray focus is grabbed (GS 34+)
-    _onTrayFocusGrabbed: function(source, event) {
-        if (this._settings.get_boolean('ignore-message-tray')) return;
-        if (_DEBUG_) global.log("intellihide: _onTrayFocusGrabbed");
-        let idx = source._grabStack.length - 1;
-        let focusedActor = source._grabStack[idx].actor;
-        let [rx, ry] = focusedActor.get_transformed_position();
-        let [rwidth, rheight] = focusedActor.get_size();
-        let [dx, dy] = this._dock.actor.get_position();
-        let [dwidth, dheight] = this._dock.actor.get_size();
-
-        if (focusedActor.get_name() == "message-tray") {
-            let test = (ry - rheight < dy + dheight) && (ry > dy);
-            if (test) {
-                this._disableIntellihide = true;
-                this._hide();
-            }
-            return;
-        }
-
-        let test = (rx < dx + dwidth) && (rx + rwidth > dx) && (ry - rheight < dy + dheight) && (ry > dy);
-		if (_DEBUG_) global.log("intellihide: onTrayFocusGrabbed actor = "+focusedActor+"  position = "+focusedActor.get_transformed_position()+" size = "+focusedActor.get_size()+" test = "+test);
-        if (test) {
-            this._disableIntellihide = true;
-            this._hide();
-        }
-    },
-
-    // handler for when messageTray focus is ungrabbed (GS 34+)
-    _onTrayFocusUngrabbed: function(source, event) {
-        if (this._settings.get_boolean('ignore-message-tray')) return;
-        if (_DEBUG_) global.log("intellihide: onTrayFocusUnGrabbed");
-        this._disableIntellihide = false;
-        if (this._inOverview) {
-            if (Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage)
-                this._show();
-        } else {
-            this._updateDockVisibility();
-        }
-    },
-
     // handler for when window move begins
     _grabOpBegin: function() {
         if (_DEBUG_) global.log("intellihide: _grabOpBegin");
