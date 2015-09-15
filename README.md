@@ -3,7 +3,7 @@ workspaces-to-dock
 
 A Gnome Shell extension that transforms the workspaces of the overview mode into an intellihide dock.  The dock is positioned and sized to maintain tight integration with the Gnome Shell.
 
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Screenshot.png)
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/gnome-3.4--3.8/Screenshot.png)
 
 
 Installation:
@@ -27,7 +27,7 @@ The extension can be configured using `gnome-shell-extension-prefs`. No shell re
 Behavior Settings:
 ------------------
 
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Prefs-Behavior.png)
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/gnome-3.4--3.8/Prefs-Behavior.png)
 
 - **Visibility:**
 
@@ -42,7 +42,7 @@ Behavior Settings:
     **Leave the dock edge visible when slid out** - Option to leave the dock edge visible when in the slid out or hidden state. This option makes the dock more easily accessible in dual monitor configurations where the second monitor is to the right.
 
     **Disable scroll to prevent workspace switching when slid out** - Option to disable mouse scrolling to prevent accidentally switching workspaces when the dock is hidden.
-    
+
     **Autohide : Show the dock on mouse hover** - When enabled, the dock shows when the mouse touches the right edge of screen. When disabled, the dock remains hidden unless the intellihide option is on or overview mode is entered.
 
     **Require click to show the dock when window maximized** - Require a mouse click (in addition to hovering) to show the dock when the focused window is maximized. This option helps eliminate accidentally triggering the dock when using vertical scroll bars on maximized windows.
@@ -67,7 +67,7 @@ Behavior Settings:
 Appearance Settings:
 --------------------
 
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Prefs-Appearance.png)
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/gnome-3.4--3.8/Prefs-Appearance.png)
 
 - **Background:**
 
@@ -99,13 +99,13 @@ Appearance Settings:
 Additional Settings:
 --------------------
 
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Prefs-Additional.png)
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/gnome-3.4--3.8/Prefs-Additional.png)
 
 - **Workspace Captions:**
 
     **Add captions to workspace thumbnails** - Adds captions to the workspace thumbnails. Right clicking on the workspace caption displays a popup menu with options to close applications or show the extension preferences dialog. (See image below)
 
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Popup.png)
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/gnome-3.4--3.8/Popup.png)
 
 - **Caption Items:**
 
@@ -120,7 +120,7 @@ Additional Settings:
     **Show a spacer/filler** - When enabled, a spacer is inserted in the caption. It can be expanded to take up available space or its position can be adjusted using the arrow buttons.
 
 Below are examples of the workspace (thumbnail) caption in various configurations
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Thumbnails.png)
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/gnome-3.4--3.8/Thumbnails.png)
 
 - **Custom Actions:**
 
