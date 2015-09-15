@@ -473,7 +473,12 @@ const Intellihide = new Lang.Class({
         let [rwidth, rheight] = focusedActor.get_size();
         let [dx, dy] = this._dock.actor.get_position();
         let [dwidth, dheight] = this._dock.actor.get_size();
-        let test = (rx < dx + dwidth) && (rx + rwidth > dx) && (ry < dy + dheight) && (ry + rheight > dy);
+        let test;
+        if (this._dock._position == St.Side.LEFT) {
+            test = (rx < dx + dwidth) && (rx + rwidth > dx) && (ry < dy + dheight) && (ry + rheight > dy);
+        } else if (this._dock._position == St.Side.RIGHT) {
+            test = (rx < dx) && (rx + rwidth > dx - dwidth) && (ry < dy + dheight) && (ry + rheight > dy);
+        }
 		if (_DEBUG_) global.log("intellihide: onPanelFocusGrabbed actor = "+focusedActor+"  position = "+focusedActor.get_transformed_position()+" size = "+focusedActor.get_size()+" test = "+test);
         if (test) {
             this._disableIntellihide = true;
