@@ -51,11 +51,6 @@
       <summary>Ignore top panel menus</summary>
       <description>Enable or disable dodging menu window belonging to the top panel</description>
     </key>
-    <key type="b" name="ignore-message-tray">
-      <default>true</default>
-      <summary>Ignore message tray menus</summary>
-      <description>Enable or disable dodging menu windows belonging to the message tray</description>
-    </key>
     <key type="b" name="dock-edge-visible">
       <default>false</default>
       <summary>Leave dock edge visible when slid out</summary>
@@ -74,12 +69,22 @@
     <key type="b" name="require-pressure-to-show">
       <default>true</default>
       <summary>Require pressure to show dock (GS38+ only)</summary>
-      <description>Enable or disable requiring pressure to show dock (GS38+ only)</description>
+      <description>Enable or disable requiring pressure to show dock</description>
     </key>
     <key type="d" name="pressure-threshold">
       <default>120</default>
       <summary>Pressure threshold</summary>
       <description>Sets how much pressure is needed to show the dock.</description>
+    </key>
+    <key type="b" name="use-pressure-speed-limit">
+      <default>true</default>
+      <summary>Limit pressure sense to slow mouse speeds</summary>
+      <description>Enable or disable limiting pressure sense to slow mouse speeds</description>
+    </key>
+    <key type="d" name="pressure-speed-limit">
+      <default>30</default>
+      <summary>Pressure speed limit</summary>
+      <description>Set maximum speed for pressure sense</description>
     </key>
     <key type="b" name="opaque-background">
       <default>true</default>
@@ -142,12 +147,12 @@
       <description>Set the workspace caption height.</description>
     </key>
     <key type="as" name="workspace-caption-items">
-      <default>['number:false', 'spacer:true']</default>
+      <default>['number:false', 'spacer:true', 'windowapps:false']</default>
       <summary>List of items placed in caption</summary>
       <description>List of items placed in the caption - allowed items are number, name, windowcount, windowapps, and spacer.</description>
     </key>
     <key type="b" name="workspace-caption-windowcount-image">
-      <default>true</default>
+      <default>false</default>
       <summary>Show workspace window count using images</summary>
       <description>Enable or disable using images for workspace window count.</description>
     </key>
@@ -181,10 +186,21 @@
       <summary>Dock shown on Dash-To-Dock mouse over</summary>
       <description>Enable or disable Dash-To-Dock hover mode</description>
     </key>
+    <key type="b" name="quick-show-on-workspace-change">
+      <default>false</default>
+      <summary>Show the dock temporarily when switching workspaces</summary>
+      <description>Enable or disable Showing the dock temporarily when switching workspaces</description>
+    </key>
+    <key type="d" name="quick-show-timeout">
+      <default>1000</default>
+      <summary>Length of time the dock is shown</summary>
+      <description>Set length of time the dock is shown when switching workspaces</description>
+    </key>
+
     <key type="b" name="show-shortcuts-panel">
       <default>false</default>
-      <summary>Show a shortcuts panel beside the workspaces thumbnail</summary>
-      <description>Show a shortcuts panel beside the workspaces thubmanail</description>
+      <summary>Show a favorite shortcuts panel beside the workspaces thumbnail</summary>
+      <description>Show a favorite shortcuts panel beside the workspaces thubmanail</description>
     </key>
     <key name="shortcuts-panel-orientation" enum="org.gnome.shell.extensions.workspaces-to-dock.orientation">
       <default>'OUTSIDE'</default>
@@ -225,6 +241,11 @@
       <default>false</default>
       <summary>Hide the thumbnails when the shortcut button popup menu is shown</summary>
       <description>Hide the thumbnails when the shortcut button popup menu is shown</description>
+    </key>
+    <key type="b" name="thumbnails-popupmenu-hide-shortcuts">
+      <default>false</default>
+      <summary>Hide the favorite shortcuts panel when a popup menu is shown</summary>
+      <description>Hide the favorite shortcuts panel when a popup menu is shown</description>
     </key>
   </schema>
 </schemalist>
