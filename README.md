@@ -37,9 +37,9 @@ General Settings:
 
     **Extend the height of the dock to fill the screen** - Option to extend the height of the dock to fill the screen.
 
-    **Top margin** - Allows setting a top margin for the extended dock. The range allowed is 0% to 25% of the screen height.
+    **Top margin** - Sets a top margin for the extended dock. The range allowed is 0% to 25% of the screen height.
 
-    **Bottom margin** - Allows setting a bottom margin for the extended dock. The range allowed is 0% to 25% of the screen height.
+    **Bottom margin** - Sets a bottom margin for the extended dock. The range allowed is 0% to 25% of the screen height.
 
 - **Thumbnail Size:**
 
@@ -53,7 +53,7 @@ General Settings:
 
     **Opacity** - Percentage of transparency desired.
 
-    **Only when the dock is shown by autohide** - Only customize the opacity when the dock is shown by the mouse touching the right edge of the screen. In such cases, the dock is usually shown over other windows so that less transparency is desired.
+    **Only when the dock is shown by hover** - Only customize the opacity when the dock is shown by the mouse touching the right edge of the screen. In such cases, the dock is usually shown over other windows so that less transparency is desired.
 
 
 Behavior Settings:
@@ -63,7 +63,7 @@ Behavior Settings:
 
 - **Intelligent Hiding:**
 
-    **Dock is fixed and always visible. Turn off intelligent hiding** - The dock remains visible at all times.
+    **Dock is fixed and always visible. Turn off intelligent hiding** - The dock remains visible at all times. There is no need for intelligent hiding.
 
     **Timing Options**
 
@@ -95,7 +95,7 @@ Behavior Settings:
 
     **Miscellaneous Options**
 
-    **Leave a visible edge when the dock id hidden** - Option to leave the dock edge visible when in the slid out or hidden state. This option makes the dock more easily accessible in dual monitor configurations where the second monitor is to the right.
+    **Leave a visible edge when the dock is hidden** - Option to leave the dock edge visible when in the slid out or hidden state. This option makes the dock more easily accessible in dual monitor configurations where the second monitor is to the right.
 
     **Disable scroll when the dock is hidden to prevent workspace switching** - Option to disable mouse scrolling to prevent accidentally switching workspaces when the dock is hidden.
 
@@ -145,7 +145,7 @@ Below are examples of the workspace (thumbnail) caption in various configuration
 
 Workspace Caption Theming:
 -------------------------
-Adding workspaces-to-dock caption support to a theme can be accomplished by placing a custom 'workspaces-to-dock.css' stylesheet in the theme's gnome-shell/extensions/ folder. There is no need to use the @import directive to incorporate the stylesheet classes into your theme's gnome-shell.css. The extension will automatically detect the stylesheet file. Please see the workspaces-to-dock.css stylesheet for a description of the css classes.
+Adding workspaces-to-dock caption support to a theme can be accomplished by placing a custom 'workspaces-to-dock.css' stylesheet in the theme's gnome-shell/extensions folder. There is no need to use the @import directive to incorporate the stylesheet classes into your theme's gnome-shell.css. The extension will automatically detect the stylesheet file. Please see the workspaces-to-dock.css stylesheet for a description of the css classes.
 
 
 
@@ -156,25 +156,25 @@ Favorites Settings:
 
 - **Favorite Shortcuts Panel:**
 
-    **Show a favorite shortcuts panel** - Adds a panel of favorites applications.
+    **Show a favorite shortcuts panel** - Adds a panel of favorite applications.
 
     **Shortcuts panel orientation in reference to the thumbnails** - Places the favorite shortcuts panel on the inside or outside of the thumbnails.
 
-    **Shortcuts panel icon size** - Sets the size of the favorite shortcuts panel application icons.
+    **Shortcuts panel icon size** - Sets the size of the application icons.
 
     **Miscellaneous Options**
 
-    **Show running applications** - Shows running applications on the favorite shortcuts panel.
+    **Show running applications** - Option to show running applications on the favorite shortcuts panel.
 
-    **Show places** - Shows places on the favorite shortcuts panel.
+    **Show places** - Option to show places on the favorite shortcuts panel.
 
-    **Show application window count indicators** - Shows the number of running instances of an application next to the application icon.
+    **Show application window count indicators** - Option to show the number of running instances of an application next to the application icon.
 
-    **Show applications button at the bottom** - Shows the applications button (grid) at the bottom of the favorite shortcuts panel.
+    **Show applications button at the bottom** - Option to show the applications button (grid) at the bottom of the favorite shortcuts panel.
 
-    **Show the popup menu context arrow at the top** - Shows the popup menu context arrow at the top of the context menu. The default position is in the middle.
+    **Show the popup menu context arrow at the top** - Option to show the popup menu context arrow at the top of the context menu. The default position is in the middle.
 
-    **Hide thumbnails when a popup menu is shown** - Hides the thumbnails when a popup context menu is show by right clicking an favorite application icon. This only applies when the shortcuts panel is oriented on the outside of the thumbnails.
+    **Hide thumbnails when a popup menu is shown** - Option to hide the thumbnails when a popup context menu is show by right clicking an favorite application icon. This only applies when the shortcuts panel is oriented on the outside of the thumbnails.
 
 
 Localization Support:
@@ -190,8 +190,6 @@ Features Planned:
 
 Known Issues:
 -------------
-- **`FIXED in version 11`** Dual monitor configurations where 2nd monitor is on the right side - workspaces-to-dock prevents mouse clicks from reaching the desktop of the right monitor in the region where the dock is slid out (even though the dock is hidden there is a dead zone). A workaround (other than positioning the dock on the secondary monitor) is to enable application based intellihide using the workspaces-to-dock extension preferences.
-- Dual monitor configurations where workspaces-to-dock is positioned on the 2nd monitor, the dock overlaps window thumbnails when in overview mode.
 - Changes to Gsetting's dynamic workspaces setting or number of static workspaces requires a restart of the workspaces-to-dock extension.
 
 **Some causes of strange dynamic workspace behavior:**
@@ -217,7 +215,11 @@ To reset the extension to its default settings, type the command below in a term
 
 If the behavior persists, try disabling all other extensions and enable each extension one at a time until the behavior reappears. You may be experiencing a conflict with another extension.
 
-If the behavior persists with other extensions disabled, check for extension errors in Looking Glass (Gnome Shell 3.4) or by typing gnome-shell --replace in a terminal and watching for JS error logs related to the extension.
+If the behavior persists with other extensions disabled, check for extension errors in the following places.
+- Bring up Looking Glass (Alt+F2 then type lg and press enter) and check for extension errors under the Extensions link.
+- Open your ~/.xsession-errors log and look for errors related to the extension.
+- Type "gnome-shell --replace" in a terminal and watch for JS error logs related to the extension.
+- Type "journalctl -f | grep Gjs-Message" in a terminal (if systemd is installed) and watch for JS error logs related to the extension.
 
 If the problem persists, please report it by opening an issue on github or with a bug report message on the extension website.
 
@@ -225,9 +227,10 @@ If the problem persists, please report it by opening an issue on github or with 
 Change Log:
 -----------
 **version 30 for Gnome 3.16 (Sept 15, 2015)**
-- Bug fixes (particularly fixed-dock border issue)
-- Added support for left/right placement of dock
-- Added option for inside/outside orientation of favorite shortcuts panel
+- Bug fixes (particularly border issues)
+- Added support for moving an application to a different workspace by dragging the tasbar icon
+- Added support for positioning the dock on the left or right side of the screen
+- Added option for inside or outside orientation of favorite shortcuts panel
 - Updated preferences dialog
 
 **version 29 for Gnome 3.16 (May 5, 2015)**
