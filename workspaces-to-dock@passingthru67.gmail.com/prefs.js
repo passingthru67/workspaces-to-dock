@@ -242,7 +242,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         /* TITLE: THUMBNAILS */
 
         let customizeThumbnailTitle = new Gtk.Label({
-            label: _("<b>Thumbnails</b>"),
+            label: _("<b>Thumbnail Size</b>"),
             use_markup: true,
             xalign: 0,
             margin_top: 25,
@@ -1487,8 +1487,8 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             margin_left: 0
         });
         workspaceOptionsControlGrid.attach(toggleOverviewButton, 0, 0, 1, 1);
-        workspaceOptionsControlGrid.attach(thumbnailCaptionPopupMenuHideShortcutsPanel, 0, 1, 1, 1);
-        workspaceOptionsControlGrid.attach(thumbnailCaptionPopupMenuHideShortcutsPanelNote, 0, 2, 1, 1);
+        // workspaceOptionsControlGrid.attach(thumbnailCaptionPopupMenuHideShortcutsPanel, 0, 1, 1, 1);
+        // workspaceOptionsControlGrid.attach(thumbnailCaptionPopupMenuHideShortcutsPanelNote, 0, 2, 1, 1);
 
 
         /* ADD TO NOTEBOOK PAGE */
