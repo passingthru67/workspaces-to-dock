@@ -24,56 +24,10 @@ If you're checking out code from the master branch (downloaded as zip or tar.gz)
 The extension can be configured using `gnome-shell-extension-prefs`. No shell restarts are required.
 
 
-Behavior Settings:
-------------------
+General Settings:
+-----------------
 
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Prefs-Behavior.png)
-
-- **Visibility:**
-
-    **Dock is fixed and always visible** - The dock remains visible at all times.
-
-    **Animation time** - The time it takes the dock to slide from hidden to visible state and vise versa.
-
-    **Show delay** - The time delayed before sliding the dock to the visible state. Adjusting this delay higher (500ms-700ms) can help prevent accidentally triggering the dock when using vertical scroll bars on maximized windows.
-
-    **Hide delay** - The time delayed before sliding the dock to the hidden state.
-
-    **Leave the dock edge visible when slid out** - Option to leave the dock edge visible when in the slid out or hidden state. This option makes the dock more easily accessible in dual monitor configurations where the second monitor is to the right.
-
-    **Disable scroll to prevent workspace switching when slid out** - Option to disable mouse scrolling to prevent accidentally switching workspaces when the dock is hidden.
-
-    **Autohide : Show the dock on mouse hover** - When enabled, the dock shows when the mouse touches the right edge of screen. When disabled, the dock remains hidden unless the intellihide option is on or overview mode is entered.
-
-    **Require pressure to show the dock** - Require mouse pressure against the edge of the screen to show the dock. This option helps eliminate accidentally triggering the dock when using vertical scroll bars. It also helps with accessing the dock in multi-monitor configurations where the 2nd monitor is to the right of the dock. Unfortunately, this feature requires Gnome Shell 3.8+ and an XServer installation that implements pressure barriers.
-
-    NOTE: In multi-monitor configurations where the 2nd monitor is to the right of the workspaces dock, the dock will have to be showing before the pressure barrier is removed and the mouse pointer released to access the 2nd monitor. This will create a slight hesitation as the mouse must wait for the dock to show. To elliminate this issue, you may show the dock using the keyboard shortcut Super + w, or by entering Gnome Shell's overview mode prior to attempting to access the 2nd monitor.
-
-    **Pressure threshold** - The amount of pressure required to activate and show the dock. This setting works in conjunction with 'Require pressure to show dock' above and requires Gnome Shell 3.8+ and an XServer installation that implements pressure barriers.
-
-    **Intellihide : Show the dock unless a window overlaps** - When enabled, the dock remains visible but hides itself when a window touches it. When disabled, dock remains hidden unless the autohide option is on or overview mode is entered.
-
-    **Dodge all windows** - Intellihide option to dodge all windows.
-
-    **Dodge all instances of focused app** - If multiple instances of the focused application are opened, all windows of that app are dodged.
-
-    **Dodge only top instance of focused app** - If multiple instances of the focused application are opened, only the top instance window is dodged.
-
-    **Toggle the dock with a keyboard shortcut** - When enabled, using the keyboard shortcut will toggle the workspaces dock. The default shortcut key is Super + w.
-
-
-Appearance Settings:
---------------------
-
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Prefs-Appearance.png)
-
-- **Background:**
-
-    **Customize the dock background opacity** - Allows setting a different transparency value for the dock.
-
-    **Opacity** - Percentage of transparency desired.
-
-    **Only when the dock is shown by autohide** - Only customize the opacity when the dock is shown by the mouse touching the right edge of the screen. In such cases, the dock is usually shown over other windows so that less transparency is desired.
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Prefs-General.png)
 
 - **Position:**
 
@@ -87,21 +41,84 @@ Appearance Settings:
 
     **Bottom margin** - Allows setting a bottom margin for the extended dock. The range allowed is 0% to 25% of the screen height.
 
-- **Thumbnails:**
+- **Thumbnail Size:**
 
     **Customize the workspace thumbnail size** - Option to customize the maximum thumbnail size.
 
     **Thumbnail size** - The custom value for the maximum thumbnail size. The range allowed is 10% to 25% of the screen size.
 
+- **Background:**
 
-Additional Settings:
+    **Customize the dock background opacity** - Allows setting a different transparency value for the dock.
+
+    **Opacity** - Percentage of transparency desired.
+
+    **Only when the dock is shown by autohide** - Only customize the opacity when the dock is shown by the mouse touching the right edge of the screen. In such cases, the dock is usually shown over other windows so that less transparency is desired.
+
+
+Behavior Settings:
+------------------
+
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Prefs-Behavior.png)
+
+- **Intelligent Hiding:**
+
+    **Dock is fixed and always visible. Turn off intelligent hiding** - The dock remains visible at all times.
+
+    **Timing Options**
+
+    **Animation time** - The time it takes the dock to slide from hidden to visible state and vise versa.
+
+    **Show delay** - The time delayed before sliding the dock to the visible state. Adjusting this delay higher (500ms-700ms) can help prevent accidentally triggering the dock when using vertical scroll bars on maximized windows.
+
+    **Hide delay** - The time delayed before sliding the dock to the hidden state.
+
+    **Autohide Options**
+
+    **Autohide : Show the dock on mouse hover** - When enabled, the dock shows when the mouse touches the right edge of screen. When disabled, the dock remains hidden unless the intellihide option is on or overview mode is entered.
+
+    **Require pressure to show the dock** - Require mouse pressure against the edge of the screen to show the dock. This option helps eliminate accidentally triggering the dock when using vertical scroll bars. It also helps with accessing the dock in multi-monitor configurations where the 2nd monitor is to the right of the dock. Unfortunately, this feature requires Gnome Shell 3.8+ and an XServer installation that implements pressure barriers.
+
+    NOTE: In multi-monitor configurations where the 2nd monitor is to the right of the workspaces dock, the dock will have to be showing before the pressure barrier is removed and the mouse pointer released to access the 2nd monitor. This will create a slight hesitation as the mouse must wait for the dock to show. To elliminate this issue, you may show the dock using the keyboard shortcut Super + w, or by entering Gnome Shell's overview mode prior to attempting to access the 2nd monitor.
+
+    **Pressure threshold** - The amount of pressure required to activate and show the dock. This setting works in conjunction with 'Require pressure to show dock' above and requires Gnome Shell 3.8+ and an XServer installation that implements pressure barriers.
+
+    **Intellihide Options**
+
+    **Intellihide : Show the dock unless a window overlaps** - When enabled, the dock remains visible but hides itself when a window touches it. When disabled, dock remains hidden unless the autohide option is on or overview mode is entered.
+
+    **Dodge all windows** - Intellihide option to dodge all windows.
+
+    **Dodge all instances of focused app** - If multiple instances of the focused application are opened, all windows of that app are dodged.
+
+    **Dodge only top instance of focused app** - If multiple instances of the focused application are opened, only the top instance window is dodged.
+
+    **Miscellaneous Options**
+
+    **Leave a visible edge when the dock id hidden** - Option to leave the dock edge visible when in the slid out or hidden state. This option makes the dock more easily accessible in dual monitor configurations where the second monitor is to the right.
+
+    **Disable scroll when the dock is hidden to prevent workspace switching** - Option to disable mouse scrolling to prevent accidentally switching workspaces when the dock is hidden.
+
+    **Show the dock when hovering over Dash-To-Dock extension** - When enabled, hovering the mouse over the Dash-To-Dock extension will cause the workspaces dock to show. This feature is extremely useful in cases where your workspaces dock is hidden and you want to open a new app from the dash. Rather than going into overview just to see your workspaces, hover over the dash-to-dock extension. The workspaces dock will show to the right. Use the dash-to-dock scroll to go to the appropriate workspace.
+
+    **Toggle the dock with a keyboard shortcut** - When enabled, using the keyboard shortcut will toggle the workspaces dock. The default shortcut key is Super + w.
+
+
+Thumbnails Settings:
 --------------------
 
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Prefs-Additional.png)
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Prefs-Thumbnails.png)
 
-- **Workspace Captions:**
+- **Thumbnail Captions:**
 
     **Add captions to workspace thumbnails** - Adds captions to the workspace thumbnails. Right clicking on the workspace caption displays a popup menu with options to close applications or show the extension preferences dialog. (See image below)
+
+    **Caption height** - Sets the height of the caption area.
+
+    **Taskbar icon size** - Sets the size of the tasbar icons.
+
+    **Caption popup menu icon size** - Sets the size of the application icon in the caption popup menu.
+
 
 ![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Popup.png)
 
@@ -120,18 +137,44 @@ Additional Settings:
 Below are examples of the workspace (thumbnail) caption in various configurations
 ![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Thumbnails.png)
 
-- **Custom Actions:**
+- **Miscellaneous Options:**
 
     **Toggle Gnome Shell's overview mode with right click** - When enabled, right clicking on the dock will toggle the overview mode.
 
-- **Dash Integration:**
-
-    **Show the dock when hovering over Dash-To-Dock extension** - When enabled, hovering the mouse over the Dash-To-Dock extension will cause the workspaces dock to show. This feature is extremely useful in cases where your workspaces dock is hidden and you want to open a new app from the dash. Rather than going into overview just to see your workspaces, hover over the dash-to-dock extension. The workspaces dock will show to the right. Use the dash-to-dock scroll to go to the appropriate workspace.
 
 
 Workspace Caption Theming:
 -------------------------
 Adding workspaces-to-dock caption support to a theme can be accomplished by placing a custom 'workspaces-to-dock.css' stylesheet in the theme's gnome-shell/extensions/ folder. There is no need to use the @import directive to incorporate the stylesheet classes into your theme's gnome-shell.css. The extension will automatically detect the stylesheet file. Please see the workspaces-to-dock.css stylesheet for a description of the css classes.
+
+
+
+Favorites Settings:
+-------------------
+
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Prefs-Favorites.png)
+
+- **Favorite Shortcuts Panel:**
+
+    **Show a favorite shortcuts panel** - Adds a panel of favorites applications.
+
+    **Shortcuts panel orientation in reference to the thumbnails** - Places the favorite shortcuts panel on the inside or outside of the thumbnails.
+
+    **Shortcuts panel icon size** - Sets the size of the favorite shortcuts panel application icons.
+
+    **Miscellaneous Options**
+
+    **Show running applications** - Shows running applications on the favorite shortcuts panel.
+
+    **Show places** - Shows places on the favorite shortcuts panel.
+
+    **Show application window count indicators** - Shows the number of running instances of an application next to the application icon.
+
+    **Show applications button at the bottom** - Shows the applications button (grid) at the bottom of the favorite shortcuts panel.
+
+    **Show the popup menu context arrow at the top** - Shows the popup menu context arrow at the top of the context menu. The default position is in the middle.
+
+    **Hide thumbnails when a popup menu is shown** - Hides the thumbnails when a popup context menu is show by right clicking an favorite application icon. This only applies when the shortcuts panel is oriented on the outside of the thumbnails.
 
 
 Localization Support:
@@ -181,6 +224,12 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
+**version 30 for Gnome 3.16 (Sept 15, 2015)**
+- Bug fixes (particularly fixed-dock border issue)
+- Added support for left/right placement of dock
+- Added option for inside/outside orientation of favorite shortcuts panel
+- Updated preferences dialog
+
 **version 29 for Gnome 3.16 (May 5, 2015)**
 - Bug fixes
 
