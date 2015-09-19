@@ -124,13 +124,18 @@ const Intellihide = new Lang.Class({
             // direct maximize/unmazimize are not included in grab-operations
             [
                 global.window_manager,
-                'maximize',
-                Lang.bind(this, this._onWindowMaximized)
+                'unminimize',
+                Lang.bind(this, this._onWindowUnminimized)
             ],
             [
                 global.window_manager,
-                'unmaximize',
-                Lang.bind(this, this._onWindowUnmaximized )
+                'minimize',
+                Lang.bind(this, this._onWindowMinimized)
+            ],
+            [
+                global.window_manager,
+                'size-change',
+                Lang.bind(this, this._onWindowSizeChange)
             ],
             // Probably this is also included in restacked?
             [
@@ -319,15 +324,21 @@ const Intellihide = new Lang.Class({
         this._updateDockVisibility();
     },
 
-    // handler for when window is maximized
-    _onWindowMaximized: function() {
-        if (_DEBUG_) global.log("intellihide: _onWindowMaximized");
+    // handler for when window is unminimized
+    _onWindowUnminimized: function() {
+        if (_DEBUG_) global.log("intellihide: _onWindowUnminimized");
         this._updateDockVisibility();
     },
 
-    // handler for when window is unmaximized
-    _onWindowUnmaximized: function() {
-        if (_DEBUG_) global.log("intellihide: _onWindowUnmaximized");
+    // handler for when window is minimized
+    _onWindowMinimized: function() {
+        if (_DEBUG_) global.log("intellihide: _onWindowMinimized");
+        this._updateDockVisibility();
+    },
+
+    // handler for when window is resized
+    _onWindowSizeChange: function() {
+        if (_DEBUG_) global.log("intellihide: _onWindowSizeChange");
         this._updateDockVisibility();
     },
 
