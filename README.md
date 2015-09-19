@@ -33,6 +33,8 @@ General Settings:
 
     **Show the dock on the following monitor (if attached)** - Option to position the workspaces dock on a secondary monitor in dual monitor configurations.
 
+    **Show the dock at the following screen position** - Option to position the workspaces dock on the right or left side of the screen.
+
 - **Height:**
 
     **Extend the height of the dock to fill the screen** - Option to extend the height of the dock to fill the screen.
@@ -115,9 +117,9 @@ Thumbnails Settings:
 
     **Caption height** - Sets the height of the caption area.
 
-    **Taskbar icon size** - Sets the size of the tasbar icons.
+    **Taskbar icon size** - Sets the size of the caption taskbar icons.
 
-    **Caption popup menu icon size** - Sets the size of the application icon in the caption popup menu.
+    **Caption popup menu icon size** - Sets the size of the application icons in the caption popup menu.
 
 
 ![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Popup.png)
@@ -174,7 +176,7 @@ Favorites Settings:
 
     **Show the popup menu context arrow at the top** - Option to show the popup menu context arrow at the top of the context menu. The default position is in the middle.
 
-    **Hide thumbnails when a popup menu is shown** - Option to hide the thumbnails when a popup context menu is show by right clicking an favorite application icon. This only applies when the shortcuts panel is oriented on the outside of the thumbnails.
+    **Hide thumbnails when a popup menu is shown** - Option to hide the thumbnails when a popup menu is show by right clicking a favorite application icon. This only applies when the shortcuts panel is oriented on the outside of the thumbnails.
 
 
 Localization Support:
@@ -184,8 +186,9 @@ Support for languages is now provided with the editable translation files being 
 
 Features Planned:
 -----------------
-- Editing the workspace caption name.
-- Favorites panel.
+- Ability to edit the workspace caption name.
+- Making the favorite shortcuts panel scrollable.
+- Ability to rearrange the position of favorite applications (similar to the dash)
 
 
 Known Issues:
@@ -216,7 +219,7 @@ To reset the extension to its default settings, type the command below in a term
 If the behavior persists, try disabling all other extensions and enable each extension one at a time until the behavior reappears. You may be experiencing a conflict with another extension.
 
 If the behavior persists with other extensions disabled, check for extension errors in the following places.
-- Bring up Looking Glass (Alt+F2 then type lg and press enter) and check for extension errors under the Extensions link.
+- Open up Looking Glass (Alt+F2 then type lg and press enter) and check for extension errors under the Extensions link.
 - Open your ~/.xsession-errors log and look for errors related to the extension.
 - Type "gnome-shell --replace" in a terminal and watch for JS error logs related to the extension.
 - Type "journalctl -f | grep Gjs-Message" in a terminal (if systemd is installed) and watch for JS error logs related to the extension.
