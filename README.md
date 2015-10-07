@@ -269,7 +269,7 @@ Change Log:
 
 **version 19 (Gnome 3.10), version 20 (Gnome 3.12) (May 1, 2014)**
 
-- Behavior updated to be more consistant with Gnome Shell 3.10+
+- Behavior updated to be more consistent with Gnome Shell 3.10+
 - Better support for multi-monitor setups
 - Better taskbar app tracking over workspaces
 - Option to customize the caption taskbar and icon sizes
@@ -368,7 +368,7 @@ Change Log:
 
 **version 3 (Aug 31, 2012)**
 
-- Reworked the code for adding/removing workspaces. Not only fixed the firefox issue, but also made displaying workspaces smoother and more consistant with Gnome Shell behavior.
+- Reworked the code for adding/removing workspaces. Not only fixed the firefox issue, but also made displaying workspaces smoother and more consistent with Gnome Shell behavior.
 - Intellihide enhancement to dodge resulting icons from Gnome Shell search panel.
 
 **version 2 (Aug 28, 2012)**
