@@ -261,8 +261,10 @@ const DockedWorkspaces = new Lang.Class({
             styleClass += " fixed";
 
         let shortcutsPanelOrientation = this._settings.get_enum('shortcuts-panel-orientation');
-        if (shortcutsPanelOrientation == 1) {
-            styleClass += " inside";
+        if (this._settings.get_boolean('show-shortcuts-panel')) {
+            if (shortcutsPanelOrientation == 1) {
+                styleClass += " inside";
+            }
         }
 
         if (this._settings.get_boolean('extend-height') && this._settings.get_double('top-margin') == 0) {
