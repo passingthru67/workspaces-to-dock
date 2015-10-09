@@ -229,6 +229,9 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
+**version 31 for Gnome 3.18 (Oct 9, 2015)**
+- Support for Gnome 3.18
+
 **version 30 for Gnome 3.16 (Sept 15, 2015)**
 - Bug fixes (particularly border issues)
 - Added support for moving an application to a different workspace by dragging the tasbar icon
