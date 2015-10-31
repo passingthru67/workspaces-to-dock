@@ -604,12 +604,13 @@ const ThumbnailCaption = new Lang.Class({
             if (this._taskBarBox) {
                 for (let i=0; i < this._taskBar.length; i++) {
                     let buttonActor = this._taskBarBox.get_child_at_index(i);
-                    if (buttonActor.visible) {
-                        let metaWin = this._taskBar[i].metaWin;
-                        let app = this._taskBar[i].app;
-                        let item = new MenuTaskListItem(app, metaWin, this);
-                        this._menuTaskListBox.add_actor(item.actor);
-                    }
+                    let metaWin = this._taskBar[i].metaWin;
+                    let app = this._taskBar[i].app;
+                    let item = new MenuTaskListItem(app, metaWin, this);
+                    if (!buttonActor.visible)
+                        item.actor.visible = false;
+
+                    this._menuTaskListBox.add_actor(item.actor);
                 }
             }
 
