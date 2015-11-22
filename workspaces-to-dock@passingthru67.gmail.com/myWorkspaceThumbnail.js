@@ -723,7 +723,7 @@ const myThumbnailsBox = new Lang.Class({
         if (this._dropWorkspace != -1) {
             return this._thumbnails[this._dropWorkspace].acceptDropInternal(source, time);
         } else if (this._dropPlaceholderPos != -1) {
-            if (!source.realWindow && !source.shellWorkspaceLaunch)
+            if (!source.realWindow && !source.shellWorkspaceLaunch && !source._caption)
                 return false;
 
             let isWindow = !!source.realWindow;
@@ -740,6 +740,12 @@ const myThumbnailsBox = new Lang.Class({
                 if (source.metaWindow.get_monitor() != thumbMonitor)
                     source.metaWindow.move_to_monitor(thumbMonitor);
                 source.metaWindow.change_workspace_by_index(newWorkspaceIndex, true);
+            } else if (source._caption) {
+                // Move the window to our monitor first if necessary.
+                let thumbMonitor = this._thumbnails[newWorkspaceIndex].monitorIndex;
+                if (source._metaWin.get_monitor() != thumbMonitor)
+                    source._metaWin.move_to_monitor(thumbMonitor);
+                source._metaWin.change_workspace_by_index(newWorkspaceIndex, true);
             } else if (source.shellWorkspaceLaunch) {
                 source.shellWorkspaceLaunch({ workspace: newWorkspaceIndex,
                                               timestamp: time });
