@@ -117,29 +117,20 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
                 dockPositionCombo.append_text(_("Left"));
             }
 
-
         let position = this.settings.get_enum('dock-position');
-        // if (position == 1) {
-        //     position = 0;
-        // } else if (position == 3) {
-        //     position = 1;
-        // } else {
-        //     position = 1;
-        // }
         dockPositionCombo.set_active(position);
-
         dockPositionCombo.connect('changed', Lang.bind (this, function(widget) {
-                // Only set position 1 (right) and 3 (left)
-
-                // if (widget.get_active() == 0) {
-                //     this.settings.set_enum('dock-position', 1);
-                // }
-                // if (widget.get_active() == 1) {
-                //     this.settings.set_enum('dock-position', 3);
-                // }
-
                 this.settings.set_enum('dock-position', widget.get_active());
+        }));
 
+        let hideDashButton = new Gtk.CheckButton({
+            label: _("Hide the Gnome Shell Dash"),
+            margin_left: 0,
+            margin_top: 0
+        });
+        hideDashButton.set_active(this.settings.get_boolean('hide-dash'));
+        hideDashButton.connect('toggled', Lang.bind(this, function(check) {
+            this.settings.set_boolean('hide-dash', check.get_active());
         }));
 
         // Add to layout
@@ -151,6 +142,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
         dockPositionControlGrid.attach(dockPositionLabel, 0, 0, 1, 1);
         dockPositionControlGrid.attach(dockPositionCombo, 1, 0, 1, 1);
+        dockPositionControlGrid.attach(hideDashButton, 0, 1, 1, 1);
 
 
         /* TITLE: HEIGHT */

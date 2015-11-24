@@ -612,9 +612,10 @@ const DockedWorkspaces = new Lang.Class({
             return alwaysZoomOut;
         };
 
-        if (this._position == St.Side.LEFT) {
+        if (this._settings.get_boolean('hide-dash')) {
             // Hide normal dash
             Main.overview._controls.dash.actor.hide();
+            Main.overview._controls.dash.actor.set_width(1);
         }
 
         // Hide normal workspaces thumbnailsBox
@@ -697,7 +698,8 @@ const DockedWorkspaces = new Lang.Class({
                         }
                     }
                 } else {
-                    if (i == this._primaryIndex) {
+                    if (!self._settings.get_boolean('hide-dash') &&
+                        i == this._primaryIndex) {
                         dashWidth = Main.overview._controls._dashSlider.getVisibleWidth() + spacing;
                     }
                 }
@@ -827,10 +829,13 @@ const DockedWorkspaces = new Lang.Class({
         // Restore normal workspaces to previous zoom setting
         OverviewControls.ThumbnailsSlider.prototype._getAlwaysZoomOut = GSFunctions['ThumbnailsSlider_getAlwaysZoomOut'];
 
-        if (this._position == St.Side.LEFT &&
+        if (this._settings.get_boolean('hide-dash') &&
             (!DashToDock || !DashToDock.dock)) {
                 // Show normal dash (if no dash-to-dock)
                 Main.overview._controls.dash.actor.show();
+                Main.overview._controls.dash.actor.set_width(-1);
+                // This force the recalculation of the icon size
+                Main.overview._controls.dash._maxHeight = -1;
         }
 
         // Show normal workspaces thumbnailsBox
@@ -914,6 +919,21 @@ const DockedWorkspaces = new Lang.Class({
         this._settings.connect('changed::preferred-monitor', Lang.bind(this, function() {
             this._resetPosition();
             this._redisplay();
+        }));
+
+        this._settings.connect('changed::hide-dash', Lang.bind(this, function() {
+            if (this._settings.get_boolean('hide-dash')) {
+                Main.overview._controls.dash.actor.hide();
+                Main.overview._controls.dash.actor.set_width(1);
+            } else {
+                if (!DashToDock || !DashToDock.dock) {
+                    // Show normal dash (if no dash-to-dock)
+                    Main.overview._controls.dash.actor.show();
+                    Main.overview._controls.dash.actor.set_width(-1);
+                    // This force the recalculation of the icon size
+                    Main.overview._controls.dash._maxHeight = -1;
+                }
+            }
         }));
 
         this._settings.connect('changed::show-shortcuts-panel', Lang.bind(this, function() {
