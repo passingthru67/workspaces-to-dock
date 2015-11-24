@@ -111,10 +111,15 @@
       <summary>Location of the dock on the screen</summary>
       <description>Dock is shown on the Left, Right, Top or Bottom side of the screen.</description>
     </key>
-    <key type="b" name="extend-height">
+    <key type="b" name="customize-height">
       <default>false</default>
-      <summary>Extend height of dock</summary>
-      <description>Makes the dock extend vertically to fill the screen.</description>
+      <summary>Customize height of dock</summary>
+      <description>Customize the height of the dock.</description>
+    </key>
+    <key type="i" name="customize-height-option">
+      <default>0</default>
+      <summary>Customize height options</summary>
+      <description>Select type of customization for height of dock (autosize, extend)</description>
     </key>
     <key type="d" name="top-margin">
       <default>0</default>

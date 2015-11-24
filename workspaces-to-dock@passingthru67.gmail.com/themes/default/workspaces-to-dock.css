@@ -1,70 +1,140 @@
+#workspacestodockTriggerSpacer {
+    background-color: none;
+}
 #workspacestodockContainerWrapper {
+    background-color: none;
 }
-
 #workspacestodockContainer {
-    padding-left: 0px;
-    padding-right: 0px;
+    background-color: none;
 }
 
-#workspacestodockContainer.right .workspace-thumbnails {
+#workspacestodockDockWrapper {
+}
+#workspacestodockDock {
+    padding: 0px;
+}
+
+#workspacestodockDock.right .workspace-thumbnails {
     border-radius: 9px 0 0 9px;
 }
 
-#workspacestodockContainer.left .workspace-thumbnails {
+#workspacestodockDock.left .workspace-thumbnails {
     border-radius: 0 9px 9px 0;
 }
 
-#workspacestodockContainer.right.inside .workspace-thumbnails {
+#workspacestodockDock.top .workspace-thumbnails {
+    border-radius: 0 0 9px 9px;
+}
+
+#workspacestodockDock.bottom .workspace-thumbnails {
+    border-radius: 9px 9px 0 0;
+}
+
+#workspacestodockDock.right.inside .workspace-thumbnails {
     border-radius: 0px;
     border-left: none;
 }
 
-#workspacestodockContainer.left.inside .workspace-thumbnails {
+#workspacestodockDock.left.inside .workspace-thumbnails {
     border-radius: 0px;
     border-right: none;
 }
 
-#workspacestodockContainer.right.fullheight .workspace-thumbnails {
+#workspacestodockDock.top.inside .workspace-thumbnails {
+    border-radius: 0px;
+    border-bottom: none;
+}
+
+#workspacestodockDock.bottom.inside .workspace-thumbnails {
+    border-radius: 0px;
+    border-top: none;
+}
+
+#workspacestodockDock.right.fullheight .workspace-thumbnails {
     border-radius: 0px;
 }
 
-#workspacestodockContainer.left.fullheight .workspace-thumbnails {
+#workspacestodockDock.left.fullheight .workspace-thumbnails {
     border-radius: 0px;
 }
 
-#workspacestodockContainer.right .workspacestodock-shortcuts-panel {
+#workspacestodockDock.top.fullheight .workspace-thumbnails {
+    border-radius: 0px;
+}
+
+#workspacestodockDock.bottom.fullheight .workspace-thumbnails {
+    border-radius: 0px;
+}
+
+#workspacestodockDock.right .workspacestodock-shortcuts-panel {
     border-radius: 0px;
     padding: 2px;
     spacing: 0px;
     border-left: none;
 }
 
-#workspacestodockContainer.left .workspacestodock-shortcuts-panel {
+#workspacestodockDock.left .workspacestodock-shortcuts-panel {
     border-radius: 0px;
     padding: 2px;
     spacing: 0px;
     border-right: none;
 }
 
-#workspacestodockContainer.right.inside .workspacestodock-shortcuts-panel {
+#workspacestodockDock.top .workspacestodock-shortcuts-panel {
+    border-radius: 0px;
+    padding: 2px;
+    spacing: 0px;
+    border-bottom: none;
+}
+
+#workspacestodockDock.bottom .workspacestodock-shortcuts-panel {
+    border-radius: 0px;
+    padding: 2px;
+    spacing: 0px;
+    border-top: none;
+}
+
+#workspacestodockDock.right.inside .workspacestodock-shortcuts-panel {
     border-radius: 9px 0 0 9px;
     padding: 2px;
     spacing: 0px;
     border-left: 1px;
 }
 
-#workspacestodockContainer.left.inside .workspacestodock-shortcuts-panel {
+#workspacestodockDock.left.inside .workspacestodock-shortcuts-panel {
     border-radius: 0 9px 9px 0;
     padding: 2px;
     spacing: 0px;
     border-right: 1px;
 }
 
-#workspacestodockContainer.right.fullheight .workspacestodock-shortcuts-panel {
+#workspacestodockDock.top.inside .workspacestodock-shortcuts-panel {
+    border-radius: 0 0 9px 9px;
+    padding: 2px;
+    spacing: 0px;
+    border-bottom: 1px;
+}
+
+#workspacestodockDock.bottom.inside .workspacestodock-shortcuts-panel {
+    border-radius: 9px 9px 0 0;
+    padding: 2px;
+    spacing: 0px;
+    border-top: 1px;
+}
+
+#workspacestodockDock.right.fullheight .workspacestodock-shortcuts-panel {
     border-radius: 0px;
 }
 
-#workspacestodockContainer.left.fullheight .workspacestodock-shortcuts-panel {
+#workspacestodockDock.left.fullheight .workspacestodock-shortcuts-panel {
+    border-radius: 0px;
+}
+
+#workspacestodockDock.top.fullheight .workspacestodock-shortcuts-panel {
+    border-radius: 0px;
+}
+
+#workspacestodockDock.bottom.fullheight .workspacestodock-shortcuts-panel {
     border-radius: 0px;
 }
 
@@ -81,10 +151,10 @@
 }
 
 /* shortcuts panel buttons */
-#workspacestodockContainer .app-well-app {
+#workspacestodockDock .app-well-app {
 }
 
-#workspacestodockContainer .workspacestodock-shortcuts-panel > StButton {
+#workspacestodockDock .workspacestodock-shortcuts-panel > StButton {
     background-size: contain;
 }
 .workspacestodock-shortcut-button {
@@ -93,7 +163,7 @@
 }
 
 /* shortcuts panel button icons */
-#workspacestodockContainer .app-well-app > .overview-icon {
+#workspacestodockDock .app-well-app > .overview-icon {
 }
 .workspacestodock-shortcut-button-icon {
     padding: 6px;
@@ -103,7 +173,7 @@
 }
 
 /* shortcuts panel items */
-#workspacestodockContainer .popup-separator-menu-item {
+#workspacestodockDock .popup-separator-menu-item {
     margin: 2px;
 }
 .workspacestodock-shortcut-panel-separator {
@@ -120,29 +190,53 @@
 }
 
 /* shortcuts panel button window count indicators */
-#workspacestodockContainer.right .workspacestodock-shortcut-button-windowcount-image-1 {
-    background-image: url('one.svg');
+#workspacestodockDock.right .workspacestodock-shortcut-button-windowcount-image-1 {
+    background-image: url('one_right.svg');
 }
-#workspacestodockContainer.right .workspacestodock-shortcut-button-windowcount-image-2 {
-    background-image: url('two.svg');
+#workspacestodockDock.left .workspacestodock-shortcut-button-windowcount-image-1 {
+    background-image: url('one_left.svg');
 }
-#workspacestodockContainer.right .workspacestodock-shortcut-button-windowcount-image-3 {
-    background-image: url('three.svg');
+#workspacestodockDock.top .workspacestodock-shortcut-button-windowcount-image-1 {
+    background-image: url('one_top.svg');
 }
-#workspacestodockContainer.right .workspacestodock-shortcut-button-windowcount-image-4 {
-    background-image: url('four.svg');
+#workspacestodockDock.bottom .workspacestodock-shortcut-button-windowcount-image-1 {
+    background-image: url('one_bottom.svg');
 }
-#workspacestodockContainer.left .workspacestodock-shortcut-button-windowcount-image-1 {
-    background-image: url('one_rtl.svg');
+#workspacestodockDock.right .workspacestodock-shortcut-button-windowcount-image-2 {
+    background-image: url('two_right.svg');
 }
-#workspacestodockContainer.left .workspacestodock-shortcut-button-windowcount-image-2 {
-    background-image: url('two_rtl.svg');
+#workspacestodockDock.left .workspacestodock-shortcut-button-windowcount-image-2 {
+    background-image: url('two_left.svg');
 }
-#workspacestodockContainer.left .workspacestodock-shortcut-button-windowcount-image-3 {
-    background-image: url('three_rtl.svg');
+#workspacestodockDock.top .workspacestodock-shortcut-button-windowcount-image-2 {
+    background-image: url('two_top.svg');
 }
-#workspacestodockContainer.left .workspacestodock-shortcut-button-windowcount-image-4 {
-    background-image: url('four_rtl.svg');
+#workspacestodockDock.bottom .workspacestodock-shortcut-button-windowcount-image-2 {
+    background-image: url('two_bottom.svg');
+}
+#workspacestodockDock.right .workspacestodock-shortcut-button-windowcount-image-3 {
+    background-image: url('three_right.svg');
+}
+#workspacestodockDock.left .workspacestodock-shortcut-button-windowcount-image-3 {
+    background-image: url('three_left.svg');
+}
+#workspacestodockDock.top .workspacestodock-shortcut-button-windowcount-image-3 {
+    background-image: url('three_top.svg');
+}
+#workspacestodockDock.bottom .workspacestodock-shortcut-button-windowcount-image-3 {
+    background-image: url('three_bottom.svg');
+}
+#workspacestodockDock.right .workspacestodock-shortcut-button-windowcount-image-4 {
+    background-image: url('four_right.svg');
+}
+#workspacestodockDock.left .workspacestodock-shortcut-button-windowcount-image-4 {
+    background-image: url('four_left.svg');
+}
+#workspacestodockDock.top .workspacestodock-shortcut-button-windowcount-image-4 {
+    background-image: url('four_top.svg');
+}
+#workspacestodockDock.bottom .workspacestodock-shortcut-button-windowcount-image-4 {
+    background-image: url('four_bottom.svg');
 }
 
 .workspacestodock-workspace-caption-container {

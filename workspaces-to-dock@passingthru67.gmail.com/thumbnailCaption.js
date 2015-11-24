@@ -36,6 +36,18 @@ const WindowAppsUpdateAction = {
     CLEARALL: 2
 }
 
+/* Return the actual position reverseing left and right in rtl */
+function getPosition(settings) {
+    let position = settings.get_enum('dock-position');
+    if (Clutter.get_default_text_direction() == Clutter.TextDirection.RTL) {
+        if (position == St.Side.LEFT)
+            position = St.Side.RIGHT;
+        else if (position == St.Side.RIGHT)
+            position = St.Side.LEFT;
+    }
+    return position;
+}
+
 const TaskbarIcon = new Lang.Class({
     Name: 'workspacesToDock.taskbarIcon',
 
@@ -189,6 +201,9 @@ const ThumbnailCaption = new Lang.Class({
         this._thumbnail = thumbnail;
         this._settings = new Gio.Settings({ schema: MyWorkspaceThumbnail.OVERRIDE_SCHEMA });
         this._mySettings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
+        this._position = getPosition(this._mySettings);
+        this._isHorizontal = (this._position == St.Side.TOP ||
+                              this._position == St.Side.BOTTOM);
 
         this.actor = new St.Bin({
             name: 'workspacestodockCaptionContainer',
@@ -404,16 +419,14 @@ const ThumbnailCaption = new Lang.Class({
             this._thumbnail.actor.set_style("background-color: rgba(0,0,0,0.0)");
 
             // Create menu and menuitems
-            let side = St.Side.RIGHT;
-            if (Clutter.get_default_text_direction() == Clutter.TextDirection.RTL) {
-                side = St.Side.LEFT;
-            }
+            let side = this._position;
             this._menu = new PopupMenu.PopupMenu(this._wsCaption, 0.5, side);
 
             // Set popup menu boxpointer point to center vertically on caption background
             // Otherwise the point lands at the top of the caption background because
             // the caption actually extends up another 18px.
-            this._menu.setSourceAlignment(.8);
+            if (!this._isHorizontal)
+                this._menu.setSourceAlignment(.8);
 
             this._menu.actor.add_style_class_name('workspacestodock-caption-windowapps-menu');
             this._menu.connect('open-state-changed', Lang.bind(this, function(menu, open) {
