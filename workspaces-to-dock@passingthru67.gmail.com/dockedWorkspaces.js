@@ -40,6 +40,7 @@ const Extension = Me.imports.extension;
 const Convenience = Me.imports.convenience;
 const MyWorkspaceThumbnail = Me.imports.myWorkspaceThumbnail;
 const ShortcutsPanel = Me.imports.shortcutsPanel;
+const MyWorkspaceSwitcherPopup = Me.imports.myWorkspaceSwitcherPopup;
 
 const DashToDock_UUID = "dash-to-dock@micxgx.gmail.com";
 let DashToDockExtension = null;
@@ -249,6 +250,11 @@ const DockedWorkspaces = new Lang.Class({
 
         // Create a shortcuts panel object
         this._shortcutsPanel = new ShortcutsPanel.ShortcutsPanel(this);
+
+        // Create custom workspace switcher popup
+        this._workspaceSwitcher = null;
+        if (this._isHorizontal)
+            this._workspaceSwitcher = new MyWorkspaceSwitcherPopup.WorkspaceSwitcher();
 
         // Create the main dock container, turn on track hover, add hoverChange signal
         let positionStyleClass = ['top', 'right', 'bottom', 'left'];
@@ -560,6 +566,9 @@ const DockedWorkspaces = new Lang.Class({
         this._thumbnailsBox._destroyThumbnails();
 
         this._shortcutsPanel.destroy();
+
+        if (this._workspaceSwitcher)
+            this._workspaceSwitcher.destroy();
 
         // Disconnect global signals
         this._signalHandler.disconnect();
@@ -1280,18 +1289,31 @@ const DockedWorkspaces = new Lang.Class({
         let direction;
         switch (event.get_scroll_direction()) {
         case Clutter.ScrollDirection.UP:
-            direction = Meta.MotionDirection.UP;
+            if (this._isHorizontal) {
+                direction = Meta.MotionDirection.LEFT;
+            } else {
+                direction = Meta.MotionDirection.UP;
+            }
             break;
         case Clutter.ScrollDirection.DOWN:
-            direction = Meta.MotionDirection.DOWN;
+            if (this._isHorizontal) {
+                direction = Meta.MotionDirection.RIGHT;
+            } else {
+                direction = Meta.MotionDirection.DOWN;
+            }
             break;
         }
 
         if (direction) {
             let ws = activeWs.get_neighbor(direction);
 
-            if (Main.wm._workspaceSwitcherPopup == null)
-                Main.wm._workspaceSwitcherPopup = new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup();
+            if (Main.wm._workspaceSwitcherPopup == null) {
+                if (this._isHorizontal) {
+                    Main.wm._workspaceSwitcherPopup = new MyWorkspaceSwitcherPopup.myWorkspaceSwitcherPopup();
+                } else {
+                    Main.wm._workspaceSwitcherPopup = new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup();
+                }
+            }
 
             // Set the workspaceSwitcherPopup actor to non reactive,
             // to prevent it from grabbing focus away from the dock
