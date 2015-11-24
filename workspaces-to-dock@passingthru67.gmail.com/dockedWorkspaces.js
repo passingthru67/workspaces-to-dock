@@ -1963,7 +1963,7 @@ const DockedWorkspaces = new Lang.Class({
         }
 
         // Reset pressureSensed flag
-        if (!this._dock.hover && this._autohideStatus && (this._animStatus.showing() || this._animStatus.shown()))
+        if (!this._dock.hover && !this._animStatus.shown())
             this._pressureSensed = false;
     },
 
