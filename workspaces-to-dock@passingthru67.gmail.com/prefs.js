@@ -273,78 +273,6 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         this.settings.bind('customize-height', dockHeightContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
 
 
-        /* TITLE: THUMBNAILS */
-
-        let customizeThumbnailTitle = new Gtk.Label({
-            label: _("<b>Thumbnail Size</b>"),
-            use_markup: true,
-            xalign: 0,
-            margin_top: 25,
-            margin_bottom: 5
-        });
-
-
-        /* THUMBNAIL SIZE WIDGETS */
-
-        let customizeThumbnailLabel = new Gtk.Label({
-            label: _("Customize the workspace thumbnail size"),
-            xalign: 0,
-            hexpand: true
-        });
-
-        let customizeThumbnailSwitch = new Gtk.Switch ({
-            halign: Gtk.Align.END
-        });
-        customizeThumbnailSwitch.set_active(this.settings.get_boolean('customize-thumbnail'));
-        customizeThumbnailSwitch.connect('notify::active', Lang.bind(this, function(check) {
-            this.settings.set_boolean('customize-thumbnail', check.get_active());
-        }));
-
-        let thumbnailSizeLabel = new Gtk.Label({
-            label: _("Thumbnail size"),
-            use_markup: true,
-            xalign: 0,
-            hexpand: true
-        });
-
-        let thumbnailSizeSpinner = new Gtk.SpinButton();
-        thumbnailSizeSpinner.set_range(10, 25);
-        thumbnailSizeSpinner.set_value(this.settings.get_double('thumbnail-size') * 100);
-        thumbnailSizeSpinner.set_digits(1);
-        thumbnailSizeSpinner.set_increments(.5, 1);
-        thumbnailSizeSpinner.set_size_request(120, -1);
-        thumbnailSizeSpinner.connect('value-changed', Lang.bind(this, function(button) {
-            let s = button.get_value() / 100;
-            this.settings.set_double('thumbnail-size', s);
-        }));
-        thumbnailSizeSpinner.connect('output', function(button, data) {
-            var val = button.get_value().toFixed(1);
-            button.set_text(val + "%");
-            return true;
-        });
-
-        // Add to layout
-        let customizeThumbnailControlGrid = new Gtk.Grid({
-            row_homogeneous: false,
-            column_homogeneous: false,
-            margin_top: 0,
-            margin_left: 0
-        });
-        let customizeThumbnailContainerGrid = new Gtk.Grid({
-            row_homogeneous: false,
-            column_homogeneous: false,
-            margin_top: 0,
-            margin_left: 10
-        });
-        customizeThumbnailControlGrid.attach(customizeThumbnailLabel, 0, 0, 1, 1);
-        customizeThumbnailControlGrid.attach(customizeThumbnailSwitch, 1, 0, 1, 1);
-        customizeThumbnailContainerGrid.attach(thumbnailSizeLabel, 0, 0, 1, 1);
-        customizeThumbnailContainerGrid.attach(thumbnailSizeSpinner, 1, 0, 1, 1);
-
-        // Bind interactions
-        this.settings.bind('customize-thumbnail', customizeThumbnailContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
-
-
         /* TITLE: BACKGROUND */
 
         let backgroundTitle = new Gtk.Label({
@@ -431,9 +359,6 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         notebookAppearanceSettings.add(dockHeightTitle);
         notebookAppearanceSettings.add(dockHeightControlGrid);
         notebookAppearanceSettings.add(dockHeightContainerGrid);
-        notebookAppearanceSettings.add(customizeThumbnailTitle);
-        notebookAppearanceSettings.add(customizeThumbnailControlGrid);
-        notebookAppearanceSettings.add(customizeThumbnailContainerGrid);
         notebookAppearanceSettings.add(backgroundTitle);
         notebookAppearanceSettings.add(backgroundControlGrid);
         notebookAppearanceSettings.add(backgroundContainerGrid);
@@ -1088,6 +1013,78 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
 
 
+        /* TITLE: THUMBNAILS */
+
+        let customizeThumbnailTitle = new Gtk.Label({
+            label: _("<b>Thumbnail Size</b>"),
+            use_markup: true,
+            xalign: 0,
+            margin_top: 15,
+            margin_bottom: 5
+        });
+
+
+        /* THUMBNAIL SIZE WIDGETS */
+
+        let customizeThumbnailLabel = new Gtk.Label({
+            label: _("Customize the workspace thumbnail size"),
+            xalign: 0,
+            hexpand: true
+        });
+
+        let customizeThumbnailSwitch = new Gtk.Switch ({
+            halign: Gtk.Align.END
+        });
+        customizeThumbnailSwitch.set_active(this.settings.get_boolean('customize-thumbnail'));
+        customizeThumbnailSwitch.connect('notify::active', Lang.bind(this, function(check) {
+            this.settings.set_boolean('customize-thumbnail', check.get_active());
+        }));
+
+        let thumbnailSizeLabel = new Gtk.Label({
+            label: _("Thumbnail size"),
+            use_markup: true,
+            xalign: 0,
+            hexpand: true
+        });
+
+        let thumbnailSizeSpinner = new Gtk.SpinButton();
+        thumbnailSizeSpinner.set_range(10, 25);
+        thumbnailSizeSpinner.set_value(this.settings.get_double('thumbnail-size') * 100);
+        thumbnailSizeSpinner.set_digits(1);
+        thumbnailSizeSpinner.set_increments(.5, 1);
+        thumbnailSizeSpinner.set_size_request(120, -1);
+        thumbnailSizeSpinner.connect('value-changed', Lang.bind(this, function(button) {
+            let s = button.get_value() / 100;
+            this.settings.set_double('thumbnail-size', s);
+        }));
+        thumbnailSizeSpinner.connect('output', function(button, data) {
+            var val = button.get_value().toFixed(1);
+            button.set_text(val + "%");
+            return true;
+        });
+
+        // Add to layout
+        let customizeThumbnailControlGrid = new Gtk.Grid({
+            row_homogeneous: false,
+            column_homogeneous: false,
+            margin_top: 0,
+            margin_left: 0
+        });
+        let customizeThumbnailContainerGrid = new Gtk.Grid({
+            row_homogeneous: false,
+            column_homogeneous: false,
+            margin_top: 0,
+            margin_left: 10
+        });
+        customizeThumbnailControlGrid.attach(customizeThumbnailLabel, 0, 0, 1, 1);
+        customizeThumbnailControlGrid.attach(customizeThumbnailSwitch, 1, 0, 1, 1);
+        customizeThumbnailContainerGrid.attach(thumbnailSizeLabel, 0, 0, 1, 1);
+        customizeThumbnailContainerGrid.attach(thumbnailSizeSpinner, 1, 0, 1, 1);
+
+        // Bind interactions
+        this.settings.bind('customize-thumbnail', customizeThumbnailContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+
+
         /* TITLE: THUMBNAIL CAPTIONS */
 
         let workspaceCaptionsTitle = new Gtk.Label({
@@ -1518,7 +1515,8 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             row_homogeneous: false,
             column_homogeneous: false,
             margin_top: 0,
-            margin_left: 0
+            margin_left: 0,
+            margin_bottom: 20
         });
         workspaceOptionsControlGrid.attach(toggleOverviewButton, 0, 0, 1, 1);
         // workspaceOptionsControlGrid.attach(thumbnailCaptionPopupMenuHideShortcutsPanel, 0, 1, 1, 1);
@@ -1526,6 +1524,9 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
 
         /* ADD TO NOTEBOOK PAGE */
+        notebookWorkspacesSettings.add(customizeThumbnailTitle);
+        notebookWorkspacesSettings.add(customizeThumbnailControlGrid);
+        notebookWorkspacesSettings.add(customizeThumbnailContainerGrid);
         notebookWorkspacesSettings.add(workspaceCaptionsTitle);
         notebookWorkspacesSettings.add(workspaceCaptionsControlGrid);
         notebookWorkspacesSettings.add(workspaceCaptionsContainerGrid);
