@@ -761,40 +761,37 @@ const DockedWorkspaces = new Lang.Class({
                 geometry.width -= controlsWidth;
 
                 // Adjust y and height for workspacesView geometry for primary monitor (top panel, etc.)
-                // NOTE: if dashSpacer or thumbnailsBox are located at TOP or BOTTOM positions, they
-                // already affect the allocation of the overview controls box so there is no need
-                // to adjust for them here. We only have to be concerned with height if it's not the
-                // primary monitor.
                 if (i == this._primaryIndex) {
                     geometry.y = y;
                     geometry.height = height;
-                } else {
-                    // What if dash and thumbnailsBox are not on the primary monitor?
-                    let controlsHeight = dashHeight + thumbnailsHeight;
-                    if (DashToDock && DashToDock.dock && DashToDockExtension.hasDockPositionKey) {
-                        if (DashToDock.dock._position == St.Side.TOP &&
-                            self._position == St.Side.TOP) {
-                                controlsHeight = Math.max(dashHeight, thumbnailsHeight);
-                                geometry.y += controlsHeight;
-                        } else {
-                            if (DashToDock.dock._position == St.Side.TOP) {
-                                geometry.y += dashHeight;
-                            }
-                            if (self._position == St.Side.TOP) {
-                                geometry.y += thumbnailsHeight;
-                            }
-                        }
-                        if (DashToDock.dock._position == St.Side.BOTTOM &&
-                            self._position == St.Side.BOTTOM) {
-                                controlsHeight = Math.max(dashHeight, thumbnailsHeight);
-                        }
+                }
+
+                // What if dash and thumbnailsBox are not on the primary monitor?
+                let controlsHeight = dashHeight + thumbnailsHeight;
+                if (DashToDock && DashToDock.dock && DashToDockExtension.hasDockPositionKey) {
+                    if (DashToDock.dock._position == St.Side.TOP &&
+                        self._position == St.Side.TOP) {
+                            controlsHeight = Math.max(dashHeight, thumbnailsHeight);
+                            geometry.y += controlsHeight;
                     } else {
+                        if (DashToDock.dock._position == St.Side.TOP) {
+                            geometry.y += dashHeight;
+                        }
                         if (self._position == St.Side.TOP) {
                             geometry.y += thumbnailsHeight;
                         }
                     }
-                    geometry.height -= controlsHeight;
+                    if (DashToDock.dock._position == St.Side.BOTTOM &&
+                        self._position == St.Side.BOTTOM) {
+                            controlsHeight = Math.max(dashHeight, thumbnailsHeight);
+                    }
+                } else {
+                    if (self._position == St.Side.TOP) {
+                        geometry.y += thumbnailsHeight;
+                    }
                 }
+                geometry.height -= controlsHeight;
+
 
                 if (_DEBUG_) global.log("MONITOR = "+i);
                 this._workspacesViews[i].setMyActualGeometry(geometry);
