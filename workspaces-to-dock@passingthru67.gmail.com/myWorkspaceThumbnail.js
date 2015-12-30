@@ -970,11 +970,6 @@ const myThumbnailsBox = new Lang.Class({
 
         this._ensurePorthole();
         let themeNode = this.actor.get_theme_node();
-        let paddingTop = themeNode.get_padding(St.Side.TOP);
-        let paddingBottom = themeNode.get_padding(St.Side.BOTTOM);
-        let borderTop = themeNode.get_border_width(St.Side.TOP);
-        let borderBottom = themeNode.get_border_width(St.Side.BOTTOM);
-        totalExtraSpacing = borderTop + borderBottom + paddingTop + paddingBottom + 3;
 
         let spacing = themeNode.get_length('spacing');
 
@@ -1005,17 +1000,18 @@ const myThumbnailsBox = new Lang.Class({
             alloc.natural_size = height + captionBackgroundHeight;
 
         } else {
-            // passingthru67 - add 5px to totalSpacing calculation
-            // otherwise scale doesn't kick in soon enough and total thumbnails height is greater than height of dock
-            // why is 5px needed? spacing was already adjusted in gnome-shell.css from 7px to 27px (GS36 11px to ?)
-            // does it have anything to do with a border added by St.Bin in WorkspaceThumbnails _background?
+            // passingthru67: calculate extra padding-spacing needed due to caption
+            let paddingTop = themeNode.get_padding(St.Side.TOP);
+            let paddingBottom = themeNode.get_padding(St.Side.BOTTOM);
+            let borderTop = themeNode.get_border_width(St.Side.TOP);
+            let borderBottom = themeNode.get_border_width(St.Side.BOTTOM);
+            let totalExtraSpacing = borderTop + borderBottom + paddingTop + paddingBottom + 3;
 
             spacing = spacing + captionBackgroundHeight;
 
             //let totalSpacing = (nWorkspaces - 1) * spacing;
             let totalSpacing;
             if (this._mySettings.get_boolean('workspace-captions')) {
-                // totalSpacing = (nWorkspaces - 1) * (spacing + 5);
                 totalSpacing = (nWorkspaces - 1) * (spacing);
             } else {
                 totalSpacing = (nWorkspaces - 1) * spacing;
@@ -1057,10 +1053,12 @@ const myThumbnailsBox = new Lang.Class({
             alloc.natural_size = totalSpacing + nWorkspaces * this._porthole.width * maxScale;
 
         } else {
-            // passingthru67 - add 5px to totalSpacing calculation
-            // otherwise scale doesn't kick in soon enough and total thumbnails height is greater than height of dock
-            // why is 5px needed? spacing was already adjusted in gnome-shell.css from 7px to 27px (GS36 11px to ?)
-            // does it have anything to do with a border added by St.Bin in WorkspaceThumbnails _background?
+            // passingthru67: calculate extra padding-spacing needed due to caption
+            let paddingTop = themeNode.get_padding(St.Side.TOP);
+            let paddingBottom = themeNode.get_padding(St.Side.BOTTOM);
+            let borderTop = themeNode.get_border_width(St.Side.TOP);
+            let borderBottom = themeNode.get_border_width(St.Side.BOTTOM);
+            let totalExtraSpacing = borderTop + borderBottom + paddingTop + paddingBottom + 3;
 
             // passingthru67 - make room for thumbnail captions
             let captionBackgroundHeight = 0;
@@ -1072,13 +1070,12 @@ const myThumbnailsBox = new Lang.Class({
             //let totalSpacing = (nWorkspaces - 1) * spacing;
             let totalSpacing;
             if (this._mySettings.get_boolean('workspace-captions')) {
-                // totalSpacing = (nWorkspaces - 1) * (spacing + 5);
                 totalSpacing = (nWorkspaces - 1) * (spacing);
             } else {
                 totalSpacing = (nWorkspaces - 1) * spacing;
             }
 
-            let avail = forHeight - totalSpacing - 21;
+            let avail = forHeight - totalSpacing - totalExtraSpacing;
 
             let scale = (avail / nWorkspaces) / this._porthole.height;
             if (this._mySettings.get_boolean('customize-thumbnail')) {
@@ -1132,12 +1129,19 @@ const myThumbnailsBox = new Lang.Class({
         this._thumbnailsBoxWidth = this.actor.width;
         this._thumbnailsBoxHeight = this.actor.height;
 
-        let rtl = (Clutter.get_default_text_direction () == Clutter.TextDirection.RTL);
+        // passingthru67: we use this._position instead of rtl
+        // let rtl = (Clutter.get_default_text_direction () == Clutter.TextDirection.RTL);
 
         if (this._thumbnails.length == 0) // not visible
             return;
 
         let themeNode = this.actor.get_theme_node();
+
+        let paddingTop = themeNode.get_padding(St.Side.TOP);
+        let paddingBottom = themeNode.get_padding(St.Side.BOTTOM);
+        let borderTop = themeNode.get_border_width(St.Side.TOP);
+        let borderBottom = themeNode.get_border_width(St.Side.BOTTOM);
+        let totalExtraSpacing = borderTop + borderBottom + paddingTop + paddingBottom + 3;
 
         let portholeWidth = this._porthole.width;
         let portholeHeight = this._porthole.height;
@@ -1162,26 +1166,27 @@ const myThumbnailsBox = new Lang.Class({
         // Compute the scale we'll need once everything is updated
         let nWorkspaces = global.screen.n_workspaces;
 
-        // passingthru67 - add 5px to totalSpacing calculation
-        // otherwise newScale doesn't kick in soon enough and total thumbnails height is greater than height of dock
-        // why is 5px needed? spacing was already adjusted in gnome-shell.css from 7px to 27px (GS36 11px to ?)
-        // does it have anything to do with a border added by St.Bin in WorkspaceThumbnails _background?
-        //let totalSpacing = (nWorkspaces - 1) * spacing;
+        // passingthru67 - total spacing depends on on caption showing
         let totalSpacing;
         if (this._mySettings.get_boolean('workspace-captions') && !this._isHorizontal) {
-            // totalSpacing = (nWorkspaces - 1) * (spacing + 5);
             totalSpacing = (nWorkspaces - 1) * (spacing);
         } else {
             totalSpacing = (nWorkspaces - 1) * spacing;
         }
 
-        let avail = (box.y2 - box.y1) - totalSpacing - 21;
-        if (this._isHorizontal)
+        let avail;
+        if (this._isHorizontal) {
             avail = (box.x2 - box.x1) - totalSpacing;
+        } else {
+            avail = (box.y2 - box.y1) - totalSpacing - totalExtraSpacing;
+        }
 
-        let newScale = (avail / nWorkspaces) / portholeHeight;
-        if (this._isHorizontal)
+        let newScale;
+        if (this._isHorizontal) {
             newScale = (avail / nWorkspaces) / portholeWidth;
+        } else {
+            newScale = (avail / nWorkspaces) / portholeHeight
+        }
 
         if (this._mySettings.get_boolean('customize-thumbnail')) {
             newScale = Math.min(newScale, this._mySettings.get_double('thumbnail-size'));
@@ -1216,10 +1221,6 @@ const myThumbnailsBox = new Lang.Class({
         }
 
         let slideOffset; // X offset when thumbnail is fully slid offscreen
-        // if (rtl)
-        //     slideOffset = - (thumbnailWidth + themeNode.get_padding(St.Side.LEFT));
-        // else
-        //     slideOffset = thumbnailWidth + themeNode.get_padding(St.Side.RIGHT);
         if (this._position == St.Side.LEFT)
             slideOffset = - (thumbnailWidth + themeNode.get_padding(St.Side.LEFT));
         else if (this._position == St.Side.RIGHT)
@@ -1273,13 +1274,6 @@ const myThumbnailsBox = new Lang.Class({
                     y1 = box.y2 - thumbnailHeight - captionBackgroundHeight;
                     y2 = y1 + thumbnailHeight + captionBackgroundHeight;
                 }
-                // if (rtl) {
-                //     y1 = box.y1 + slideOffset * thumbnail.slidePosition;
-                //     y2 = y1 + thumbnailHeight;
-                // } else {
-                //     y1 = box.y2 - thumbnailHeight + slideOffset * thumbnail.slidePosition;
-                //     y2 = y1 + thumbnailHeight;
-                // }
 
                 if (i == this._dropPlaceholderPos) {
                     let [minWidth, placeholderWidth] = this._dropPlaceholder.get_preferred_width(-1);
@@ -1318,7 +1312,6 @@ const myThumbnailsBox = new Lang.Class({
                 childBox.x2 = x1 + portholeWidth;
                 childBox.y1 = y1;
                 // passingthru67 - size needs to include caption area
-                //childBox.y2 = y1 + portholeHeight;
                 childBox.y2 = y1 + portholeHeight + (captionBackgroundHeight/roundedVScale);
 
                 thumbnail.actor.set_scale(roundedHScale, roundedVScale);
@@ -1354,7 +1347,8 @@ const myThumbnailsBox = new Lang.Class({
                     y += spacing - Math.round(thumbnail.collapseFraction * spacing);
 
                 let x1, x2;
-                if (rtl) {
+
+                if (this._position == St.Side.LEFT) {
                     x1 = box.x1 + slideOffset * thumbnail.slidePosition;
                     x2 = x1 + thumbnailWidth;
                 } else {
@@ -1381,7 +1375,6 @@ const myThumbnailsBox = new Lang.Class({
                 // we compute an actual scale separately for each thumbnail.
                 let y1 = Math.round(y);
                 let y2 = Math.round(y + thumbnailHeight);
-                // let roundedVScale = (y2 - y1) / portholeHeight;
                 // passingthru67 - roundedVScale now defined above with roundedHScale
                 roundedVScale = (y2 - y1) / portholeHeight;
 
@@ -1401,7 +1394,6 @@ const myThumbnailsBox = new Lang.Class({
                 childBox.x2 = x1 + portholeWidth;
                 childBox.y1 = y1;
                 // passingthru67 - size needs to include caption area
-                //childBox.y2 = y1 + portholeHeight;
                 childBox.y2 = y1 + portholeHeight + (captionBackgroundHeight/roundedVScale);
 
                 thumbnail.actor.set_scale(roundedHScale, roundedVScale);
@@ -1417,7 +1409,7 @@ const myThumbnailsBox = new Lang.Class({
                 y += thumbnailHeight - Math.round(thumbnailHeight * thumbnail.collapseFraction);
             }
 
-            if (rtl) {
+            if (this._position == St.Side.LEFT) {
                 childBox.x1 = box.x1;
                 childBox.x2 = box.x1 + thumbnailWidth;
             } else {
@@ -1428,7 +1420,6 @@ const myThumbnailsBox = new Lang.Class({
             childBox.x2 += indicatorRightFullBorder;
             childBox.y1 = indicatorY1 - indicatorTopFullBorder;
             // passingthru67 - indicator needs to include caption
-            //childBox.y2 = (indicatorY2 ? indicatorY2 : (indicatorY1 + thumbnailHeight)) + indicatorBottomFullBorder;
             childBox.y2 = (indicatorY2 ? indicatorY2 + captionBackgroundHeight : (indicatorY1 + thumbnailHeight + captionBackgroundHeight)) + indicatorBottomFullBorder;
         }
 
