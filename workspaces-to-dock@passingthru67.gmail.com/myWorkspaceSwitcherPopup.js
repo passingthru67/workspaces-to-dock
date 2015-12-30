@@ -16,6 +16,7 @@ const Mainloop = imports.mainloop;
 const Lang = imports.lang;
 const Meta = imports.gi.Meta;
 const St = imports.gi.St;
+const Shell = imports.gi.Shell;
 
 const Main = imports.ui.main;
 const WindowManager = imports.ui.windowManager;
@@ -191,19 +192,38 @@ const WorkspaceSwitcher = new Lang.Class({
             let [action,,,target] = binding.get_name().split('-');
             let newWs;
             let direction;
-            global.log("ACTION="+action+" TARGET="+target);
-            if (isNaN(target)) {
+
+            if (action == 'move') {
+                // "Moving" a window to another workspace doesn't make sense when
+                // it cannot be unstuck, and is potentially confusing if a new
+                // workspaces is added at the start/end
+                if (window.is_always_on_all_workspaces() ||
+                    (Meta.prefs_get_workspaces_only_on_primary() &&
+                     window.get_monitor() != Main.layoutManager.primaryIndex))
+                  return;
+            }
+
+            if (target == 'last') {
+                direction = Meta.MotionDirection.RIGHT;
+                newWs = screen.get_workspace_by_index(screen.n_workspaces - 1);
+            } else if (isNaN(target)) {
+                // Prepend a new workspace dynamically
+                if (screen.get_active_workspace_index() == 0 &&
+                    action == 'move' && target == 'left' && this._isWorkspacePrepended == false) {
+                    this.insertWorkspace(0);
+                    this._isWorkspacePrepended = true;
+                }
+
                 direction = Meta.MotionDirection[target.toUpperCase()];
                 newWs = screen.get_active_workspace().get_neighbor(direction);
             } else if (target > 0) {
                 target--;
                 newWs = screen.get_workspace_by_index(target);
 
-                // FIXME add proper support for switching to numbered workspace
                 if (screen.get_active_workspace().index() > target)
-                    direction = Meta.MotionDirection.UP;
+                    direction = Meta.MotionDirection.LEFT;
                 else
-                    direction = Meta.MotionDirection.DOWN;
+                    direction = Meta.MotionDirection.RIGHT;
             }
 
             if (direction != Meta.MotionDirection.LEFT &&
@@ -243,6 +263,33 @@ const WorkspaceSwitcher = new Lang.Class({
                     Lang.bind(wm, wm._showWorkspaceSwitcher));
         Meta.keybindings_set_custom_handler('switch-to-workspace-down',
                     Lang.bind(wm, wm._showWorkspaceSwitcher));
+        Meta.keybindings_set_custom_handler('switch-to-workspace-1',
+                    Lang.bind(wm, wm._showWorkspaceSwitcher));
+        Meta.keybindings_set_custom_handler('switch-to-workspace-2',
+                    Lang.bind(wm, wm._showWorkspaceSwitcher));
+        Meta.keybindings_set_custom_handler('switch-to-workspace-3',
+                    Lang.bind(wm, wm._showWorkspaceSwitcher));
+        Meta.keybindings_set_custom_handler('switch-to-workspace-4',
+                    Lang.bind(wm, wm._showWorkspaceSwitcher));
+        Meta.keybindings_set_custom_handler('switch-to-workspace-5',
+                    Lang.bind(wm, wm._showWorkspaceSwitcher));
+        Meta.keybindings_set_custom_handler('switch-to-workspace-6',
+                    Lang.bind(wm, wm._showWorkspaceSwitcher));
+        Meta.keybindings_set_custom_handler('switch-to-workspace-7',
+                    Lang.bind(wm, wm._showWorkspaceSwitcher));
+        Meta.keybindings_set_custom_handler('switch-to-workspace-8',
+                    Lang.bind(wm, wm._showWorkspaceSwitcher));
+        Meta.keybindings_set_custom_handler('switch-to-workspace-9',
+                    Lang.bind(wm, wm._showWorkspaceSwitcher));
+        Meta.keybindings_set_custom_handler('switch-to-workspace-10',
+                    Lang.bind(wm, wm._showWorkspaceSwitcher));
+        Meta.keybindings_set_custom_handler('switch-to-workspace-11',
+                    Lang.bind(wm, wm._showWorkspaceSwitcher));
+        Meta.keybindings_set_custom_handler('switch-to-workspace-12',
+                    Lang.bind(wm, wm._showWorkspaceSwitcher));
+        Meta.keybindings_set_custom_handler('switch-to-workspace-last',
+                    Lang.bind(wm, wm._showWorkspaceSwitcher));
+
         Meta.keybindings_set_custom_handler('move-to-workspace-left',
                     Lang.bind(wm, wm._showWorkspaceSwitcher));
         Meta.keybindings_set_custom_handler('move-to-workspace-right',
@@ -250,6 +297,32 @@ const WorkspaceSwitcher = new Lang.Class({
         Meta.keybindings_set_custom_handler('move-to-workspace-up',
                     Lang.bind(wm, wm._showWorkspaceSwitcher));
         Meta.keybindings_set_custom_handler('move-to-workspace-down',
+                    Lang.bind(wm, wm._showWorkspaceSwitcher));
+        Meta.keybindings_set_custom_handler('move-to-workspace-1',
+                    Lang.bind(wm, wm._showWorkspaceSwitcher));
+        Meta.keybindings_set_custom_handler('move-to-workspace-2',
+                    Lang.bind(wm, wm._showWorkspaceSwitcher));
+        Meta.keybindings_set_custom_handler('move-to-workspace-3',
+                    Lang.bind(wm, wm._showWorkspaceSwitcher));
+        Meta.keybindings_set_custom_handler('move-to-workspace-4',
+                    Lang.bind(wm, wm._showWorkspaceSwitcher));
+        Meta.keybindings_set_custom_handler('move-to-workspace-5',
+                    Lang.bind(wm, wm._showWorkspaceSwitcher));
+        Meta.keybindings_set_custom_handler('move-to-workspace-6',
+                    Lang.bind(wm, wm._showWorkspaceSwitcher));
+        Meta.keybindings_set_custom_handler('move-to-workspace-7',
+                    Lang.bind(wm, wm._showWorkspaceSwitcher));
+        Meta.keybindings_set_custom_handler('move-to-workspace-8',
+                    Lang.bind(wm, wm._showWorkspaceSwitcher));
+        Meta.keybindings_set_custom_handler('move-to-workspace-9',
+                    Lang.bind(wm, wm._showWorkspaceSwitcher));
+        Meta.keybindings_set_custom_handler('move-to-workspace-10',
+                    Lang.bind(wm, wm._showWorkspaceSwitcher));
+        Meta.keybindings_set_custom_handler('move-to-workspace-11',
+                    Lang.bind(wm, wm._showWorkspaceSwitcher));
+        Meta.keybindings_set_custom_handler('move-to-workspace-12',
+                    Lang.bind(wm, wm._showWorkspaceSwitcher));
+        Meta.keybindings_set_custom_handler('move-to-workspace-last',
                     Lang.bind(wm, wm._showWorkspaceSwitcher));
 
         wm._workspaceSwitcherPopup = null;
