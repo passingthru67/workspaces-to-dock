@@ -504,15 +504,8 @@ const DockedWorkspaces = new Lang.Class({
         Main.uiGroup.add_child(this.actor);
         Main.layoutManager._trackActor(this._slider, {trackFullscreen: true});
 
-        // Place the dock in the approprite overview controls group
-        if (this._position ==  St.Side.LEFT)
-            Main.overview._controls._group.insert_child_at_index(this.actor, this._rtl? -1:0); // insert at first
-        else if (this._position ==  St.Side.RIGHT)
-            Main.overview._controls._group.insert_child_at_index(this.actor, this._rtl? 0:-1); // insert at last
-        else if (this._position ==  St.Side.TOP)
-            Main.overview._overview.insert_child_at_index(this.actor, 0);
-        else if (this._position ==  St.Side.BOTTOM)
-            Main.overview._overview.insert_child_at_index(this.actor, -1);
+        // Keep the dash below the modalDialogGroup
+        Main.layoutManager.uiGroup.set_child_below_sibling(this.actor, Main.layoutManager.modalDialogGroup);
 
         if (this._settings.get_boolean('dock-fixed')) {
             Main.layoutManager._trackActor(this.actor, {affectsStruts: true});
