@@ -126,12 +126,22 @@ const myWindowClone = new Lang.Class({
         this.metaWindow.foreach_transient(iter);
     },
 
+    _updateDialogPosition: function(realDialog, cloneDialog) {
+        let metaDialog = realDialog.meta_window;
+        if (!metaDialog)
+            return;
+
+        let dialogRect = metaDialog.get_frame_rect();
+        let rect = this.metaWindow.get_frame_rect();
+
+        cloneDialog.set_position(dialogRect.x - rect.x, dialogRect.y - rect.y);
+    },
+
     _onPositionChanged: function() {
         // passingthru67: Don't know why but windows that use Client Side Decorations (like gEdit)
         // don't position properly when maximized or in fullscreen mode. Is it an upstream bug?
         let rect = this.metaWindow.get_frame_rect();
         if (_DEBUG_) global.log(this.metaWindow.get_wm_class() + " position changed - x="+this.realWindow.x+" y="+this.realWindow.y+" nx="+rect.x+" ny="+rect.y);
-        this.actor.set_position(this.realWindow.x, this.realWindow.y);
         if (this.metaWindow.get_maximized() && rect) {
             this.actor.set_position(rect.x, rect.y);
         } else {
