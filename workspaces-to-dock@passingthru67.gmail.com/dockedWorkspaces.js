@@ -28,6 +28,7 @@ const WorkspacesView = imports.ui.workspacesView;
 const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
 const Tweener = imports.ui.tweener;
 const WorkspaceSwitcherPopup = imports.ui.workspaceSwitcherPopup;
+const Overview = imports.ui.overview;
 const OverviewControls = imports.ui.overviewControls;
 const Layout = imports.ui.layout;
 const MessageTray = imports.ui.messageTray;
@@ -604,11 +605,22 @@ const DockedWorkspaces = new Lang.Class({
             return alwaysZoomOut;
         };
 
+        // Hide normal Dash
         if (this._settings.get_boolean('hide-dash')) {
             // Hide normal dash
             Main.overview._controls.dash.actor.hide();
             Main.overview._controls.dash.actor.set_width(1);
         }
+
+        // Change source of swarm animation to shortcuts panel apps button
+        GSFunctions['Overview_getShowAppsButton'] = Overview.Overview.prototype.getShowAppsButton;
+        Overview.Overview.prototype.getShowAppsButton = function() {
+            if (self._settings.get_boolean('shortcuts-panel-appsbutton-animation')) {
+                return self._shortcutsPanel._appsButton.actor;
+            } else {
+                return this._dash.showAppsButton;
+            }
+        };
 
         // Hide normal workspaces thumbnailsBox
         Main.overview._controls._thumbnailsSlider.actor.opacity = 0;
@@ -826,6 +838,9 @@ const DockedWorkspaces = new Lang.Class({
                 // This forces the recalculation of the icon size
                 Main.overview._controls.dash._maxHeight = -1;
         }
+
+        // Restore source of swarm animation to normal apps button
+        Overview.Overview.prototype.getShowAppsButton = GSFunctions['Overview_getShowAppsButton'];
 
         // Show normal workspaces thumbnailsBox
         Main.overview._controls._thumbnailsSlider.actor.opacity = 255;

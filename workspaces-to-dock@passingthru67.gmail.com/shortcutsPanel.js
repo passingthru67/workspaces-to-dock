@@ -568,6 +568,8 @@ const ShortcutsPanel = new Lang.Class({
             this.refresh();
         }));
 
+        this._appsButton;
+
         // Connect to AppSystem and listen for app state changes
         this._appStateChangedId = this._appSystem.connect('app-state-changed', Lang.bind(this, this._updateRunningApps));
 
@@ -717,13 +719,13 @@ const ShortcutsPanel = new Lang.Class({
         }
 
         // Add Apps Button to top or bottom of shortcuts panel
-        let shortcutButton = new ShortcutButton(null, ApplicationType.APPSBUTTON);
+        this._appsButton = new ShortcutButton(null, ApplicationType.APPSBUTTON);
         if (this._settings.get_boolean('shortcuts-panel-appsbutton-at-bottom')) {
             let filler = new Separator.HorizontalSeparator({ style_class: 'popup-separator-menu-item workspacestodock-shortcut-panel-filler' });
             this.actor.add(filler.actor, { expand: true });
-            this.actor.add_actor(shortcutButton.actor);
+            this.actor.add_actor(this._appsButton.actor);
         } else {
-            this.actor.insert_child_at_index(shortcutButton.actor, 0);
+            this.actor.insert_child_at_index(this._appsButton.actor, 0);
         }
 
     },
