@@ -101,6 +101,10 @@ const Intellihide = new Lang.Class({
         // when windows are dragged around (move and resize)
         this._windowChangedTimeout = 0;
 
+        // Quick show timeout
+        this._switchWorkspaceQuickShow = this._settings.get_boolean('quick-show-on-workspace-change');
+        this._quickShowTimeoutId = 0;
+
         // Connect global signals
         this._signalHandler.push(
             // call updateVisibility when dock actor changes
@@ -316,6 +320,13 @@ const Intellihide = new Lang.Class({
                 }));
             }
         }));
+
+        this._settings.connect('changed::quick-show-on-workspace-change', Lang.bind(this, function(){
+            if (_DEBUG_) global.log("intellihide: _bindSettingsChanges for quick-show-on-workspace-change");
+            this._switchWorkspaceQuickShow = this._settings.get_boolean('quick-show-on-workspace-change');
+            this._updateDockVisibility();
+        }));
+
     },
 
     // handler for when dock size-position is changed
@@ -546,6 +557,14 @@ const Intellihide = new Lang.Class({
     // handler for when workspace is switched
     _switchWorkspace: function(shellwm, from, to, direction) {
         if (_DEBUG_) global.log("intellihide: _switchWorkspace");
+
+        // Reset quick show timeout
+        this._switchedWorkspace = true;
+        if (this._quickShowTimeoutId > 0)
+            Mainloop.source_remove(this._quickShowTimeoutId);
+
+        this._quickShowTimeoutId = 0;
+
         this._updateDockVisibility();
     },
 
@@ -577,6 +596,16 @@ const Intellihide = new Lang.Class({
             if (_DEBUG_) global.log("intellihide: _hide - enableAutoHide");
             this._dock.enableAutoHide();
         }
+    },
+
+    // Reset quick show timeout
+    _quickShowExit: function() {
+        this._switchedWorkspace = false;
+        if (this._quickShowTimeoutId > 0)
+            Mainloop.source_remove(this._quickShowTimeoutId);
+
+        this._quickShowTimeoutId = 0;
+        this._updateDockVisibility();
     },
 
     // intellihide function to determine if dock overlaps a window
@@ -655,14 +684,32 @@ const Intellihide = new Lang.Class({
                     }
                 }
 
-                if (_DEBUG_) global.log("intellihide: updateDockVisiblity - overlaps = "+overlaps);
-                if (overlaps) {
-                    this._hide(true);
-                } else {
+                if (this._switchWorkspaceQuickShow && this._switchedWorkspace && this._quickShowTimeoutId == 0) {
+                    if (_DEBUG_) global.log("intellihide: updateDockVisiblity - quick show");
                     this._show();
+                    let timeout = this._settings.get_double('quick-show-timeout');
+                    this._quickShowTimeoutId = Mainloop.timeout_add(timeout, Lang.bind(this, this._quickShowExit));
+                } else {
+                    if (_DEBUG_) global.log("intellihide: updateDockVisiblity - overlaps = "+overlaps);
+                    if (this._quickShowTimeoutId == 0) {
+                        if (overlaps) {
+                            this._hide(true);
+                        } else {
+                            this._show();
+                        }
+                    }
                 }
             } else {
-                this._hide();
+                if (_DEBUG_) global.log("intellihide: updateDockVisibility - not intellihide or fixed mode");
+                if (this._switchWorkspaceQuickShow && this._switchedWorkspace && this._quickShowTimeoutId == 0) {
+                    if (_DEBUG_) global.log("intellihide: updateDockVisibility - quick show");
+                    this._show();
+                    let timeout = this._settings.get_double('quick-show-timeout');
+                    this._quickShowTimeoutId = Mainloop.timeout_add(timeout, Lang.bind(this, this._quickShowExit));
+                } else {
+                    if (this._quickShowTimeoutId == 0)
+                        this._hide();
+                }
             }
         }
 

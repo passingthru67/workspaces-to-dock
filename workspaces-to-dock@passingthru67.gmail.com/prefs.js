@@ -917,7 +917,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             margin_top: 0
         });
         quickShowSpinner.set_sensitive(true);
-        quickShowSpinner.set_range(500, 5000);
+        quickShowSpinner.set_range(100, 3000);
         quickShowSpinner.set_value(this.settings.get_double("quick-show-timeout") * 1);
         quickShowSpinner.set_increments(100, 1000);
         quickShowSpinner.connect("value-changed", Lang.bind(this, function(button) {
@@ -974,9 +974,9 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         miscOptionsContainerGrid.attach(leaveVisibleButton, 0, 1, 2, 1);
         miscOptionsContainerGrid.attach(disableScrollButton, 0, 2, 2, 1);
         miscOptionsContainerGrid.attach(dashToDockHoverButton, 0, 3, 2, 1);
-        // miscOptionsContainerGrid.attach(quickShowButton, 0, 4, 2, 1);
-        // miscOptionsContainerGrid.attach(quickShowLabel, 0, 5, 1, 1);
-        // miscOptionsContainerGrid.attach(quickShowSpinner, 1, 5, 1, 1);
+        miscOptionsContainerGrid.attach(quickShowButton, 0, 4, 2, 1);
+        miscOptionsContainerGrid.attach(quickShowLabel, 0, 5, 1, 1);
+        miscOptionsContainerGrid.attach(quickShowSpinner, 1, 5, 1, 1);
         miscOptionsContainerGrid.attach(toggleDockShortcutButton, 0, 6, 2, 1);
         miscOptionsContainerGrid.attach(toggleDockShortcutLabel, 0, 7, 1, 1);
         miscOptionsContainerGrid.attach(toggleDockShortcutEntry, 1, 7, 1, 1);
