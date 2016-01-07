@@ -1856,16 +1856,9 @@ const DockedWorkspaces = new Lang.Class({
                 this._container.set_size(width + this._triggerSpacer.width, height);
             }
         }
+
         // Set anchor points
         this.actor.move_anchor_point_from_gravity(anchorPoint);
-
-        // if (this._isHorizontal) {
-            // Set width of thumbnailsBox actor to match
-            // this._thumbnailsBox.actor.set_width(width);
-        // } else {
-            // Set height of thumbnailsBox actor to match
-            // this._thumbnailsBox.actor.set_height(height);
-        // }
     },
 
     // 'Hard' reset dock positon: called on start and when monitor changes
