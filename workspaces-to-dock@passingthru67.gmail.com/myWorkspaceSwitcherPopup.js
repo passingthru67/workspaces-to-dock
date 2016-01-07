@@ -167,8 +167,7 @@ const WorkspaceSwitcher = new Lang.Class({
         this._overrideGnomeShellFunctions();
         this._resetBindings(Main.wm);
 
-        let ncols = get_ncols();
-        global.screen.override_workspace_layout(Meta.ScreenCorner.TOPLEFT, false, nrows, ncols);
+        global.screen.override_workspace_layout(Meta.ScreenCorner.TOPLEFT, false, nrows, -1);
     },
 
     destroy: function() {
