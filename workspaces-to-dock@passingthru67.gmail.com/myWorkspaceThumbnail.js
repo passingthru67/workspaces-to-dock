@@ -892,7 +892,7 @@ const myThumbnailsBox = new Lang.Class({
         let [r, x, y] = this.actor.transform_stage_point(stageX, stageY);
 
         for (let i = 0; i < this._thumbnails.length; i++) {
-            let thumbnail = this._thumbnails[i]
+            let thumbnail = this._thumbnails[i];
             let [w, h] = thumbnail.actor.get_transformed_size();
             if (this._isHorizontal) {
                 if (x >= thumbnail.actor.x && x <= thumbnail.actor.x + w) {
