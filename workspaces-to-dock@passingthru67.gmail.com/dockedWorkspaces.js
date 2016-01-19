@@ -1733,6 +1733,7 @@ const DockedWorkspaces = new Lang.Class({
     _updateSize: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _updateSize");
 
+        // Accommodate shortcuts panel in calculations
         let shortcutsPanelThickness = 0;
         if (this._settings.get_boolean('show-shortcuts-panel')) {
             if (this._isHorizontal) {
@@ -1742,10 +1743,10 @@ const DockedWorkspaces = new Lang.Class({
             }
         }
 
-        // check if the dock is on the primary monitor
-        let primary = false;
-        if (this._monitor.x == Main.layoutManager.primaryMonitor.x && this._monitor.y == Main.layoutManager.primaryMonitor.y)
-            primary = true;
+        // Get workspace area
+        // This takes into account primary monitor and any additional extensions
+        // that may affect width and height calculations
+        let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitor.index);
 
         let x, y, width, height, anchorPoint;
         if (this._isHorizontal) {
@@ -1753,8 +1754,8 @@ const DockedWorkspaces = new Lang.Class({
             if (this._settings.get_boolean('customize-height')) {
                 let leftMargin = Math.floor(this._settings.get_double('top-margin') * this._monitor.width);
                 let rightMargin = Math.floor(this._settings.get_double('bottom-margin') * this._monitor.width);
-                x = this._monitor.x + leftMargin;
-                width = this._monitor.width - leftMargin - rightMargin;
+                x = workArea.x + leftMargin;
+                width = workArea.width - leftMargin - rightMargin;
             } else {
                 let margin = this._monitor.width * .1;
                 x = this._monitor.x + margin;
@@ -1786,20 +1787,9 @@ const DockedWorkspaces = new Lang.Class({
             if (this._settings.get_boolean('customize-height')) {
                 let topMargin = Math.floor(this._settings.get_double('top-margin') * this._monitor.height);
                 let bottomMargin = Math.floor(this._settings.get_double('bottom-margin') * this._monitor.height);
-                if (primary) {
-                    // ISSUE: Botton Panel extension moves the panel to the bottom
-                    // Check if top panel has been moved using anchor point
-                    let [pbAnchorX,pbAnchorY] = Main.layoutManager.panelBox.get_anchor_point();
-                    if (pbAnchorY < 0) {
-                        y = this._monitor.y + topMargin;
-                    } else {
-                        y = this._monitor.y + Main.layoutManager.panelBox.height + topMargin;
-                    }
-                    height = this._monitor.height - Main.layoutManager.panelBox.height - topMargin - bottomMargin;
-                } else {
-                    y = this._monitor.y + topMargin;
-                    height = this._monitor.height - topMargin - bottomMargin;
-                }
+                y = workArea.y + topMargin;
+                height = workArea.height - topMargin - bottomMargin;
+
             } else {
                 let controlsTop = 45;
                 y = this._monitor.y + Main.panel.actor.height + controlsTop + Main.overview._searchEntryBin.height;
