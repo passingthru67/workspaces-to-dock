@@ -74,20 +74,8 @@ const TaskbarIcon = new Lang.Class({
         this.actor.connect('enter-event', Lang.bind(this, this._onButtonEnter));
         this.actor.connect('leave-event', Lang.bind(this, this._onButtonLeave));
 
-        // Connect drag-n-drop signals
+        // Make actor draggable
         this._draggable = DND.makeDraggable(this.actor);
-        this._draggable.connect('drag-begin', Lang.bind(this,
-            function () {
-                Main.overview.beginItemDrag(this);
-            }));
-        this._draggable.connect('drag-cancelled', Lang.bind(this,
-            function () {
-                Main.overview.cancelledItemDrag(this);
-            }));
-        this._draggable.connect('drag-end', Lang.bind(this,
-            function () {
-              Main.overview.endItemDrag(this);
-            }));
     },
 
     _onButtonEnter: function(actor, event) {
