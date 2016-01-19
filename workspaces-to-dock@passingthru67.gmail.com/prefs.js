@@ -1622,7 +1622,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }));
 
         let setSwarmAnimationButton = new Gtk.CheckButton({
-            label: _("Use Apps Button as the source of the swarm animation"),
+            label: _("Use the Apps button as the source of the swarm animation"),
             margin_left: 0,
             margin_top: 0
         });
@@ -1676,7 +1676,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }));
 
         let shortcutsPanelAppsbuttonAtBottom = new Gtk.CheckButton({
-            label: _("Show the applications button at the bottom"),
+            label: _("Set the Apps button at the bottom"),
             margin_left: 0,
             margin_top: 0
         });
@@ -1686,7 +1686,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }));
 
         let shortcutsPanelPopupMenuArrowAtTop = new Gtk.CheckButton({
-            label: _("Show the popup menu context arrow at the top"),
+            label: _("Set the menu context arrow at the top of the popup menu dialog"),
             margin_left: 0,
             margin_top: 0
         });
@@ -1696,7 +1696,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }));
 
         let shortcutsPanelPopupMenuHideThumbnails = new Gtk.CheckButton({
-            label: _("Hide thumbnails when a popup menu is shown"),
+            label: _("Hide thumbnails when a popup menu dialog is shown"),
             margin_left: 0,
             margin_top: 0
         });
