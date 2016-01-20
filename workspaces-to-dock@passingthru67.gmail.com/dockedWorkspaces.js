@@ -49,9 +49,16 @@ let DashToDock = null;
 
 const TRIGGER_WIDTH = 1;
 const DOCK_EDGE_VISIBLE_WIDTH = 5;
+const DOCK_EDGE_VISIBLE_OVERVIEW_WIDTH = 45;
 const PRESSURE_TIMEOUT = 1000;
 
 let GSFunctions = {};
+
+const OverviewOption = {
+    SHOW: 0,        // Dock is always visible
+    HIDE: 1,        // Dock is always invisible. Visible on mouse hover
+    PARTIAL: 2      // Dock partially hidden. Visible on mouse hover
+};
 
 // Return the actual position reverseing left and right in rtl
 function getPosition(settings) {
@@ -99,6 +106,7 @@ const ThumbnailsSlider = new Lang.Class({
         this._slidex = localParams.initialSlideValue;
         this._side = localParams.side;
         this._slideoutSize = localParams.initialSlideoutSize; // minimum size when slid out
+        this._overviewSlideoutSize = TRIGGER_WIDTH + DOCK_EDGE_VISIBLE_OVERVIEW_WIDTH;
     },
 
 
@@ -119,7 +127,15 @@ const ThumbnailsSlider = new Lang.Class({
 
         let childBox = new Clutter.ActorBox();
 
-        let slideoutSize = this._slideoutSize;
+        let slideoutSize;
+        let overviewAction = this._settings.get_enum('overview-action');
+        if (Main.overview.visible == true
+            && Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage
+            && overviewAction == OverviewOption.PARTIAL) {
+                slideoutSize = this._overviewSlideoutSize;
+        } else {
+            slideoutSize = this._slideoutSize;
+        }
 
         if (this._side == St.Side.LEFT) {
             childBox.x1 = (this._slidex -1) * (childWidth - slideoutSize);
@@ -146,22 +162,42 @@ const ThumbnailsSlider = new Lang.Class({
 
     // Just the child width but taking into account the slided out part
     vfunc_get_preferred_width: function(forHeight) {
+        let slideoutSize;
+        let overviewAction = this._settings.get_enum('overview-action');
+        if (Main.overview.visible == true
+            && Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage
+            && overviewAction == OverviewOption.PARTIAL) {
+                slideoutSize = this._overviewSlideoutSize;
+        } else {
+            slideoutSize = this._slideoutSize;
+        }
+
         let [minWidth, natWidth ] = this._child.get_preferred_width(forHeight);
         if (this._side ==  St.Side.LEFT
           || this._side == St.Side.RIGHT) {
-            minWidth = (minWidth - this._slideoutSize)*this._slidex + this._slideoutSize;
-            natWidth = (natWidth - this._slideoutSize)*this._slidex + this._slideoutSize;
+            minWidth = (minWidth - slideoutSize)*this._slidex + slideoutSize;
+            natWidth = (natWidth - slideoutSize)*this._slidex + slideoutSize;
         }
         return [minWidth, natWidth];
     },
 
     // Just the child height but taking into account the slided out part
     vfunc_get_preferred_height: function(forWidth) {
+        let slideoutSize;
+        let overviewAction = this._settings.get_enum('overview-action');
+        if (Main.overview.visible == true
+            && Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage
+            && overviewAction == OverviewOption.PARTIAL) {
+                slideoutSize = this._overviewSlideoutSize;
+        } else {
+            slideoutSize = this._slideoutSize;
+        }
+
         let [minHeight, natHeight] = this._child.get_preferred_height(forWidth);
         if (this._side ==  St.Side.TOP
           || this._side ==  St.Side.BOTTOM) {
-            minHeight = (minHeight - this._slideoutSize)*this._slidex + this._slideoutSize;
-            natHeight = (natHeight - this._slideoutSize)*this._slidex + this._slideoutSize;
+            minHeight = (minHeight - slideoutSize)*this._slidex + slideoutSize;
+            natHeight = (natHeight - slideoutSize)*this._slidex + slideoutSize;
         }
         return [minHeight, natHeight];
     },
@@ -716,13 +752,30 @@ const DockedWorkspaces = new Lang.Class({
                     thumbnailsMonitorIndex = this._primaryIndex;
                 }
                 if (i == thumbnailsMonitorIndex) {
+                    let overviewAction = self._settings.get_enum('overview-action');
+                    let visibleEdge = TRIGGER_WIDTH;
+                    if (self._settings.get_boolean('dock-edge-visible')) {
+                        visibleEdge = TRIGGER_WIDTH + DOCK_EDGE_VISIBLE_WIDTH;
+                    }
                     if (self._position == St.Side.LEFT ||
                         self._position == St.Side.RIGHT) {
-                            thumbnailsWidth = self.actor.get_width() + spacing;
+                            if (overviewAction == OverviewOption.HIDE) {
+                                thumbnailsWidth = visibleEdge;
+                            } else if (overviewAction == OverviewOption.PARTIAL) {
+                                thumbnailsWidth = TRIGGER_WIDTH + DOCK_EDGE_VISIBLE_OVERVIEW_WIDTH;
+                            } else {
+                                thumbnailsWidth = self.actor.get_width() + spacing;
+                            }
                     }
                     if (self._position == St.Side.TOP ||
                         self._position == St.Side.BOTTOM) {
-                            thumbnailsHeight = self.actor.get_height() + spacing;
+                            if (overviewAction == OverviewOption.HIDE) {
+                                thumbnailsHeight = visibleEdge;
+                            } else if (overviewAction == OverviewOption.PARTIAL) {
+                                thumbnailsHeight = TRIGGER_WIDTH + DOCK_EDGE_VISIBLE_OVERVIEW_WIDTH;
+                            } else {
+                                thumbnailsHeight = self.actor.get_height() + spacing;
+                            }
                     }
                 }
 
