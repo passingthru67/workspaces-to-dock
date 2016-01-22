@@ -390,11 +390,16 @@ const Intellihide = new Lang.Class({
     _onWindowDragBegin: function() {
         if (_DEBUG_) global.log("intellihide: _onWindowDragBegin");
         Main.overview.show();
+        this._toggledOverviewOnDrag = true;
+        this._show();
     },
 
     // handler for when thumbnail windows dragging cancelled
     _onWindowDragCancelled: function() {
         if (_DEBUG_) global.log("intellihide: _onWindowDragCancelled");
+        if (this._toggledOverviewOnDrag) {
+            this._toggledOverviewOnDrag = false;
+        }
     },
 
     // handler for when thumbnail windows dragging ended
