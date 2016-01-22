@@ -15,6 +15,7 @@ const Signals = imports.signals;
 const Params = imports.misc.params;
 const Config = imports.misc.config;
 const GnomeSession = imports.misc.gnomeSession;
+const AppDisplay = imports.ui.appDisplay;
 const AppFavorites = imports.ui.appFavorites;
 const Layout = imports.ui.layout;
 const Main = imports.ui.main;
@@ -56,6 +57,32 @@ function getPosition(settings) {
     }
     return position;
 }
+
+function getAppFromSource(source) {
+    if (source instanceof AppDisplay.AppIcon) {
+        return source.app;
+    } else if (source instanceof ShortcutButton) {
+        return source._app;
+    } else {
+        return null;
+    }
+}
+
+const DragPlaceholderItem = new Lang.Class({
+    Name: 'workspacestodock_shortcutsPanel_DragPlaceholderItem',
+
+    _init: function(source) {
+        this._settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
+        this.actor = new St.Bin({ style_class: 'placeholder' });
+
+        let iconSize = this._settings.get_double('shortcuts-panel-icon-size');
+        this.actor.set_size(iconSize, iconSize);
+    },
+
+    destroy: function() {
+        this.actor.destroy();
+    }
+});
 
 const ShortcutButtonMenu = new Lang.Class({
     Name: 'workspacestodock_shortcutButtonMenu',
@@ -256,18 +283,6 @@ const ShortcutButton = new Lang.Class({
         // Connect drag-n-drop signals
         if (appType != ApplicationType.APPSBUTTON) {
             this._draggable = DND.makeDraggable(this.actor);
-            this._draggable.connect('drag-begin', Lang.bind(this,
-                function () {
-                    Main.overview.beginItemDrag(this);
-                }));
-            this._draggable.connect('drag-cancelled', Lang.bind(this,
-                function () {
-                    Main.overview.cancelledItemDrag(this);
-                }));
-            this._draggable.connect('drag-end', Lang.bind(this,
-                function () {
-                   Main.overview.endItemDrag(this);
-                }));
         }
 
         // Check if running state
@@ -576,6 +591,13 @@ const ShortcutsPanel = new Lang.Class({
         // Connect to AppFavorites and listen for favorites changes
         this._favoritesChangedId = this._appFavorites.connect('changed', Lang.bind(this, this._updateFavoriteApps));
 
+        // Connect to item drag signals
+        this._dragPlaceholder = null;
+        this._dragPlaceholderPos = -1;
+        Main.overview.connect('item-drag-begin', Lang.bind(this, this._onDragBegin));
+        Main.overview.connect('item-drag-end', Lang.bind(this, this._onDragEnd));
+        Main.overview.connect('item-drag-cancelled', Lang.bind(this, this._onDragCancelled));
+
         // Bind Preference Settings
         this._bindSettingsChanges();
 
@@ -609,6 +631,192 @@ const ShortcutsPanel = new Lang.Class({
         this._settings.connect('changed::shortcuts-panel-appsbutton-at-bottom', Lang.bind(this, function() {
             this.refresh();
         }));
+    },
+
+    _onDragBegin: function() {
+        this._dragCancelled = false;
+        this._dragMonitor = {
+            dragMotion: Lang.bind(this, this._onDragMotion)
+        };
+        DND.addDragMonitor(this._dragMonitor);
+    },
+
+    _onDragCancelled: function() {
+        this._dragCancelled = true;
+        this._endDrag();
+    },
+
+    _onDragEnd: function() {
+        if (this._dragCancelled)
+            return;
+
+        this._endDrag();
+    },
+
+    _endDrag: function() {
+        this._clearDragPlaceholder();
+        DND.removeDragMonitor(this._dragMonitor);
+    },
+
+    _onDragMotion: function(dragEvent) {
+        let app = getAppFromSource(dragEvent.source);
+        if (app == null)
+            return DND.DragMotionResult.CONTINUE;
+
+        if (!this.actor.contains(dragEvent.targetActor))
+            this._clearDragPlaceholder();
+
+        return DND.DragMotionResult.CONTINUE;
+    },
+
+    _clearDragPlaceholder: function() {
+        if (this._dragPlaceholder) {
+            this._dragPlaceholder.destroy();
+            this._dragPlaceholder = null;
+        }
+        this._dragPlaceholderPos = -1;
+    },
+
+    handleDragOver : function(source, actor, x, y, time) {
+        let app = getAppFromSource(source);
+
+        // Don't allow favoriting of transient apps
+        if (app == null || app.is_window_backed())
+            return DND.DragMotionResult.NO_DROP;
+
+        if (!global.settings.is_writable('favorite-apps'))
+            return DND.DragMotionResult.NO_DROP;
+
+        let favorites = AppFavorites.getAppFavorites().getFavorites();
+        let numFavorites = favorites.length;
+
+        let favPos = favorites.indexOf(app);
+
+        let children = this._favoriteAppsBox.get_children();
+        let numChildren = children.length;
+        let boxH;
+        let boxY;
+        if (this._isHorizontal) {
+            boxY = this._favoriteAppsBox.x;
+            boxH = this._favoriteAppsBox.width;
+        } else {
+            boxY = this._favoriteAppsBox.y;
+            boxH = this._favoriteAppsBox.height;
+        }
+
+        // Keep the placeholder out of the index calculation; assuming that
+        // the remove target has the same size as "normal" items, we don't
+        // need to do the same adjustment there.
+        if (this._dragPlaceholder) {
+            if (this._isHorizontal) {
+                boxH -= this._dragPlaceholder.actor.width;
+            } else {
+                boxH -= this._dragPlaceholder.actor.height;
+            }
+            numChildren--;
+        }
+
+        let pos;
+        let posY;
+        if (this._isHorizontal) {
+            posY = x - boxY;
+        } else {
+            posY = y - boxY;
+        }
+        pos = Math.floor(posY * numChildren / boxH);
+
+        if (pos != this._dragPlaceholderPos && pos <= numFavorites) {
+            this._dragPlaceholderPos = pos;
+
+            // Don't allow positioning before or after self
+            if (favPos != -1 && (pos == favPos || pos == favPos + 1)) {
+                this._clearDragPlaceholder();
+                return DND.DragMotionResult.CONTINUE;
+            }
+
+            // If the placeholder already exists, we just move
+            // it, but if we are adding it, expand its size in
+            // an animation
+            let fadeIn;
+            if (this._dragPlaceholder) {
+                this._dragPlaceholder.destroy();
+                fadeIn = false;
+            } else {
+                fadeIn = true;
+            }
+
+            this._dragPlaceholder = new DragPlaceholderItem();
+            this._favoriteAppsBox.insert_child_at_index(this._dragPlaceholder.actor,
+                                            this._dragPlaceholderPos);
+            this._dragPlaceholder.actor.show(fadeIn);
+        }
+
+        // Remove the drag placeholder if we are not in the
+        // "favorites zone"
+        if (pos > numFavorites)
+            this._clearDragPlaceholder();
+
+        if (!this._dragPlaceholder)
+            return DND.DragMotionResult.NO_DROP;
+
+        let srcIsFavorite = (favPos != -1);
+        if (srcIsFavorite) {
+            return DND.DragMotionResult.MOVE_DROP;
+        }
+
+        return DND.DragMotionResult.COPY_DROP;
+    },
+
+    // Draggable target interface
+    acceptDrop : function(source, actor, x, y, time) {
+        let app = getAppFromSource(source);
+
+        // Don't allow favoriting of transient apps
+        if (app == null || app.is_window_backed()) {
+            return false;
+        }
+
+        if (!global.settings.is_writable('favorite-apps'))
+            return false;
+
+        let id = app.get_id();
+
+        let favorites = AppFavorites.getAppFavorites().getFavoriteMap();
+
+        let srcIsFavorite = (id in favorites);
+
+        let favPos = 0;
+        let children = this._favoriteAppsBox.get_children();
+        for (let i = 0; i < this._dragPlaceholderPos; i++) {
+            if (this._dragPlaceholder &&
+                children[i] == this._dragPlaceholder)
+                continue;
+
+            let childId = children[i]._delegate._app.get_id();
+            if (childId == id) {
+                continue;
+            }
+            if (childId in favorites) {
+                favPos++;
+            }
+        }
+
+        // No drag placeholder means we don't wan't to favorite the app
+        // and we are dragging it to its original position
+        if (!this._dragPlaceholder)
+            return true;
+
+        Meta.later_add(Meta.LaterType.BEFORE_REDRAW, Lang.bind(this,
+            function () {
+                let appFavorites = AppFavorites.getAppFavorites();
+                if (srcIsFavorite)
+                    appFavorites.moveFavoriteToPos(id, favPos);
+                else
+                    appFavorites.addFavoriteAtPos(id, favPos);
+                return false;
+            }));
+
+        return true;
     },
 
     setPopupMenuFlag: function(showing) {
