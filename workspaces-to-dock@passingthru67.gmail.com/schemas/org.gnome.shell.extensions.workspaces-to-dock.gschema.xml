@@ -202,7 +202,7 @@
       <description>Enable or disable Dash-To-Dock hover mode</description>
     </key>
     <key name="overview-action" enum="org.gnome.shell.extensions.workspaces-to-dock.overviewoption">
-      <default>'SHOW'</default>
+      <default>'PARTIAL'</default>
       <summary>Show, hide, or partially hide the dock in overview mode</summary>
       <description>Show, hide, or partially hide the dock in overview mode.</description>
     </key>

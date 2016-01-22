@@ -49,7 +49,7 @@ let DashToDock = null;
 
 const TRIGGER_WIDTH = 1;
 const DOCK_EDGE_VISIBLE_WIDTH = 5;
-const DOCK_EDGE_VISIBLE_OVERVIEW_WIDTH = 45;
+const DOCK_EDGE_VISIBLE_OVERVIEW_WIDTH = 32;
 const PRESSURE_TIMEOUT = 1000;
 
 let GSFunctions = {};
@@ -106,12 +106,56 @@ const ThumbnailsSlider = new Lang.Class({
         this._slidex = localParams.initialSlideValue;
         this._side = localParams.side;
         this._slideoutSize = localParams.initialSlideoutSize; // minimum size when slid out
-        this._overviewSlideoutSize = TRIGGER_WIDTH + DOCK_EDGE_VISIBLE_OVERVIEW_WIDTH;
+        this._partialSlideoutSize = TRIGGER_WIDTH + DOCK_EDGE_VISIBLE_OVERVIEW_WIDTH;
+        this._partialSlideoutAnimateTime = this._settings.get_double('animation-time');
+
+        // Connect global signals
+        this._inOverview = false;
+        this._partialSlideX = 1;
+        this._overviewShowingId = Main.overview.connect('showing', Lang.bind(this, this._overviewShowing));
+        this._overviewHidingId = Main.overview.connect('hiding', Lang.bind(this, this._overviewHiding));
+
+        this._overviewShownId = Main.overview.connect('shown', Lang.bind(this, this._overviewShown));
+        this._overviewHiddenId = Main.overview.connect('hidden', Lang.bind(this, this._overviewHidden));
     },
 
+    destroy: function() {
+        if (this._overviewShowingId)
+            Main.overview.disconnect(this._overviewShowingId);
+
+        if (this._overviewHidingId)
+            Main.overview.disconnect(this._overviewHidingId);
+
+        if (this._overviewShownId)
+            Main.overview.disconnect(this._overviewShownId);
+
+        if (this._overviewHiddenId)
+            Main.overview.disconnect(this._overviewHiddenId);
+    },
+
+    _overviewShowing: function() {
+        this._showingOverview = true;
+        this._inOverview = true;
+        this._partialSlideX = 0;
+    },
+
+    _overviewShown: function() {
+        this._showingOverview = false;
+        this._partialSlideX = 1;
+    },
+
+    _overviewHiding: function() {
+        this._hidingOverview = true;
+        this._partialSlideX = 1;
+    },
+
+    _overviewHidden: function() {
+        this._hidingOverview = false;
+        this._inOverview = false;
+        this._partialSlideX = 0;
+    },
 
     vfunc_allocate: function(box, flags) {
-
         this.set_allocation(box, flags);
 
         if (this._child == null)
@@ -127,12 +171,18 @@ const ThumbnailsSlider = new Lang.Class({
 
         let childBox = new Clutter.ActorBox();
 
+        if (this._inOverview && this._showingOverview) {
+            this._partialSlideX = Math.min(this._partialSlideX + this._partialSlideoutAnimateTime, 1);
+        } else if (this._inOverview && this._hidingOverview) {
+            this._partialSlideX = Math.max(this._partialSlideX - this._partialSlideoutAnimateTime, 0);
+        }
+
         let slideoutSize;
         let overviewAction = this._settings.get_enum('overview-action');
-        if (Main.overview.visible == true
+        if (this._inOverview
             && Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage
             && overviewAction == OverviewOption.PARTIAL) {
-                slideoutSize = this._overviewSlideoutSize;
+                slideoutSize = this._partialSlideoutSize * this._partialSlideX;
         } else {
             slideoutSize = this._slideoutSize;
         }
@@ -164,10 +214,10 @@ const ThumbnailsSlider = new Lang.Class({
     vfunc_get_preferred_width: function(forHeight) {
         let slideoutSize;
         let overviewAction = this._settings.get_enum('overview-action');
-        if (Main.overview.visible == true
+        if (this._inOverview
             && Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage
             && overviewAction == OverviewOption.PARTIAL) {
-                slideoutSize = this._overviewSlideoutSize;
+                slideoutSize = this._partialSlideoutSize * this._partialSlideX;
         } else {
             slideoutSize = this._slideoutSize;
         }
@@ -185,10 +235,10 @@ const ThumbnailsSlider = new Lang.Class({
     vfunc_get_preferred_height: function(forWidth) {
         let slideoutSize;
         let overviewAction = this._settings.get_enum('overview-action');
-        if (Main.overview.visible == true
+        if (this._inOverview
             && Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage
             && overviewAction == OverviewOption.PARTIAL) {
-                slideoutSize = this._overviewSlideoutSize;
+                slideoutSize = this._partialSlideoutSize * this._partialSlideX;
         } else {
             slideoutSize = this._slideoutSize;
         }
@@ -226,6 +276,10 @@ const ThumbnailsSlider = new Lang.Class({
 
     set slideoutSize(value) {
         this._slideoutSize = value;
+    },
+
+    set partialSlideoutSize(value) {
+        this._partialSlideoutSize = value;
     }
 });
 
@@ -617,6 +671,8 @@ const DockedWorkspaces = new Lang.Class({
             this._pressureBarrier.destroy();
             this._pressureBarrier = null;
         }
+
+        this._slider.destroy();
 
         // Destroy main clutter actor: this should be sufficient
         // From clutter documentation:
@@ -1892,6 +1948,23 @@ const DockedWorkspaces = new Lang.Class({
 
         // Set anchor points
         this.actor.move_anchor_point_from_gravity(anchorPoint);
+
+        // Update slider partial width
+        // NOTE: only effects slider width when dock is set to partially hide in overview
+        let slidePartialVisibleWidth = TRIGGER_WIDTH + DOCK_EDGE_VISIBLE_OVERVIEW_WIDTH;
+        if (this._settings.get_boolean('show-shortcuts-panel')
+            && this._settings.get_enum('shortcuts-panel-orientation') == 1) {
+                if (this._isHorizontal) {
+                    slidePartialVisibleWidth = this._shortcutsPanel.actor.height;
+                } else {
+                    slidePartialVisibleWidth = this._shortcutsPanel.actor.width;
+                }
+        } else {
+            let themeVisibleWidth = this._thumbnailsBox.actor.get_theme_node().get_length('visible-width');
+            if (themeVisibleWidth > 0)
+                slidePartialVisibleWidth = themeVisibleWidth;
+        }
+        this._slider.partialSlideoutSize = slidePartialVisibleWidth;
     },
 
     // 'Hard' reset dock positon: called on start and when monitor changes
