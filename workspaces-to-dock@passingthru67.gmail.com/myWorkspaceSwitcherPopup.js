@@ -19,8 +19,10 @@ const St = imports.gi.St;
 const Shell = imports.gi.Shell;
 
 const Main = imports.ui.main;
+const WorkspacesView = imports.ui.workspacesView;
 const WindowManager = imports.ui.windowManager;
 const WorkspaceSwitcherPopup = imports.ui.workspaceSwitcherPopup;
+const Tweener = imports.ui.tweener;
 
 let GSFunctions = {};
 
@@ -165,7 +167,7 @@ const WorkspaceSwitcher = new Lang.Class({
     _init: function(params) {
         // Override Gnome Shell functions
         this._overrideGnomeShellFunctions();
-        this._resetBindings(Main.wm);
+        this._resetBindings();
 
         global.screen.override_workspace_layout(Meta.ScreenCorner.TOPLEFT, false, nrows, -1);
     },
@@ -173,13 +175,13 @@ const WorkspaceSwitcher = new Lang.Class({
     destroy: function() {
         // Restor Gnome Shell functions
         this._restoreGnomeShellFunctions();
-        this._resetBindings(Main.wm);
+        this._resetBindings();
 
         global.screen.override_workspace_layout(Meta.ScreenCorner.TOPLEFT, false, -1, 1);
     },
 
     _overrideGnomeShellFunctions: function() {
-        // Override showWorkspacesSwitcher to show custom workspace switcher popup
+        // Override showWorkspacesSwitcher to show custom horizontal workspace switcher popup
         GSFunctions['WindowManager_showWorkspaceSwitcher'] = WindowManager.WindowManager.prototype._showWorkspaceSwitcher;
         WindowManager.WindowManager.prototype._showWorkspaceSwitcher = function(display, screen, window, binding) {
             if (!Main.sessionMode.hasWorkspaces)
@@ -245,15 +247,83 @@ const WorkspaceSwitcher = new Lang.Class({
                 this._workspaceSwitcherPopup.display(direction, newWs.index());
             }
         };
+
+        // Override updateWorkspaceActors for horizontal animation of overview windows
+        GSFunctions['WorkspacesView_updateWorkspaceActors'] = WorkspacesView.WorkspacesView.prototype._updateWorkspaceActors;
+        WorkspacesView.WorkspacesView.prototype._updateWorkspaceActors = function(showAnimation) {
+            let active = global.screen.get_active_workspace_index();
+
+            this._animating = showAnimation;
+
+            for (let w = 0; w < this._workspaces.length; w++) {
+                let workspace = this._workspaces[w];
+
+                Tweener.removeTweens(workspace.actor);
+
+                let x = (w - active) * this._fullGeometry.width;
+
+                if (showAnimation) {
+                    let params = { x: x,
+                                   time: WorkspacesView.WORKSPACE_SWITCH_TIME,
+                                   transition: 'easeOutQuad'
+                                 };
+                    // we have to call _updateVisibility() once before the
+                    // animation and once afterwards - it does not really
+                    // matter which tween we use, so we pick the first one ...
+                    if (w == 0) {
+                        this._updateVisibility();
+                        params.onComplete = Lang.bind(this,
+                            function() {
+                                this._animating = false;
+                                this._updateVisibility();
+                            });
+                    }
+                    Tweener.addTween(workspace.actor, params);
+                } else {
+                    workspace.actor.set_position(x, 0);
+                    if (w == 0)
+                        this._updateVisibility();
+                }
+            }
+        };
+
+        // Override overview scroll event for horizontal scrolling of workspaces
+        GSFunctions['WorkspacesDisplay_onScrollEvent'] = WorkspacesView.WorkspacesDisplay.prototype._onScrollEvent;
+        WorkspacesView.WorkspacesDisplay.prototype._onScrollEvent = function(actor, event) {
+            if (!this.actor.mapped)
+                return Clutter.EVENT_PROPAGATE;
+            let activeWs = global.screen.get_active_workspace();
+            let ws;
+            switch (event.get_scroll_direction()) {
+            case Clutter.ScrollDirection.UP:
+                ws = activeWs.get_neighbor(Meta.MotionDirection.LEFT);
+                break;
+            case Clutter.ScrollDirection.DOWN:
+                ws = activeWs.get_neighbor(Meta.MotionDirection.RIGHT);
+                break;
+            default:
+                return Clutter.EVENT_PROPAGATE;
+            }
+            Main.wm.actionMoveWorkspace(ws);
+            return Clutter.EVENT_STOP;
+        };
+
     },
 
     _restoreGnomeShellFunctions: function() {
         // Restore showWorkspacesSwitcher to show normal workspace switcher popup
         WindowManager.WindowManager.prototype._showWorkspaceSwitcher = GSFunctions['WindowManager_showWorkspaceSwitcher'];
+
+        // Restore updateWorkspaceActors to original vertical animation of overview windows
+        WorkspacesView.WorkspacesView.prototype._updateWorkspaceActors = GSFunctions['WorkspacesView_updateWorkspaceActors'];
+
+        // Restore onScrollEvent to original vertical scrolling of workspaces
+        WorkspacesView.WorkspacesDisplay.prototype._onScrollEvent = GSFunctions['WorkspacesDisplay_onScrollEvent']
     },
 
-    _resetBindings: function(wm) {
+    _resetBindings: function() {
         // Reset bindings to active showWorkspaceSwitcher function
+        let wm = Main.wm;
         Meta.keybindings_set_custom_handler('switch-to-workspace-left',
                     Lang.bind(wm, wm._showWorkspaceSwitcher));
         Meta.keybindings_set_custom_handler('switch-to-workspace-right',
