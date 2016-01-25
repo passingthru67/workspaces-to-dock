@@ -280,6 +280,10 @@ const ThumbnailsSlider = new Lang.Class({
 
     set partialSlideoutSize(value) {
         this._partialSlideoutSize = value;
+    },
+
+    get partialSlideoutSize() {
+        return this._partialSlideoutSize;
     }
 });
 
@@ -810,7 +814,7 @@ const DockedWorkspaces = new Lang.Class({
                             if (overviewAction == OverviewOption.HIDE) {
                                 thumbnailsWidth = visibleEdge;
                             } else if (overviewAction == OverviewOption.PARTIAL) {
-                                thumbnailsWidth = TRIGGER_WIDTH + DOCK_EDGE_VISIBLE_OVERVIEW_WIDTH;
+                                thumbnailsWidth = self._slider.partialSlideoutSize;
                             } else {
                                 thumbnailsWidth = self.actor.get_width() + spacing;
                             }
@@ -820,7 +824,7 @@ const DockedWorkspaces = new Lang.Class({
                             if (overviewAction == OverviewOption.HIDE) {
                                 thumbnailsHeight = visibleEdge;
                             } else if (overviewAction == OverviewOption.PARTIAL) {
-                                thumbnailsHeight = TRIGGER_WIDTH + DOCK_EDGE_VISIBLE_OVERVIEW_WIDTH;
+                                thumbnailsHeight = self._slider.partialSlideoutSize;
                             } else {
                                 thumbnailsHeight = self.actor.get_height() + spacing;
                             }
