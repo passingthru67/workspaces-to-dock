@@ -47,7 +47,6 @@ const DashToDock_UUID = "dash-to-dock@micxgx.gmail.com";
 let DashToDockExtension = null;
 let DashToDock = null;
 
-const TRIGGER_WIDTH = 1;
 const DOCK_EDGE_VISIBLE_WIDTH = 5;
 const DOCK_EDGE_VISIBLE_OVERVIEW_WIDTH = 32;
 const PRESSURE_TIMEOUT = 1000;
@@ -78,12 +77,13 @@ const ThumbnailsSlider = new Lang.Class({
 
     _init: function(params) {
         this._settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
+        let initialTriggerWidth = 1;
 
         // Default local params
         let localDefaults = {
             side: St.Side.LEFT,
             initialSlideValue: 1,
-            initialSlideoutSize: TRIGGER_WIDTH
+            initialSlideoutSize: initialTriggerWidth
         }
 
         let localParams = Params.parse(params, localDefaults, true);
@@ -106,7 +106,7 @@ const ThumbnailsSlider = new Lang.Class({
         this._slidex = localParams.initialSlideValue;
         this._side = localParams.side;
         this._slideoutSize = localParams.initialSlideoutSize; // minimum size when slid out
-        this._partialSlideoutSize = TRIGGER_WIDTH + DOCK_EDGE_VISIBLE_OVERVIEW_WIDTH;
+        this._partialSlideoutSize = initialTriggerWidth + DOCK_EDGE_VISIBLE_OVERVIEW_WIDTH;
         this._partialSlideoutAnimateTime = this._settings.get_double('animation-time');
 
         // Connect global signals
@@ -524,31 +524,21 @@ const DockedWorkspaces = new Lang.Class({
             }
         }
 
-        // This is the sliding actor whose allocation is to be tracked for input regions
-        let slideoutSize = TRIGGER_WIDTH;
-        if (this._settings.get_boolean('dock-edge-visible')) {
-            slideoutSize = TRIGGER_WIDTH + DOCK_EDGE_VISIBLE_WIDTH;
-        }
-        this._slider = new ThumbnailsSlider({side: this._position, initialSlideoutSize: slideoutSize});
-
         // Create trigger spacer
         this._triggerSpacer = new St.Label({
                             name: 'workspacestodockTriggerSpacer',
                             text: ''
                         });
 
-        if (this._isHorizontal) {
-            this._triggerSpacer.height = TRIGGER_WIDTH;
-            if (this._settings.get_boolean('dock-fixed'))
-                this._triggerSpacer.height = 0;
-        } else {
-            this._triggerSpacer.width = TRIGGER_WIDTH;
-            if (this._settings.get_boolean('dock-fixed'))
-                this._triggerSpacer.width = 0;
+        this._triggerWidth = 1;
+        this._updateTriggerWidth();
+
+        // This is the sliding actor whose allocation is to be tracked for input regions
+        let slideoutSize = this._triggerWidth;
+        if (this._settings.get_boolean('dock-edge-visible')) {
+            slideoutSize = this._triggerWidth + DOCK_EDGE_VISIBLE_WIDTH;
         }
-        this._triggerSpacer.width = TRIGGER_WIDTH;
-        if (this._settings.get_boolean('dock-fixed'))
-            this._triggerSpacer.width = 0;
+        this._slider = new ThumbnailsSlider({side: this._position, initialSlideoutSize: slideoutSize});
 
         // Add spacer, workspaces, and shortcuts panel to dock container based on dock position
         // and shortcuts panel orientation
@@ -805,9 +795,9 @@ const DockedWorkspaces = new Lang.Class({
                 }
                 if (i == thumbnailsMonitorIndex) {
                     let overviewAction = self._settings.get_enum('overview-action');
-                    let visibleEdge = TRIGGER_WIDTH;
+                    let visibleEdge = self._triggerWidth;
                     if (self._settings.get_boolean('dock-edge-visible')) {
-                        visibleEdge = TRIGGER_WIDTH + DOCK_EDGE_VISIBLE_WIDTH;
+                        visibleEdge = self._triggerWidth + DOCK_EDGE_VISIBLE_WIDTH;
                     }
                     if (self._position == St.Side.LEFT ||
                         self._position == St.Side.RIGHT) {
@@ -997,6 +987,38 @@ const DockedWorkspaces = new Lang.Class({
         this._redisplay();
     },
 
+    _updateTriggerWidth: function() {
+        // Calculate and set triggerWidth
+        if (!this._settings.get_boolean('dock-fixed')
+            && !this._settings.get_boolean('dock-edge-visible')
+            && this._settings.get_boolean('require-pressure-to-show')
+            && this._settings.get_boolean('disable-scroll')) {
+                if (this._pressureSensed) {
+                    this._triggerWidth = 1;
+                } else if (this._animStatus.shown()) {
+                    this._triggerWidth = 1;
+                } else {
+                    this._triggerWidth = 0;
+                }
+        } else {
+            this._triggerWidth = 1;
+        }
+
+        // Set triggerSpacer
+        if (this._isHorizontal) {
+            this._triggerSpacer.height = this._triggerWidth;
+            if (this._settings.get_boolean('dock-fixed'))
+                this._triggerSpacer.height = 0;
+        } else {
+            this._triggerSpacer.width = this._triggerWidth;
+            if (this._settings.get_boolean('dock-fixed'))
+                this._triggerSpacer.width = 0;
+        }
+
+        if (!this._disableRedisplay)
+            this._updateSize();
+    },
+
     // handler for when dock height is updated
     _updateHeight: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _updateHeight");
@@ -1079,21 +1101,22 @@ const DockedWorkspaces = new Lang.Class({
         }));
 
         this._settings.connect('changed::dock-edge-visible', Lang.bind(this, function() {
-            let slideoutSize = TRIGGER_WIDTH;
-            if (this._settings.get_boolean('dock-edge-visible')) {
-                slideoutSize = TRIGGER_WIDTH + DOCK_EDGE_VISIBLE_WIDTH;
-            }
-            this._slider.slideoutSize = slideoutSize;
-            if (this._autohideStatus) {
-                this._animateIn(this._settings.get_double('animation-time'), 0);
-                this._animateOut(this._settings.get_double('animation-time'), 0);
-            }
+            this._updateTriggerWidth();
+            this._redisplay();
         }));
 
-        this._settings.connect('changed::require-pressure-to-show', Lang.bind(this, this._updateBarrier));
+        this._settings.connect('changed::require-pressure-to-show', Lang.bind(this, function() {
+            this._updateTriggerWidth();
+            this._redisplay();
+        }));
         this._settings.connect('changed::pressure-threshold', Lang.bind(this, function() {
             this._updatePressureBarrier();
             this._updateBarrier();
+        }));
+
+        this._settings.connect('changed::disable-scroll', Lang.bind(this, function() {
+            this._updateTriggerWidth();
+            this._redisplay();
         }));
 
         this._settings.connect('changed::customize-thumbnail', Lang.bind(this, function() {
@@ -1318,6 +1341,7 @@ const DockedWorkspaces = new Lang.Class({
     _onPressureSensed: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _onPressureSensed");
         this._pressureSensed = true;
+        this._updateTriggerWidth();
         this._hoverChanged();
     },
 
@@ -1556,7 +1580,7 @@ const DockedWorkspaces = new Lang.Class({
                     Mainloop.source_remove(this._removeBarrierTimeoutId);
                 }
                 this._removeBarrierTimeoutId = Mainloop.timeout_add(100, Lang.bind(this, this._removeBarrier));
-
+                this._updateTriggerWidth();
                 if (_DEBUG_) global.log("dockedWorkspaces: _animateIN onComplete");
             })
         });
@@ -1953,9 +1977,16 @@ const DockedWorkspaces = new Lang.Class({
         // Set anchor points
         this.actor.move_anchor_point_from_gravity(anchorPoint);
 
+        // Update slider slideout width
+        let slideoutSize = this._triggerWidth;
+        if (this._settings.get_boolean('dock-edge-visible')) {
+            slideoutSize = this._triggerWidth + DOCK_EDGE_VISIBLE_WIDTH;
+        }
+        this._slider.slideoutSize = slideoutSize;
+
         // Update slider partial width
         // NOTE: only effects slider width when dock is set to partially hide in overview
-        let slidePartialVisibleWidth = TRIGGER_WIDTH + DOCK_EDGE_VISIBLE_OVERVIEW_WIDTH;
+        let slidePartialVisibleWidth = this._triggerWidth + DOCK_EDGE_VISIBLE_OVERVIEW_WIDTH;
         if (this._settings.get_boolean('show-shortcuts-panel')
             && this._settings.get_enum('shortcuts-panel-orientation') == 1) {
                 if (this._isHorizontal) {
@@ -2099,8 +2130,10 @@ const DockedWorkspaces = new Lang.Class({
         }
 
         // Reset pressureSensed flag
-        if (!this._dock.hover && !this._animStatus.shown())
+        if (!this._dock.hover && !this._animStatus.shown()) {
             this._pressureSensed = false;
+            this._updateTriggerWidth();
+        }
     },
 
     // Disable autohide effect, thus show workspaces
