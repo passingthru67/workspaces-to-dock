@@ -40,6 +40,7 @@ const Extension = Me.imports.extension;
 const Convenience = Me.imports.convenience;
 const MyWorkspaceThumbnail = Me.imports.myWorkspaceThumbnail;
 const ShortcutsPanel = Me.imports.shortcutsPanel;
+const MyPressureBarrier = Me.imports.myPressureBarrier;
 
 const DashToDock_UUID = "dash-to-dock@micxgx.gmail.com";
 let DashToDockExtension = null;
@@ -860,6 +861,15 @@ const DockedWorkspaces = new Lang.Class({
             this._updateBarrier();
         }));
 
+        this._settings.connect('changed::use-pressure-speed-limit', Lang.bind(this, function() {
+            this._updatePressureBarrier();
+            this._updateBarrier();
+        }));
+        this._settings.connect('changed::pressure-speed-limit', Lang.bind(this, function() {
+            this._updatePressureBarrier();
+            this._updateBarrier();
+        }));
+
         this._settings.connect('changed::customize-thumbnail', Lang.bind(this, function() {
             // Set Gnome Shell's workspace thumbnail size so that overview mode layout doesn't overlap dock
             if (this._settings.get_boolean('customize-thumbnail')) {
@@ -945,6 +955,10 @@ const DockedWorkspaces = new Lang.Class({
         this._canUsePressure = global.display.supports_extended_barriers();
         let pressureThreshold = this._settings.get_double('pressure-threshold');
 
+        let speedLimit;
+        if (this._settings.get_boolean('use-pressure-speed-limit'))
+            speedLimit = this._settings.get_double('pressure-speed-limit');
+
         // Remove existing pressure barrier
         if (this._pressureBarrier) {
             if (_DEBUG_) global.log("... destroying old pressureBarrier object");
@@ -955,10 +969,13 @@ const DockedWorkspaces = new Lang.Class({
         // Create new pressure barrier based on pressure threshold setting
         if (this._canUsePressure) {
             if (_DEBUG_) global.log("... creating pressureBarrier object");
-            this._pressureBarrier = new Layout.PressureBarrier(pressureThreshold, PRESSURE_TIMEOUT,
+            this._pressureBarrier = new MyPressureBarrier.myPressureBarrier(pressureThreshold, speedLimit, PRESSURE_TIMEOUT,
                                 Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW);
             this._pressureBarrier.connect('trigger', function(barrier){
                 self._onPressureSensed();
+            });
+            this._pressureBarrier.connect('speed-exceeded', function(barrier){
+                self._onSpeedExceeded();
             });
             if (_DEBUG_) global.log("dockedWorkspaces: init - canUsePressure = "+this._canUsePressure);
         }
@@ -1050,6 +1067,33 @@ const DockedWorkspaces = new Lang.Class({
                     }
                 }
                 this._hovering = false;
+            }
+        }
+    },
+
+    _onSpeedExceeded: function() {
+        if (_DEBUG_) global.log("dockedWorkspaces: _onSpeedExceeded");
+        // FIX ISSUE: #23
+        // Remove barrier so that mouse pointer can access monitors on other side of dock quickly
+        // --------------
+        // CONTINUE IF
+        // dock NOT in single monitor config
+        // dock NOT on first monitor && in left position
+        // dock NOT on last monitor && in right position
+        if (this._settings.get_boolean('use-pressure-speed-limit')) {
+            if ((Main.layoutManager.monitors.length > 1) &&
+                !(this._monitor == 0 && this._position == St.Side.LEFT) &&
+                !(this._monitor == Main.layoutManager.monitors.length-1 && this._position == St.Side.RIGHT)) {
+
+                // Remove barrier immediately
+                this._removeBarrier();
+
+                // Restore barrier after short timeout
+                if (this._restoreBarrierTimeoutId > 0) {
+                    Mainloop.source_remove(this._restoreBarrierTimeoutId);
+                    this._restoreBarrierTimeoutId = 0;
+                }
+                this._restoreBarrierTimeoutId = Mainloop.timeout_add(500, Lang.bind(this, this._updateBarrier));
             }
         }
     },
@@ -1281,6 +1325,7 @@ const DockedWorkspaces = new Lang.Class({
                 // gives users an opportunity to hover over the dock
                 if (this._removeBarrierTimeoutId > 0) {
                     Mainloop.source_remove(this._removeBarrierTimeoutId);
+                    this._removeBarrierTimeoutId = 0;
                 }
                 this._removeBarrierTimeoutId = Mainloop.timeout_add(100, Lang.bind(this, this._removeBarrier));
 
@@ -1712,10 +1757,10 @@ const DockedWorkspaces = new Lang.Class({
         }
 
         // Remove barrier timeout
-        if (this._removeBarrierTimeoutId > 0)
+        if (this._removeBarrierTimeoutId > 0) {
             Mainloop.source_remove(this._removeBarrierTimeoutId);
-
-        this._removeBarrierTimeoutId = 0;
+            this._removeBarrierTimeoutId = 0;
+        }
         return false;
     },
 
