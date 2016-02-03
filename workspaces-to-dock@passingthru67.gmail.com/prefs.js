@@ -705,6 +705,15 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
                 this.settings.set_double("pressure-speed-limit", s);
             }));
 
+            let speedLimitDescription = new Gtk.Label({
+                label: _("NOTE: For dual monitor setups. Allows the mouse to pass through \nthe barrier by attacking the edge of the screen with a quick stroke."),
+                use_markup: true,
+                xalign: 0,
+                margin_left: 25,
+                margin_top: 0,
+                hexpand: false
+            })
+
             // Add to layout
             let autohideOptionsDialogGrid = new Gtk.Grid({
                 row_homogeneous: false,
@@ -717,12 +726,14 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             autohideOptionsDialogGrid.attach(speedLimitButton, 0, 3, 2, 1);
             autohideOptionsDialogGrid.attach(speedLimitLabel, 0, 4, 1, 1);
             autohideOptionsDialogGrid.attach(speedLimitSpinner, 1, 4, 1, 1);
+            autohideOptionsDialogGrid.attach(speedLimitDescription, 0, 5, 2, 1);
 
             // Bind interactions
             this.settings.bind('require-pressure-to-show', pressureThresholdLabel, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
             this.settings.bind('require-pressure-to-show', pressureThresholdSpinner, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
             this.settings.bind('use-pressure-speed-limit', speedLimitLabel, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
             this.settings.bind('use-pressure-speed-limit', speedLimitSpinner, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+            this.settings.bind('use-pressure-speed-limit', speedLimitDescription, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
 
             // Add to dialog
             let autohideOptionsDialogContainerBox = new Gtk.Box({
