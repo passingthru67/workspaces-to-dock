@@ -59,6 +59,7 @@ cat convenience.js | grep -v '_DEBUG_' > "$temp_dir/convenience.js"
 cat dockedWorkspaces.js | grep -v '_DEBUG_' > "$temp_dir/dockedWorkspaces.js"
 cat extension.js | grep -v '_DEBUG_' > "$temp_dir/extension.js"
 cat intellihide.js | grep -v '_DEBUG_' > "$temp_dir/intellihide.js"
+cat myPressureBarrier.js | grep -v '_DEBUG_' > "$temp_dir/myPressureBarrier.js"
 cat myWorkspaceSwitcherPopup.js | grep -v '_DEBUG_' > "$temp_dir/myWorkspaceSwitcherPopup.js"
 cat myWorkspaceThumbnail.js | grep -v '_DEBUG_' > "$temp_dir/myWorkspaceThumbnail.js"
 cat placeDisplay.js | grep -v '_DEBUG_' > "$temp_dir/placeDisplay.js"
@@ -97,4 +98,3 @@ cp workspaces-to-dock@passingthru67.gmail.com.zip "$release_dir/"
 # Cleanup - remove temp directory
 rm -Rf "$temp_dir"
 echo "Build completed."
-
