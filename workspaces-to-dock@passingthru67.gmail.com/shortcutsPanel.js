@@ -4,7 +4,6 @@ const IconTheme = imports.gi.Gtk.IconTheme;
 const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 const Gtk = imports.gi.Gtk;
-const GMenu = imports.gi.GMenu;
 const Clutter = imports.gi.Clutter;
 const St = imports.gi.St;
 const Shell = imports.gi.Shell;
