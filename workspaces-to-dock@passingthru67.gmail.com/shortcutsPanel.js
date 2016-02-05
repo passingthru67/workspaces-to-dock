@@ -209,6 +209,7 @@ const ShortcutButton = new Lang.Class({
         this._countChangedId = 0;
         this._maxN = 4;
         this._settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
+        this._gDesktopInterfaceSettings = Convenience.getSettings('org.gnome.desktop.interface');
 
         this.actor = new St.Button({ style_class: 'app-well-app workspacestodock-shortcut-button',
                                      reactive: true,
@@ -358,8 +359,19 @@ const ShortcutButton = new Lang.Class({
                         Main.overview.viewSelector._showAppsButton.checked = true;
                     }
                 } else {
-                    Main.overview.viewSelector._showAppsButton.checked = true;
-                    Main.overview.show();
+                    // passingthru67: ISSUES #49 & #50
+                    // Workaround issue by detecting animation status
+                    // Showing the overview after checking the showAppsButton fails
+                    // to animate when Gnome animations are enabled. On the other hand,
+                    // showing the overview before checking the showAppsButton fails
+                    // to scroll when Gnome animations are disabled.
+                    if (this._gDesktopInterfaceSettings.get_boolean('enable-animations')) {
+                        Main.overview.show();
+                        Main.overview.viewSelector._showAppsButton.checked = true;
+                    } else {
+                        Main.overview.viewSelector._showAppsButton.checked = true;
+                        Main.overview.show();
+                    }
                 }
             }
         } else if (button == 2) {
