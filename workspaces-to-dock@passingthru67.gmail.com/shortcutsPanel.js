@@ -352,14 +352,14 @@ const ShortcutButton = new Lang.Class({
             } else if (this._type == ApplicationType.APPSBUTTON) {
                 if (Main.overview.visible) {
                     if (Main.overview.viewSelector._showAppsButton.checked) {
-                        Main.overview.hide();
                         Main.overview.viewSelector._showAppsButton.checked = false;
+                        Main.overview.hide();
                     } else {
                         Main.overview.viewSelector._showAppsButton.checked = true;
                     }
                 } else {
-                    Main.overview.show();
                     Main.overview.viewSelector._showAppsButton.checked = true;
+                    Main.overview.show();
                 }
             }
         } else if (button == 2) {
