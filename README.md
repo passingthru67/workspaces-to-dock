@@ -10,15 +10,15 @@ Installation:
 ------------
 The easiest way to install Workspaces-to-Dock is from https://extensions.gnome.org/extension/427/workspaces-to-dock/ using your browser.
 
-If you would rather install it manually, download the releases branch on Github (https://github.com/passingthru67/workspaces-to-dock/tree/releases) and locate the appropriate release zip file. The release zip file contains the same non-debug version of the extension as https://extensions.gnome.org. The zip file can be extracted manually to the extensions folder or installed by using Gnome Tweak tool.
+If you would rather install it manually, and receive the latest fixes and enhancements, download the master branch zip (https://github.com/passingthru67/workspaces-to-dock/archive/master.zip) and extract it into a temporary folder. Inside of the extracted folder you will find the workspaces-to-dock@passingthru67.gmail folder. Simply copy it to your ~/.local/share/gnome-shell/extensions folder. Next, restart Gnome Shell (alt+f2+r). If Workspaces-to-Dock doesn't show up, you may need to enable the extension using Gnome Tweak tool.
+
+For older releases, download the releases branch on Github (https://github.com/passingthru67/workspaces-to-dock/tree/releases) and locate the appropriate release zip file. The release zip file contains the same non-debug version of the extension as https://extensions.gnome.org. The zip file can be extracted manually to the extensions folder or installed by using Gnome Tweak tool.
 
     $unzip workspaces-to-dock@passingthru67.gmail.com.zip -d ~/.local/share/gnome-shell/extensions/workspaces-to-dock@passingthru67.gmail.com
 
 or
 
     Gnome Tweak tool --> Shell Extensions --> Install from zip file --> choose the zip file.
-
-If you're checking out code from the master branch (downloaded as zip or tar.gz), you will find an installation zip file inside with the latest updates and fixes. The version number is 0 signifying it is not a release version. The zip file can be extracted manually to the extensions folder or installed by using the Gnome Tweak tool as described above.
 
 
 The extension can be configured using `gnome-shell-extension-prefs`. No shell restarts are required.
@@ -35,19 +35,19 @@ General Settings:
 
     **Show the dock at the following screen position** - Option to position the workspaces dock on the right or left side of the screen.
 
+    **Hide the Gnome Shell Dash** - Option to hide the default Dash in overview mode.
+
 - **Height:**
+
+    **Customize the height of the dock** - Option to autosize or extend the height of the dock.
+
+    **Autosize and center the dock based on workspaces and shortcuts** - Option to autosize and center the dock.
 
     **Extend the height of the dock to fill the screen** - Option to extend the height of the dock to fill the screen.
 
     **Top margin** - Sets a top margin for the extended dock. The range allowed is 0% to 25% of the screen height.
 
     **Bottom margin** - Sets a bottom margin for the extended dock. The range allowed is 0% to 25% of the screen height.
-
-- **Thumbnail Size:**
-
-    **Customize the workspace thumbnail size** - Option to customize the maximum thumbnail size.
-
-    **Thumbnail size** - The custom value for the maximum thumbnail size. The range allowed is 10% to 25% of the screen size.
 
 - **Background:**
 
@@ -57,6 +57,7 @@ General Settings:
 
     **Only when the dock is shown by hover** - Only customize the opacity when the dock is shown by the mouse touching the right edge of the screen. In such cases, the dock is usually shown over other windows so that less transparency is desired.
 
+    **Toggle Gnome Shell's overview mode with right click** - When enabled, right clicking on the dock will toggle the overview mode.
 
 Behavior Settings:
 ------------------
@@ -81,9 +82,13 @@ Behavior Settings:
 
     **Require pressure to show the dock** - Require mouse pressure against the edge of the screen to show the dock. This option helps eliminate accidentally triggering the dock when using vertical scroll bars. It also helps with accessing the dock in multi-monitor configurations where the 2nd monitor is to the right of the dock. Unfortunately, this feature requires Gnome Shell 3.8+ and an XServer installation that implements pressure barriers.
 
-    NOTE: In multi-monitor configurations where the 2nd monitor is to the right of the workspaces dock, the dock will have to be showing before the pressure barrier is removed and the mouse pointer released to access the 2nd monitor. This will create a slight hesitation as the mouse must wait for the dock to show. To elliminate this issue, you may show the dock using the keyboard shortcut Super + w, or by entering Gnome Shell's overview mode prior to attempting to access the 2nd monitor.
+    **Pressure threshold** - The amount of pressure required to activate and show the dock.
 
-    **Pressure threshold** - The amount of pressure required to activate and show the dock. This setting works in conjunction with 'Require pressure to show dock' above and requires Gnome Shell 3.8+ and an XServer installation that implements pressure barriers.
+    **Limit pressure sense to slow mouse speeds** - When enabled, this option allows the mouse to pass through the pressure barrier by attacking the edge of the screen with a quick stroke. This allows the mouse to quickly access a second monitor in multi-monitor setups. This setting works in conjunction with 'Require pressure to show dock' above and requires Gnome Shell 3.8+ and an XServer installation that implements pressure barriers.
+
+    **Maximum speed** - The speed limit of the mouse (determined by measuring the pixel distance traveled) that must be reached before the pressure barrier is defeated. The higher the value, the faster the mouse must travel before passing through the barrier.
+
+    NOTE: In multi-monitor configurations where the 2nd monitor is to the right of the workspaces dock, the dock will have to be showing before the pressure barrier is removed and the mouse pointer released to access the 2nd monitor. This will create a slight hesitation as the mouse must wait for the dock to show. To eliminate this issue, you may show the dock using the keyboard shortcut Super + w, or by entering Gnome Shell's overview mode prior to attempting to access the 2nd monitor. A third method is to enable the 'Limit pressure sense to slow mouse speeds' option. This option allows the mouse to pass through the pressure barrier by attacking the edge of the screen with a quick stroke.
 
     **Intellihide Options**
 
@@ -95,13 +100,19 @@ Behavior Settings:
 
     **Dodge only top instance of focused app** - If multiple instances of the focused application are opened, only the top instance window is dodged.
 
+    **What should we do with the dock in overview mode?** - Option to show, hide, or partially hide the dock when in overview mode.
+
     **Miscellaneous Options**
 
     **Leave a visible edge when the dock is hidden** - Option to leave the dock edge visible when in the slid out or hidden state. This option makes the dock more easily accessible in dual monitor configurations where the second monitor is to the right.
 
     **Disable scroll when the dock is hidden to prevent workspace switching** - Option to disable mouse scrolling to prevent accidentally switching workspaces when the dock is hidden.
 
+    NOTE: Normally, a 1px wide space is present at the edge of the screen for scrolling workspaces. But, this 1px edge may interfere with scrollbars of maximized windows when the dock is positioned on the right of the screen. Enabling the 'Disable scroll when the dock is hidden' option removes the 1px edge so that scrollbars are more easily accessible. 'Require pressure to show the dock' must be enabled and 'Leave a visible edge when the dock is hidden' must be disabled, though, for the 1px wide space to be removed.
+
     **Show the dock when hovering over Dash-To-Dock extension** - When enabled, hovering the mouse over the Dash-To-Dock extension will cause the workspaces dock to show. This feature is extremely useful in cases where your workspaces dock is hidden and you want to open a new app from the dash. Rather than going into overview just to see your workspaces, hover over the dash-to-dock extension. The workspaces dock will show to the right. Use the dash-to-dock scroll to go to the appropriate workspace.
+
+    **Show the dock temporarily when switching workspaces** - When enabled, the dock will be shown temporarily when switching workspaces. The default length of time shown is 1 second (1000 ms).
 
     **Toggle the dock with a keyboard shortcut** - When enabled, using the keyboard shortcut will toggle the workspaces dock. The default shortcut key is Super + w.
 
@@ -110,6 +121,12 @@ Thumbnails Settings:
 --------------------
 
 ![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Prefs-Thumbnails.png)
+
+- **Thumbnail Size:**
+
+    **Customize the workspace thumbnail size** - Option to customize the maximum thumbnail size.
+
+    **Thumbnail size** - The custom value for the maximum thumbnail size. The range allowed is 10% to 25% of the screen size.
 
 - **Thumbnail Captions:**
 
@@ -139,16 +156,10 @@ Thumbnails Settings:
 Below are examples of the workspace (thumbnail) caption in various configurations
 ![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Thumbnails.png)
 
-- **Miscellaneous Options:**
-
-    **Toggle Gnome Shell's overview mode with right click** - When enabled, right clicking on the dock will toggle the overview mode.
-
-
 
 Workspace Caption Theming:
 -------------------------
 Adding workspaces-to-dock caption support to a theme can be accomplished by placing a custom 'workspaces-to-dock.css' stylesheet in the theme's gnome-shell/extensions folder. There is no need to use the @import directive to incorporate the stylesheet classes into your theme's gnome-shell.css. The extension will automatically detect the stylesheet file. Please see the workspaces-to-dock.css stylesheet for a description of the css classes.
-
 
 
 Favorites Settings:
@@ -164,6 +175,8 @@ Favorites Settings:
 
     **Shortcuts panel icon size** - Sets the size of the application icons.
 
+    **Use the Apps button as the source of the swarm animation** - When enabled, the Apps button will be the source of the swarm animation that displays the apps icon grid in overview mode.
+
     **Miscellaneous Options**
 
     **Show running applications** - Option to show running applications on the favorite shortcuts panel.
@@ -172,9 +185,9 @@ Favorites Settings:
 
     **Show application window count indicators** - Option to show the number of running instances of an application next to the application icon.
 
-    **Show applications button at the bottom** - Option to show the applications button (grid) at the bottom of the favorite shortcuts panel.
+    **Set the Apps button at the bottom** - Option to show the applications button (grid) at the bottom of the favorite shortcuts panel.
 
-    **Show the popup menu context arrow at the top** - Option to show the popup menu context arrow at the top of the context menu. The default position is in the middle.
+    **Set the menu context arrow at the top of the popup menu dialog** - Option to show the popup menu context arrow at the top of the context menu. The default position is in the middle.
 
     **Hide thumbnails when a popup menu is shown** - Option to hide the thumbnails when a popup menu is show by right clicking a favorite application icon. This only applies when the shortcuts panel is oriented on the outside of the thumbnails.
 
@@ -222,13 +235,24 @@ If the behavior persists with other extensions disabled, check for extension err
 - Open up Looking Glass (Alt+F2 then type lg and press enter) and check for extension errors under the Extensions link.
 - Open your ~/.xsession-errors log and look for errors related to the extension.
 - Type "gnome-shell --replace" in a terminal and watch for JS error logs related to the extension.
-- Type "journalctl -f | grep Gjs-Message" in a terminal (if systemd is installed) and watch for JS error logs related to the extension.
+- Type "journalctl -f" in a terminal (if systemd is installed) and watch for JS error logs related to the extension. Alternately, typing "jurnalctl -b" will show all messages since the last boot.
 
 If the problem persists, please report it by opening an issue on github or with a bug report message on the extension website.
 
 
 Change Log:
 -----------
+**version 32 for Gnome 3.18 (Feb 5, 2015)**
+- Bug fixes
+- Added support for positioning the dock at the top or bottom of the screen
+- Added option to hide Gnome Shell Dash
+- Added option to change source of swarm animation to Apps button
+- Added option to autosize and center the dock
+- Added option to show, hide, or partially-hide the dock in overview mode
+- Added option to temporarily show the dock when switching workspaces
+- Added ability to add, remove, and rearrange favorites on shortcuts panel
+- Added pressure threshold speed limit for dual monitor setups
+
 **version 31 for Gnome 3.18 (Oct 9, 2015)**
 - Support for Gnome 3.18
 
@@ -382,4 +406,3 @@ Change Log:
 **version 1 (Aug 15, 2012)**
 
 - Initial extension based on the dash-to-dock v10 code (https://github.com/micheleg/dash-to-dock).
-
