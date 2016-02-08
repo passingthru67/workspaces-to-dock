@@ -61,7 +61,10 @@ function getAppFromSource(source) {
     if (source instanceof AppDisplay.AppIcon) {
         return source.app;
     } else if (source instanceof ShortcutButton) {
-        return source._app;
+        if (source._type == ApplicationType.APPLICATION)
+            return source._app;
+        else
+            return null;
     } else {
         return null;
     }
