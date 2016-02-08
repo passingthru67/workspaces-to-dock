@@ -831,6 +831,7 @@ const ShortcutsPanel = new Lang.Class({
                 return false;
             }));
 
+        this._clearDragPlaceholder();
         return true;
     },
 
