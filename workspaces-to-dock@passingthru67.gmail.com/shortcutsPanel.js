@@ -283,6 +283,19 @@ const ShortcutButton = new Lang.Class({
         // Connect drag-n-drop signals
         if (appType != ApplicationType.APPSBUTTON) {
             this._draggable = DND.makeDraggable(this.actor);
+            this._draggable.connect('drag-begin', Lang.bind(this,
+                function () {
+                    this._removeMenuTimeout();
+                    Main.overview.beginItemDrag(this);
+                }));
+            this._draggable.connect('drag-cancelled', Lang.bind(this,
+                function () {
+                    Main.overview.cancelledItemDrag(this);
+                }));
+            this._draggable.connect('drag-end', Lang.bind(this,
+                function () {
+                   Main.overview.endItemDrag(this);
+                }));
         }
 
         // Check if running state
