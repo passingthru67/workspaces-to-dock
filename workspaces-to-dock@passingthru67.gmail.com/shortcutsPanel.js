@@ -301,9 +301,13 @@ const ShortcutButton = new Lang.Class({
         this._stateChangedId = 0;
 
         if (this._countChangedId > 0) {
-            this._app.disconnect(this._countChangedId);
+            if (this._type == ApplicationType.APPLICATION) {
+                this._app.disconnect(this._countChangedId);
+            }
         }
         this._countChangedId = 0;
+
+        this._removeMenuTimeout();
     },
 
     _onButtonEnter: function(actor, event) {
