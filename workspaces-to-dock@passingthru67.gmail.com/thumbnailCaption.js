@@ -602,15 +602,18 @@ const ThumbnailCaption = new Lang.Class({
             this._menu.removeAll();
 
             this._menuTaskListBox = new St.BoxLayout({vertical: true});
+            let menuTaskListItemCount = 0;
             if (this._taskBarBox) {
                 for (let i=0; i < this._taskBar.length; i++) {
                     let buttonActor = this._taskBarBox.get_child_at_index(i);
                     let metaWin = this._taskBar[i].metaWin;
                     let app = this._taskBar[i].app;
                     let item = new MenuTaskListItem(app, metaWin, this);
-                    if (!buttonActor.visible)
+                    if (buttonActor.visible) {
+                        menuTaskListItemCount ++;
+                    } else {
                         item.actor.visible = false;
-
+                    }
                     this._menuTaskListBox.add_actor(item.actor);
                 }
             }
@@ -619,9 +622,9 @@ const ThumbnailCaption = new Lang.Class({
             windowAppsListsection.actor.add_actor(this._menuTaskListBox);
 
             let appsArray = this._menuTaskListBox.get_children();
-            if (appsArray.length  > 0) {
+            if (menuTaskListItemCount > 0) {
                 this._menu.addMenuItem(windowAppsListsection);
-                if (appsArray.length > 1) {
+                if (menuTaskListItemCount > 1) {
                     let item1 = new PopupMenu.PopupMenuItem(_('Close All Applications'));
                     item1.connect('activate', Lang.bind(this, this._closeAllMetaWindows));
                     this._menu.addMenuItem(item1);
