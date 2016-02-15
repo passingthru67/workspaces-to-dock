@@ -720,14 +720,17 @@ const DockedWorkspaces = new Lang.Class({
             let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
             let ret = GSFunctions['LayoutManager_updateRegions'].call(this);
             // SANITY CHECK:
-            if (_DEBUG_) global.log("dockedWorkspaces: UPDATEREGIONS - workArea W= "+workArea.width + "  H= "+workArea.height+ "  CURRENT W="+self._workAreaWidth+"  H="+self._workAreaHeight+"  FORCED?="+self._refreshThumbnailsOnRegionUpdate);
+            if (_DEBUG_) global.log("dockedWorkspaces: UPDATEREGIONS - workArea W= "+workArea.width + "  H= "+workArea.height+ "  X= "+workArea.x+ "  Y= "+workArea.y+"  CURRENT W="+self._workAreaWidth+"  H="+self._workAreaHeight+"  FORCED?="+self._refreshThumbnailsOnRegionUpdate);
             if (self._refreshThumbnailsOnRegionUpdate) {
                 self._refreshThumbnailsOnRegionUpdate = false;
                 self._refreshThumbnails();
             } else {
                 if (self._workAreaWidth) {
-                    let tolerance = workArea.width * .01;
-                    if (self._workAreaWidth < workArea.width-tolerance || self._workAreaWidth > workArea.width+tolerance) {
+                    let widthTolerance = workArea.width * .01;
+                    let heightTolerance = workArea.height * .01;
+                    if (self._workAreaWidth < workArea.width-widthTolerance || self._workAreaWidth > workArea.width+widthTolerance) {
+                        self._refreshThumbnails();
+                    } else if (self._workAreaHeight < workArea.height-heightTolerance || self._workAreaHeight > workArea.height+heightTolerance) {
                         self._refreshThumbnails();
                     }
                 } else {
