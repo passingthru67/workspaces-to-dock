@@ -1566,7 +1566,7 @@ const DockedWorkspaces = new Lang.Class({
         if (_DEBUG_) global.log("dockedWorkspaces: _hide autohideStatus = "+this._autohideStatus+" anim.shown = "+anim.shown()+" anim.showing = "+anim.showing());
 
         // If no hiding animation is running or queued
-        if (!this._hoveringDash && this._autohideStatus && (anim.showing() || anim.shown())) {
+        if (!this._hoveringDash && this._autohideStatus && !this._dock.hover && (anim.showing() || anim.shown())) {
             let delay;
 
             // If a show is queued but still not started (i.e the mouse was
