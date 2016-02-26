@@ -1609,6 +1609,16 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             this.settings.set_double("shortcuts-panel-icon-size", s);
         }));
 
+        let setSwarmAnimationButton = new Gtk.CheckButton({
+            label: _("Use the Apps button as the source of the swarm animation"),
+            margin_left: 0,
+            margin_top: 0
+        });
+        setSwarmAnimationButton.set_active(this.settings.get_boolean('shortcuts-panel-appsbutton-animation'));
+        setSwarmAnimationButton.connect('toggled', Lang.bind(this, function(check) {
+            this.settings.set_boolean('shortcuts-panel-appsbutton-animation', check.get_active());
+        }));
+
 
         /* TITLE: MISC OPTIONS */
 
@@ -1711,13 +1721,14 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         shortcutsPanelContainerGrid.attach(shortcutsPanelOrientationCombo, 1, 0, 1, 1);
         shortcutsPanelContainerGrid.attach(shortcutsPanelIconSizeLabel, 0, 1, 1, 1);
         shortcutsPanelContainerGrid.attach(shortcutsPanelIconSizeSpinner, 1, 1, 1, 1);
-        shortcutsPanelContainerGrid.attach(shortcutsPanelOptionsTitle, 0, 2, 1, 1);
-        shortcutsPanelContainerGrid.attach(shortcutsPanelShowRunning, 0, 3, 1, 1);
-        shortcutsPanelContainerGrid.attach(shortcutsPanelShowPlaces, 0, 4, 1, 1);
-        shortcutsPanelContainerGrid.attach(shortcutsPanelShowWindowCount, 0, 5, 1, 1);
-        shortcutsPanelContainerGrid.attach(shortcutsPanelAppsbuttonAtBottom, 0, 6, 1, 1);
-        shortcutsPanelContainerGrid.attach(shortcutsPanelPopupMenuArrowAtTop, 0, 7, 1, 1);
-        shortcutsPanelContainerGrid.attach(shortcutsPanelPopupMenuHideThumbnails, 0, 8, 2, 1);
+        shortcutsPanelContainerGrid.attach(setSwarmAnimationButton, 0, 2, 1, 1);
+        shortcutsPanelContainerGrid.attach(shortcutsPanelOptionsTitle, 0, 3, 1, 1);
+        shortcutsPanelContainerGrid.attach(shortcutsPanelShowRunning, 0, 4, 1, 1);
+        shortcutsPanelContainerGrid.attach(shortcutsPanelShowPlaces, 0, 5, 1, 1);
+        shortcutsPanelContainerGrid.attach(shortcutsPanelShowWindowCount, 0, 6, 1, 1);
+        shortcutsPanelContainerGrid.attach(shortcutsPanelAppsbuttonAtBottom, 0, 7, 1, 1);
+        shortcutsPanelContainerGrid.attach(shortcutsPanelPopupMenuArrowAtTop, 0, 8, 1, 1);
+        shortcutsPanelContainerGrid.attach(shortcutsPanelPopupMenuHideThumbnails, 0, 9, 2, 1);
         shortcutsPanelContainerGrid.attach(shortcutsPanelPopupMenuHideThumbnailsNote, 0, 10, 2, 1);
 
         // Bind interactions

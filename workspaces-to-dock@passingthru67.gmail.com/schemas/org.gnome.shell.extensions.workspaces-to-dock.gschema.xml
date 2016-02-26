@@ -201,7 +201,6 @@
       <summary>Length of time the dock is shown</summary>
       <description>Set length of time the dock is shown when switching workspaces</description>
     </key>
-
     <key type="b" name="show-shortcuts-panel">
       <default>false</default>
       <summary>Show a favorite shortcuts panel beside the workspaces thumbnail</summary>
@@ -231,6 +230,11 @@
       <default>false</default>
       <summary>Show application window count indicators</summary>
       <description>Show application window count indicators</description>
+    </key>
+    <key type="b" name="shortcuts-panel-appsbutton-animation">
+      <default>false</default>
+      <summary>Use the apps button as the source for the swarm animation</summary>
+      <description>Use the apps button as the source for the swarm animation</description>
     </key>
     <key type="b" name="shortcuts-panel-appsbutton-at-bottom">
       <default>false</default>
