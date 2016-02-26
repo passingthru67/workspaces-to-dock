@@ -345,21 +345,24 @@ const Intellihide = new Lang.Class({
 
         // if background manager valid, Connect grabHelper signals
         let primaryIndex = Main.layoutManager.primaryIndex;
-        if (Main.layoutManager._bgManagers[primaryIndex]) {
-            this._signalHandler.pushWithLabel(
-                'bgManagerSignals',
-                [
-                    Main.layoutManager._bgManagers[primaryIndex].background.actor._backgroundManager._grabHelper,
-                    'focus-grabbed',
-                    Lang.bind(this, this._onPanelFocusGrabbed)
-                ],
-                [
-                    Main.layoutManager._bgManagers[primaryIndex].background.actor._backgroundManager._grabHelper,
-                    'focus-ungrabbed',
-                    Lang.bind(this, this._onPanelFocusUngrabbed)
-                ]
-            );
-        }
+
+        if (!Main.layoutManager._bgManagers[primaryIndex] ||
+            !Main.layoutManager._bgManagers[primaryIndex].backgroundActor)
+                return;
+
+        this._signalHandler.pushWithLabel(
+            'bgManagerSignals',
+            [
+                Main.layoutManager._bgManagers[primaryIndex].backgroundActor._backgroundManager._grabHelper,
+                'focus-grabbed',
+                Lang.bind(this, this._onPanelFocusGrabbed)
+            ],
+            [
+                Main.layoutManager._bgManagers[primaryIndex].backgroundActor._backgroundManager._grabHelper,
+                'focus-ungrabbed',
+                Lang.bind(this, this._onPanelFocusUngrabbed)
+            ]
+        );
 
         this._updateDockVisibility();
     },
