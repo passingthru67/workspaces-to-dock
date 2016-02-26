@@ -1832,7 +1832,9 @@ const DockedWorkspaces = new Lang.Class({
         }
 
         // Reset pressureSensed flag
-        this._pressureSensed = false;
+        if (!this._dock.hover && !this._animStatus.shown())
+            this._pressureSensed = false;
+        }
     },
 
     // Disable autohide effect, thus show workspaces
