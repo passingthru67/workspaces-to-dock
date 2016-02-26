@@ -689,9 +689,6 @@ const ShortcutsPanel = new Lang.Class({
         }
 
         if (this._settings.get_boolean('shortcuts-panel-show-places')) {
-            let separator = new Separator.HorizontalSeparator({ style_class: 'popup-separator-menu-item workspacestodock-shortcut-panel-separator' });
-            this.actor.add(separator.actor, { expand: false });
-
             this._placesBox = new St.BoxLayout({ vertical: true, style_class: 'workspacestodock-shortcuts-panel workspacestodock-shortcuts-panel-places' });
             this.actor.add_actor(this._placesBox);
 
