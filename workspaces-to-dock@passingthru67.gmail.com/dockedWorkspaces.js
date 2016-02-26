@@ -52,7 +52,7 @@ const PRESSURE_TIMEOUT = 1000;
 
 let GSFunctions = {};
 
-/* Return the actual position reverseing left and right in rtl */
+// Return the actual position reverseing left and right in rtl
 function getPosition(settings) {
     let position = settings.get_enum('dock-position');
     if (Clutter.get_default_text_direction() == Clutter.TextDirection.RTL) {
@@ -71,7 +71,7 @@ const ThumbnailsSlider = new Lang.Class({
     _init: function(params) {
         this._settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
 
-        /* Default local params */
+        // Default local params
         let localDefaults = {
             side: St.Side.LEFT,
             initialSlideValue: 1,
@@ -81,8 +81,8 @@ const ThumbnailsSlider = new Lang.Class({
         let localParams = Params.parse(params, localDefaults, true);
 
         if (params){
-            /* Remove local params before passing the params to the parent
-              constructor to avoid errors. */
+            // Remove local params before passing the params to the parent
+            // constructor to avoid errors.
             let prop;
             for (prop in localDefaults) {
                 if ((prop in params))
@@ -143,7 +143,7 @@ const ThumbnailsSlider = new Lang.Class({
                              -childBox.x1+availWidth,-childBox.y1 + availHeight);
     },
 
-    /* Just the child width but taking into account the slided out part */
+    // Just the child width but taking into account the slided out part
     vfunc_get_preferred_width: function(forHeight) {
         let [minWidth, natWidth ] = this._child.get_preferred_width(forHeight);
         if (this._side ==  St.Side.LEFT
@@ -154,7 +154,7 @@ const ThumbnailsSlider = new Lang.Class({
         return [minWidth, natWidth];
     },
 
-    /* Just the child height but taking into account the slided out part */
+    // Just the child height but taking into account the slided out part
     vfunc_get_preferred_height: function(forWidth) {
         let [minHeight, natHeight] = this._child.get_preferred_height(forWidth);
         if (this._side ==  St.Side.TOP
@@ -165,12 +165,11 @@ const ThumbnailsSlider = new Lang.Class({
         return [minHeight, natHeight];
     },
 
-    /* I was expecting it to be a virtual function... stil I don't understand
-      how things work.
-    */
+    // I was expecting it to be a virtual function... stil I don't understand
+    // how things work.
     add_child: function(actor) {
 
-        /* I'm supposed to have only on child */
+        // I'm supposed to have only one child
         if(this._child !== null) {
             this.remove_child(actor);
         }
