@@ -253,7 +253,10 @@ const DockedWorkspaces = new Lang.Class({
             this._thumbnailsBoxBackground = this._thumbnailsBox.actor;
         }
 
+        // Create a shortcuts panel object
         this._shortcutsPanel = new ShortcutsPanel.ShortcutsPanel(this);
+        this._shortcutsPanel.connect("update-favorite-apps", Lang.bind(this, this._onShortcutsPanelUpdated));
+        this._shortcutsPanel.connect("update-running-apps", Lang.bind(this, this._onShortcutsPanelUpdated));
 
         // Create the main dock container, turn on track hover, add hoverChange signal
         let positionStyleClass = ['top', 'right', 'bottom', 'left'];
@@ -783,6 +786,13 @@ const DockedWorkspaces = new Lang.Class({
         // Restore normal WorkspacesView _setActualGeometry function
         WorkspacesView.WorkspacesViewBase.prototype.setActualGeometry = GSFunctions['WorkspacesViewBase_setActualGeometry'];
         WorkspacesView.WorkspacesViewBase.prototype.setMyActualGeometry = null;
+    },
+
+    // handler for when shortcuts panel is updated
+    _onShortcutsPanelUpdated: function() {
+        if (_DEBUG_) global.log("dockedWorkspaces: _onShortcutsPanelUpdated");
+        this._updateSize();
+        this._redisplay();
     },
 
     // handler for when thumbnailsBox is resized

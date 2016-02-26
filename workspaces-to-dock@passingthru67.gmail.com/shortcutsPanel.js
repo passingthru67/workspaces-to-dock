@@ -742,6 +742,8 @@ const ShortcutsPanel = new Lang.Class({
             let shortcutButton = new ShortcutButton(app, ApplicationType.APPLICATION, this);
             this._favoriteAppsBox.add_actor(shortcutButton.actor);
         }
+
+        this.emit('update-favorite-apps');
     },
 
     _updateRunningApps: function() {
@@ -756,8 +758,8 @@ const ShortcutsPanel = new Lang.Class({
 
         // Apps currently in running apps box
         let oldApps = children.map(function(actor) {
-                return actor._delegate._app;
-            });
+            return actor._delegate._app;
+        });
 
         // Apps supposed to be in the running apps box
         let newApps = [];
@@ -849,6 +851,8 @@ const ShortcutsPanel = new Lang.Class({
             let item = removedActors[i];
             item.destroy();
         }
+
+        this.emit('update-running-apps');
     },
 
     _createShortcutButton: function(app, appType) {
