@@ -830,9 +830,16 @@ const DockedWorkspaces = new Lang.Class({
         }));
 
         this._settings.connect('changed::show-shortcuts-panel', Lang.bind(this, function() {
+            let shortcutsPanelOrientation = this._settings.get_enum('shortcuts-panel-orientation');
             if (this._settings.get_boolean('show-shortcuts-panel')) {
+                if (shortcutsPanelOrientation == 1) {
+                    this._dock.add_style_class_name('inside');
+                }
                 this._shortcutsPanel.actor.show();
             } else {
+                if (shortcutsPanelOrientation == 1) {
+                    this._dock.remove_style_class_name('inside');
+                }
                 this._shortcutsPanel.actor.hide();
             }
             this._updateSize();
