@@ -111,6 +111,11 @@
       <summary>Location of the dock on the screen</summary>
       <description>Dock is shown on the Left, Right, Top or Bottom side of the screen.</description>
     </key>
+    <key type="b" name="hide-dash">
+      <default>false</default>
+      <summary>Hide the Gnome Shell dash</summary>
+      <description>Hide the Gnome Shell dash.</description>
+    </key>
     <key type="b" name="extend-height">
       <default>false</default>
       <summary>Extend height of dock</summary>
