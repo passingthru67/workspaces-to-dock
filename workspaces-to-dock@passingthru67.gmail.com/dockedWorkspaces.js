@@ -1661,6 +1661,10 @@ const DockedWorkspaces = new Lang.Class({
         if (this._monitor.x == Main.layoutManager.primaryMonitor.x && this._monitor.y == Main.layoutManager.primaryMonitor.y)
             primary = true;
 
+        // Get workspace area
+        // This takes into account primary monitor and any additional extensions
+        // that may affect width and height calculations
+        let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitor.index);
 
         let x, y, width, height, anchorPoint;
         if (this._isHorizontal) {
@@ -1668,8 +1672,8 @@ const DockedWorkspaces = new Lang.Class({
             if (this._settings.get_boolean('extend-height')) {
                 let leftMargin = Math.floor(this._settings.get_double('top-margin') * this._monitor.width);
                 let rightMargin = Math.floor(this._settings.get_double('bottom-margin') * this._monitor.width);
-                x = this._monitor.x + leftMargin;
-                width = this._monitor.width - leftMargin - rightMargin;
+                x = workArea.x + leftMargin;
+                width = workArea.width - leftMargin - rightMargin;
             } else {
                 width = this._monitor.width * .7;
                 x = this._monitor.x + (width * .5);
@@ -1699,28 +1703,15 @@ const DockedWorkspaces = new Lang.Class({
             if (this._settings.get_boolean('extend-height')) {
                 let topMargin = Math.floor(this._settings.get_double('top-margin') * this._monitor.height);
                 let bottomMargin = Math.floor(this._settings.get_double('bottom-margin') * this._monitor.height);
-                if (primary) {
-                    // ISSUE: Botton Panel extension moves the panel to the bottom
-                    // Check if top panel has been moved using anchor point
-                    let [pbAnchorX,pbAnchorY] = Main.layoutManager.panelBox.get_anchor_point();
-                    if (pbAnchorY < 0) {
-                        y = this._monitor.y + topMargin;
-                    } else {
-                        y = this._monitor.y + Main.layoutManager.panelBox.height + topMargin;
-                    }
-                    height = this._monitor.height - Main.layoutManager.panelBox.height - topMargin - bottomMargin;
-                } else {
-                    y = this._monitor.y + topMargin;
-                    height = this._monitor.height - topMargin - bottomMargin;
-                }
+                y = workArea.y + topMargin;
+                height = workArea.height - topMargin - bottomMargin;
+
             } else {
                 let controlsTop = 45;
                 y = this._monitor.y + Main.panel.actor.height + controlsTop + Main.overview._searchEntryBin.height;
                 height = this._monitor.height - (y + Main.overview._searchEntryBin.height);
             }
         }
-
-        this.yPosition = y;
 
         //// skip updating if size is same
         //if ((this.actor.y == y) && (this.actor.width == this._thumbnailsBox.actor.width + this._shortcutsPanelWidth) && (this.actor.height == height)) {
