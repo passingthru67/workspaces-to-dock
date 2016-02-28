@@ -24,10 +24,6 @@ msgstr "Pas de style Workspaces-To-Dock trouvé"
 
 #: extension.js
 
-msgid "No Workspaces-To-Dock stylesheet found"
-msgstr ""
-
-
 #: intellihide.js
 
 
@@ -122,13 +118,13 @@ msgid "<b>Thumbnail Size</b>"
 msgstr "<b>Taille Des Miniatures</b>"
 
 msgid "Customize the workspace thumbnail size"
-msgstr "Personaliser la taille de la miniature du bureau"
+msgstr "Personnaliser la taille de la miniature du bureau"
 
 msgid "Thumbnail size"
 msgstr "Taille des miniatures"
 
 msgid "<b>Background</b>"
-msgstr "<b>Arrière-Plan</b>"
+msgstr "<b>Arrière-plan</b>"
 
 msgid "Customize the dock background opacity"
 msgstr "Personnaliser l'opacité de l'arrière-plan du dock"
@@ -140,7 +136,7 @@ msgid "Only when the dock is shown by mouse hover"
 msgstr "Seulement quand le dock est montré au survol de la souris"
 
 msgid "Toggle Gnome Shell's overview mode with right click"
-msgstr "Basculer vers la vue d'ensemble des activités à l'aide d'un click droit"
+msgstr "Basculer vers la Vue d'ensemble des activités à l'aide d'un clic droit"
 
 msgid "Behavior"
 msgstr "Comportement"
@@ -155,10 +151,10 @@ msgid "<b>Timing</b> : Adjust animation, show delay, and hide delay timing"
 msgstr "<b>Délais</b> : Ajuste l'animation, délai avant affichage, et délai avant masquage"
 
 msgid "Timing Options .."
-msgstr "Paramètrages des Délais ..."
+msgstr "Paramétrage des Délais ..."
 
 msgid "Timing Options"
-msgstr "Paramètrages des Délais"
+msgstr "Paramétrage des Délais"
 
 msgid "Animation time [ms]"
 msgstr "Durée de l'animation [ms]"
@@ -179,7 +175,7 @@ msgid "Autohide Options"
 msgstr "Options de Masquage Automatique"
 
 msgid "Require click to show the dock when window maximized"
-msgstr "Requiert un click pour afficher le dock quand la fenêtre est maximisée"
+msgstr "Requiert un clic pour afficher le dock quand la fenêtre est maximisée"
 
 msgid "Require pressure to show the dock"
 msgstr "Requiert une pression pour afficher le dock"
@@ -188,19 +184,19 @@ msgid "Pressure threshold [px]"
 msgstr "Seuil de pression [px]"
 
 msgid "Limit pressure sense to slow mouse speeds"
-msgstr "Limite de l'intensité de la pression pour les failbles vitesses de souris"
+msgstr "Limite de l'intensité de la pression pour les vitesses de souris faibles"
 
 msgid "Maximum speed [px]"
 msgstr "Vitesse maximum [px]"
 
 msgid "NOTE: For dual monitor setups. Allows the mouse to pass through \nthe barrier by attacking the edge of the screen with a quick stroke."
-msgstr "NOTE : Pour les configurations multi-écrans. Permet à la souris de\ntraverser en accélerant sa course à l'approche du bord de l'écran."
+msgstr "NOTE : Pour les configurations multi-écrans. Permet à la souris de\ntraverser en accélérant sa course à l'approche du bord de l'écran."
 
 msgid "<b>Intellihide</b> : Show the dock unless a window overlaps"
 msgstr "<b>Masquage Intelligent</b> : Affiche le dock jusqu'au chevauchement d'une fenêtre"
 
 msgid "Intellihide Options .."
-msgstr "Options du Masquage Intelligent.."
+msgstr "Options du Masquage Intelligent ..."
 
 msgid "Intellihide Options"
 msgstr "Options Masquage Intelligent"
@@ -209,25 +205,25 @@ msgid "Dodge all windows"
 msgstr "Esquive toutes les fenêtres"
 
 msgid "Dodge all instances of focused app"
-msgstr "Esquive toutes les instances des applications qui ont le focus"
+msgstr "Esquive toutes les instances des applications ciblées"
 
 msgid "Dodge only top instance of focused app"
-msgstr "Esquive seulement l'instance principale de l'application qui a le focus"
+msgstr "Esquive seulement l'instance principale de l'application ciblées"
 
 msgid "Ignore top panel menus"
 msgstr "Ignorer les menus de la barre supérieure"
 
 msgid "What should we do with the dock in overview mode?"
-msgstr "Que faire avec le dock en mode vue d'ensemble des activités ?"
+msgstr "Que faire avec le dock en mode Vue d'ensemble des activités ?"
 
 msgid "Show"
 msgstr "Montrer"
 
 msgid "Hide"
-msgstr "Masqué"
+msgstr "Masquer"
 
 msgid "Partially Hide"
-msgstr "Partiellement Masqué"
+msgstr "Masquer partiellement"
 
 msgid "<b>Miscellaneous Options</b>"
 msgstr "<b>Options Diverses</b>"
@@ -254,34 +250,25 @@ msgid "Keyboard shortcut"
 msgstr "Raccourci clavier"
 
 msgid "Invalid accelerator. Try F12, <Super>space, <Ctrl><Alt><Shift>w, etc."
-msgstr "Accelerateur invalide. Essayez F12, <Super>space, <Ctrl><Alt><Shift>w, etc."
+msgstr "Accélérateur invalide. Essayez F12, <Super>espace, <Ctrl><Alt><Shift>w, etc."
 
 msgid "Thumbnails"
 msgstr "Miniatures"
-
-msgid "<b>Thumbnail Size</b>"
-msgstr "<b>Tailles des Miniatures</b>"
-
-msgid "Customize the workspace thumbnail size"
-msgstr ""
-
-msgid "Thumbnail size"
-msgstr ""
 
 msgid "<b>Thumbnail Captions</b>"
 msgstr "<b>Légendes Miniatures</b>"
 
 msgid "Add captions to workspace thumbnails"
-msgstr "Ajouter une légende à la mignature d'espace de travail"
+msgstr "Ajouter une légende à la miniature d'espace de travail"
 
 msgid "Caption height [px]"
 msgstr "Hauteur de la légende [px]"
 
 msgid "Taskbar icon size [px]"
-msgstr "Taille icones barre des tâches"
+msgstr "Taille icônes barre des tâches [px]"
 
 msgid "Caption popup menu icon size [px]"
-msgstr "Taille de l'icone menu de la popup de la légende [px]"
+msgstr "Taille de l'icône menu de la popup de la légende [px]"
 
 msgid "<b>Caption Items</b>"
 msgstr "<b>Légendes Items</b>"
@@ -302,16 +289,13 @@ msgid "Use image"
 msgstr "Utiliser une image"
 
 msgid "Show workspace taskbar (apps)"
-msgstr "Afficher bare des tâches de l'espace de travail (applications)"
+msgstr "Afficher barre des tâches de l'espace de travail (Applications)"
 
 msgid "Show a spacer/filler"
 msgstr "Afficher un espace/remplisseur"
 
-msgid "Toggle Gnome Shell's overview mode with right click"
-msgstr "Basculer vers la vue d'ensemble des activités par un click droit"
-
 msgid "Hide the favorite shortcuts panel when a popup menu is shown"
-msgstr "Masquer le panneau des raccourcis favoris quand un menu popup apparait"
+msgstr "Masquer le panneau des raccourcis favoris quand un menu popup apparaît"
 
 msgid "NOTE: Only applies when the shortcuts panel is set to inside orientation"
 msgstr "NOTE: S'applique seulement quand le panneau des raccourcis est configuré pour une orientation interne"
@@ -326,19 +310,19 @@ msgid "Show a favorite shortcuts panel"
 msgstr "Afficher un panneau des raccourcis favoris"
 
 msgid "Shortcuts panel orientation in reference to the thumbnails"
-msgstr "Panneau raccourcis orientation en référence aux miniatures"
+msgstr "Afficher le panneau raccourcis orientation en référence aux miniatures"
 
 msgid "Outside"
-msgstr "Dehors"
+msgstr "À l'extérieur"
 
 msgid "Inside"
-msgstr "Dedans"
+msgstr "À l'intérieur"
 
 msgid "Shortcuts panel icon size [px]"
-msgstr "Taille d'icone du panneau de raccourcis [px]"
+msgstr "Taille d'icône du panneau de raccourcis [px]"
 
 msgid "Use the Apps button as the source of the swarm animation"
-msgstr "Utiliser le bouton Apps comme origine de l'animation essaim"
+msgstr "Utiliser le bouton Applications comme origine de l'animation en essaim"
 
 msgid "Show running applications"
 msgstr "Afficher les applications en cours"
@@ -350,13 +334,13 @@ msgid "Show application window count indicators"
 msgstr "Afficher un compteur de fenêtre d'applications"
 
 msgid "Set the Apps button at the bottom"
-msgstr "Positionner le bouton Apps en bas"
+msgstr "Positionner le bouton Applications en bas"
 
 msgid "Set the menu context arrow at the top of the popup menu dialog"
-msgstr "Afficher une fleche de menu contextuel en haut"
+msgstr "Afficher une flèche de menu contextuel en haut"
 
 msgid "Show the popup menu context arrow at the top"
-msgstr "Afficher une fleche de menu contextuel en haut"
+msgstr "Afficher une flèche de menu contextuel en haut"
 
 msgid "Hide thumbnails when a popup menu is shown"
 msgstr "Masquer les miniatures quand un menu apparait"
