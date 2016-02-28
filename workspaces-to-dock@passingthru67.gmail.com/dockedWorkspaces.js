@@ -49,9 +49,23 @@ let DashToDock = null;
 
 const TRIGGER_WIDTH = 1;
 const DOCK_EDGE_VISIBLE_WIDTH = 5;
+const DOCK_EDGE_VISIBLE_OVERVIEW_WIDTH = 32;
 const PRESSURE_TIMEOUT = 1000;
 
 let GSFunctions = {};
+
+const OverviewOption = {
+    SHOW: 0,        // Dock is always visible
+    HIDE: 1,        // Dock is always invisible. Visible on mouse hover
+    PARTIAL: 2      // Dock partially hidden. Visible on mouse hover
+};
+
+const DockState = {
+    HIDDEN:  0,
+    SHOWING: 1,
+    SHOWN:   2,
+    HIDING:  3
+};
 
 // Return the actual position reverseing left and right in rtl
 function getPosition(settings) {
@@ -99,8 +113,54 @@ const ThumbnailsSlider = new Lang.Class({
         this._slidex = localParams.initialSlideValue;
         this._side = localParams.side;
         this._slideoutSize = localParams.initialSlideoutSize; // minimum size when slid out
+
+        this._partialSlideoutSize = initialTriggerWidth + DOCK_EDGE_VISIBLE_OVERVIEW_WIDTH;
+        this._partialSlideoutAnimateTime = this._settings.get_double('animation-time');
+        this._partialSlideX = 1;
+        this._inOverview = false;
+
+        // Connect global signals
+        this._overviewShowingId = Main.overview.connect('showing', Lang.bind(this, this._overviewShowing));
+        this._overviewHidingId = Main.overview.connect('hiding', Lang.bind(this, this._overviewHiding));
+        this._overviewShownId = Main.overview.connect('shown', Lang.bind(this, this._overviewShown));
+        this._overviewHiddenId = Main.overview.connect('hidden', Lang.bind(this, this._overviewHidden));
     },
 
+    destroy: function() {
+        if (this._overviewShowingId)
+            Main.overview.disconnect(this._overviewShowingId);
+
+        if (this._overviewHidingId)
+            Main.overview.disconnect(this._overviewHidingId);
+
+        if (this._overviewShownId)
+            Main.overview.disconnect(this._overviewShownId);
+
+        if (this._overviewHiddenId)
+            Main.overview.disconnect(this._overviewHiddenId);
+    },
+
+    _overviewShowing: function() {
+        this._showingOverview = true;
+        this._inOverview = true;
+        this._partialSlideX = 0;
+    },
+
+    _overviewShown: function() {
+        this._showingOverview = false;
+        this._partialSlideX = 1;
+    },
+
+    _overviewHiding: function() {
+        this._hidingOverview = true;
+        this._partialSlideX = 1;
+    },
+
+    _overviewHidden: function() {
+        this._hidingOverview = false;
+        this._inOverview = false;
+        this._partialSlideX = 0;
+    },
 
     vfunc_allocate: function(box, flags) {
 
@@ -119,7 +179,21 @@ const ThumbnailsSlider = new Lang.Class({
 
         let childBox = new Clutter.ActorBox();
 
-        let slideoutSize = this._slideoutSize;
+        if (this._inOverview && this._showingOverview) {
+            this._partialSlideX = Math.min(this._partialSlideX + this._partialSlideoutAnimateTime, 1);
+        } else if (this._inOverview && this._hidingOverview) {
+            this._partialSlideX = Math.max(this._partialSlideX - this._partialSlideoutAnimateTime, 0);
+        }
+
+        let slideoutSize;
+        let overviewAction = this._settings.get_enum('overview-action');
+        if (this._inOverview
+            && Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage
+            && overviewAction == OverviewOption.PARTIAL) {
+                slideoutSize = this._partialSlideoutSize * this._partialSlideX;
+        } else {
+            slideoutSize = this._slideoutSize;
+        }
 
         if (this._side == St.Side.LEFT) {
             childBox.x1 = (this._slidex -1) * (childWidth - slideoutSize);
@@ -146,6 +220,16 @@ const ThumbnailsSlider = new Lang.Class({
 
     // Just the child width but taking into account the slided out part
     vfunc_get_preferred_width: function(forHeight) {
+        let slideoutSize;
+        let overviewAction = this._settings.get_enum('overview-action');
+        if (this._inOverview
+            && Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage
+            && overviewAction == OverviewOption.PARTIAL) {
+                slideoutSize = this._partialSlideoutSize * this._partialSlideX;
+        } else {
+            slideoutSize = this._slideoutSize;
+        }
+
         let [minWidth, natWidth ] = this._child.get_preferred_width(forHeight);
         if (this._side ==  St.Side.LEFT
           || this._side == St.Side.RIGHT) {
@@ -157,6 +241,16 @@ const ThumbnailsSlider = new Lang.Class({
 
     // Just the child height but taking into account the slided out part
     vfunc_get_preferred_height: function(forWidth) {
+        let slideoutSize;
+        let overviewAction = this._settings.get_enum('overview-action');
+        if (this._inOverview
+            && Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage
+            && overviewAction == OverviewOption.PARTIAL) {
+                slideoutSize = this._partialSlideoutSize * this._partialSlideX;
+        } else {
+            slideoutSize = this._slideoutSize;
+        }
+
         let [minHeight, natHeight] = this._child.get_preferred_height(forWidth);
         if (this._side ==  St.Side.TOP
           || this._side ==  St.Side.BOTTOM) {
@@ -190,6 +284,14 @@ const ThumbnailsSlider = new Lang.Class({
 
     set slideoutSize(value) {
         this._slideoutSize = value;
+    },
+
+    set partialSlideoutSize(value) {
+        this._partialSlideoutSize = value;
+    },
+
+    get partialSlideoutSize() {
+        return this._partialSlideoutSize;
     }
 });
 
@@ -519,6 +621,8 @@ const DockedWorkspaces = new Lang.Class({
             this._pressureBarrier = null;
         }
 
+        this._slider.destroy();
+
         // Destroy main clutter actor: this should be sufficient
         // From clutter documentation:
         // If the actor is inside a container, the actor will be removed.
@@ -653,13 +757,30 @@ const DockedWorkspaces = new Lang.Class({
                     thumbnailsMonitorIndex = this._primaryIndex;
                 }
                 if (i == thumbnailsMonitorIndex) {
+                    let overviewAction = self._settings.get_enum('overview-action');
+                    let visibleEdge = self._triggerWidth;
+                    if (self._settings.get_boolean('dock-edge-visible')) {
+                        visibleEdge = self._triggerWidth + DOCK_EDGE_VISIBLE_WIDTH;
+                    }
                     if (self._position == St.Side.LEFT ||
                         self._position == St.Side.RIGHT) {
-                            thumbnailsWidth = self.actor.get_width() + spacing;
+                            if (overviewAction == OverviewOption.HIDE) {
+                                thumbnailsWidth = visibleEdge;
+                            } else if (overviewAction == OverviewOption.PARTIAL) {
+                                thumbnailsWidth = self._slider.partialSlideoutSize;
+                            } else {
+                                thumbnailsWidth = self.actor.get_width() + spacing;
+                            }
                     }
                     if (self._position == St.Side.TOP ||
                         self._position == St.Side.BOTTOM) {
-                            thumbnailsHeight = self.actor.get_height() + spacing;
+                            if (overviewAction == OverviewOption.HIDE) {
+                                thumbnailsHeight = visibleEdge;
+                            } else if (overviewAction == OverviewOption.PARTIAL) {
+                                thumbnailsHeight = self._slider.partialSlideoutSize;
+                            } else {
+                                thumbnailsHeight = self.actor.get_height() + spacing;
+                            }
                     }
                 }
 
@@ -1731,6 +1852,30 @@ const DockedWorkspaces = new Lang.Class({
 
         // Set height of thumbnailsBox actor to match
         this._thumbnailsBox.actor.height = height;
+
+        // Update slider slideout width
+        let slideoutSize = this._triggerWidth;
+        if (this._settings.get_boolean('dock-edge-visible')) {
+            slideoutSize = this._triggerWidth + DOCK_EDGE_VISIBLE_WIDTH;
+        }
+        this._slider.slideoutSize = slideoutSize;
+
+        // Update slider partial width
+        // NOTE: only effects slider width when dock is set to partially hide in overview
+        let slidePartialVisibleWidth = this._triggerWidth + DOCK_EDGE_VISIBLE_OVERVIEW_WIDTH;
+        if (this._settings.get_boolean('show-shortcuts-panel')
+            && this._settings.get_enum('shortcuts-panel-orientation') == 1) {
+                if (this._isHorizontal) {
+                    slidePartialVisibleWidth = this._shortcutsPanel.actor.height;
+                } else {
+                    slidePartialVisibleWidth = this._shortcutsPanel.actor.width;
+                }
+        } else {
+            let themeVisibleWidth = this._thumbnailsBox.actor.get_theme_node().get_length('visible-width');
+            if (themeVisibleWidth > 0)
+                slidePartialVisibleWidth = themeVisibleWidth;
+        }
+        this._slider.partialSlideoutSize = slidePartialVisibleWidth;
     },
 
     // 'Hard' reset dock positon: called on start and when monitor changes
@@ -1861,7 +2006,7 @@ const DockedWorkspaces = new Lang.Class({
         }
 
         // Reset pressureSensed flag
-        if (!this._dock.hover && !this._animStatus.shown())
+        if (!this._dock.hover && !this._animStatus.shown()) {
             this._pressureSensed = false;
         }
     },

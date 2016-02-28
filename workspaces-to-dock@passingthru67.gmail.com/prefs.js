@@ -837,6 +837,38 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         this.settings.bind('intellihide', intellihideContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
 
 
+        /* OVERVIEW ACTION */
+
+        let overviewActionLabel = new Gtk.Label({label: _("What should we do with the dock in overview mode?"),
+            hexpand:true,
+            xalign:0
+        });
+        let overviewActionCombo = new Gtk.ComboBoxText({
+            halign:Gtk.Align.END
+        });
+        overviewActionCombo.append_text(_('Show'));
+        overviewActionCombo.append_text(_('Hide'));
+        overviewActionCombo.append_text(_('Partially Hide'));
+
+        let overviewAction = this.settings.get_enum('overview-action');
+        overviewActionCombo.set_active(overviewAction);
+        overviewActionCombo.connect('changed', Lang.bind (this, function(widget) {
+            this.settings.set_enum('overview-action', widget.get_active());
+        }));
+
+        // Add to layout
+        let overviewActionGrid = new Gtk.Grid({
+            row_homogeneous: false,
+            column_homogeneous: false,
+            margin_top: 10,
+            margin_left: 0
+        });
+        overviewActionGrid.attach(overviewActionLabel, 0, 0, 1, 1);
+        overviewActionGrid.attach(overviewActionCombo, 1, 0, 1, 1);
+
+        visibilityContainerBox.add(overviewActionGrid);
+
+
         /* TITLE: MISC OPTIONS */
 
         let miscOptionsTitle = new Gtk.Label({

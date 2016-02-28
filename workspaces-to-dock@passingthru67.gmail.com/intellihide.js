@@ -41,14 +41,11 @@ const handledWindowTypes2 = [
     Meta.WindowType.TOOLTIP
 ];
 
-const IntellihideMode = {
-    HIDE: 0,        // Workspaces is always invisible
-    SHOW: 1,        // Workspaces is always visible
-    AUTOHIDE: 2,    // Basic autohide mode: visible on mouse hover
-    INTELLIHIDE: 3  // Basic intellihide mode: visible if no window overlap the workspaces
+const OverviewOption = {
+    SHOW: 0,        // Dock is always visible
+    HIDE: 1,        // Dock is always invisible. Visible on mouse hover
+    PARTIAL: 2      // Dock partially hidden. Visible on mouse hover
 };
-
-const OVERVIEW_MODE = IntellihideMode.SHOW;
 
 let GSFunctions = {};
 
@@ -443,18 +440,17 @@ const Intellihide = new Lang.Class({
     _overviewEnter: function() {
         if (_DEBUG_) global.log("intellihide: _overviewEnter");
         this._inOverview = true;
-        if (OVERVIEW_MODE == IntellihideMode.SHOW) {
+        let overviewAction = this._settings.get_enum('overview-action');
+        if (overviewAction == OverviewOption.SHOW) {
             if (Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage) {
                 this._show();
             } else {
                 this._hide();
             }
-        } else if (OVERVIEW_MODE == IntellihideMode.AUTOHIDE) {
+        } else if (overviewAction == OverviewOption.HIDE) {
             this._hide();
-        } else if (OVERVIEW_MODE == IntellihideMode.INTELLIHIDE) {
-            this._show();
-        } else if (OVERVIEW_MODE == IntellihideMode.HIDE) {
-            /*TODO*/
+        } else if (overviewAction == OverviewOption.PARTIAL) {
+            this._hide();
         }
     },
 
@@ -471,7 +467,14 @@ const Intellihide = new Lang.Class({
 
         if (this._inOverview) {
             if (newPage == Main.overview.viewSelector._workspacesPage) {
-                this._show();
+                let overviewAction = this._settings.get_enum('overview-action');
+                if (overviewAction == OverviewOption.SHOW) {
+                    this._show();
+                } else if (overviewAction == OverviewOption.HIDE) {
+                    this._hide();
+                } else if (overviewAction == OverviewOption.PARTIAL) {
+                    this._hide();
+                }
             } else {
                 this._hide();
             }
@@ -602,13 +605,9 @@ const Intellihide = new Lang.Class({
         if (this._disableIntellihide)
             return;
 
-        // If we are in overview mode and the dock is set to be visible prevent
-        // it to be hidden by window events(window create, workspace change,
-        // window close...)
+        // Return if we are in overview mode
         if (this._inOverview) {
-            if (OVERVIEW_MODE !== IntellihideMode.INTELLIHIDE) {
-                return;
-            }
+            return;
         }
 
         //else in normal mode:
