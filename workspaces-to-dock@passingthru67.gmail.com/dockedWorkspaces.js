@@ -638,14 +638,6 @@ const DockedWorkspaces = new Lang.Class({
         if (_DEBUG_) global.log("dockedWorkspaces: _overrideGnomeShellFunctions");
         let self = this;
 
-        // Force normal workspaces to be always zoomed
-        // GS38 moved things to the overviewControls thumbnailsSlider
-        GSFunctions['ThumbnailsSlider_getAlwaysZoomOut'] = OverviewControls.ThumbnailsSlider.prototype._getAlwaysZoomOut;
-        OverviewControls.ThumbnailsSlider.prototype._getAlwaysZoomOut = function() {
-            let alwaysZoomOut = true;
-            return alwaysZoomOut;
-        };
-
         // Hide normal Dash
         if (this._settings.get_boolean('hide-dash')) {
             // Hide normal dash
@@ -888,9 +880,6 @@ const DockedWorkspaces = new Lang.Class({
     // function called during destroy to restore gnome shell 3.4/3.6/3.8
     _restoreGnomeShellFunctions: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _restoreGnomeShellFunctions");
-        // Restore normal workspaces to previous zoom setting
-        OverviewControls.ThumbnailsSlider.prototype._getAlwaysZoomOut = GSFunctions['ThumbnailsSlider_getAlwaysZoomOut'];
-
         // Restore normal Dash
         if (this._settings.get_boolean('hide-dash') &&
             (!DashToDock || !DashToDock.dock)) {
