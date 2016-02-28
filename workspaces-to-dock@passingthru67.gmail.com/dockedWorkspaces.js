@@ -47,7 +47,6 @@ const DashToDock_UUID = "dash-to-dock@micxgx.gmail.com";
 let DashToDockExtension = null;
 let DashToDock = null;
 
-const TRIGGER_WIDTH = 1;
 const DOCK_EDGE_VISIBLE_WIDTH = 5;
 const DOCK_EDGE_VISIBLE_OVERVIEW_WIDTH = 32;
 const PRESSURE_TIMEOUT = 1000;
@@ -85,12 +84,13 @@ const ThumbnailsSlider = new Lang.Class({
 
     _init: function(params) {
         this._settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
+        let initialTriggerWidth = 1;
 
         // Default local params
         let localDefaults = {
             side: St.Side.LEFT,
             initialSlideValue: 1,
-            initialSlideoutSize: TRIGGER_WIDTH
+            initialSlideoutSize: initialTriggerWidth
         }
 
         let localParams = Params.parse(params, localDefaults, true);
@@ -494,21 +494,21 @@ const DockedWorkspaces = new Lang.Class({
             }
         }
 
-        // This is the sliding actor whose allocation is to be tracked for input regions
-        let slideoutSize = TRIGGER_WIDTH;
-        if (this._settings.get_boolean('dock-edge-visible')) {
-            slideoutSize = TRIGGER_WIDTH + DOCK_EDGE_VISIBLE_WIDTH;
-        }
-        this._slider = new ThumbnailsSlider({side: this._position, initialSlideoutSize: slideoutSize});
-
         // Create trigger spacer
         this._triggerSpacer = new St.Label({
                             name: 'workspacestodockTriggerSpacer',
                             text: ''
                         });
-        this._triggerSpacer.width = TRIGGER_WIDTH;
-        if (this._settings.get_boolean('dock-fixed'))
-            this._triggerSpacer.width = 0;
+
+        this._triggerWidth = 1;
+        this._updateTriggerWidth();
+
+        // This is the sliding actor whose allocation is to be tracked for input regions
+        let slideoutSize = this._triggerWidth;
+        if (this._settings.get_boolean('dock-edge-visible')) {
+            slideoutSize = this._triggerWidth + DOCK_EDGE_VISIBLE_WIDTH;
+        }
+        this._slider = new ThumbnailsSlider({side: this._position, initialSlideoutSize: slideoutSize});
 
         // Add spacer, workspaces, and shortcuts panel to dock container based on dock position
         // and shortcuts panel orientation
@@ -931,6 +931,38 @@ const DockedWorkspaces = new Lang.Class({
         this._updateSize();
     },
 
+    _updateTriggerWidth: function() {
+        // Calculate and set triggerWidth
+        if (!this._settings.get_boolean('dock-fixed')
+            && !this._settings.get_boolean('dock-edge-visible')
+            && this._settings.get_boolean('require-pressure-to-show')
+            && this._settings.get_boolean('disable-scroll')) {
+                if (this._pressureSensed) {
+                    this._triggerWidth = 1;
+                } else if (this._dockState == DockState.SHOWN) {
+                    this._triggerWidth = 1;
+                } else {
+                    this._triggerWidth = 0;
+                }
+        } else {
+            this._triggerWidth = 1;
+        }
+
+        // Set triggerSpacer
+        if (this._isHorizontal) {
+            this._triggerSpacer.height = this._triggerWidth;
+            if (this._settings.get_boolean('dock-fixed'))
+                this._triggerSpacer.height = 0;
+        } else {
+            this._triggerSpacer.width = this._triggerWidth;
+            if (this._settings.get_boolean('dock-fixed'))
+                this._triggerSpacer.width = 0;
+        }
+
+        if (!this._disableRedisplay)
+            this._updateSize();
+    },
+
     // handler for when dock height is updated
     _updateHeight: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _updateHeight");
@@ -1001,18 +1033,14 @@ const DockedWorkspaces = new Lang.Class({
         }));
 
         this._settings.connect('changed::dock-edge-visible', Lang.bind(this, function() {
-            let slideoutSize = TRIGGER_WIDTH;
-            if (this._settings.get_boolean('dock-edge-visible')) {
-                slideoutSize = TRIGGER_WIDTH + DOCK_EDGE_VISIBLE_WIDTH;
-            }
-            this._slider.slideoutSize = slideoutSize;
-            if (this._autohideStatus) {
-                this._animateIn(this._settings.get_double('animation-time'), 0);
-                this._animateOut(this._settings.get_double('animation-time'), 0);
-            }
+            this._updateTriggerWidth();
+            this._redisplay();
         }));
 
-        this._settings.connect('changed::require-pressure-to-show', Lang.bind(this, this._updateBarrier));
+        this._settings.connect('changed::require-pressure-to-show', Lang.bind(this, function() {
+            this._updateTriggerWidth();
+            this._redisplay();
+        }));
         this._settings.connect('changed::pressure-threshold', Lang.bind(this, function() {
             this._updatePressureBarrier();
             this._updateBarrier();
