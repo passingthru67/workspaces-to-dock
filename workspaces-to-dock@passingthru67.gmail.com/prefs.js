@@ -329,6 +329,18 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         this.settings.bind('opaque-background', backgroundContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
 
 
+        /* TOGGLE OVERVIEW WIDGETS */
+        let toggleOverviewButton = new Gtk.CheckButton({
+            label: _("Toggle Gnome Shell's overview mode with right click"),
+            margin_left: 0,
+            margin_top: 10
+        });
+        toggleOverviewButton.set_active(this.settings.get_boolean('toggle-overview'));
+        toggleOverviewButton.connect('toggled', Lang.bind(this, function(check) {
+            this.settings.set_boolean('toggle-overview', check.get_active());
+        }));
+
+
         /* ADD TO NOTEBOOK PAGE */
         notebookAppearanceSettings.add(dockPositionTitle);
         notebookAppearanceSettings.add(dockMonitorControlGrid);
@@ -339,6 +351,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         notebookAppearanceSettings.add(backgroundTitle);
         notebookAppearanceSettings.add(backgroundControlGrid);
         notebookAppearanceSettings.add(backgroundContainerGrid);
+        notebookAppearanceSettings.add(toggleOverviewButton);
         notebook.append_page(notebookAppearanceSettings, notebookAppearanceSettingsTitle);
 
 
@@ -1500,18 +1513,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             margin_bottom: 5
         });
 
-
         /* MISC OPTIONS WIDGETS */
-
-        let toggleOverviewButton = new Gtk.CheckButton({
-            label: _("Toggle Gnome Shell's overview mode with right click"),
-            margin_left: 0,
-            margin_top: 0
-        });
-        toggleOverviewButton.set_active(this.settings.get_boolean('toggle-overview'));
-        toggleOverviewButton.connect('toggled', Lang.bind(this, function(check) {
-            this.settings.set_boolean('toggle-overview', check.get_active());
-        }));
 
         let thumbnailCaptionPopupMenuHideShortcutsPanel = new Gtk.CheckButton({
             label: _("Hide the favorite shortcuts panel when a popup menu is shown"),
@@ -1538,9 +1540,8 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             margin_left: 0,
             margin_bottom: 20
         });
-        workspaceOptionsControlGrid.attach(toggleOverviewButton, 0, 0, 1, 1);
-        // workspaceOptionsControlGrid.attach(thumbnailCaptionPopupMenuHideShortcutsPanel, 0, 1, 1, 1);
-        // workspaceOptionsControlGrid.attach(thumbnailCaptionPopupMenuHideShortcutsPanelNote, 0, 2, 1, 1);
+        workspaceOptionsControlGrid.attach(thumbnailCaptionPopupMenuHideShortcutsPanel, 0, 0, 1, 1);
+        workspaceOptionsControlGrid.attach(thumbnailCaptionPopupMenuHideShortcutsPanelNote, 0, 1, 1, 1);
 
 
         /* ADD TO NOTEBOOK PAGE */
@@ -1550,8 +1551,8 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         notebookWorkspacesSettings.add(workspaceCaptionsTitle);
         notebookWorkspacesSettings.add(workspaceCaptionsControlGrid);
         notebookWorkspacesSettings.add(workspaceCaptionsContainerGrid);
-        notebookWorkspacesSettings.add(workspaceOptionsTitle);
-        notebookWorkspacesSettings.add(workspaceOptionsControlGrid);
+        // notebookWorkspacesSettings.add(workspaceOptionsTitle);
+        // notebookWorkspacesSettings.add(workspaceOptionsControlGrid);
         notebook.append_page(notebookWorkspacesSettings, notebookWorkspacesSettingsTitle);
 
 
