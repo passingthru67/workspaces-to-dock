@@ -616,7 +616,7 @@ const ShortcutsPanel = new Lang.Class({
         this._appStateChangedId = this._appSystem.connect('app-state-changed', Lang.bind(this, this._updateRunningApps));
 
         // Connect to AppFavorites and listen for favorites changes
-        this._favoritesChangedId = this._appFavorites.connect('changed', Lang.bind(this, this._updateFavoriteApps));
+        this._favoritesChangedId = this._appFavorites.connect('changed', Lang.bind(this, this._queueUpdateFavoriteApps));
 
         // Connect to item drag signals
         this._dragPlaceholder = null;
@@ -919,7 +919,7 @@ const ShortcutsPanel = new Lang.Class({
         // Add Favorite Apps Box
         this._favoriteAppsBox = new St.BoxLayout({ vertical: true, style_class: 'workspacestodock-shortcuts-panel workspacestodock-shortcuts-panel-favorites' });
         this.actor.add_actor(this._favoriteAppsBox);
-        this._updateFavoriteApps();
+        this._favoriteAppsWorkId = Main.initializeDeferredWork(this._favoriteAppsBox, Lang.bind(this, this._updateFavoriteApps));
 
         // Add Running Apps Box
         if (this._settings.get_boolean('shortcuts-panel-show-running')) {
@@ -956,7 +956,10 @@ const ShortcutsPanel = new Lang.Class({
         } else {
             this.actor.insert_child_at_index(this._appsButton.actor, 0);
         }
+    },
 
+    _queueUpdateFavoriteApps: function () {
+        Main.queueDeferredWork(this._favoriteAppsWorkId);
     },
 
     _updateFavoriteApps: function() {
