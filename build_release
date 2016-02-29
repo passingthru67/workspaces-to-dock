@@ -48,7 +48,7 @@ temp_dir=$root_dir/attic/releases/build
 
 # Create temp directory
 rm -Rf "$temp_dir"
-mkdir "$temp_dir"
+mkdir -p "$temp_dir"
 
 # Copy extension files stripping out debug
 cd "$files_dir"
@@ -89,7 +89,7 @@ fi
 if [ -z "$DEV" ];
 then
     rm -Rf "$release_dir"
-    mkdir "$release_dir"
+    mkdir -p "$release_dir"
 fi
 
 # Copy zip file to release directory
