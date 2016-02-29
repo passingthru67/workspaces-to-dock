@@ -1,8 +1,10 @@
 #!/bin/bash
+# usage: build_release [OPTION]
+# creates zip in attic/releases/master/<version_number>
+# <version_number> found in metadata.json
 #
-# @param: <version_number>
-# version_number = 0 creates zip in root
-# version_number > 0 creates zip in attic/releases/master/<version_number>
+# options:
+#     -d creates zip in root
 #
 
 APPLICATION="${0##*/}"
@@ -46,7 +48,7 @@ temp_dir=$root_dir/attic/releases/build
 
 # Create temp directory
 rm -Rf "$temp_dir"
-mkdir "$temp_dir"
+mkdir -p "$temp_dir"
 
 # Copy extension files stripping out debug
 cd "$files_dir"
@@ -85,7 +87,7 @@ fi
 if [ -z "$DEV" ];
 then
     rm -Rf "$release_dir"
-    mkdir "$release_dir"
+    mkdir -p "$release_dir"
 fi
 
 # Copy zip file to release directory
@@ -94,4 +96,3 @@ cp workspaces-to-dock@passingthru67.gmail.com.zip "$release_dir/"
 # Cleanup - remove temp directory
 rm -Rf "$temp_dir"
 echo "Build completed."
-
