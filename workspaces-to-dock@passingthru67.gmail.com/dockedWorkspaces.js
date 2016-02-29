@@ -805,7 +805,7 @@ const DockedWorkspaces = new Lang.Class({
     _onDashToDockHoverChanged: function() {
         if (_DEBUG_) global.log("Dash HOVER Changed");
         //Skip if dock is not in dashtodock hover mode
-        if (this._settings.get_boolean('dashtodock-hover') && DashToDock && DashToDock.dock && DashToDock.dock._animStatus.shown()) {
+        if (this._settings.get_boolean('dashtodock-hover') && DashToDock && DashToDock.dock) {
             if (DashToDock.dock._box.hover) {
                 if (Main.overview.visible == false) {
                     this._hoveringDash = true;
