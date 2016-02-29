@@ -288,6 +288,7 @@ const ShortcutButton = new Lang.Class({
             this._draggable = DND.makeDraggable(this.actor);
             this._draggable.connect('drag-begin', Lang.bind(this,
                 function () {
+                    this._removeMenuTimeout();
                     Main.overview.beginItemDrag(this);
                 }));
             this._draggable.connect('drag-cancelled', Lang.bind(this,
@@ -316,9 +317,13 @@ const ShortcutButton = new Lang.Class({
         this._stateChangedId = 0;
 
         if (this._countChangedId > 0) {
-            this._app.disconnect(this._countChangedId);
+            if (this._type == ApplicationType.APPLICATION) {
+                this._app.disconnect(this._countChangedId);
+            }
         }
         this._countChangedId = 0;
+
+        this._removeMenuTimeout();
     },
 
     _onButtonEnter: function(actor, event) {
