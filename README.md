@@ -242,6 +242,9 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
+**version 35 for Gnome 3.14 (Mar 1, 2015)**
+- Bug fixes
+
 **version 34 for Gnome 3.18 (Mar 1, 2016)**
 - Bug fixes
 
