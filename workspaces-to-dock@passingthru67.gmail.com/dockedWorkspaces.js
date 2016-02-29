@@ -80,7 +80,6 @@ function getPosition(settings) {
 
 const ThumbnailsSlider = new Lang.Class({
     Name: 'workspacestodockThumbnailsSlider',
-    Extends: Clutter.Actor,
 
     _init: function(params) {
         this._settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
@@ -105,7 +104,12 @@ const ThumbnailsSlider = new Lang.Class({
             }
         }
 
-        this.parent(params);
+        this.actor = new Shell.GenericContainer(params);
+        this.actor.connect('get-preferred-width', Lang.bind(this, this._getPreferredWidth));
+        this.actor.connect('get-preferred-height', Lang.bind(this, this._getPreferredHeight));
+        this.actor.connect('allocate', Lang.bind(this, this._allocate));
+
+        this.actor._delegate = this;
 
         this._child = null;
 
@@ -162,10 +166,7 @@ const ThumbnailsSlider = new Lang.Class({
         this._partialSlideX = 0;
     },
 
-    vfunc_allocate: function(box, flags) {
-
-        this.set_allocation(box, flags);
-
+    _allocate: function(actor, box, flags) {
         if (this._child == null)
             return;
 
@@ -219,7 +220,7 @@ const ThumbnailsSlider = new Lang.Class({
     },
 
     // Just the child width but taking into account the slided out part
-    vfunc_get_preferred_width: function(forHeight) {
+    _getPreferredWidth: function(actor, forHeight, alloc) {
         let slideoutSize;
         let overviewAction = this._settings.get_enum('overview-action');
         if (this._inOverview
@@ -233,14 +234,16 @@ const ThumbnailsSlider = new Lang.Class({
         let [minWidth, natWidth ] = this._child.get_preferred_width(forHeight);
         if (this._side ==  St.Side.LEFT
           || this._side == St.Side.RIGHT) {
-            minWidth = (minWidth - this._slideoutSize)*this._slidex + this._slideoutSize;
-            natWidth = (natWidth - this._slideoutSize)*this._slidex + this._slideoutSize;
+            minWidth = (minWidth - slideoutSize)*this._slidex + slideoutSize;
+            natWidth = (natWidth - slideoutSize)*this._slidex + slideoutSize;
         }
-        return [minWidth, natWidth];
+
+        alloc.min_size = minWidth;
+        alloc.natural_size = natWidth;
     },
 
     // Just the child height but taking into account the slided out part
-    vfunc_get_preferred_height: function(forWidth) {
+    _getPreferredHeight: function(actor, forWidth, alloc) {
         let slideoutSize;
         let overviewAction = this._settings.get_enum('overview-action');
         if (this._inOverview
@@ -254,10 +257,12 @@ const ThumbnailsSlider = new Lang.Class({
         let [minHeight, natHeight] = this._child.get_preferred_height(forWidth);
         if (this._side ==  St.Side.TOP
           || this._side ==  St.Side.BOTTOM) {
-            minHeight = (minHeight - this._slideoutSize)*this._slidex + this._slideoutSize;
-            natHeight = (natHeight - this._slideoutSize)*this._slidex + this._slideoutSize;
+            minHeight = (minHeight - slideoutSize)*this._slidex + slideoutSize;
+            natHeight = (natHeight - slideoutSize)*this._slidex + slideoutSize;
         }
-        return [minHeight, natHeight];
+
+        alloc.min_size = minHeight;
+        alloc.natural_size = natHeight;
     },
 
     // I was expecting it to be a virtual function... stil I don't understand
@@ -266,11 +271,11 @@ const ThumbnailsSlider = new Lang.Class({
 
         // I'm supposed to have only one child
         if(this._child !== null) {
-            this.remove_child(actor);
+            this.actor.remove_child(actor);
         }
 
         this._child = actor;
-        this.parent(actor);
+        this.actor.add_child(actor);
     },
 
     set slidex(value) {
@@ -529,7 +534,7 @@ const DockedWorkspaces = new Lang.Class({
 
         // Add dock to slider and main container actor and then to the Chrome.
         this._slider.add_child(this._dock);
-        this.actor.set_child(this._slider);
+        this.actor.set_child(this._slider.actor);
 
         //Hide the dock whilst setting positions
         //this.actor.hide(); but I need to access its width, so I use opacity
@@ -545,7 +550,7 @@ const DockedWorkspaces = new Lang.Class({
         // The public method trackChrome requires the actor to be child of a tracked actor. Since I don't want the parent
         // to be tracked I use the private internal _trackActor instead.
         Main.uiGroup.add_child(this.actor);
-        Main.layoutManager._trackActor(this._slider, {trackFullscreen: true});
+        Main.layoutManager._trackActor(this._slider.actor, {trackFullscreen: true});
 
         // Keep the dash below the modalDialogGroup
         Main.layoutManager.uiGroup.set_child_below_sibling(this.actor, Main.layoutManager.modalDialogGroup);
@@ -557,7 +562,7 @@ const DockedWorkspaces = new Lang.Class({
         }
 
         // pretend this._slider is isToplevel child so that fullscreen is actually tracked
-        let index = Main.layoutManager._findActor(this._slider);
+        let index = Main.layoutManager._findActor(this._slider.actor);
         Main.layoutManager._trackedActors[index].isToplevel = true ;
     },
 
