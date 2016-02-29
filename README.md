@@ -242,6 +242,12 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
+**version 34 for Gnome 3.18 (Mar 1, 2016)**
+- Bug fixes
+
+**version 33 for Gnome 3.16 (Mar 1, 2016)**
+- Backported fixes and features
+
 **version 32 for Gnome 3.18 (Feb 5, 2015)**
 - Bug fixes
 - Added support for positioning the dock at the top or bottom of the screen
