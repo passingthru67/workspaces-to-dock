@@ -1580,9 +1580,9 @@ const DockedWorkspaces = new Lang.Class({
 
             // If the dock is shown, wait this._settings.get_double('show-delay') before hiding it;
             // otherwise hide it immediately.
-            if (this._dockState = DockState.SHOWN) {
+            if (this._dockState == DockState.SHOWN) {
                 delay = this._settings.get_double('hide-delay');
-            } else if (this._dockState = DockState.SHOWING) {
+            } else if (this._dockState == DockState.SHOWING) {
                 this._removeAnimations();
             }
 
