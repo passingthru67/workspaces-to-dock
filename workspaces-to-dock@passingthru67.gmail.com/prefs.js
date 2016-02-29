@@ -100,11 +100,17 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         let dockPositionLabel = new Gtk.Label({label: _("Show the dock at the following screen position"), hexpand:true, xalign:0});
         let dockPositionCombo = new Gtk.ComboBoxText({halign:Gtk.Align.END});
             // NOTE: Left and right are reversed in RTL languages
+
+            dockPositionCombo.append_text(_("Top"));
+
             if (Gtk.Widget.get_default_direction() == Gtk.TextDirection.RTL) {
                 dockPositionCombo.append_text(_("Left"));
             } else {
                 dockPositionCombo.append_text(_("Right"));
             }
+
+            dockPositionCombo.append_text(_("Bottom"));
+
             if (Gtk.Widget.get_default_direction() == Gtk.TextDirection.RTL) {
                 dockPositionCombo.append_text(_("Right"));
             } else {
@@ -112,23 +118,9 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             }
 
         let position = this.settings.get_enum('dock-position');
-        if (position == 1) {
-            position = 0;
-        } else if (position == 3) {
-            position = 1;
-        } else {
-            position = 1;
-        }
         dockPositionCombo.set_active(position);
-
         dockPositionCombo.connect('changed', Lang.bind (this, function(widget) {
-                // Only set position 1 (right) and 3 (left)
-                if (widget.get_active() == 0) {
-                    this.settings.set_enum('dock-position', 1);
-                }
-                if (widget.get_active() == 1) {
-                    this.settings.set_enum('dock-position', 3);
-                }
+                this.settings.set_enum('dock-position', widget.get_active());
         }));
 
         let hideDashButton = new Gtk.CheckButton({
@@ -166,19 +158,48 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
         /* HEIGHT WIDGETS */
 
-        let extendHeightLabel = new Gtk.Label({
-            label: _("Extend the height of the dock to fill the screen"),
+        let customizeHeightLabel = new Gtk.Label({
+            label: _("Customize the height of the dock"),
             xalign: 0,
             hexpand: true
         });
 
-        let extendHeightSwitch = new Gtk.Switch ({
+        let customizeHeightSwitch = new Gtk.Switch ({
             halign: Gtk.Align.END
         });
-        extendHeightSwitch.set_active(this.settings.get_boolean('extend-height'));
-        extendHeightSwitch.connect('notify::active', Lang.bind(this, function(check) {
-            this.settings.set_boolean('extend-height', check.get_active());
+        customizeHeightSwitch.set_active(this.settings.get_boolean('customize-height'));
+        customizeHeightSwitch.connect('notify::active', Lang.bind(this, function(check) {
+            this.settings.set_boolean('customize-height', check.get_active());
         }));
+
+        let customizeHeightAutosize =  new Gtk.RadioButton({
+            label: _("Autosize and center the dock based on workspaces and shortcuts"),
+            margin_top: 0
+        });
+        customizeHeightAutosize.connect('toggled', Lang.bind(this, function(check){
+            if (check.get_active()) this.settings.set_int('customize-height-option', 0);
+        }));
+
+        let customizeHeightExtend =  new Gtk.RadioButton({
+            label: _("Extend the height of the dock to fill the screen"),
+            group: customizeHeightAutosize,
+            margin_top: 0
+        });
+        customizeHeightExtend.connect('toggled', Lang.bind(this, function(check){
+            if (check.get_active()) this.settings.set_int('customize-height-option', 1);
+        }));
+
+        let intellihideOption = this.settings.get_int('customize-height-option');
+        switch (intellihideOption) {
+            case 0:
+                customizeHeightAutosize.set_active(true); // autosize
+                break;
+            case 1:
+                customizeHeightExtend.set_active(true); // extend
+                break;
+            default:
+                customizeHeightAutosize.set_active(true); // default
+        }
 
         let topMarginLabel = new Gtk.Label({
             label: _("Top margin"),
@@ -239,15 +260,17 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             margin_top: 0,
             margin_left: 10
         });
-        dockHeightControlGrid.attach(extendHeightLabel, 0, 0, 1, 1);
-        dockHeightControlGrid.attach(extendHeightSwitch, 1, 0, 1, 1);
-        dockHeightContainerGrid.attach(topMarginLabel, 0, 0, 1, 1);
-        dockHeightContainerGrid.attach(topMarginSpinner, 1, 0, 1, 1);
-        dockHeightContainerGrid.attach(bottomMarginLabel, 0, 1, 1, 1);
-        dockHeightContainerGrid.attach(bottomMarginSpinner, 1, 1, 1, 1);
+        dockHeightControlGrid.attach(customizeHeightLabel, 0, 0, 1, 1);
+        dockHeightControlGrid.attach(customizeHeightSwitch, 1, 0, 1, 1);
+        dockHeightContainerGrid.attach(customizeHeightAutosize, 0, 0, 1, 1);
+        dockHeightContainerGrid.attach(customizeHeightExtend, 0, 1, 1, 1);
+        dockHeightContainerGrid.attach(topMarginLabel, 0, 2, 1, 1);
+        dockHeightContainerGrid.attach(topMarginSpinner, 1, 2, 1, 1);
+        dockHeightContainerGrid.attach(bottomMarginLabel, 0, 3, 1, 1);
+        dockHeightContainerGrid.attach(bottomMarginSpinner, 1, 3, 1, 1);
 
         // Bind interactions
-        this.settings.bind('extend-height', dockHeightContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+        this.settings.bind('customize-height', dockHeightContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
 
 
         /* TITLE: BACKGROUND */

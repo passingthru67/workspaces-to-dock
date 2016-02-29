@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: Workspaces-To-Dock\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2015-09-15 22:17:01-0400\n"
+"PO-Revision-Date: 2016-02-03 10:52:39-0500\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: en_US\n"
@@ -32,6 +32,12 @@ msgstr ""
 
 
 #: metadata.json
+
+
+#: myPressureBarrier.js
+
+
+#: myWorkspaceSwitcherPopup.js
 
 
 #: myWorkspaceThumbnail.js
@@ -79,19 +85,28 @@ msgstr ""
 msgid "Show the dock at the following screen position"
 msgstr ""
 
+msgid "Top"
+msgstr ""
+
 msgid "Left"
 msgstr ""
 
 msgid "Right"
 msgstr ""
 
-msgid "Right"
+msgid "Bottom"
 msgstr ""
 
-msgid "Left"
+msgid "Hide the Gnome Shell Dash"
 msgstr ""
 
 msgid "<b>Height</b>"
+msgstr ""
+
+msgid "Customize the height of the dock"
+msgstr ""
+
+msgid "Autosize and center the dock based on workspaces and shortcuts"
 msgstr ""
 
 msgid "Extend the height of the dock to fill the screen"
@@ -101,15 +116,6 @@ msgid "Top margin"
 msgstr ""
 
 msgid "Bottom margin"
-msgstr ""
-
-msgid "<b>Thumbnail Size</b>"
-msgstr ""
-
-msgid "Customize the workspace thumbnail size"
-msgstr ""
-
-msgid "Thumbnail size"
 msgstr ""
 
 msgid "<b>Background</b>"
@@ -122,6 +128,9 @@ msgid "Opacity"
 msgstr ""
 
 msgid "Only when the dock is shown by mouse hover"
+msgstr ""
+
+msgid "Toggle Gnome Shell's overview mode with right click"
 msgstr ""
 
 msgid "Behavior"
@@ -175,6 +184,9 @@ msgstr ""
 msgid "Maximum speed [px]"
 msgstr ""
 
+msgid "NOTE: For dual monitor setups. Allows the mouse to pass through \nthe barrier by attacking the edge of the screen with a quick stroke."
+msgstr ""
+
 msgid "<b>Intellihide</b> : Show the dock unless a window overlaps"
 msgstr ""
 
@@ -194,6 +206,18 @@ msgid "Dodge only top instance of focused app"
 msgstr ""
 
 msgid "Ignore top panel menus"
+msgstr ""
+
+msgid "What should we do with the dock in overview mode?"
+msgstr ""
+
+msgid "Show"
+msgstr ""
+
+msgid "Hide"
+msgstr ""
+
+msgid "Partially Hide"
 msgstr ""
 
 msgid "<b>Miscellaneous Options</b>"
@@ -224,6 +248,15 @@ msgid "Invalid accelerator. Try F12, <Super>space, <Ctrl><Alt><Shift>w, etc."
 msgstr ""
 
 msgid "Thumbnails"
+msgstr ""
+
+msgid "<b>Thumbnail Size</b>"
+msgstr ""
+
+msgid "Customize the workspace thumbnail size"
+msgstr ""
+
+msgid "Thumbnail size"
 msgstr ""
 
 msgid "<b>Thumbnail Captions</b>"
@@ -277,12 +310,6 @@ msgstr ""
 msgid "Expand"
 msgstr ""
 
-msgid "<b>Miscellaneous Options</b>"
-msgstr ""
-
-msgid "Toggle Gnome Shell's overview mode with right click"
-msgstr ""
-
 msgid "Hide the favorite shortcuts panel when a popup menu is shown"
 msgstr ""
 
@@ -310,7 +337,7 @@ msgstr ""
 msgid "Shortcuts panel icon size [px]"
 msgstr ""
 
-msgid "<b>Miscellaneous Options</b>"
+msgid "Use the Apps button as the source of the swarm animation"
 msgstr ""
 
 msgid "Show running applications"
@@ -322,13 +349,13 @@ msgstr ""
 msgid "Show application window count indicators"
 msgstr ""
 
-msgid "Show the applications button at the bottom"
+msgid "Set the Apps button at the bottom"
 msgstr ""
 
-msgid "Show the popup menu context arrow at the top"
+msgid "Set the menu context arrow at the top of the popup menu dialog"
 msgstr ""
 
-msgid "Hide thumbnails when a popup menu is shown"
+msgid "Hide thumbnails when a popup menu dialog is shown"
 msgstr ""
 
 msgid "NOTE: Only applies when the shortcuts panel is set to outside orientation"

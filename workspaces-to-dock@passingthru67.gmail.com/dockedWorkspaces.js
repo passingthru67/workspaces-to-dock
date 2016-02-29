@@ -41,6 +41,7 @@ const Extension = Me.imports.extension;
 const Convenience = Me.imports.convenience;
 const MyWorkspaceThumbnail = Me.imports.myWorkspaceThumbnail;
 const ShortcutsPanel = Me.imports.shortcutsPanel;
+const MyWorkspaceSwitcherPopup = Me.imports.myWorkspaceSwitcherPopup;
 const MyPressureBarrier = Me.imports.myPressureBarrier;
 
 const DashToDock_UUID = "dash-to-dock@micxgx.gmail.com";
@@ -354,16 +355,16 @@ const DockedWorkspaces = new Lang.Class({
 
         // Create a new thumbnailsbox object
         this._thumbnailsBox = new MyWorkspaceThumbnail.myThumbnailsBox(this);
-        if (this._gsCurrentVersion[1] == 10 && this._gsCurrentVersion[2] && this._gsCurrentVersion[2] == 0) {
-            this._thumbnailsBoxBackground = this._thumbnailsBox._background;
-        } else {
-            this._thumbnailsBoxBackground = this._thumbnailsBox.actor;
-        }
 
         // Create a shortcuts panel object
         this._shortcutsPanel = new ShortcutsPanel.ShortcutsPanel(this);
         this._shortcutsPanel.connect("update-favorite-apps", Lang.bind(this, this._onShortcutsPanelUpdated));
         this._shortcutsPanel.connect("update-running-apps", Lang.bind(this, this._onShortcutsPanelUpdated));
+
+        // Create custom workspace switcher popup
+        this._workspaceSwitcher = null;
+        if (this._isHorizontal)
+            this._workspaceSwitcher = new MyWorkspaceSwitcherPopup.WorkspaceSwitcher();
 
         // Create the main dock container, turn on track hover, add hoverChange signal
         let positionStyleClass = ['top', 'right', 'bottom', 'left'];
@@ -378,24 +379,48 @@ const DockedWorkspaces = new Lang.Class({
             }
         }
 
-        if (this._settings.get_boolean('extend-height') && this._settings.get_double('top-margin') == 0) {
-            styleClass += " fullheight";
+        if (this._settings.get_boolean('customize-height') && this._settings.get_int('customize-height-option') == 1) {
+            if (this._settings.get_double('top-margin') == 0 || this._settings.get_double('bottom-margin') == 0) {
+                styleClass += " fullheight";
+            }
         }
 
+        let packVertical = false;
+        if (this._isHorizontal)
+            packVertical = true;
+
         this._dock = new St.BoxLayout({
-            name: 'workspacestodockContainer',
+            name: 'workspacestodockDock',
             reactive: true,
             track_hover: true,
+            vertical: packVertical,
             style_class: styleClass
         });
         this._dock.connect("notify::hover", Lang.bind(this, this._hoverChanged));
         this._dock.connect("scroll-event", Lang.bind(this, this._onScrollEvent));
         this._dock.connect("button-release-event", Lang.bind(this, this._onDockClicked));
 
-        // Create the wrapper container
+        // Create centering containers
+        this._container = new St.BoxLayout({
+            name: 'workspacestodockContainer',
+            reactive: false,
+            vertical: packVertical
+        });
+        this._containerWrapper = new St.BoxLayout({
+            name: 'workspacestodockContainerWrapper',
+            reactive: false,
+            vertical: !packVertical
+        });
+        this._containerWrapper.add(this._container,{x_fill: false, y_fill: false, x_align: St.Align.MIDDLE, y_align: St.Align.MIDDLE, expand: true});
+
+        // Create the dock wrapper
         let align;
         if (this._isHorizontal) {
-            align = St.Align.MIDDLE;
+            if (this._position == St.Side.TOP) {
+                align = St.Align.START;
+            } else {
+                align = St.Align.END;
+            }
         } else {
             if (this._position == St.Side.LEFT) {
                 align = St.Align.START;
@@ -404,8 +429,7 @@ const DockedWorkspaces = new Lang.Class({
             }
         }
 
-        this.actor = new St.Bin({ name: 'workspacestodockContainerWrapper',reactive: false,
-            // style_class:positionStyleClass[this._position],
+        this.actor = new St.Bin({ name: 'workspacestodockDockWrapper',reactive: false,
             x_align: align,
             y_align: align
         });
@@ -418,8 +442,13 @@ const DockedWorkspaces = new Lang.Class({
         // Connect global signals
         this._signalHandler.push(
             [
-                this._thumbnailsBoxBackground,
+                this._thumbnailsBox.actor,
                 'notify::width',
+                Lang.bind(this, this._thumbnailsBoxResized)
+            ],
+            [
+                this._thumbnailsBox.actor,
+                'notify::height',
                 Lang.bind(this, this._thumbnailsBoxResized)
             ],
             [
@@ -451,6 +480,16 @@ const DockedWorkspaces = new Lang.Class({
                 global.screen,
                 'in-fullscreen-changed',
                 Lang.bind(this, this._updateBarrier)
+            ],
+            [
+                global.screen,
+                'workspace-added',
+                Lang.bind(this, this._onWorkspaceAdded)
+            ],
+            [
+                global.screen,
+                'workspace-removed',
+                Lang.bind(this, this._onWorkspaceRemoved)
             ]
         );
         if (_DEBUG_) global.log("dockedWorkspaces: init - signals being captured");
@@ -517,22 +556,34 @@ const DockedWorkspaces = new Lang.Class({
 
         // Add spacer, workspaces, and shortcuts panel to dock container based on dock position
         // and shortcuts panel orientation
-        if (this._position == St.Side.RIGHT) {
-            this._dock.add_actor(this._triggerSpacer);
+        if (this._position == St.Side.RIGHT || this._position == St.Side.BOTTOM) {
+            this._container.add_actor(this._triggerSpacer);
         }
-        if ((this._position == St.Side.LEFT && shortcutsPanelOrientation == 0) ||
-            (this._position == St.Side.RIGHT && shortcutsPanelOrientation == 1)) {
-            this._dock.add_actor(this._shortcutsPanel.actor);
-            this._dock.add_actor(this._thumbnailsBox.actor);
+        if (this._isHorizontal) {
+            if ((this._position == St.Side.TOP && shortcutsPanelOrientation == 0) ||
+                (this._position == St.Side.BOTTOM && shortcutsPanelOrientation == 1)) {
+                this._container.add_actor(this._shortcutsPanel.actor);
+                this._container.add_actor(this._thumbnailsBox.actor);
+            } else {
+                this._container.add_actor(this._thumbnailsBox.actor);
+                this._container.add_actor(this._shortcutsPanel.actor);
+            }
         } else {
-            this._dock.add_actor(this._thumbnailsBox.actor);
-            this._dock.add_actor(this._shortcutsPanel.actor);
+            if ((this._position == St.Side.LEFT && shortcutsPanelOrientation == 0) ||
+                (this._position == St.Side.RIGHT && shortcutsPanelOrientation == 1)) {
+                this._container.add_actor(this._shortcutsPanel.actor);
+                this._container.add_actor(this._thumbnailsBox.actor);
+            } else {
+                this._container.add_actor(this._thumbnailsBox.actor);
+                this._container.add_actor(this._shortcutsPanel.actor);
+            }
         }
-        if (this._position == St.Side.LEFT) {
-            this._dock.add_actor(this._triggerSpacer);
+        if (this._position == St.Side.LEFT || this._position == St.Side.TOP) {
+            this._container.add_actor(this._triggerSpacer);
         }
 
         // Add dock to slider and main container actor and then to the Chrome.
+        this._dock.add_actor(this._containerWrapper);
         this._slider.add_child(this._dock);
         this.actor.set_child(this._slider.actor);
 
@@ -608,6 +659,9 @@ const DockedWorkspaces = new Lang.Class({
         this._thumbnailsBox._destroyThumbnails();
 
         this._shortcutsPanel.destroy();
+
+        if (this._workspaceSwitcher)
+            this._workspaceSwitcher.destroy();
 
         // Disconnect global signals
         this._signalHandler.disconnect();
@@ -823,40 +877,37 @@ const DockedWorkspaces = new Lang.Class({
                 geometry.width -= controlsWidth;
 
                 // Adjust y and height for workspacesView geometry for primary monitor (top panel, etc.)
-                // NOTE: if dashSpacer or thumbnailsBox are located at TOP or BOTTOM positions, they
-                // already affect the allocation of the overview controls box so there is no need
-                // to adjust for them here. We only have to be concerned with height if it's not the
-                // primary monitor.
                 if (i == this._primaryIndex) {
                     geometry.y = y;
                     geometry.height = height;
-                } else {
-                    // What if dash and thumbnailsBox are not on the primary monitor?
-                    let controlsHeight = dashHeight + thumbnailsHeight;
-                    if (DashToDock && DashToDock.dock && DashToDockExtension.hasDockPositionKey) {
-                        if (DashToDock.dock._position == St.Side.TOP &&
-                            self._position == St.Side.TOP) {
-                                controlsHeight = Math.max(dashHeight, thumbnailsHeight);
-                                geometry.y += controlsHeight;
-                        } else {
-                            if (DashToDock.dock._position == St.Side.TOP) {
-                                geometry.y += dashHeight;
-                            }
-                            if (self._position == St.Side.TOP) {
-                                geometry.y += thumbnailsHeight;
-                            }
-                        }
-                        if (DashToDock.dock._position == St.Side.BOTTOM &&
-                            self._position == St.Side.BOTTOM) {
-                                controlsHeight = Math.max(dashHeight, thumbnailsHeight);
-                        }
+                }
+
+                // What if dash and thumbnailsBox are not on the primary monitor?
+                let controlsHeight = dashHeight + thumbnailsHeight;
+                if (DashToDock && DashToDock.dock && DashToDockExtension.hasDockPositionKey) {
+                    if (DashToDock.dock._position == St.Side.TOP &&
+                        self._position == St.Side.TOP) {
+                            controlsHeight = Math.max(dashHeight, thumbnailsHeight);
+                            geometry.y += controlsHeight;
                     } else {
+                        if (DashToDock.dock._position == St.Side.TOP) {
+                            geometry.y += dashHeight;
+                        }
                         if (self._position == St.Side.TOP) {
                             geometry.y += thumbnailsHeight;
                         }
                     }
-                    geometry.height -= controlsHeight;
+                    if (DashToDock.dock._position == St.Side.BOTTOM &&
+                        self._position == St.Side.BOTTOM) {
+                            controlsHeight = Math.max(dashHeight, thumbnailsHeight);
+                    }
+                } else {
+                    if (self._position == St.Side.TOP) {
+                        geometry.y += thumbnailsHeight;
+                    }
                 }
+                geometry.height -= controlsHeight;
+
 
                 if (_DEBUG_) global.log("MONITOR = "+i);
                 this._workspacesViews[i].setMyActualGeometry(geometry);
@@ -937,6 +988,20 @@ const DockedWorkspaces = new Lang.Class({
     _updateYPosition: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _updateYPosition");
         this._updateSize();
+    },
+
+    // handler for when workspaces are added
+    _onWorkspaceAdded: function() {
+        if (_DEBUG_) global.log("dockedWorkspaces: _onWorkspaceAdded");
+        this._updateSize();
+        this._redisplay();
+    },
+
+    // handler for when workspaces are removed
+    _onWorkspaceRemoved: function() {
+        if (_DEBUG_) global.log("dockedWorkspaces: _onWorkspaceRemoved");
+        this._updateSize();
+        this._redisplay();
     },
 
     _updateTriggerWidth: function() {
@@ -1040,6 +1105,18 @@ const DockedWorkspaces = new Lang.Class({
             this._redisplay();
         }));
 
+        this._settings.connect('changed::shortcuts-panel-show-running', Lang.bind(this, function() {
+            this._shortcutsPanel.refresh();
+            this._updateSize();
+            this._redisplay();
+        }));
+
+        this._settings.connect('changed::shortcuts-panel-show-places', Lang.bind(this, function() {
+            this._shortcutsPanel.refresh();
+            this._updateSize();
+            this._redisplay();
+        }));
+
         this._settings.connect('changed::dock-edge-visible', Lang.bind(this, function() {
             this._updateTriggerWidth();
             this._redisplay();
@@ -1111,10 +1188,27 @@ const DockedWorkspaces = new Lang.Class({
             this._refreshThumbnails();
         }));
 
-        this._settings.connect('changed::extend-height', Lang.bind(this, function() {
+        this._settings.connect('changed::customize-height', Lang.bind(this, function() {
             // Add or remove addtional style class when workspace is fixed and set to full height
-            if (this._settings.get_boolean('extend-height') && this._settings.get_double('top-margin') == 0) {
-                this._dock.add_style_class_name('fullheight');
+            if (this._settings.get_boolean('customize-height') && this._settings.get_int('customize-height-option') == 1) {
+                if (this._settings.get_double('top-margin') == 0 || this._settings.get_double('bottom-margin') == 0) {
+                    this._dock.add_style_class_name('fullheight');
+                } else {
+                    this._dock.remove_style_class_name('fullheight');
+                }
+            } else {
+                this._dock.remove_style_class_name('fullheight');
+            }
+            this._updateSize();
+        }));
+        this._settings.connect('changed::customize-height-option', Lang.bind(this, function() {
+            // Add or remove addtional style class when workspace is fixed and set to full height
+            if (this._settings.get_boolean('customize-height') && this._settings.get_int('customize-height-option') == 1) {
+                if (this._settings.get_double('top-margin') == 0 || this._settings.get_double('bottom-margin') == 0) {
+                    this._dock.add_style_class_name('fullheight');
+                } else {
+                    this._dock.remove_style_class_name('fullheight');
+                }
             } else {
                 this._dock.remove_style_class_name('fullheight');
             }
@@ -1122,8 +1216,12 @@ const DockedWorkspaces = new Lang.Class({
         }));
         this._settings.connect('changed::top-margin', Lang.bind(this, function() {
             // Add or remove addtional style class when workspace is fixed and set to full height
-            if (this._settings.get_boolean('extend-height') && this._settings.get_double('top-margin') == 0) {
-                this._dock.add_style_class_name('fullheight');
+            if (this._settings.get_boolean('customize-height') && this._settings.get_int('customize-height-option') == 1) {
+                if (this._settings.get_double('top-margin') == 0 || this._settings.get_double('bottom-margin') == 0) {
+                    this._dock.add_style_class_name('fullheight');
+                } else {
+                    this._dock.remove_style_class_name('fullheight');
+                }
             } else {
                 this._dock.remove_style_class_name('fullheight');
             }
@@ -1131,14 +1229,17 @@ const DockedWorkspaces = new Lang.Class({
         }));
         this._settings.connect('changed::bottom-margin', Lang.bind(this, function() {
             // Add or remove addtional style class when workspace is fixed and set to full height
-            if (this._settings.get_boolean('extend-height') && this._settings.get_double('top-margin') == 0) {
-                this._dock.add_style_class_name('fullheight');
+            if (this._settings.get_boolean('customize-height') && this._settings.get_int('customize-height-option') == 1) {
+                if (this._settings.get_double('top-margin') == 0 || this._settings.get_double('bottom-margin') == 0) {
+                    this._dock.add_style_class_name('fullheight');
+                } else {
+                    this._dock.remove_style_class_name('fullheight');
+                }
             } else {
                 this._dock.remove_style_class_name('fullheight');
             }
             this._updateSize();
         }));
-
         this._settings.connect('changed::toggle-dock-with-keyboard-shortcut', Lang.bind(this, function(){
             if (this._settings.get_boolean('toggle-dock-with-keyboard-shortcut'))
                 this._bindDockKeyboardShortcut();
@@ -1408,18 +1509,31 @@ const DockedWorkspaces = new Lang.Class({
         let direction;
         switch (event.get_scroll_direction()) {
         case Clutter.ScrollDirection.UP:
-            direction = Meta.MotionDirection.UP;
+            if (this._isHorizontal) {
+                direction = Meta.MotionDirection.LEFT;
+            } else {
+                direction = Meta.MotionDirection.UP;
+            }
             break;
         case Clutter.ScrollDirection.DOWN:
-            direction = Meta.MotionDirection.DOWN;
+            if (this._isHorizontal) {
+                direction = Meta.MotionDirection.RIGHT;
+            } else {
+                direction = Meta.MotionDirection.DOWN;
+            }
             break;
         }
 
         if (direction) {
             let ws = activeWs.get_neighbor(direction);
 
-            if (Main.wm._workspaceSwitcherPopup == null)
-                Main.wm._workspaceSwitcherPopup = new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup();
+            if (Main.wm._workspaceSwitcherPopup == null) {
+                if (this._isHorizontal) {
+                    Main.wm._workspaceSwitcherPopup = new MyWorkspaceSwitcherPopup.myWorkspaceSwitcherPopup();
+                } else {
+                    Main.wm._workspaceSwitcherPopup = new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup();
+                }
+            }
 
             // Set the workspaceSwitcherPopup actor to non reactive,
             // to prevent it from grabbing focus away from the dock
@@ -1543,7 +1657,7 @@ const DockedWorkspaces = new Lang.Class({
     _fadeOutBackground: function(time, delay) {
         if (_DEBUG_) global.log("dockedWorkspaces: _fadeOutBackground");
         // CSS time is in ms
-        this._thumbnailsBoxBackground.set_style('transition-duration:' + time*1000 + ';' +
+        this._thumbnailsBox.actor.set_style('transition-duration:' + time*1000 + ';' +
             'transition-delay:' + delay*1000 + ';' +
             'background-color:' + this._defaultBackground);
 
@@ -1556,7 +1670,7 @@ const DockedWorkspaces = new Lang.Class({
     _fadeInBackground: function(time, delay) {
         if (_DEBUG_) global.log("dockedWorkspaces: _fadeInBackground");
         // CSS time is in ms
-        this._thumbnailsBoxBackground.set_style('transition-duration:' + time*1000 + ';' +
+        this._thumbnailsBox.actor.set_style('transition-duration:' + time*1000 + ';' +
             'transition-delay:' + delay*1000 + ';' +
             'background-color:' + this._customBackground);
 
@@ -1615,16 +1729,16 @@ const DockedWorkspaces = new Lang.Class({
     _getBackgroundColor: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _getBackgroundColor");
         // Remove custom style
-        let oldStyle = this._thumbnailsBoxBackground.get_style();
-        this._thumbnailsBoxBackground.set_style(null);
+        let oldStyle = this._thumbnailsBox.actor.get_style();
+        this._thumbnailsBox.actor.set_style(null);
 
         // Prevent shell crash if the actor is not on the stage
         // It happens enabling/disabling repeatedly the extension
-        if (!this._thumbnailsBoxBackground.get_stage())
+        if (!this._thumbnailsBox.actor.get_stage())
             return null;
 
-        let themeNode = this._thumbnailsBoxBackground.get_theme_node();
-        this._thumbnailsBoxBackground.set_style(oldStyle);
+        let themeNode = this._thumbnailsBox.actor.get_theme_node();
+        this._thumbnailsBox.actor.set_style(oldStyle);
 
         let backgroundColor = themeNode.get_background_color();
         return backgroundColor;
@@ -1778,12 +1892,16 @@ const DockedWorkspaces = new Lang.Class({
     // update the dock size and position
     _updateSize: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _updateSize");
-        this._shortcutsPanelWidth = this._settings.get_boolean('show-shortcuts-panel') ? this._shortcutsPanel.actor.width : 0;
 
-        // check if the dock is on the primary monitor
-        let primary = false;
-        if (this._monitor.x == Main.layoutManager.primaryMonitor.x && this._monitor.y == Main.layoutManager.primaryMonitor.y)
-            primary = true;
+        // Accommodate shortcuts panel in calculations
+        let shortcutsPanelThickness = 0;
+        if (this._settings.get_boolean('show-shortcuts-panel')) {
+            if (this._isHorizontal) {
+                shortcutsPanelThickness = this._shortcutsPanel.actor.height;
+            } else {
+                shortcutsPanelThickness = this._shortcutsPanel.actor.width;
+            }
+        }
 
         // Get workspace area
         // This takes into account primary monitor and any additional extensions
@@ -1793,17 +1911,19 @@ const DockedWorkspaces = new Lang.Class({
         let x, y, width, height, anchorPoint;
         if (this._isHorizontal) {
             // Get x position and width
-            if (this._settings.get_boolean('extend-height')) {
+            if (this._settings.get_boolean('customize-height')) {
                 let leftMargin = Math.floor(this._settings.get_double('top-margin') * this._monitor.width);
                 let rightMargin = Math.floor(this._settings.get_double('bottom-margin') * this._monitor.width);
                 x = workArea.x + leftMargin;
                 width = workArea.width - leftMargin - rightMargin;
             } else {
-                width = this._monitor.width * .7;
-                x = this._monitor.x + (width * .5);
+                let margin = this._monitor.width * .1;
+                x = this._monitor.x + margin;
+                width = this._monitor.width - (margin * 2);
             }
 
             // Get y position, height, and anchorpoint
+            height = this._thumbnailsBox._thumbnailsBoxHeight + shortcutsPanelThickness;
             if (this._position == St.Side.TOP) {
                 y =  this._monitor.y;
                 anchorPoint = Clutter.Gravity.NORTH_WEST;
@@ -1814,7 +1934,7 @@ const DockedWorkspaces = new Lang.Class({
 
         } else {
             // Get x position, width, and anchorpoint
-            width = this._thumbnailsBox.actor.width + this._shortcutsPanelWidth;
+            width = this._thumbnailsBox._thumbnailsBoxWidth + shortcutsPanelThickness;
             if (this._position == St.Side.LEFT) {
                 x = this._monitor.x;
                 anchorPoint = Clutter.Gravity.NORTH_WEST;
@@ -1824,7 +1944,7 @@ const DockedWorkspaces = new Lang.Class({
             }
 
             // Get y position and height
-            if (this._settings.get_boolean('extend-height')) {
+            if (this._settings.get_boolean('customize-height')) {
                 let topMargin = Math.floor(this._settings.get_double('top-margin') * this._monitor.height);
                 let bottomMargin = Math.floor(this._settings.get_double('bottom-margin') * this._monitor.height);
                 y = workArea.y + topMargin;
@@ -1838,7 +1958,7 @@ const DockedWorkspaces = new Lang.Class({
         }
 
         //// skip updating if size is same
-        //if ((this.actor.y == y) && (this.actor.width == this._thumbnailsBox.actor.width + this._shortcutsPanelWidth) && (this.actor.height == height)) {
+        //if ((this.actor.y == y) && (this.actor.width == this._thumbnailsBox._thumbnailsBoxWidth + shortcutsPanelThickness) && (this.actor.height == height)) {
             //return;
         //}
 
@@ -1847,14 +1967,48 @@ const DockedWorkspaces = new Lang.Class({
         if (_DEBUG_) global.log("dockedWorkspaces: _updateSize new x = "+x+" y = "+y);
 
         // Update size of wrapper actor and _dock inside the slider
-        this.actor.set_size(width + this._triggerSpacer.width, height); // This is the whole dock wrapper
-        this._dock.set_size(width + this._triggerSpacer.width, height); // This is the actual dock inside the slider that we check for mouse hover
+        if (this._isHorizontal) {
+            this.actor.set_size(width, height + this._triggerSpacer.height); // This is the whole dock wrapper
+            this._dock.set_size(width, height + this._triggerSpacer.height); // This is the actual dock inside the slider that we check for mouse hover
+            if (this._settings.get_boolean('customize-height') && this._settings.get_int('customize-height-option') == 0) {
+                this._containerWrapper.set_size(width, height + this._triggerSpacer.height);
+                let [minThumbnailsBoxWidth, minThumbnailsBoxHeight, natThumbnailsBoxWidth, natThumbnailsBoxHeight] = this._thumbnailsBox.actor.get_preferred_size();
+                let minShortcutsPanelWidth, minShortcutsPanelHeight, natShortcutsPanelWidth, natShortcutsPanelHeight = 0;
+                if (this._settings.get_boolean('show-shortcuts-panel')) {
+                    [minShortcutsPanelWidth, minShortcutsPanelHeight, natShortcutsPanelWidth, natShortcutsPanelHeight] = this._shortcutsPanel.actor.get_preferred_size();
+                }
+                let containerWidth = natThumbnailsBoxWidth > natShortcutsPanelWidth ? natThumbnailsBoxWidth : natShortcutsPanelWidth;
+                if (containerWidth > width) {
+                    containerWidth = width;
+                }
+                this._container.set_size(containerWidth, height + this._triggerSpacer.height);
+            } else {
+                this._containerWrapper.set_size(width, height + this._triggerSpacer.height);
+                this._container.set_size(width, height + this._triggerSpacer.height);
+            }
+        } else {
+            this.actor.set_size(width + this._triggerSpacer.width, height); // This is the whole dock wrapper
+            this._dock.set_size(width + this._triggerSpacer.width, height); // This is the actual dock inside the slider that we check for mouse hover
+            if (this._settings.get_boolean('customize-height') && this._settings.get_int('customize-height-option') == 0) {
+                this._containerWrapper.set_size(width + this._triggerSpacer.width, height);
+                let [minThumbnailsBoxWidth, minThumbnailsBoxHeight, natThumbnailsBoxWidth, natThumbnailsBoxHeight] = this._thumbnailsBox.actor.get_preferred_size();
+                let minShortcutsPanelWidth, minShortcutsPanelHeight, natShortcutsPanelWidth, natShortcutsPanelHeight = 0;
+                if (this._settings.get_boolean('show-shortcuts-panel')) {
+                    [minShortcutsPanelWidth, minShortcutsPanelHeight, natShortcutsPanelWidth, natShortcutsPanelHeight] = this._shortcutsPanel.actor.get_preferred_size();
+                }
+                let containerHeight = natThumbnailsBoxHeight > natShortcutsPanelHeight ? natThumbnailsBoxHeight : natShortcutsPanelHeight;
+                if (containerHeight > height) {
+                    containerHeight = height;
+                }
+                this._container.set_size(width + this._triggerSpacer.width, containerHeight);
+            } else {
+                this._containerWrapper.set_size(width + this._triggerSpacer.width, height);
+                this._container.set_size(width + this._triggerSpacer.width, height);
+            }
+        }
 
         // Set anchor points
         this.actor.move_anchor_point_from_gravity(anchorPoint);
-
-        // Set height of thumbnailsBox actor to match
-        this._thumbnailsBox.actor.height = height;
 
         // Update slider slideout width
         let slideoutSize = this._triggerWidth;

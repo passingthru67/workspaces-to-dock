@@ -480,27 +480,34 @@ const myThumbnailsBox = new Lang.Class({
     _init: function(dock) {
         this._dock = dock;
         this._gsCurrentVersion = Config.PACKAGE_VERSION.split('.');
+        this._thumbnailsBoxWidth = 0;
+        this._thumbnailsBoxHeight = 0;
         this._mySettings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
         this._position = getPosition(this._mySettings);
         this._isHorizontal = (this._position == St.Side.TOP ||
                               this._position == St.Side.BOTTOM);
 
         // override _init to remove create/destroy thumbnails when showing/hiding overview
-        this.actor = new Shell.GenericContainer({ reactive: true,
+        if (this._isHorizontal) {
+            this.actor = new Shell.GenericContainer({ reactive: true,
                                                   style_class: 'workspace-thumbnails',
-                                                  request_mode: Clutter.RequestMode.WIDTH_FOR_HEIGHT });
+                                                  request_mode: Clutter.RequestMode.HEIGHT_FOR_WIDTH });
+        } else {
+            this.actor = new Shell.GenericContainer({ reactive: true,
+                                                style_class: 'workspace-thumbnails',
+                                                request_mode: Clutter.RequestMode.WIDTH_FOR_HEIGHT });
+        }
+
         this.actor.connect('get-preferred-width', Lang.bind(this, this._getPreferredWidth));
         this.actor.connect('get-preferred-height', Lang.bind(this, this._getPreferredHeight));
         this.actor.connect('allocate', Lang.bind(this, this._allocate));
         this.actor._delegate = this;
 
-        // if (this._position == St.Side.LEFT) {
-        //     this.actor.add_style_class_name('left');
-        // }
-
         // Add addtional style class when workspace is fixed and set to full height
-        if (this._mySettings.get_boolean('extend-height') && this._mySettings.get_double('top-margin') == 0) {
-            this.actor.add_style_class_name('workspace-thumbnails-fullheight');
+        if (this._mySettings.get_boolean('customize-height') && this._mySettings.get_int('customize-height-option') == 1) {
+            if (this._mySettings.get_double('top-margin') == 0 || this._mySettings.get_double('bottom-margin') == 0) {
+                this.actor.add_style_class_name('workspace-thumbnails-fullheight');
+            }
         }
 
         let indicator = new St.Bin({ style_class: 'workspace-thumbnail-indicator' });
@@ -669,10 +676,17 @@ const myThumbnailsBox = new Lang.Class({
         this._dropWorkspace = -1;
         let placeholderPos = -1;
         let targetBase;
-        if (this._dropPlaceholderPos == 0)
-            targetBase = this._dropPlaceholder.y;
-        else
-            targetBase = this._thumbnails[0].actor.y;
+        if (this._isHorizontal) {
+            if (this._dropPlaceholderPos == 0)
+                targetBase = this._dropPlaceholder.x;
+            else
+                targetBase = this._thumbnails[0].actor.x;
+        } else {
+            if (this._dropPlaceholderPos == 0)
+                targetBase = this._dropPlaceholder.y;
+            else
+                targetBase = this._thumbnails[0].actor.y;
+        }
         let targetTop = targetBase - spacing - WORKSPACE_CUT_SIZE;
         let length = this._thumbnails.length;
         for (let i = 0; i < length; i ++) {
@@ -680,24 +694,44 @@ const myThumbnailsBox = new Lang.Class({
             // each side of the thumbnail, to make dragging onto the
             // placeholder easier
             let [w, h] = this._thumbnails[i].actor.get_transformed_size();
-            let targetBottom = targetBase + WORKSPACE_CUT_SIZE;
-            let nextTargetBase = targetBase + h + spacing;
-            let nextTargetTop =  nextTargetBase - spacing - ((i == length - 1) ? 0: WORKSPACE_CUT_SIZE);
+            let targetBottom, nextTargetBase, nextTargetTop;
+            if (this._isHorizontal) {
+                let targetBottom = targetBase + WORKSPACE_CUT_SIZE;
+                let nextTargetBase = targetBase + w + spacing;
+                let nextTargetTop =  nextTargetBase - spacing - ((i == length - 1) ? 0: WORKSPACE_CUT_SIZE);
 
-            // Expand the target to include the placeholder, if it exists.
-            if (i == this._dropPlaceholderPos)
-                targetBottom += this._dropPlaceholder.get_height();
+                // Expand the target to include the placeholder, if it exists.
+                if (i == this._dropPlaceholderPos)
+                    targetBottom += this._dropPlaceholder.get_width();
 
-            if (y > targetTop && y <= targetBottom && source != Main.xdndHandler && canCreateWorkspaces) {
-                placeholderPos = i;
-                break;
-            } else if (y > targetBottom && y <= nextTargetTop) {
-                this._dropWorkspace = i;
-                break
+                if (x > targetTop && x <= targetBottom && source != Main.xdndHandler && canCreateWorkspaces) {
+                    placeholderPos = i;
+                    break;
+                } else if (x > targetBottom && x <= nextTargetTop) {
+                    this._dropWorkspace = i;
+                    break
+                }
+                targetBase = nextTargetBase;
+                targetTop = nextTargetTop;
+            } else {
+                targetBottom = targetBase + WORKSPACE_CUT_SIZE;
+                nextTargetBase = targetBase + h + spacing;
+                nextTargetTop =  nextTargetBase - spacing - ((i == length - 1) ? 0: WORKSPACE_CUT_SIZE);
+
+                // Expand the target to include the placeholder, if it exists.
+                if (i == this._dropPlaceholderPos)
+                    targetBottom += this._dropPlaceholder.get_height();
+
+                if (y > targetTop && y <= targetBottom && source != Main.xdndHandler && canCreateWorkspaces) {
+                    placeholderPos = i;
+                    break;
+                } else if (y > targetBottom && y <= nextTargetTop) {
+                    this._dropWorkspace = i;
+                    break
+                }
+                targetBase = nextTargetBase;
+                targetTop = nextTargetTop;
             }
-
-            targetBase = nextTargetBase;
-            targetTop = nextTargetTop;
         }
 
         if (this._dropPlaceholderPos != placeholderPos) {
@@ -850,10 +884,18 @@ const myThumbnailsBox = new Lang.Class({
         for (let i = 0; i < this._thumbnails.length; i++) {
             let thumbnail = this._thumbnails[i];
             let [w, h] = thumbnail.actor.get_transformed_size();
-            if (y >= thumbnail.actor.y && y <= thumbnail.actor.y + h) {
-                //thumbnail.activate(event.time);
-                thumbnail.activate(event.get_time());
-                break;
+            if (this._isHorizontal) {
+                if (x >= thumbnail.actor.x && x <= thumbnail.actor.x + w) {
+                    //thumbnail.activate(event.time);
+                    thumbnail.activate(event.get_time());
+                    break;
+                }
+            } else {
+                if (y >= thumbnail.actor.y && y <= thumbnail.actor.y + h) {
+                    //thumbnail.activate(event.time);
+                    thumbnail.activate(event.get_time());
+                    break;
+                }
             }
         }
         return Clutter.EVENT_STOP;
@@ -936,7 +978,6 @@ const myThumbnailsBox = new Lang.Class({
         if (this._mySettings.get_boolean('workspace-captions')) {
             captionBackgroundHeight = this._mySettings.get_double('workspace-caption-height');
         }
-        spacing = spacing + captionBackgroundHeight;
 
         let nWorkspaces = global.screen.n_workspaces;
 
@@ -953,18 +994,25 @@ const myThumbnailsBox = new Lang.Class({
             }
 
             let height = Math.round(this._porthole.height * scale);
-            alloc.min_size = height;
-            alloc.natural_size = height;
+            // alloc.min_size = height;
+            // alloc.natural_size = height;
+            alloc.min_size = height + captionBackgroundHeight;
+            alloc.natural_size = height + captionBackgroundHeight;
 
         } else {
-            // passingthru67 - add 5px to totalSpacing calculation
-            // otherwise scale doesn't kick in soon enough and total thumbnails height is greater than height of dock
-            // why is 5px needed? spacing was already adjusted in gnome-shell.css from 7px to 27px (GS36 11px to ?)
-            // does it have anything to do with a border added by St.Bin in WorkspaceThumbnails _background?
+            // passingthru67: calculate extra padding-spacing needed due to caption
+            let paddingTop = themeNode.get_padding(St.Side.TOP);
+            let paddingBottom = themeNode.get_padding(St.Side.BOTTOM);
+            let borderTop = themeNode.get_border_width(St.Side.TOP);
+            let borderBottom = themeNode.get_border_width(St.Side.BOTTOM);
+            let totalExtraSpacing = borderTop + borderBottom + paddingTop + paddingBottom + 3;
+
+            spacing = spacing + captionBackgroundHeight;
+
             //let totalSpacing = (nWorkspaces - 1) * spacing;
             let totalSpacing;
             if (this._mySettings.get_boolean('workspace-captions')) {
-                totalSpacing = (nWorkspaces - 1) * (spacing + 5);
+                totalSpacing = (nWorkspaces - 1) * (spacing);
             } else {
                 totalSpacing = (nWorkspaces - 1) * spacing;
             }
@@ -977,7 +1025,7 @@ const myThumbnailsBox = new Lang.Class({
             }
 
             alloc.min_size = totalSpacing;
-            alloc.natural_size = totalSpacing + nWorkspaces * this._porthole.height * maxScale;
+            alloc.natural_size = totalExtraSpacing + totalSpacing + nWorkspaces * this._porthole.height * maxScale;
         }
     },
 
@@ -988,12 +1036,6 @@ const myThumbnailsBox = new Lang.Class({
 
         let spacing = this.actor.get_theme_node().get_length('spacing');
 
-        // passingthru67 - make room for thumbnail captions
-        let captionBackgroundHeight = 0;
-        if (this._mySettings.get_boolean('workspace-captions')) {
-            captionBackgroundHeight = this._mySettings.get_double('workspace-caption-height');
-        }
-        spacing = spacing + captionBackgroundHeight;
 
         let nWorkspaces = global.screen.n_workspaces;
 
@@ -1011,19 +1053,29 @@ const myThumbnailsBox = new Lang.Class({
             alloc.natural_size = totalSpacing + nWorkspaces * this._porthole.width * maxScale;
 
         } else {
-            // passingthru67 - add 5px to totalSpacing calculation
-            // otherwise scale doesn't kick in soon enough and total thumbnails height is greater than height of dock
-            // why is 5px needed? spacing was already adjusted in gnome-shell.css from 7px to 27px (GS36 11px to ?)
-            // does it have anything to do with a border added by St.Bin in WorkspaceThumbnails _background?
+            // passingthru67: calculate extra padding-spacing needed due to caption
+            let paddingTop = themeNode.get_padding(St.Side.TOP);
+            let paddingBottom = themeNode.get_padding(St.Side.BOTTOM);
+            let borderTop = themeNode.get_border_width(St.Side.TOP);
+            let borderBottom = themeNode.get_border_width(St.Side.BOTTOM);
+            let totalExtraSpacing = borderTop + borderBottom + paddingTop + paddingBottom + 3;
+
+            // passingthru67 - make room for thumbnail captions
+            let captionBackgroundHeight = 0;
+            if (this._mySettings.get_boolean('workspace-captions')) {
+                captionBackgroundHeight = this._mySettings.get_double('workspace-caption-height');
+            }
+            spacing = spacing + captionBackgroundHeight;
+
             //let totalSpacing = (nWorkspaces - 1) * spacing;
             let totalSpacing;
-            if (this._mySettings.get_boolean('workspace-captions') && !this._isHorizontal) {
-                totalSpacing = (nWorkspaces - 1) * (spacing + 5);
+            if (this._mySettings.get_boolean('workspace-captions')) {
+                totalSpacing = (nWorkspaces - 1) * (spacing);
             } else {
                 totalSpacing = (nWorkspaces - 1) * spacing;
             }
 
-            let avail = forHeight - totalSpacing;
+            let avail = forHeight - totalSpacing - totalExtraSpacing;
 
             let scale = (avail / nWorkspaces) / this._porthole.height;
             if (this._mySettings.get_boolean('customize-thumbnail')) {
@@ -1073,12 +1125,23 @@ const myThumbnailsBox = new Lang.Class({
     // override _allocate to provide area for workspaceThumbnail captions
     // also serves to update caption items
     _allocate: function(actor, box, flags) {
-        let rtl = (Clutter.get_default_text_direction () == Clutter.TextDirection.RTL);
+        if (_DEBUG_) global.log("THUMBNAILBOX width="+this.actor.width+" height="+this.actor.height);
+        this._thumbnailsBoxWidth = this.actor.width;
+        this._thumbnailsBoxHeight = this.actor.height;
+
+        // passingthru67: we use this._position instead of rtl
+        // let rtl = (Clutter.get_default_text_direction () == Clutter.TextDirection.RTL);
 
         if (this._thumbnails.length == 0) // not visible
             return;
 
         let themeNode = this.actor.get_theme_node();
+
+        let paddingTop = themeNode.get_padding(St.Side.TOP);
+        let paddingBottom = themeNode.get_padding(St.Side.BOTTOM);
+        let borderTop = themeNode.get_border_width(St.Side.TOP);
+        let borderBottom = themeNode.get_border_width(St.Side.BOTTOM);
+        let totalExtraSpacing = borderTop + borderBottom + paddingTop + paddingBottom + 3;
 
         let portholeWidth = this._porthole.width;
         let portholeHeight = this._porthole.height;
@@ -1096,30 +1159,34 @@ const myThumbnailsBox = new Lang.Class({
             // This value should actually be gotten from the theme node get_padding
         }
 
-        spacing = spacing + captionBackgroundHeight;
+        if (!this._isHorizontal) {
+            spacing = spacing + captionBackgroundHeight;
+        }
 
         // Compute the scale we'll need once everything is updated
         let nWorkspaces = global.screen.n_workspaces;
 
-        // passingthru67 - add 5px to totalSpacing calculation
-        // otherwise newScale doesn't kick in soon enough and total thumbnails height is greater than height of dock
-        // why is 5px needed? spacing was already adjusted in gnome-shell.css from 7px to 27px (GS36 11px to ?)
-        // does it have anything to do with a border added by St.Bin in WorkspaceThumbnails _background?
-        //let totalSpacing = (nWorkspaces - 1) * spacing;
+        // passingthru67 - total spacing depends on on caption showing
         let totalSpacing;
         if (this._mySettings.get_boolean('workspace-captions') && !this._isHorizontal) {
-            totalSpacing = (nWorkspaces - 1) * (spacing + 5);
+            totalSpacing = (nWorkspaces - 1) * (spacing);
         } else {
             totalSpacing = (nWorkspaces - 1) * spacing;
         }
 
-        let avail = (box.y2 - box.y1) - totalSpacing;
-        if (this._isHorizontal)
+        let avail;
+        if (this._isHorizontal) {
             avail = (box.x2 - box.x1) - totalSpacing;
+        } else {
+            avail = (box.y2 - box.y1) - totalSpacing - totalExtraSpacing;
+        }
 
-        let newScale = (avail / nWorkspaces) / portholeHeight;
-        if (this._isHorizontal)
+        let newScale;
+        if (this._isHorizontal) {
             newScale = (avail / nWorkspaces) / portholeWidth;
+        } else {
+            newScale = (avail / nWorkspaces) / portholeHeight
+        }
 
         if (this._mySettings.get_boolean('customize-thumbnail')) {
             newScale = Math.min(newScale, this._mySettings.get_double('thumbnail-size'));
@@ -1154,18 +1221,14 @@ const myThumbnailsBox = new Lang.Class({
         }
 
         let slideOffset; // X offset when thumbnail is fully slid offscreen
-        // if (rtl)
-        //     slideOffset = - (thumbnailWidth + themeNode.get_padding(St.Side.LEFT));
-        // else
-        //     slideOffset = thumbnailWidth + themeNode.get_padding(St.Side.RIGHT);
         if (this._position == St.Side.LEFT)
             slideOffset = - (thumbnailWidth + themeNode.get_padding(St.Side.LEFT));
         else if (this._position == St.Side.RIGHT)
             slideOffset = thumbnailWidth + themeNode.get_padding(St.Side.RIGHT);
         else if (this._position == St.Side.TOP)
-            slideOffset = - (thumbnailHeight + themeNode.get_padding(St.Side.TOP));
+            slideOffset = - (thumbnailHeight + themeNode.get_padding(St.Side.LEFT));
         else if (this._position == St.Side.BOTTOM)
-            slideOffset = thumbnailHeight + themeNode.get_padding(St.Side.BOTTOM);
+            slideOffset = thumbnailHeight + themeNode.get_padding(St.Side.RIGHT);
 
         let indicatorY1 = this._indicatorY;
         let indicatorY2;
@@ -1198,22 +1261,24 @@ const myThumbnailsBox = new Lang.Class({
             for (let i = 0; i < this._thumbnails.length; i++) {
                 let thumbnail = this._thumbnails[i];
 
-                let y1, y2;
-                if (rtl) {
-                    y1 = box.y1 + slideOffset * thumbnail.slidePosition;
-                    y2 = y1 + thumbnailHeight;
-                } else {
-                    y1 = box.y2 - thumbnailHeight + slideOffset * thumbnail.slidePosition;
-                    y2 = y1 + thumbnailHeight;
+                if (i > 0) {
+                    // x += spacing - Math.round(thumbnail.collapseFraction * spacing);
+                    x += spacing;
                 }
 
-                if (i > 0)
-                    x += spacing - Math.round(thumbnail.collapseFraction * spacing);
+                let y1, y2;
+                if (this._position == St.Side.TOP) {
+                    y1 = box.y1;
+                    y2 = y1 + thumbnailHeight + captionBackgroundHeight;
+                } else {
+                    y1 = box.y2 - thumbnailHeight - captionBackgroundHeight;
+                    y2 = y1 + thumbnailHeight + captionBackgroundHeight;
+                }
 
                 if (i == this._dropPlaceholderPos) {
                     let [minWidth, placeholderWidth] = this._dropPlaceholder.get_preferred_width(-1);
                     childBox.y1 = y1;
-                    childBox.y2 = y1 + thumbnailHeight;
+                    childBox.y2 = y1 + thumbnailHeight + captionBackgroundHeight;
                     childBox.x1 = Math.round(x);
                     childBox.x2 = Math.round(x + placeholderWidth);
                     this._dropPlaceholder.allocate(childBox, flags);
@@ -1247,7 +1312,6 @@ const myThumbnailsBox = new Lang.Class({
                 childBox.x2 = x1 + portholeWidth;
                 childBox.y1 = y1;
                 // passingthru67 - size needs to include caption area
-                //childBox.y2 = y1 + portholeHeight;
                 childBox.y2 = y1 + portholeHeight + (captionBackgroundHeight/roundedVScale);
 
                 thumbnail.actor.set_scale(roundedHScale, roundedVScale);
@@ -1265,9 +1329,9 @@ const myThumbnailsBox = new Lang.Class({
 
             if (this._position == St.Side.TOP) {
                 childBox.y1 = box.y1;
-                childBox.y2 = box.y1 + thumbnailHeight;
+                childBox.y2 = box.y1 + thumbnailHeight + captionBackgroundHeight;
             } else {
-                childBox.y1 = box.y2 - thumbnailHeight;
+                childBox.y1 = box.y2 - thumbnailHeight - captionBackgroundHeight;
                 childBox.y2 = box.y2;
             }
             childBox.y1 -= indicatorTopFullBorder;
@@ -1283,7 +1347,8 @@ const myThumbnailsBox = new Lang.Class({
                     y += spacing - Math.round(thumbnail.collapseFraction * spacing);
 
                 let x1, x2;
-                if (rtl) {
+
+                if (this._position == St.Side.LEFT) {
                     x1 = box.x1 + slideOffset * thumbnail.slidePosition;
                     x2 = x1 + thumbnailWidth;
                 } else {
@@ -1310,7 +1375,6 @@ const myThumbnailsBox = new Lang.Class({
                 // we compute an actual scale separately for each thumbnail.
                 let y1 = Math.round(y);
                 let y2 = Math.round(y + thumbnailHeight);
-                // let roundedVScale = (y2 - y1) / portholeHeight;
                 // passingthru67 - roundedVScale now defined above with roundedHScale
                 roundedVScale = (y2 - y1) / portholeHeight;
 
@@ -1330,7 +1394,6 @@ const myThumbnailsBox = new Lang.Class({
                 childBox.x2 = x1 + portholeWidth;
                 childBox.y1 = y1;
                 // passingthru67 - size needs to include caption area
-                //childBox.y2 = y1 + portholeHeight;
                 childBox.y2 = y1 + portholeHeight + (captionBackgroundHeight/roundedVScale);
 
                 thumbnail.actor.set_scale(roundedHScale, roundedVScale);
@@ -1346,7 +1409,7 @@ const myThumbnailsBox = new Lang.Class({
                 y += thumbnailHeight - Math.round(thumbnailHeight * thumbnail.collapseFraction);
             }
 
-            if (rtl) {
+            if (this._position == St.Side.LEFT) {
                 childBox.x1 = box.x1;
                 childBox.x2 = box.x1 + thumbnailWidth;
             } else {
@@ -1357,7 +1420,6 @@ const myThumbnailsBox = new Lang.Class({
             childBox.x2 += indicatorRightFullBorder;
             childBox.y1 = indicatorY1 - indicatorTopFullBorder;
             // passingthru67 - indicator needs to include caption
-            //childBox.y2 = (indicatorY2 ? indicatorY2 : (indicatorY1 + thumbnailHeight)) + indicatorBottomFullBorder;
             childBox.y2 = (indicatorY2 ? indicatorY2 + captionBackgroundHeight : (indicatorY1 + thumbnailHeight + captionBackgroundHeight)) + indicatorBottomFullBorder;
         }
 

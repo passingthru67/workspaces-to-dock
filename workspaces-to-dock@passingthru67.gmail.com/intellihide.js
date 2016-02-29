@@ -661,10 +661,13 @@ const Intellihide = new Lang.Class({
                             let [dx, dy] = this._dock.actor.get_position();
                             let [dwidth, dheight] = this._dock.actor.get_size();
                             let test;
-                            if (this._dock._position == St.Side.LEFT) {
+                            if (_DEBUG_) global.log("win x="+rect.x+" y="+rect.y+" w="+rect.width+" h="+rect.height+" dock x="+dx+" y="+dy+" w="+dwidth+" h="+dheight);
+                            if (this._dock._position == St.Side.LEFT || this._dock._position == St.Side.TOP) {
                                 test = (rect.x < dx + dwidth) && (rect.x + rect.width > dx) && (rect.y < dy + dheight) && (rect.y + rect.height > dy);
                             } else if (this._dock._position == St.Side.RIGHT) {
                                 test = (rect.x < dx) && (rect.x + rect.width > dx - dwidth) && (rect.y < dy + dheight) && (rect.y + rect.height > dy);
+                            } else if (this._dock._position == St.Side.BOTTOM) {
+                                test = (rect.x < dx + dwidth) && (rect.x + rect.width > dx) && (rect.y + rect.height > dy - dheight) && (rect.y < dy);
                             }
                             if (test) {
                                 overlaps = true;

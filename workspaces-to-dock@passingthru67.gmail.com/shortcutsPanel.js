@@ -595,11 +595,15 @@ const ShortcutsPanel = new Lang.Class({
     _init: function (dock) {
         this._dock = dock;
         this._settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
-        if (dock._isHorizontal) {
-            this.actor = new St.BoxLayout({ style_class: 'workspace-thumbnails workspacestodock-shortcuts-panel', vertical: false, clip_to_allocation: true });
-        } else {
-            this.actor = new St.BoxLayout({ style_class: 'workspace-thumbnails workspacestodock-shortcuts-panel', vertical: true, clip_to_allocation: true });
-        }
+        this._position = getPosition(this._settings);
+        this._isHorizontal = (this._position == St.Side.TOP ||
+                              this._position == St.Side.BOTTOM);
+
+        let packVertical = true;
+        if (this._isHorizontal)
+            packVertical = false;
+
+        this.actor = new St.BoxLayout({ style_class: 'workspace-thumbnails workspacestodock-shortcuts-panel', vertical: packVertical, clip_to_allocation: true });
         this.actor._delegate = this;
 
         this._appSystem = Shell.AppSystem.get_default();
@@ -916,20 +920,24 @@ const ShortcutsPanel = new Lang.Class({
     },
 
     _populate: function() {
+        let packVertical = true;
+        if (this._isHorizontal)
+            packVertical = false;
+
         // Add Favorite Apps Box
-        this._favoriteAppsBox = new St.BoxLayout({ vertical: true, style_class: 'workspacestodock-shortcuts-panel workspacestodock-shortcuts-panel-favorites' });
+        this._favoriteAppsBox = new St.BoxLayout({ vertical: packVertical, style_class: 'workspacestodock-shortcuts-panel workspacestodock-shortcuts-panel-favorites' });
         this.actor.add_actor(this._favoriteAppsBox);
         this._favoriteAppsWorkId = Main.initializeDeferredWork(this._favoriteAppsBox, Lang.bind(this, this._updateFavoriteApps));
 
         // Add Running Apps Box
         if (this._settings.get_boolean('shortcuts-panel-show-running')) {
-            this._runningAppsBox = new St.BoxLayout({ vertical: true, style_class: 'workspacestodock-shortcuts-panel workspacestodock-shortcuts-panel-running' });
+            this._runningAppsBox = new St.BoxLayout({ vertical: packVertical, style_class: 'workspacestodock-shortcuts-panel workspacestodock-shortcuts-panel-running' });
             this.actor.add_actor(this._runningAppsBox);
             this._updateRunningApps();
         }
 
         if (this._settings.get_boolean('shortcuts-panel-show-places')) {
-            this._placesBox = new St.BoxLayout({ vertical: true, style_class: 'workspacestodock-shortcuts-panel workspacestodock-shortcuts-panel-places' });
+            this._placesBox = new St.BoxLayout({ vertical: packVertical, style_class: 'workspacestodock-shortcuts-panel workspacestodock-shortcuts-panel-places' });
             this.actor.add_actor(this._placesBox);
 
             // Get places

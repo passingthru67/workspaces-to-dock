@@ -14,6 +14,10 @@
 # perl syntax with grep. So grep -P would work but grep -E, which is same
 # as egrep, would not work (it would be greedy)
 # ===========================================================
+# NOTE2: Requires adjusting lines with parenthesis
+# Remove duplicates of Miscellaneous Options, Extension Preferences
+# Remove duplicates of Right, Left
+# ===========================================================
 
 #root_dir=`dirname "${PWD}"`
 root_dir=${PWD}
