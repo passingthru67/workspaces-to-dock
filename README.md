@@ -3,7 +3,7 @@ workspaces-to-dock
 
 A Gnome Shell extension that transforms the workspaces of the overview mode into an intellihide dock.  The dock is positioned and sized to maintain tight integration with the Gnome Shell.
 
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Screenshot.png)
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/gnome-3.16/Screenshot.png)
 
 
 Installation:
@@ -27,7 +27,7 @@ The extension can be configured using `gnome-shell-extension-prefs`. No shell re
 General Settings:
 -----------------
 
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Prefs-General.png)
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/gnome-3.16/Prefs-General.png)
 
 - **Position:**
 
@@ -62,7 +62,7 @@ General Settings:
 Behavior Settings:
 ------------------
 
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Prefs-Behavior.png)
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/gnome-3.16/Prefs-Behavior.png)
 
 - **Intelligent Hiding:**
 
@@ -120,7 +120,7 @@ Behavior Settings:
 Thumbnails Settings:
 --------------------
 
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Prefs-Thumbnails.png)
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/gnome-3.16/Prefs-Thumbnails.png)
 
 - **Thumbnail Size:**
 
@@ -139,7 +139,7 @@ Thumbnails Settings:
     **Caption popup menu icon size** - Sets the size of the application icons in the caption popup menu.
 
 
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Popup.png)
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/gnome-3.16/Popup.png)
 
 - **Caption Items:**
 
@@ -154,7 +154,7 @@ Thumbnails Settings:
     **Show a spacer/filler** - When enabled, a spacer is inserted in the caption. It can be expanded to take up available space or its position can be adjusted using the arrow buttons.
 
 Below are examples of the workspace (thumbnail) caption in various configurations
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Thumbnails.png)
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/gnome-3.16/Thumbnails.png)
 
 
 Workspace Caption Theming:
@@ -165,7 +165,7 @@ Adding workspaces-to-dock caption support to a theme can be accomplished by plac
 Favorites Settings:
 -------------------
 
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Prefs-Favorites.png)
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/gnome-3.16/Prefs-Favorites.png)
 
 - **Favorite Shortcuts Panel:**
 
@@ -242,6 +242,9 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
+**version 33 for Gnome 3.16 (Mar 1, 2016)**
+- Backported fixes and features
+
 **version 32 for Gnome 3.18 (Feb 5, 2015)**
 - Bug fixes
 - Added support for positioning the dock at the top or bottom of the screen
