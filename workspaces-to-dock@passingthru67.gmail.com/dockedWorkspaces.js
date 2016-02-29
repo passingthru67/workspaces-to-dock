@@ -51,6 +51,13 @@ const PRESSURE_TIMEOUT = 1000;
 
 let GSFunctions = {};
 
+const DockState = {
+    HIDDEN:  0,
+    SHOWING: 1,
+    SHOWN:   2,
+    HIDING:  3
+};
+
 const DockedWorkspaces = new Lang.Class({
     Name: 'workspacesToDock.dockedWorkspaces',
 
@@ -75,8 +82,8 @@ const DockedWorkspaces = new Lang.Class({
         // Initially set to null - will be set during first enable/disable autohide
         this._autohideStatus = null;
 
-        // initialize animation status object
-        this._animStatus = new AnimationStatus(true);
+        // initialize dock state
+        this._dockState = DockState.HIDDEN;
 
         // initialize popup menu flag
         this._popupMenuShowing = false;
@@ -682,7 +689,7 @@ const DockedWorkspaces = new Lang.Class({
         if (_DEBUG_) global.log("dockedWorkspaces: _bindDockKeyboardShortcut");
         Main.wm.addKeybinding('dock-keyboard-shortcut', this._settings, Meta.KeyBindingFlags.NONE, Shell.KeyBindingMode.NORMAL,
             Lang.bind(this, function() {
-                if (this._autohideStatus && (this._animStatus.hidden() || this._animStatus.hiding())) {
+                if (this._autohideStatus && (this._dockState == DockState.HIDDEN || this._dockState == DockState.HIDING)) {
                     this._show();
                 } else {
                     this._hide();
@@ -868,8 +875,8 @@ const DockedWorkspaces = new Lang.Class({
     // Switches workspace by scrolling over the dock
     // This comes from desktop-scroller@obsidien.github.com
     _onScrollEvent: function (actor, event) {
-        if (_DEBUG_) global.log("dockedWorkspaces: _onScrollEvent autohideStatus = "+this._autohideStatus+" animHidden = "+this._animStatus.hidden()+" animHiding = "+this._animStatus.hiding());
-        if (this._settings.get_boolean('disable-scroll') && this._autohideStatus && (this._animStatus.hidden() || this._animStatus.hiding()))
+        if (_DEBUG_) global.log("dockedWorkspaces: _onScrollEvent autohideStatus = "+this._autohideStatus+" dockState = "+this._dockState);
+        if (this._settings.get_boolean('disable-scroll') && this._autohideStatus && (this._dockState == DockState.HIDDEN || this._dockState == DockState.HIDING))
             return Clutter.EVENT_STOP;
 
         let activeWs = global.screen.get_active_workspace();
@@ -908,19 +915,16 @@ const DockedWorkspaces = new Lang.Class({
 
     // autohide function to show dock
     _show: function() {
-        let anim = this._animStatus;
-        if (_DEBUG_) global.log("dockedWorkspaces: _show autohideStatus = "+this._autohideStatus+" anim.hidden = "+anim.hidden()+" anim.hiding = "+anim.hiding());
+        if (_DEBUG_) global.log("dockedWorkspaces: _show autohideStatus = "+this._autohideStatus+" dockState = "+this._dockState);
 
-        if (this._autohideStatus && (anim.hidden() || anim.hiding())) {
-            let delay;
+        if (this._autohideStatus) {
+            let delay = 0;
             // If the dock is hidden, wait this._settings.get_double('show-delay') before showing it;
             // otherwise show it immediately.
-            if (anim.hidden()) {
+            if (this._dockState == DockState.HIDDEN) {
                 delay = this._settings.get_double('show-delay');
-            } else if (anim.hiding()) {
-                // suppress all potential queued hiding animations (always give priority to show)
+            } else if (this._dockState == DockState.HIDING) {
                 this._removeAnimations();
-                delay = 0;
             }
 
             this._animateIn(this._settings.get_double('animation-time'), delay);
@@ -929,28 +933,18 @@ const DockedWorkspaces = new Lang.Class({
 
     // autohide function to hide dock
     _hide: function() {
-        let anim = this._animStatus;
-        if (_DEBUG_) global.log("dockedWorkspaces: _hide autohideStatus = "+this._autohideStatus+" anim.shown = "+anim.shown()+" anim.showing = "+anim.showing());
+        if (_DEBUG_) global.log("dockedWorkspaces: _hide autohideStatus = "+this._autohideStatus+" dockState = "+this._dockState);
 
         // If no hiding animation is running or queued
-        if (!this._hoveringDash && this._autohideStatus && (anim.showing() || anim.shown())) {
-            let delay;
+        if (!this._hoveringDash && this._autohideStatus && !this.actor.hover) {
+            let delay = 0;
 
-            // If a show is queued but still not started (i.e the mouse was
-            // over the screen  border but then went away, i.e not a sufficient
-            // amount of time is passeed to trigger the dock showing) remove it.
-            if (anim.showing()) {
-                if (anim.running) {
-                    // If a show already started, let it finish; queue hide without removing the show.
-                    // to obtain this I increase the delay to avoid the overlap and interference
-                    // between the animations
-                    delay = this._settings.get_double('hide-delay') + 2 * this._settings.get_double('animation-time') + this._settings.get_double('show-delay');
-                } else {
-                    this._removeAnimations();
-                    delay = 0;
-                }
-            } else if (anim.shown()) {
+            // If the dock is shown, wait this._settings.get_double('show-delay') before hiding it;
+            // otherwise hide it immediately.
+            if (this._dockState == DockState.SHOWN) {
                 delay = this._settings.get_double('hide-delay');
+            } else if (this._dockState == DockState.SHOWING) {
+                this._removeAnimations();
             }
 
             this._animateOut(this._settings.get_double('animation-time'), delay);
@@ -982,7 +976,7 @@ const DockedWorkspaces = new Lang.Class({
         if (_DEBUG_) global.log("dockedWorkspaces: _animateIN - actor width = "+this.actor.width);
 
         if (final_position !== this.actor.x) {
-            this._animStatus.queue(true);
+            this._dockState = DockState.SHOWING;
             Tweener.addTween(this.actor, {
                 x: final_position,
                 time: time,
@@ -991,15 +985,10 @@ const DockedWorkspaces = new Lang.Class({
                 onUpdate: Lang.bind(this, this._updateClip),
                 onStart: Lang.bind(this, function() {
                     if (_DEBUG_) global.log("dockedWorkspaces: _animateIN onStart");
-                    this._animStatus.start();
                     this._unsetHiddenWidth();
                 }),
-                onOverwrite: Lang.bind(this, function() {
-                    this._animStatus.clear();
-                    if (_DEBUG_) global.log("dockedWorkspaces: _animateIN onOverwrite");
-                }),
                 onComplete: Lang.bind(this, function() {
-                    this._animStatus.end();
+                    this._dockState = DockState.SHOWN;
                     if (this._removeBarrierTimeoutId > 0) {
                         Mainloop.source_remove(this._removeBarrierTimeoutId);
                     }
@@ -1016,10 +1005,9 @@ const DockedWorkspaces = new Lang.Class({
                 })
             });
         } else {
-            // Still need to trigger animStatus states so that show/hide dock functions work properly
-            if (_DEBUG_) global.log("dockedWorkspaces: _animateIN final_position == actor.x .. trigger animStatus");
-            this._animStatus.queue(true);
-            this._animStatus.end();
+            // Still need to trigger dock state so that show/hide dock functions work properly
+            if (_DEBUG_) global.log("dockedWorkspaces: _animateIN final_position == actor.x .. trigger dock state");
+            this._dockState = DockState.SHOWN;
         }
     },
 
@@ -1048,7 +1036,7 @@ const DockedWorkspaces = new Lang.Class({
         if (_DEBUG_) global.log("dockedWorkspaces: _animateOUT - actor width = "+this.actor.width);
 
         if (final_position !== this.actor.x) {
-            this._animStatus.queue(false);
+            this._dockState = DockState.HIDING;
             Tweener.addTween(this.actor, {
                 x: final_position,
                 time: time,
@@ -1057,24 +1045,18 @@ const DockedWorkspaces = new Lang.Class({
                 onUpdate: Lang.bind(this, this._updateClip),
                 onStart: Lang.bind(this, function() {
                     if (_DEBUG_) global.log("dockedWorkspaces: _animateOUT onStart");
-                    this._animStatus.start();
-                }),
-                onOverwrite: Lang.bind(this, function() {
-                    this._animStatus.clear();
-                    if (_DEBUG_) global.log("dockedWorkspaces: _animateOUT onOverwrite");
                 }),
                 onComplete: Lang.bind(this, function() {
-                    this._animStatus.end();
+                    this._dockState = DockState.HIDDEN;
                     this._setHiddenWidth();
                     this._updateBarrier();
                     if (_DEBUG_) global.log("dockedWorkspaces: _animateOUT onComplete");
                 })
             });
         } else {
-            // Still need to trigger animStatus states so that show/hide dock functions work properly
-            if (_DEBUG_) global.log("dockedWorkspaces: _animateOut final_position == actor.x .. trigger animStatus");
-            this._animStatus.queue(false);
-            this._animStatus.end();
+            // Still need to trigger dock states so that show/hide dock functions work properly
+            if (_DEBUG_) global.log("dockedWorkspaces: _animateOut final_position == actor.x .. trigger dock state");
+            this._dockState = DockState.HIDDEN;
             this._setHiddenWidth();
         }
     },
@@ -1083,7 +1065,6 @@ const DockedWorkspaces = new Lang.Class({
     _removeAnimations: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _removeAnimations");
         Tweener.removeTweens(this.actor);
-        this._animStatus.clearAll();
     },
 
     // autohide function to fade out opaque background
@@ -1410,7 +1391,7 @@ const DockedWorkspaces = new Lang.Class({
         }
 
         let width;
-        if (this._animStatus.hidden()) {
+        if (this._dockState == DockState.HIDDEN) {
             if (this._settings.get_boolean('dock-edge-visible')) {
                 width = DOCK_PADDING + DOCK_EDGE_VISIBLE_WIDTH + DOCK_HIDDEN_WIDTH;
             } else {
@@ -1592,7 +1573,9 @@ const DockedWorkspaces = new Lang.Class({
         }
 
         // Reset pressureSensed flag
-        this._pressureSensed = false;
+        if (!this.actor.hover && this._dockState != DockState.SHOWN) {
+            this._pressureSensed = false;
+        }
     },
 
     // Utility function to make the dock clipped to the primary monitor
@@ -1641,20 +1624,17 @@ const DockedWorkspaces = new Lang.Class({
 
         this._autohideStatus = true;
 
-        let delay = 0; // immediately fadein background if hide is blocked by mouseover, otherwise start fadein when dock is already hidden.
-        this._removeAnimations();
-
         if (this.actor.hover == true) {
             this.actor.sync_hover();
         }
 
+        let delay = 0; // immediately fadein background if hide is blocked by mouseover, otherwise start fadein when dock is already hidden.
+
         if (!((this._hoveringDash && !Main.overview.visible) || this.actor.hover) || !this._settings.get_boolean('autohide')) {
             if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - mouse not hovering OR dock not using autohide, so animate out");
+            this._removeAnimations();
             this._animateOut(this._settings.get_double('animation-time'), 0);
             delay = this._settings.get_double('animation-time');
-        } else {
-            if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - mouse hovering AND dock using autohide, so startWorkspacesShowLoop instead of animate out");
-            delay = 0;
         }
 
         if (this._settings.get_boolean('opaque-background') && !this._settings.get_boolean('opaque-background-always')) {
@@ -1664,83 +1644,3 @@ const DockedWorkspaces = new Lang.Class({
 
 });
 Signals.addSignalMethods(DockedWorkspaces.prototype);
-
-/*
- * Store animation status in a perhaps overcomplicated way.
- * status is true for visible, false for hidden
- */
-const AnimationStatus = new Lang.Class({
-    Name: 'workspacesToDock.animationStatus',
-
-    _init: function(initialStatus) {
-        this.status = initialStatus;
-        this.nextStatus = [];
-        this.queued = false;
-        this.running = false;
-    },
-
-    queue: function(nextStatus) {
-        this.nextStatus.push(nextStatus);
-        this.queued = true;
-    },
-
-    start: function() {
-        if (this.nextStatus.length == 1) {
-            this.queued = false;
-        }
-        this.running = true;
-    },
-
-    end: function() {
-        if (this.nextStatus.length == 1) {
-            this.queued = false; // in the case end is called and start was not
-        }
-        this.running = false;
-        this.status = this.nextStatus.shift();
-    },
-
-    clear: function() {
-        if (this.nextStatus.length == 1) {
-            this.queued = false;
-            this.running = false;
-        }
-
-        this.nextStatus.splice(0, 1);
-    },
-
-    clearAll: function() {
-        this.queued = false;
-        this.running = false;
-        this.nextStatus.splice(0, this.nextStatus.length);
-    },
-
-    // Return true if a showing animation is running or queued
-    showing: function() {
-        if ((this.running == true || this.queued == true) && this.nextStatus[0] == true)
-            return true;
-        else
-            return false;
-    },
-
-    shown: function() {
-        if (this.status == true && !(this.queued || this.running))
-            return true;
-        else
-            return false;
-    },
-
-    // Return true if an hiding animation is running or queued
-    hiding: function() {
-        if ((this.running == true || this.queued == true) && this.nextStatus[0] == false)
-            return true;
-        else
-            return false;
-    },
-
-    hidden: function() {
-        if (this.status == false && !(this.queued || this.running))
-            return true;
-        else
-            return false;
-    }
-});
