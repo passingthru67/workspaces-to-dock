@@ -181,6 +181,9 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
+**version 35 for Gnome 3.15 (Mar 1, 2015)**
+- Bug fixes
+
 **version 27 for Gnome 3.14 (January 12, 2015)**
 - Bug fixes
 - Dash-To-Dock bottom position compatibility
@@ -317,4 +320,3 @@ Change Log:
 **version 1 (Aug 15, 2012)**
 
 - Initial extension based on the dash-to-dock v10 code (https://github.com/micheleg/dash-to-dock).
-
