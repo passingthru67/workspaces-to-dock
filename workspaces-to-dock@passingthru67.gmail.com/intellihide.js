@@ -145,6 +145,13 @@ const Intellihide = new Lang.Class({
                 'restacked',
                 Lang.bind(this, this._onScreenRestacked)
             ],
+            // when windows are alwasy on top, the focus window can change
+            // without the windows being restacked. Thus monitor window focus change.
+            [
+                this._tracker,
+                'notify::focus-app',
+                Lang.bind(this, this._onFocusAppChanged)
+            ],
             // Set visibility in overview mode
             [
                 Main.overview,
@@ -342,6 +349,12 @@ const Intellihide = new Lang.Class({
     // handler for when screen is restacked
     _onScreenRestacked: function() {
         if (_DEBUG_) global.log("intellihide: _onScreenRestacked");
+        this._updateDockVisibility();
+    },
+
+    // handler for when app focus changed
+    _onFocusAppChanged: function() {
+        if (_DEBUG_) global.log("intellihide: _onFocusAppChanged");
         this._updateDockVisibility();
     },
 
