@@ -391,19 +391,17 @@ const DockedWorkspaces = new Lang.Class({
 
         this._dock = new St.BoxLayout({
             name: 'workspacestodockDock',
-            reactive: true,
-            track_hover: true,
+            reactive: false,
+            track_hover: false,
             vertical: packVertical,
             style_class: styleClass
         });
-        this._dock.connect("notify::hover", Lang.bind(this, this._hoverChanged));
-        this._dock.connect("scroll-event", Lang.bind(this, this._onScrollEvent));
-        this._dock.connect("button-release-event", Lang.bind(this, this._onDockClicked));
 
         // Create centering containers
         this._container = new St.BoxLayout({
             name: 'workspacestodockContainer',
-            reactive: false,
+            reactive: true,
+            track_hover: true,
             vertical: packVertical
         });
         this._containerWrapper = new St.BoxLayout({
@@ -412,6 +410,9 @@ const DockedWorkspaces = new Lang.Class({
             vertical: !packVertical
         });
         this._containerWrapper.add(this._container,{x_fill: false, y_fill: false, x_align: St.Align.MIDDLE, y_align: St.Align.MIDDLE, expand: true});
+        this._container.connect("notify::hover", Lang.bind(this, this._hoverChanged));
+        this._container.connect("scroll-event", Lang.bind(this, this._onScrollEvent));
+        this._container.connect("button-release-event", Lang.bind(this, this._onDockClicked));
 
         // Create the dock wrapper
         let align;
@@ -1300,7 +1301,7 @@ const DockedWorkspaces = new Lang.Class({
 
     // handler for mouse hover events
     _hoverChanged: function() {
-        if(_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - dock.hover = "+this._dock.hover+" autohideStatus = "+this._autohideStatus+" dockState = "+this._dockState);
+        if(_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - dock.hover = "+this._container.hover+" autohideStatus = "+this._autohideStatus+" dockState = "+this._dockState);
         if (this._canUsePressure && this._settings.get_boolean('require-pressure-to-show') && this._barrier) {
             if (this._pressureSensed == false) {
                 if(_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - presureSensed = "+this._pressureSensed+" RETURN");
@@ -1328,7 +1329,7 @@ const DockedWorkspaces = new Lang.Class({
             // set hovering flag if maximized
             // used by the _onDockClicked function (hover+click)
             if (maximized) {
-                if (this._dock.hover) {
+                if (this._container.hover) {
                     this._hovering = true;
                     return;
                 } else {
@@ -1342,7 +1343,7 @@ const DockedWorkspaces = new Lang.Class({
         //Skip if dock is not in autohide mode for instance because it is shown by intellihide
         if(_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - show or hide?");
         if (this._settings.get_boolean('autohide') && this._autohideStatus) {
-            if (this._dock.hover) {
+            if (this._container.hover) {
                 if(_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - show");
                 this._show();
             } else {
@@ -1359,7 +1360,7 @@ const DockedWorkspaces = new Lang.Class({
             if (this._hovering) {
                 //Skip if dock is not in autohide mode for instance because it is shown by intellihide
                 if (this._settings.get_boolean('autohide') && this._autohideStatus) {
-                    if (this._dock.hover) {
+                    if (this._container.hover) {
                         this._show();
                     } else {
                         this._hide();
@@ -1575,7 +1576,7 @@ const DockedWorkspaces = new Lang.Class({
         if (_DEBUG_) global.log("dockedWorkspaces: _hide autohideStatus = "+this._autohideStatus+" dockState = "+this._dockState);
 
         // If no hiding animation is running or queued
-        if (!this._hoveringDash && this._autohideStatus && !this._dock.hover) {
+        if (!this._hoveringDash && this._autohideStatus && !this._container.hover) {
             let delay = 0;
 
             // If the dock is shown, wait this._settings.get_double('show-delay') before hiding it;
@@ -1692,7 +1693,7 @@ const DockedWorkspaces = new Lang.Class({
         // NOTE: Need this for when in overviewmode applications view and dock is in fixed mode.
         // Fixed dock has opacity set to 0 but is still reactive.
         this.actor.reactive = false;
-        this._dock.reactive = false;
+        this._container.reactive = false;
         this._shortcutsPanel.setReactiveState(false);
         this._thumbnailsBox.actor.reactive = false;
         for (let i = 0; i < this._thumbnailsBox._thumbnails.length; i++) {
@@ -1710,7 +1711,7 @@ const DockedWorkspaces = new Lang.Class({
 
         // Return thumbnail windowclones to reactive state
         this.actor.reactive = true;
-        this._dock.reactive = true;
+        this._container.reactive = true;
         this._shortcutsPanel.setReactiveState(true);
         this._thumbnailsBox.actor.reactive = true;
         for (let i = 0; i < this._thumbnailsBox._thumbnails.length; i++) {
@@ -2163,7 +2164,7 @@ const DockedWorkspaces = new Lang.Class({
         }
 
         // Reset pressureSensed flag
-        if (!this._dock.hover && this._dockState != DockState.SHOWN) {
+        if (!this._container.hover && this._dockState != DockState.SHOWN) {
             this._pressureSensed = false;
             this._updateTriggerWidth();
         }
@@ -2190,17 +2191,21 @@ const DockedWorkspaces = new Lang.Class({
 
         this._autohideStatus = true;
 
-        if (this._dock.hover == true) {
+        if (this._container.hover == true) {
             this._dock.sync_hover();
         }
 
         let delay = 0; // immediately fadein background if hide is blocked by mouseover, otherwise start fadein when dock is already hidden.
 
-        if (!((this._hoveringDash && !Main.overview.visible) || this._dock.hover) || !this._settings.get_boolean('autohide')) {
-            if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - mouse not hovering OR dock not using autohide, so animate out");
-            this._removeAnimations();
-            this._animateOut(this._settings.get_double('animation-time'), 0);
-            delay = this._settings.get_double('animation-time');
+        // if (!((this._hoveringDash && !Main.overview.visible) || this._container.hover) || !this._settings.get_boolean('autohide')) {
+        if (this._settings.get_boolean('autohide')) {
+            if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - autohide settings true");
+            if (!(this._hoveringDash && !Main.overview.visible) || this._container.hover) {
+                if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - mouse not hovering OR dock not using autohide, so animate out");
+                this._removeAnimations();
+                this._animateOut(this._settings.get_double('animation-time'), 0);
+                delay = this._settings.get_double('animation-time');
+            }
         }
 
         if (this._settings.get_boolean('opaque-background') && !this._settings.get_boolean('opaque-background-always')) {
