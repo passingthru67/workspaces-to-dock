@@ -516,17 +516,27 @@ const Intellihide = new Lang.Class({
         let idx = source._grabStack.length - 1;
         let focusedActor = source._grabStack[idx].actor;
         let [rx, ry] = focusedActor.get_transformed_position();
-        let [rwidth, rheight] = focusedActor.get_size();
+        let [rw, rh] = focusedActor.get_size();
         let [dx, dy] = this._dock.actor.get_position();
-        let [dwidth, dheight] = this._dock.actor.get_size();
-        let test;
+        let [dcx, dcy] = this._dock._container.get_transformed_position();
+        let [dw, dh] = this._dock.actor.get_size();
+        let [dcw, dch] = this._dock._container.get_size();
 
+        if (this._dock._isHorizontal) {
+            dx = dcx;
+            dw = dcw;
+        } else {
+            dy = dcy;
+            dh = dch;
+        }
+
+        let test;
         if (this._dock._position == St.Side.LEFT || this._dock._position == St.Side.TOP) {
-            test = (rx < dx + dwidth) && (rx + rwidth > dx) && (ry < dy + dheight) && (ry + rheight > dy);
+            test = (rx < dx + dw) && (rx + rw > dx) && (ry < dy + dh) && (ry + rh > dy);
         } else if (this._dock._position == St.Side.RIGHT) {
-            test = (rx < dx) && (rx + rwidth > dx - dwidth) && (ry < dy + dheight) && (ry + rheight > dy);
+            test = (rx < dx) && (rx + rw > dx - dw) && (ry < dy + dh) && (ry + rh > dy);
         } else if (this._dock._position == St.Side.BOTTOM) {
-            test = (rx < dx + dwidth) && (rx + rwidth > dx) && (ry + rheight > dy - dheight) && (ry < dy);
+            test = (rx < dx + dw) && (rx + rw > dx) && (ry + rh > dy - dh) && (ry < dy);
         }
 
         if (_DEBUG_) global.log("intellihide: onPanelFocusGrabbed actor = "+focusedActor+"  position = "+focusedActor.get_transformed_position()+" size = "+focusedActor.get_size()+" test = "+test);
@@ -687,15 +697,30 @@ const Intellihide = new Lang.Class({
                         if (win) {
                             let rect = win.get_frame_rect();
                             let [dx, dy] = this._dock.actor.get_position();
-                            let [dwidth, dheight] = this._dock.actor.get_size();
+                            let [dcx, dcy] = this._dock._container.get_transformed_position();
+                            let [dw, dh] = this._dock.actor.get_size();
+                            let [dcw, dch] = this._dock._container.get_size();
+
+                            // SANITY CHECK
+                            // global.log("dx="+dx+" dy="+dy+" || dcx="+Math.round(dcx)+" dcy="+dcy);
+                            // global.log("dw="+dw+" dh="+dh+" || dcw="+dcw+" dch="+dch);
+
+                            if (this._dock._isHorizontal) {
+                                dx = dcx;
+                                dw = dcw;
+                            } else {
+                                dy = dcy;
+                                dh = dch;
+                            }
+
                             let test;
-                            if (_DEBUG_) global.log("win x="+rect.x+" y="+rect.y+" w="+rect.width+" h="+rect.height+" dock x="+dx+" y="+dy+" w="+dwidth+" h="+dheight);
+                            if (_DEBUG_) global.log("win x="+rect.x+" y="+rect.y+" w="+rect.width+" h="+rect.height+" dock x="+dx+" y="+dy+" w="+dw+" h="+dh);
                             if (this._dock._position == St.Side.LEFT || this._dock._position == St.Side.TOP) {
-                                test = (rect.x < dx + dwidth) && (rect.x + rect.width > dx) && (rect.y < dy + dheight) && (rect.y + rect.height > dy);
+                                test = (rect.x < dx + dw) && (rect.x + rect.width > dx) && (rect.y < dy + dh) && (rect.y + rect.height > dy);
                             } else if (this._dock._position == St.Side.RIGHT) {
-                                test = (rect.x < dx) && (rect.x + rect.width > dx - dwidth) && (rect.y < dy + dheight) && (rect.y + rect.height > dy);
+                                test = (rect.x < dx) && (rect.x + rect.width > dx - dw) && (rect.y < dy + dh) && (rect.y + rect.height > dy);
                             } else if (this._dock._position == St.Side.BOTTOM) {
-                                test = (rect.x < dx + dwidth) && (rect.x + rect.width > dx) && (rect.y + rect.height > dy - dheight) && (rect.y < dy);
+                                test = (rect.x < dx + dw) && (rect.x + rect.width > dx) && (rect.y + rect.height > dy - dh) && (rect.y < dy);
                             }
                             if (test) {
                                 overlaps = true;
