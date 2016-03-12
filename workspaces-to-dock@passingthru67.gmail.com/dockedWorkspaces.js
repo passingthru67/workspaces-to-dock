@@ -1632,7 +1632,7 @@ const DockedWorkspaces = new Lang.Class({
 
         if (this._settings.get_boolean('autohide')) {
             if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - autohide settings true");
-            if (!(this._hoveringDash && !Main.overview.visible) || this.actor.hover) {
+            if (!this.actor.hover && !(this._hoveringDash && !Main.overview.visible)) {
                 if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - mouse not hovering OR dock not using autohide, so animate out");
                 this._removeAnimations();
                 this._animateOut(this._settings.get_double('animation-time'), 0);
