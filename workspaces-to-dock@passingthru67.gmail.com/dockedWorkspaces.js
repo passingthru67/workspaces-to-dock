@@ -707,7 +707,7 @@ const DockedWorkspaces = new Lang.Class({
     _hoverChanged: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - actor.hover = "+this.actor.hover);
         if (this._canUsePressure && this._settings.get_boolean('require-pressure-to-show') && this._barrier) {
-            if (this._pressureSensed == false) {
+            if (this._pressureSensed == false && this._dockState != DockState.SHOWN) {
                 if (_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - presureSensed = "+this._pressureSensed);
                 return;
             }
@@ -735,7 +735,9 @@ const DockedWorkspaces = new Lang.Class({
             if (maximized) {
                 if (this.actor.hover) {
                     this._hovering = true;
-                    return;
+                    if (this._dockState != DockState.SHOWN) {
+                        return;
+                    }
                 } else {
                     this._hovering = false;
                 }
