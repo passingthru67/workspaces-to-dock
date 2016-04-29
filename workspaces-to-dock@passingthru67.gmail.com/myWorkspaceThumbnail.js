@@ -98,6 +98,8 @@ const myWindowClone = new Lang.Class({
 
         this.actor.connect('button-release-event',
                            Lang.bind(this, this._onButtonRelease));
+        this.actor.connect('touch-event',
+                           Lang.bind(this, this._onTouchEvent));
 
         this.actor.connect('destroy', Lang.bind(this, this._onDestroy));
 
@@ -550,6 +552,7 @@ const myThumbnailsBox = new Lang.Class({
 
         this.actor.connect('button-press-event', function() { return Clutter.EVENT_STOP; });
         this.actor.connect('button-release-event', Lang.bind(this, this._onButtonRelease));
+        this.actor.connect('touch-event', Lang.bind(this, this._onTouchEvent));
         this.actor.connect('destroy', Lang.bind(this, this._onDestroy));
 
         // Connect global signals
@@ -850,6 +853,27 @@ const myThumbnailsBox = new Lang.Class({
         }
     },
 
+    // override _activateThumbnailAtPoint
+    _activateThumbnailAtPoint: function (stageX, stageY, time) {
+        let [r, x, y] = this.actor.transform_stage_point(stageX, stageY);
+
+        for (let i = 0; i < this._thumbnails.length; i++) {
+            let thumbnail = this._thumbnails[i];
+            let [w, h] = thumbnail.actor.get_transformed_size();
+            if (this._isHorizontal) {
+                if (x >= thumbnail.actor.x && x <= thumbnail.actor.x + w) {
+                    thumbnail.activate(time);
+                    break;
+                }
+            } else {
+                if (y >= thumbnail.actor.y && y <= thumbnail.actor.y + h) {
+                    thumbnail.activate(time);
+                    break;
+                }
+            }
+        }
+    },
+
     // override _onButtonRelease to provide customized click actions (i.e. overview on right click)
     _onButtonRelease: function(actor, event) {
         if (_DEBUG_) global.log("mythumbnailsBox: _onButtonRelease");
@@ -889,27 +913,8 @@ const myThumbnailsBox = new Lang.Class({
         }
 
         let [stageX, stageY] = event.get_coords();
-        let [r, x, y] = this.actor.transform_stage_point(stageX, stageY);
-
-        for (let i = 0; i < this._thumbnails.length; i++) {
-            let thumbnail = this._thumbnails[i];
-            let [w, h] = thumbnail.actor.get_transformed_size();
-            if (this._isHorizontal) {
-                if (x >= thumbnail.actor.x && x <= thumbnail.actor.x + w) {
-                    //thumbnail.activate(event.time);
-                    thumbnail.activate(event.get_time());
-                    break;
-                }
-            } else {
-                if (y >= thumbnail.actor.y && y <= thumbnail.actor.y + h) {
-                    //thumbnail.activate(event.time);
-                    thumbnail.activate(event.get_time());
-                    break;
-                }
-            }
-        }
+        this._activateThumbnailAtPoint(stageX, stageY, event.get_time());
         return Clutter.EVENT_STOP;
-
     },
 
     // override addThumbnails to provide workspace thumbnail labels
