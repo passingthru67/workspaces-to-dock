@@ -1009,28 +1009,11 @@ const myThumbnailsBox = new Lang.Class({
             }
 
             let height = Math.round(this._porthole.height * scale);
-            // alloc.min_size = height;
-            // alloc.natural_size = height;
             alloc.min_size = height + captionBackgroundHeight;
             alloc.natural_size = height + captionBackgroundHeight;
 
         } else {
-            // passingthru67: calculate extra padding-spacing needed due to caption
-            let paddingTop = themeNode.get_padding(St.Side.TOP);
-            let paddingBottom = themeNode.get_padding(St.Side.BOTTOM);
-            let borderTop = themeNode.get_border_width(St.Side.TOP);
-            let borderBottom = themeNode.get_border_width(St.Side.BOTTOM);
-            let totalExtraSpacing = borderTop + borderBottom + paddingTop + paddingBottom + 3;
-
-            spacing = spacing + captionBackgroundHeight;
-
-            //let totalSpacing = (nWorkspaces - 1) * spacing;
-            let totalSpacing;
-            if (this._mySettings.get_boolean('workspace-captions')) {
-                totalSpacing = (nWorkspaces - 1) * (spacing);
-            } else {
-                totalSpacing = (nWorkspaces - 1) * spacing;
-            }
+            let totalSpacing = (nWorkspaces * captionBackgroundHeight) + ((nWorkspaces - 1) * spacing);
 
             let maxScale;
             if (this._mySettings.get_boolean('customize-thumbnail')) {
@@ -1039,8 +1022,8 @@ const myThumbnailsBox = new Lang.Class({
                 maxScale = MAX_THUMBNAIL_SCALE;
             }
 
-            alloc.min_size = totalSpacing;
-            alloc.natural_size = totalExtraSpacing + totalSpacing + nWorkspaces * this._porthole.height * maxScale;
+            alloc.min_size = totalSpacing + this._porthole.height * maxScale;
+            alloc.natural_size = totalSpacing + nWorkspaces * this._porthole.height * maxScale;
         }
     },
 
@@ -1049,8 +1032,13 @@ const myThumbnailsBox = new Lang.Class({
 
         let themeNode = this.actor.get_theme_node();
 
-        let spacing = this.actor.get_theme_node().get_length('spacing');
+        let spacing = themeNode.get_length('spacing');
 
+        // passingthru67 - make room for thumbnail captions
+        let captionBackgroundHeight = 0;
+        if (this._mySettings.get_boolean('workspace-captions')) {
+            captionBackgroundHeight = this._mySettings.get_double('workspace-caption-height');
+        }
 
         let nWorkspaces = global.screen.n_workspaces;
 
@@ -1064,33 +1052,13 @@ const myThumbnailsBox = new Lang.Class({
                 maxScale = MAX_THUMBNAIL_SCALE;
             }
 
-            alloc.min_size = totalSpacing;
+            alloc.min_size = totalSpacing + this._porthole.width * maxScale;
             alloc.natural_size = totalSpacing + nWorkspaces * this._porthole.width * maxScale;
 
         } else {
-            // passingthru67: calculate extra padding-spacing needed due to caption
-            let paddingTop = themeNode.get_padding(St.Side.TOP);
-            let paddingBottom = themeNode.get_padding(St.Side.BOTTOM);
-            let borderTop = themeNode.get_border_width(St.Side.TOP);
-            let borderBottom = themeNode.get_border_width(St.Side.BOTTOM);
-            let totalExtraSpacing = borderTop + borderBottom + paddingTop + paddingBottom + 3;
+            let totalSpacing = (nWorkspaces * captionBackgroundHeight) + ((nWorkspaces - 1) * spacing);
 
-            // passingthru67 - make room for thumbnail captions
-            let captionBackgroundHeight = 0;
-            if (this._mySettings.get_boolean('workspace-captions')) {
-                captionBackgroundHeight = this._mySettings.get_double('workspace-caption-height');
-            }
-            spacing = spacing + captionBackgroundHeight;
-
-            //let totalSpacing = (nWorkspaces - 1) * spacing;
-            let totalSpacing;
-            if (this._mySettings.get_boolean('workspace-captions')) {
-                totalSpacing = (nWorkspaces - 1) * (spacing);
-            } else {
-                totalSpacing = (nWorkspaces - 1) * spacing;
-            }
-
-            let avail = forHeight - totalSpacing - totalExtraSpacing;
+            let avail = forHeight - totalSpacing;
 
             let scale = (avail / nWorkspaces) / this._porthole.height;
             if (this._mySettings.get_boolean('customize-thumbnail')) {
@@ -1152,12 +1120,6 @@ const myThumbnailsBox = new Lang.Class({
 
         let themeNode = this.actor.get_theme_node();
 
-        let paddingTop = themeNode.get_padding(St.Side.TOP);
-        let paddingBottom = themeNode.get_padding(St.Side.BOTTOM);
-        let borderTop = themeNode.get_border_width(St.Side.TOP);
-        let borderBottom = themeNode.get_border_width(St.Side.BOTTOM);
-        let totalExtraSpacing = borderTop + borderBottom + paddingTop + paddingBottom + 3;
-
         let portholeWidth = this._porthole.width;
         let portholeHeight = this._porthole.height;
 
@@ -1174,26 +1136,22 @@ const myThumbnailsBox = new Lang.Class({
             // This value should actually be gotten from the theme node get_padding
         }
 
-        if (!this._isHorizontal) {
-            spacing = spacing + captionBackgroundHeight;
-        }
-
         // Compute the scale we'll need once everything is updated
         let nWorkspaces = global.screen.n_workspaces;
 
         // passingthru67 - total spacing depends on on caption showing
         let totalSpacing;
-        if (this._mySettings.get_boolean('workspace-captions') && !this._isHorizontal) {
-            totalSpacing = (nWorkspaces - 1) * (spacing);
-        } else {
+        if (this._isHorizontal) {
             totalSpacing = (nWorkspaces - 1) * spacing;
+        } else {
+            totalSpacing = (nWorkspaces * captionBackgroundHeight) + ((nWorkspaces -1) * spacing);
         }
 
         let avail;
         if (this._isHorizontal) {
             avail = (box.x2 - box.x1) - totalSpacing;
         } else {
-            avail = (box.y2 - box.y1) - totalSpacing - totalExtraSpacing;
+            avail = (box.y2 - box.y1) - totalSpacing;
         }
 
         let newScale;
@@ -1359,7 +1317,7 @@ const myThumbnailsBox = new Lang.Class({
                 let thumbnail = this._thumbnails[i];
 
                 if (i > 0)
-                    y += spacing - Math.round(thumbnail.collapseFraction * spacing);
+                    y += spacing + captionBackgroundHeight - Math.round(thumbnail.collapseFraction * spacing);
 
                 let x1, x2;
 
@@ -1381,7 +1339,7 @@ const myThumbnailsBox = new Lang.Class({
                     Meta.later_add(Meta.LaterType.BEFORE_REDRAW, Lang.bind(this, function() {
                         this._dropPlaceholder.show();
                     }));
-                    y += placeholderHeight + spacing;
+                    y += placeholderHeight + spacing + captionBackgroundHeight;
                 }
 
                 // We might end up with thumbnailHeight being something like 99.33
