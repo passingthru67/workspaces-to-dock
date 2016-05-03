@@ -852,6 +852,36 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             dialog.show_all();
         }));
 
+
+        /* INTELLHIDE ACTION */
+
+        let intellhideActionLabel = new Gtk.Label({label: _("What should we do with the dock when not dodging windows?"),
+            hexpand:true,
+            xalign:0
+        });
+        let intellhideActionCombo = new Gtk.ComboBoxText({
+            halign:Gtk.Align.END
+        });
+        intellhideActionCombo.append_text(_('Show Full'));
+        intellhideActionCombo.append_text(_('Show Partial'));
+
+        let intellhideAction = this.settings.get_enum('intellihide-action');
+        intellhideActionCombo.set_active(intellhideAction);
+        intellhideActionCombo.connect('changed', Lang.bind (this, function(widget) {
+            this.settings.set_enum('intellihide-action', widget.get_active());
+        }));
+
+        // Add to layout
+        let intellhideActionGrid = new Gtk.Grid({
+            row_homogeneous: false,
+            column_homogeneous: false,
+            margin_top: 10,
+            margin_left: 0
+        });
+        intellhideActionGrid.attach(intellhideActionLabel, 0, 0, 1, 1);
+        intellhideActionGrid.attach(intellhideActionCombo, 1, 0, 1, 1);
+
+
         // Add to layout
         let intellihideControlGrid = new Gtk.Grid({
             row_homogeneous: false,
@@ -865,11 +895,13 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         intellihideControlGrid.attach(intellihideLabel, 0, 0, 1, 1);
         intellihideControlGrid.attach(intellihideSwitch, 1, 0, 1, 1);
         intellihideContainerGrid.attach(intellihideOptionsButton, 0, 0, 1, 1);
+        intellihideContainerGrid.attach(intellhideActionGrid, 0, 1, 1, 1);
 
         visibilityContainerBox.add(intellihideControlGrid);
         visibilityContainerBox.add(intellihideContainerGrid);
 
         // Bind interactions
+        this.settings.bind('intellihide', intellihideContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
         this.settings.bind('intellihide', intellihideContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
 
 
@@ -882,9 +914,9 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         let overviewActionCombo = new Gtk.ComboBoxText({
             halign:Gtk.Align.END
         });
-        overviewActionCombo.append_text(_('Show'));
+        overviewActionCombo.append_text(_('Show Full'));
         overviewActionCombo.append_text(_('Hide'));
-        overviewActionCombo.append_text(_('Partially Hide'));
+        overviewActionCombo.append_text(_('Show Partial'));
 
         let overviewAction = this.settings.get_enum('overview-action');
         overviewActionCombo.set_active(overviewAction);
@@ -896,13 +928,23 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         let overviewActionGrid = new Gtk.Grid({
             row_homogeneous: false,
             column_homogeneous: false,
-            margin_top: 10,
+            margin_top: 0,
             margin_left: 0
         });
         overviewActionGrid.attach(overviewActionLabel, 0, 0, 1, 1);
         overviewActionGrid.attach(overviewActionCombo, 1, 0, 1, 1);
 
+        let partialDescription = new Gtk.Label({
+            label: _("NOTE: Please see documentation for an explanation of the 'Show Partial' option."),
+            use_markup: true,
+            xalign: 0,
+            margin_left: 0,
+            margin_top: 0,
+            hexpand: false
+        })
+
         visibilityContainerBox.add(overviewActionGrid);
+        visibilityContainerBox.add(partialDescription);
 
 
         /* TITLE: MISC OPTIONS */

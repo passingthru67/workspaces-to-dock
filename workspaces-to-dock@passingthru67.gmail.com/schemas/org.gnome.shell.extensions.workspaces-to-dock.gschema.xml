@@ -11,9 +11,13 @@
     <value value='1' nick='INSIDE'/>
   </enum>
   <enum id='org.gnome.shell.extensions.workspaces-to-dock.overviewoption'>
-    <value value='0' nick='SHOW'/>
+    <value value='0' nick='SHOW_FULL'/>
     <value value='1' nick='HIDE'/>
-    <value value='2' nick='PARTIAL'/>
+    <value value='2' nick='SHOW_PARTIAL'/>
+  </enum>
+  <enum id='org.gnome.shell.extensions.workspaces-to-dock.intellihideaction'>
+    <value value='0' nick='SHOW_FULL'/>
+    <value value='1' nick='SHOW_PARTIAL'/>
   </enum>
   <schema path="/org/gnome/shell/extensions/workspaces-to-dock/" id="org.gnome.shell.extensions.workspaces-to-dock">
     <key type="b" name="dock-fixed">
@@ -202,11 +206,15 @@
       <description>Enable or disable Dash-To-Dock hover mode</description>
     </key>
     <key name="overview-action" enum="org.gnome.shell.extensions.workspaces-to-dock.overviewoption">
-      <default>'PARTIAL'</default>
+      <default>'SHOW_FULL'</default>
       <summary>Show, hide, or partially hide the dock in overview mode</summary>
       <description>Show, hide, or partially hide the dock in overview mode.</description>
     </key>
-
+    <key name="intellihide-action" enum="org.gnome.shell.extensions.workspaces-to-dock.intellihideaction">
+      <default>'SHOW_FULL'</default>
+      <summary>Show full or partial dock when dock is not dodging windows</summary>
+      <description>Show full or partial dock when dock is not dodging windows.</description>
+    </key>
     <key type="b" name="quick-show-on-workspace-change">
       <default>false</default>
       <summary>Show the dock temporarily when switching workspaces</summary>

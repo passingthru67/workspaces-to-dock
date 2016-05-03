@@ -54,10 +54,15 @@ const PRESSURE_TIMEOUT = 1000;
 
 let GSFunctions = {};
 
-const OverviewOption = {
-    SHOW: 0,        // Dock is always visible
+const IntellihideAction = {
+    SHOW_FULL: 0,
+    SHOW_PARTIAL: 1
+};
+
+const OverviewAction = {
+    SHOW_FULL: 0,        // Dock is always visible
     HIDE: 1,        // Dock is always invisible. Visible on mouse hover
-    PARTIAL: 2      // Dock partially hidden. Visible on mouse hover
+    SHOW_PARTIAL: 2      // Dock partially hidden. Visible on mouse hover
 };
 
 const DockState = {
@@ -77,6 +82,25 @@ function getPosition(settings) {
             position = St.Side.LEFT;
     }
     return position;
+}
+
+function getDockStateDesc(state) {
+    let desc = "";
+    switch (state) {
+    case DockState.HIDDEN:
+        desc = "HIDDEN";
+        break;
+    case DockState.SHOWING:
+        desc = "SHOWING";
+        break;
+    case DockState.SHOWN:
+        desc = "SHOWN";
+        break;
+    case DockState.HIDING:
+        desc = "HIDING";
+        break;
+    }
+    return desc;
 }
 
 const ThumbnailsSlider = new Lang.Class({
@@ -118,53 +142,11 @@ const ThumbnailsSlider = new Lang.Class({
         this._slidex = localParams.initialSlideValue;
         this._side = localParams.side;
         this._slideoutSize = localParams.initialSlideoutSize; // minimum size when slid out
-
         this._partialSlideoutSize = initialTriggerWidth + DOCK_EDGE_VISIBLE_OVERVIEW_WIDTH;
-        this._partialSlideoutAnimateTime = this._settings.get_double('animation-time');
-        this._partialSlideX = 1;
-        this._inOverview = false;
-
-        // Connect global signals
-        this._overviewShowingId = Main.overview.connect('showing', Lang.bind(this, this._overviewShowing));
-        this._overviewHidingId = Main.overview.connect('hiding', Lang.bind(this, this._overviewHiding));
-        this._overviewShownId = Main.overview.connect('shown', Lang.bind(this, this._overviewShown));
-        this._overviewHiddenId = Main.overview.connect('hidden', Lang.bind(this, this._overviewHidden));
     },
 
     destroy: function() {
-        if (this._overviewShowingId)
-            Main.overview.disconnect(this._overviewShowingId);
 
-        if (this._overviewHidingId)
-            Main.overview.disconnect(this._overviewHidingId);
-
-        if (this._overviewShownId)
-            Main.overview.disconnect(this._overviewShownId);
-
-        if (this._overviewHiddenId)
-            Main.overview.disconnect(this._overviewHiddenId);
-    },
-
-    _overviewShowing: function() {
-        this._showingOverview = true;
-        this._inOverview = true;
-        this._partialSlideX = 0;
-    },
-
-    _overviewShown: function() {
-        this._showingOverview = false;
-        this._partialSlideX = 1;
-    },
-
-    _overviewHiding: function() {
-        this._hidingOverview = true;
-        this._partialSlideX = 1;
-    },
-
-    _overviewHidden: function() {
-        this._hidingOverview = false;
-        this._inOverview = false;
-        this._partialSlideX = 0;
     },
 
     _allocate: function(actor, box, flags) {
@@ -181,21 +163,7 @@ const ThumbnailsSlider = new Lang.Class({
 
         let childBox = new Clutter.ActorBox();
 
-        if (this._inOverview && this._showingOverview) {
-            this._partialSlideX = Math.min(this._partialSlideX + this._partialSlideoutAnimateTime, 1);
-        } else if (this._inOverview && this._hidingOverview) {
-            this._partialSlideX = Math.max(this._partialSlideX - this._partialSlideoutAnimateTime, 0);
-        }
-
-        let slideoutSize;
-        let overviewAction = this._settings.get_enum('overview-action');
-        if (this._inOverview
-            && Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage
-            && overviewAction == OverviewOption.PARTIAL) {
-                slideoutSize = this._partialSlideoutSize * this._partialSlideX;
-        } else {
-            slideoutSize = this._slideoutSize;
-        }
+        let slideoutSize = this._slideoutSize;
 
         if (this._side == St.Side.LEFT) {
             childBox.x1 = (this._slidex -1) * (childWidth - slideoutSize);
@@ -222,16 +190,7 @@ const ThumbnailsSlider = new Lang.Class({
 
     // Just the child width but taking into account the slided out part
     _getPreferredWidth: function(actor, forHeight, alloc) {
-        let slideoutSize;
-        let overviewAction = this._settings.get_enum('overview-action');
-        if (this._inOverview
-            && Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage
-            && overviewAction == OverviewOption.PARTIAL) {
-                slideoutSize = this._partialSlideoutSize * this._partialSlideX;
-        } else {
-            slideoutSize = this._slideoutSize;
-        }
-
+        let slideoutSize = this._slideoutSize;
         let [minWidth, natWidth ] = this._child.get_preferred_width(forHeight);
         if (this._side ==  St.Side.LEFT
           || this._side == St.Side.RIGHT) {
@@ -245,16 +204,7 @@ const ThumbnailsSlider = new Lang.Class({
 
     // Just the child height but taking into account the slided out part
     _getPreferredHeight: function(actor, forWidth, alloc) {
-        let slideoutSize;
-        let overviewAction = this._settings.get_enum('overview-action');
-        if (this._inOverview
-            && Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage
-            && overviewAction == OverviewOption.PARTIAL) {
-                slideoutSize = this._partialSlideoutSize * this._partialSlideX;
-        } else {
-            slideoutSize = this._slideoutSize;
-        }
-
+        let slideoutSize = this._slideoutSize;
         let [minHeight, natHeight] = this._child.get_preferred_height(forWidth);
         if (this._side ==  St.Side.TOP
           || this._side ==  St.Side.BOTTOM) {
@@ -290,6 +240,10 @@ const ThumbnailsSlider = new Lang.Class({
 
     set slideoutSize(value) {
         this._slideoutSize = value;
+    },
+
+    get slideoutSize() {
+        return this._slideoutSize;
     },
 
     set partialSlideoutSize(value) {
@@ -347,7 +301,6 @@ const DockedWorkspaces = new Lang.Class({
         this._pressureSensed = false;
         this._pressureBarrier = null;
         this._barrier = null;
-        this._messageTrayShowing = false;
         this._removeBarrierTimeoutId = 0;
 
         // Override Gnome Shell functions
@@ -819,9 +772,9 @@ const DockedWorkspaces = new Lang.Class({
                     }
                     if (self._position == St.Side.LEFT ||
                         self._position == St.Side.RIGHT) {
-                            if (overviewAction == OverviewOption.HIDE) {
+                            if (overviewAction == OverviewAction.HIDE) {
                                 thumbnailsWidth = visibleEdge;
-                            } else if (overviewAction == OverviewOption.PARTIAL) {
+                            } else if (overviewAction == OverviewAction.SHOW_PARTIAL) {
                                 thumbnailsWidth = self._slider.partialSlideoutSize;
                             } else {
                                 thumbnailsWidth = self.actor.get_width() + spacing;
@@ -829,9 +782,9 @@ const DockedWorkspaces = new Lang.Class({
                     }
                     if (self._position == St.Side.TOP ||
                         self._position == St.Side.BOTTOM) {
-                            if (overviewAction == OverviewOption.HIDE) {
+                            if (overviewAction == OverviewAction.HIDE) {
                                 thumbnailsHeight = visibleEdge;
-                            } else if (overviewAction == OverviewOption.PARTIAL) {
+                            } else if (overviewAction == OverviewAction.SHOW_PARTIAL) {
                                 thumbnailsHeight = self._slider.partialSlideoutSize;
                             } else {
                                 thumbnailsHeight = self.actor.get_height() + spacing;
@@ -1123,6 +1076,11 @@ const DockedWorkspaces = new Lang.Class({
             this._redisplay();
         }));
 
+        this._settings.connect('changed::intellihide-action', Lang.bind(this, function() {
+            this._updateTriggerWidth();
+            this._redisplay();
+        }));
+
         this._settings.connect('changed::require-pressure-to-show', Lang.bind(this, function() {
             this._updateTriggerWidth();
             this._redisplay();
@@ -1301,9 +1259,14 @@ const DockedWorkspaces = new Lang.Class({
 
     // handler for mouse hover events
     _hoverChanged: function() {
-        if(_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - dock.hover = "+this._container.hover+" autohideStatus = "+this._autohideStatus+" dockState = "+this._dockState);
+        if (_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - dock.hover = "+this._container.hover+" autohideStatus-dodging = "+this._autohideStatus+" dockState = "+getDockStateDesc(this._dockState)+" pSensed="+this._pressureSensed+" barrier="+this._barrier);
+        if (this._settings.get_boolean('dock-fixed')) {
+            return;
+        }
+
+
         if (this._canUsePressure && this._settings.get_boolean('require-pressure-to-show') && this._barrier) {
-            if (this._pressureSensed == false && this._dockState != DockState.SHOWN) {
+            if (this._pressureSensed == false && this._dockState != DockState.SHOWN && this._autohideStatus == false) {
                 if(_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - presureSensed = "+this._pressureSensed+" RETURN");
                 return;
             }
@@ -1344,7 +1307,7 @@ const DockedWorkspaces = new Lang.Class({
 
         //Skip if dock is not in autohide mode for instance because it is shown by intellihide
         if(_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - show or hide?");
-        if (this._settings.get_boolean('autohide') && this._autohideStatus) {
+        if (this._settings.get_boolean('autohide')) {
             if (this._container.hover) {
                 if(_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - show");
                 this._show();
@@ -1557,43 +1520,47 @@ const DockedWorkspaces = new Lang.Class({
 
     // autohide function to show dock
     _show: function() {
-        if (_DEBUG_) global.log("dockedWorkspaces: _show autohideStatus = "+this._autohideStatus+" dockState = "+this._dockState);
-
-        if (this._autohideStatus) {
-            let delay = 0;
-            // If the dock is hidden, wait this._settings.get_double('show-delay') before showing it;
-            // otherwise show it immediately.
-            if (this._dockState == DockState.HIDDEN) {
-                delay = this._settings.get_double('show-delay');
-            } else if (this._dockState == DockState.HIDING) {
-                this._removeAnimations();
-            }
-
-            this._animateIn(this._settings.get_double('animation-time'), delay);
+        if (_DEBUG_) global.log("dockedWorkspaces: _show autohideStatus = "+this._autohideStatus+" dockState = "+getDockStateDesc(this._dockState));
+        let delay = 0;
+        // If the dock is hidden, wait this._settings.get_double('show-delay') before showing it;
+        // otherwise show it immediately.
+        if (this._dockState == DockState.HIDDEN || this._dockState == DockState.HIDING) {
+            delay = this._settings.get_double('show-delay');
+        } else if (this._dockState == DockState.HIDING) {
+            this._removeAnimations();
         }
+
+        this._animateIn(this._settings.get_double('animation-time'), delay, true);
     },
 
     // autohide function to hide dock
     _hide: function() {
-        if (_DEBUG_) global.log("dockedWorkspaces: _hide autohideStatus = "+this._autohideStatus+" dockState = "+this._dockState);
-
-        // If no hiding animation is running or queued
-        if (!this._hoveringDash && this._autohideStatus && !this._container.hover) {
-            let delay = 0;
-
-            // If the dock is shown, wait this._settings.get_double('show-delay') before hiding it;
-            // otherwise hide it immediately.
-            if (this._dockState == DockState.SHOWN) {
-                delay = this._settings.get_double('hide-delay');
-            } else if (this._dockState == DockState.SHOWING) {
-                this._removeAnimations();
-            }
-
-            this._animateOut(this._settings.get_double('animation-time'), delay);
+        if (_DEBUG_) global.log("dockedWorkspaces: _hide autohideStatus-dodging = "+this._autohideStatus+" dockState = "+getDockStateDesc(this._dockState));
+        let intellihideAction = this._settings.get_enum('intellihide-action');
+        if (!Main.overview._shown && intellihideAction == IntellihideAction.SHOW_FULL && !this._autohideStatus) {
+            return;
         }
+
+        let overviewAction = this._settings.get_enum('overview-action');
+        if (Main.overview._shown && overviewAction == OverviewAction.SHOW_FULL && !this._autohideStatus) {
+            return;
+        }
+
+        let delay = 0;
+
+        // If the dock is shown, wait this._settings.get_double('show-delay') before hiding it;
+        // otherwise hide it immediately.
+        if (this._dockState == DockState.SHOWN) {
+            delay = this._settings.get_double('hide-delay');
+        } else if (this._dockState == DockState.SHOWING) {
+            this._removeAnimations();
+        }
+
+        this._animateOut(this._settings.get_double('animation-time'), delay, this._autohideStatus);
     },
 
     setPopupMenuFlag: function(showing) {
+        if (_DEBUG_) global.log("dockedWorkspaces: setPopupMenuFlag - showing="+showing);
         this._popupMenuShowing = showing;
         if (!showing) {
             if (this.actor.hover == true) {
@@ -1605,47 +1572,113 @@ const DockedWorkspaces = new Lang.Class({
     },
 
     // autohide function to animate the show dock process
-    _animateIn: function(time, delay) {
-        if (_DEBUG_) global.log("dockedWorkspaces: _animateIN dockState = "+this._dockState);
-        this._dockState = DockState.SHOWING;
+    _animateIn: function(time, delay, force) {
+        if (_DEBUG_) global.log("dockedWorkspaces: _animateIN force="+force+" dockState = "+getDockStateDesc(this._dockState));
+        let sliderVariable = 1;
+        let fixedPosition = this._settings.get_boolean('dock-fixed')
+        let overviewAction = this._settings.get_enum('overview-action');
+        let intellihideAction = this._settings.get_enum('intellihide-action');
+        if (_DEBUG_) global.log("... overview="+Main.overview.visible+" - "+Main.overview._shown+" ia="+intellihideAction+" oa="+overviewAction);
+        if (!force && !fixedPosition) {
+            if ((Main.overview._shown && overviewAction == OverviewAction.SHOW_PARTIAL)
+                || (!Main.overview._shown && intellihideAction == IntellihideAction.SHOW_PARTIAL)) {
+                if (this._slider.partialSlideoutSize) {
+                    if (_DEBUG_) global.log("... animateIn: partial="+this._slider.partialSlideoutSize);
+                    let fullsize;
+                    if (this._isHorizontal) {
+                        fullsize = this._dock.height;
+                    } else {
+                        fullsize = this._dock.width;
+                    }
+                    sliderVariable = this._slider.partialSlideoutSize / fullsize;
+                }
+            } else {
+                this._dockState = DockState.SHOWING;
+            }
+        } else {
+            this._dockState = DockState.SHOWING;
+        }
+
         Tweener.addTween(this._slider, {
-            slidex: 1,
+            slidex: sliderVariable,
             time: time,
             delay: delay,
             transition: 'easeOutQuad',
             onComplete: Lang.bind(this, function() {
-                this._dockState = DockState.SHOWN;
-
-                // Remove barrier so that mouse pointer is released and can access monitors on other side of dock
-                // NOTE: Delay needed to keep mouse from moving past dock and re-hiding dock immediately. This
-                // gives users an opportunity to hover over the dock
-                if (this._removeBarrierTimeoutId > 0) {
-                    Mainloop.source_remove(this._removeBarrierTimeoutId);
-                    this._removeBarrierTimeoutId = 0;
-                }
-                this._removeBarrierTimeoutId = Mainloop.timeout_add(100, Lang.bind(this, this._removeBarrier));
-                this._updateTriggerWidth();
                 if (_DEBUG_) global.log("dockedWorkspaces: _animateIN onComplete");
+                if (!force && !fixedPosition) {
+                    if ((Main.overview._shown && overviewAction == OverviewAction.SHOW_PARTIAL)
+                        || (!Main.overview._shown && intellihideAction == IntellihideAction.SHOW_PARTIAL)) {
+                        this._updateBarrier();
+                    } else {
+                        this._dockState = DockState.SHOWN;
+
+                        // Remove barrier so that mouse pointer is released and can access monitors on other side of dock
+                        // NOTE: Delay needed to keep mouse from moving past dock and re-hiding dock immediately. This
+                        // gives users an opportunity to hover over the dock
+                        if (this._removeBarrierTimeoutId > 0) {
+                            Mainloop.source_remove(this._removeBarrierTimeoutId);
+                            this._removeBarrierTimeoutId = 0;
+                        }
+                        this._removeBarrierTimeoutId = Mainloop.timeout_add(100, Lang.bind(this, this._removeBarrier));
+                        this._updateTriggerWidth();
+                    }
+                } else {
+                    this._dockState = DockState.SHOWN;
+
+                    // Remove barrier so that mouse pointer is released and can access monitors on other side of dock
+                    // NOTE: Delay needed to keep mouse from moving past dock and re-hiding dock immediately. This
+                    // gives users an opportunity to hover over the dock
+                    if (this._removeBarrierTimeoutId > 0) {
+                        Mainloop.source_remove(this._removeBarrierTimeoutId);
+                        this._removeBarrierTimeoutId = 0;
+                    }
+                    this._removeBarrierTimeoutId = Mainloop.timeout_add(100, Lang.bind(this, this._removeBarrier));
+                    this._updateTriggerWidth();
+                }
             })
         });
     },
 
     // autohide function to animate the hide dock process
-    _animateOut: function(time, delay) {
+    _animateOut: function(time, delay, force) {
         if (this._popupMenuShowing)
             return;
 
-        if (_DEBUG_) global.log("dockedWorkspaces: _animateOUT dockState = "+this._dockState);
+        if (_DEBUG_) global.log("dockedWorkspaces: _animateOUT force="+force+" dockState = "+getDockStateDesc(this._dockState));
         this._dockState = DockState.HIDING;
+
+        let sliderVariable = 0;
+        let fixedPosition = this._settings.get_boolean('dock-fixed')
+        let overviewAction = this._settings.get_enum('overview-action');
+        let intellihideAction = this._settings.get_enum('intellihide-action');
+        if (_DEBUG_) global.log("... overview="+Main.overview.visible+" - "+Main.overview._shown+" ia="+intellihideAction+" oa="+overviewAction);
+        if (!force && !fixedPosition) {
+            if ((Main.overview._shown && overviewAction == OverviewAction.SHOW_PARTIAL)
+                ||  (!Main.overview._shown && intellihideAction == IntellihideAction.SHOW_PARTIAL)) {
+                    if (_DEBUG_) global.log("... checking partialSlide");
+                if (this._slider.partialSlideoutSize) {
+                    if (_DEBUG_) global.log("... animateOut: partial="+this._slider.partialSlideoutSize);
+                    let fullsize;
+                    if (this._isHorizontal) {
+                        fullsize = this._dock.height;
+                    } else {
+                        fullsize = this._dock.width;
+                    }
+                    sliderVariable = this._slider.partialSlideoutSize / fullsize;
+                }
+            }
+        }
+
         Tweener.addTween(this._slider, {
-            slidex: 0,
+            slidex: sliderVariable,
             time: time,
             delay: delay,
             transition: 'easeOutQuad',
             onComplete: Lang.bind(this, function() {
+                if (_DEBUG_) global.log("dockedWorkspaces: _animateOUT onComplete");
                 this._dockState = DockState.HIDDEN;
                 this._updateBarrier();
-                if (_DEBUG_) global.log("dockedWorkspaces: _animateOUT onComplete");
             })
         });
     },
@@ -1864,8 +1897,7 @@ const DockedWorkspaces = new Lang.Class({
         if (this._disableRedisplay)
             return
 
-        if (_DEBUG_) global.log("dockedWorkspaces: _redisplay");
-
+        if (_DEBUG_) global.log("dockedWorkspaces: _redisplay autohide-dodge="+this._autohideStatus);
         // Initial display of dock .. sets autohideStatus
         if (this._autohideStatus == null) {
             if (this._settings.get_boolean('dock-fixed')) {
@@ -1880,10 +1912,18 @@ const DockedWorkspaces = new Lang.Class({
         } else {
             // Redisplay dock by animating back in .. necessary if thumbnailsBox size changed
             // even if dock is fixed
-            if (this._autohideStatus == false) {
-                // had to comment out because GS3.4 fixed-dock isn't fully faded in yet when redisplay occurs again
-                //this._removeAnimations();
-                this._animateIn(this._settings.get_double('animation-time'), 0);
+            if (this._autohideStatus) {
+                if (!this._container.hover && !(this._hoveringDash && !Main.overview._shown)) {
+                    this._removeAnimations();
+                    this._animateOut(0, 0, true);
+                }
+                this._autohideStatus = true;
+            } else {
+                if (!this._container.hover && !(this._hoveringDash && !Main.overview._shown)) {
+                    // had to comment out because GS3.4 fixed-dock isn't fully faded in yet when redisplay occurs again
+                    //this._removeAnimations();
+                    this._animateIn(this._settings.get_double('animation-time'), 0);
+                }
                 this._autohideStatus = false;
             }
         }
@@ -1960,7 +2000,7 @@ const DockedWorkspaces = new Lang.Class({
             }
         }
 
-        //// skip updating if size is same
+        //// skip updating if size is same ??
         //if ((this.actor.y == y) && (this.actor.width == this._thumbnailsBox._thumbnailsBoxWidth + shortcutsPanelThickness) && (this.actor.height == height)) {
             //return;
         //}
@@ -2123,8 +2163,8 @@ const DockedWorkspaces = new Lang.Class({
         // Note: dock in fixed possition doesn't use pressure barrier
         if (_DEBUG_) global.log("dockedWorkspaces: _updateBarrier");
         if (this.actor.visible && this._canUsePressure && this._settings.get_boolean('autohide')
-                    && this._autohideStatus && this._settings.get_boolean('require-pressure-to-show')
-                    && !this._settings.get_boolean('dock-fixed') && !this._messageTrayShowing) {
+                    && this._settings.get_boolean('require-pressure-to-show')
+                    && !this._settings.get_boolean('dock-fixed')) {
 
             let x1, x2, y1, y2, direction;
             if(this._position==St.Side.LEFT){
@@ -2167,6 +2207,7 @@ const DockedWorkspaces = new Lang.Class({
 
         // Reset pressureSensed flag
         if (!this._container.hover && this._dockState != DockState.SHOWN) {
+            if (_DEBUG_) global.log("... pressureSensed flag reset");
             this._pressureSensed = false;
             this._updateTriggerWidth();
         }
@@ -2174,23 +2215,21 @@ const DockedWorkspaces = new Lang.Class({
 
     // Disable autohide effect, thus show workspaces
     disableAutoHide: function() {
-        if (_DEBUG_) global.log("dockedWorkspaces: disableAutoHide - autohideStatus = "+this._autohideStatus);
-        if (this._autohideStatus == true) {
-            this._autohideStatus = false;
-
+        if (_DEBUG_) global.log("dockedWorkspaces: disableAutoHide - autohideStatus = "+this._autohideStatus+" dockState = "+getDockStateDesc(this._dockState));
+        this._autohideStatus = false;
+        if (this._dockState == DockState.HIDING || this._dockState == DockState.HIDDEN) {
             this._removeAnimations();
             this._animateIn(this._settings.get_double('animation-time'), 0);
-
-            if (this._settings.get_boolean('opaque-background') && !this._settings.get_boolean('opaque-background-always'))
-                this._fadeOutBackground(this._settings.get_double('animation-time'), 0);
-
         }
+
+        if (this._settings.get_boolean('opaque-background') && !this._settings.get_boolean('opaque-background-always'))
+            this._fadeOutBackground(this._settings.get_double('animation-time'), 0);
+
     },
 
     // Enable autohide effect, hide workspaces
     enableAutoHide: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - autohideStatus = "+this._autohideStatus);
-
         this._autohideStatus = true;
 
         if (this._container.hover == true) {
@@ -2199,13 +2238,12 @@ const DockedWorkspaces = new Lang.Class({
 
         let delay = 0; // immediately fadein background if hide is blocked by mouseover, otherwise start fadein when dock is already hidden.
 
-        // if (!((this._hoveringDash && !Main.overview.visible) || this._container.hover) || !this._settings.get_boolean('autohide')) {
         if (this._settings.get_boolean('autohide')) {
             if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - autohide settings true");
-            if (!this._container.hover && !(this._hoveringDash && !Main.overview.visible)) {
+            if (!this._container.hover && !(this._hoveringDash && !Main.overview._shown)) {
                 if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - mouse not hovering OR dock not using autohide, so animate out");
                 this._removeAnimations();
-                this._animateOut(this._settings.get_double('animation-time'), 0);
+                this._animateOut(this._settings.get_double('animation-time'), 0, !Main.overview._shown);
                 delay = this._settings.get_double('animation-time');
             }
         }

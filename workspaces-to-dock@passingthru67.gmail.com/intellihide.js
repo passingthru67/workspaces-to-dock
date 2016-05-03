@@ -41,10 +41,22 @@ const handledWindowTypes2 = [
     Meta.WindowType.TOOLTIP
 ];
 
-const OverviewOption = {
-    SHOW: 0,        // Dock is always visible
+const IntellihideAction = {
+    SHOW_FULL: 0,
+    SHOW_PARTIAL: 1
+};
+
+const OverviewAction = {
+    SHOW_FULL: 0,        // Dock is always visible
     HIDE: 1,        // Dock is always invisible. Visible on mouse hover
-    PARTIAL: 2      // Dock partially hidden. Visible on mouse hover
+    SHOW_PARTIAL: 2      // Dock partially hidden. Visible on mouse hover
+};
+
+const DockState = {
+    HIDDEN:  0,
+    SHOWING: 1,
+    SHOWN:   2,
+    HIDING:  3
 };
 
 let GSFunctions = {};
@@ -161,12 +173,17 @@ const Intellihide = new Lang.Class({
             [
                 Main.overview,
                 'showing',
-                Lang.bind(this, this._overviewEnter)
+                Lang.bind(this, this._overviewEntered)
             ],
             [
                 Main.overview,
                 'hiding',
-                Lang.bind(this,this._overviewExit)
+                Lang.bind(this,this._overviewExiting)
+            ],
+            [
+                Main.overview,
+                'hidden',
+                Lang.bind(this,this._overviewExited)
             ],
             // window-drag-events emitted from workspaces thumbnail window dragging action
             [
@@ -458,27 +475,52 @@ const Intellihide = new Lang.Class({
         }
     },
 
+    // handler for when overview mode exiting
+    _overviewExiting: function() {
+        if (_DEBUG_) global.log("intellihide: _overviewExiting");
+        this._inOverview = false;
+
+        let intellihideAction = this._settings.get_enum('intellihide-action');
+        if (intellihideAction == IntellihideAction.SHOW_FULL) {
+            this._show();
+        } else if (intellihideAction == IntellihideAction.SHOW_PARTIAL) {
+            if (this._dock._dockState == DockState.SHOWING || this._dock._dockState == DockState.SHOWN) {
+                this._hide();
+            } else {
+                this._show();
+            }
+        }
+    },
+
     // handler for when overview mode exited
-    _overviewExit: function() {
-        if (_DEBUG_) global.log("intellihide: _overviewExit");
+    _overviewExited: function() {
+        if (_DEBUG_) global.log("intellihide: _overviewExited");
         this._inOverview = false;
         this._updateDockVisibility();
     },
 
     // handler for when overview mode entered
-    _overviewEnter: function() {
+    _overviewEntered: function() {
         if (_DEBUG_) global.log("intellihide: _overviewEnter");
         this._inOverview = true;
         let overviewAction = this._settings.get_enum('overview-action');
-        if (overviewAction == OverviewOption.SHOW) {
+        if (overviewAction == OverviewAction.SHOW_FULL) {
             if (Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage) {
                 this._show();
             } else {
                 this._hide();
             }
-        } else if (overviewAction == OverviewOption.HIDE) {
-            this._hide();
-        } else if (overviewAction == OverviewOption.PARTIAL) {
+        } else if (overviewAction == OverviewAction.SHOW_PARTIAL) {
+            if (Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage) {
+                if (this._dock._dockState == DockState.SHOWING || this._dock._dockState == DockState.SHOWN) {
+                    this._hide();
+                } else {
+                    this._show();
+                }
+            } else {
+                this._hide();
+            }
+        } else if (overviewAction == OverviewAction.HIDE) {
             this._hide();
         }
     },
@@ -497,11 +539,9 @@ const Intellihide = new Lang.Class({
         if (this._inOverview) {
             if (newPage == Main.overview.viewSelector._workspacesPage) {
                 let overviewAction = this._settings.get_enum('overview-action');
-                if (overviewAction == OverviewOption.SHOW) {
+                if (overviewAction == OverviewAction.SHOW_FULL || overviewAction == OverviewAction.SHOW_PARTIAL) {
                     this._show();
-                } else if (overviewAction == OverviewOption.HIDE) {
-                    this._hide();
-                } else if (overviewAction == OverviewOption.PARTIAL) {
+                } else if (overviewAction == OverviewAction.HIDE) {
                     this._hide();
                 }
             } else {
@@ -518,16 +558,26 @@ const Intellihide = new Lang.Class({
         let [rx, ry] = focusedActor.get_transformed_position();
         let [rw, rh] = focusedActor.get_size();
         let [dx, dy] = this._dock.actor.get_position();
-        let [dcx, dcy] = this._dock._container.get_transformed_position();
         let [dw, dh] = this._dock.actor.get_size();
+        let [dcx, dcy] = this._dock._container.get_transformed_position();
         let [dcw, dch] = this._dock._container.get_size();
 
         if (this._dock._isHorizontal) {
             dx = dcx;
             dw = dcw;
+            let intellihideAction = this._settings.get_enum('intellihide-action');
+            if (intellihideAction == IntellihideAction.SHOW_PARTIAL) {
+                if (this._dock._slider.partialSlideoutSize)
+                    dh = this._dock._slider.partialSlideoutSize;
+            }
         } else {
             dy = dcy;
             dh = dch;
+            let intellihideAction = this._settings.get_enum('intellihide-action');
+            if (intellihideAction == intellihideAction.SHOW_PARTIAL) {
+                if (this._dock._slider.partialSlideoutSize)
+                    dw = this._dock._slider.partialSlideoutSize;
+            }
         }
 
         let test;
@@ -697,8 +747,8 @@ const Intellihide = new Lang.Class({
                         if (win) {
                             let rect = win.get_frame_rect();
                             let [dx, dy] = this._dock.actor.get_position();
-                            let [dcx, dcy] = this._dock._container.get_transformed_position();
                             let [dw, dh] = this._dock.actor.get_size();
+                            let [dcx, dcy] = this._dock._container.get_transformed_position();
                             let [dcw, dch] = this._dock._container.get_size();
 
                             // SANITY CHECK
@@ -708,9 +758,19 @@ const Intellihide = new Lang.Class({
                             if (this._dock._isHorizontal) {
                                 dx = dcx;
                                 dw = dcw;
+                                let intellihideAction = this._settings.get_enum('intellihide-action');
+                                if (intellihideAction == IntellihideAction.SHOW_PARTIAL) {
+                                    if (this._dock._slider.partialSlideoutSize)
+                                        dh = this._dock._slider.partialSlideoutSize;
+                                }
                             } else {
                                 dy = dcy;
                                 dh = dch;
+                                let intellihideAction = this._settings.get_enum('intellihide-action');
+                                if (intellihideAction == IntellihideAction.SHOW_PARTIAL) {
+                                    if (this._dock._slider.partialSlideoutSize)
+                                        dw = this._dock._slider.partialSlideoutSize;
+                                }
                             }
 
                             let test;
