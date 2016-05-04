@@ -1536,6 +1536,10 @@ const DockedWorkspaces = new Lang.Class({
     // autohide function to hide dock
     _hide: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _hide autohideStatus-dodging = "+this._autohideStatus+" dockState = "+getDockStateDesc(this._dockState));
+        if (this._container.hover || (this._hoveringDash && !Main.overview._shown)) {
+            return;
+        }
+
         let intellihideAction = this._settings.get_enum('intellihide-action');
         if (!Main.overview._shown && intellihideAction == IntellihideAction.SHOW_FULL && !this._autohideStatus) {
             return;
