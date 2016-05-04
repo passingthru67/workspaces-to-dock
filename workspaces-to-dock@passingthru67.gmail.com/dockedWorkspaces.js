@@ -1598,7 +1598,7 @@ const DockedWorkspaces = new Lang.Class({
                     } else {
                         fullsize = this._dock.width;
                     }
-                    sliderVariable = this._slider.partialSlideoutSize / fullsize;
+                    sliderVariable = (this._slider.partialSlideoutSize - this._slider.slideoutSize) / fullsize;
                 }
             } else {
                 this._dockState = DockState.SHOWING;
@@ -1672,7 +1672,7 @@ const DockedWorkspaces = new Lang.Class({
                     } else {
                         fullsize = this._dock.width;
                     }
-                    sliderVariable = this._slider.partialSlideoutSize / fullsize;
+                    sliderVariable = (this._slider.partialSlideoutSize - this._slider.slideoutSize) / fullsize;
                 }
             }
         }
