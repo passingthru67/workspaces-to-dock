@@ -503,24 +503,20 @@ const Intellihide = new Lang.Class({
     _overviewEntered: function() {
         if (_DEBUG_) global.log("intellihide: _overviewEnter");
         this._inOverview = true;
-        let overviewAction = this._settings.get_enum('overview-action');
-        if (overviewAction == OverviewAction.SHOW_FULL) {
-            if (Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage) {
+        if (Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage) {
+            let overviewAction = this._settings.get_enum('overview-action');
+            if (overviewAction == OverviewAction.SHOW_FULL) {
                 this._show();
-            } else {
-                this._hide();
-            }
-        } else if (overviewAction == OverviewAction.SHOW_PARTIAL) {
-            if (Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage) {
+            } else if (overviewAction == OverviewAction.SHOW_PARTIAL) {
                 if (this._dock._dockState == DockState.SHOWING || this._dock._dockState == DockState.SHOWN) {
                     this._hide();
                 } else {
                     this._show();
                 }
-            } else {
+            } else if (overviewAction == OverviewAction.HIDE) {
                 this._hide();
             }
-        } else if (overviewAction == OverviewAction.HIDE) {
+        } else {
             this._hide();
         }
     },
@@ -539,8 +535,14 @@ const Intellihide = new Lang.Class({
         if (this._inOverview) {
             if (newPage == Main.overview.viewSelector._workspacesPage) {
                 let overviewAction = this._settings.get_enum('overview-action');
-                if (overviewAction == OverviewAction.SHOW_FULL || overviewAction == OverviewAction.SHOW_PARTIAL) {
+                if (overviewAction == OverviewAction.SHOW_FULL) {
                     this._show();
+                } else if (overviewAction == OverviewAction.SHOW_PARTIAL) {
+                    if (this._dock._dockState == DockState.SHOWING || this._dock._dockState == DockState.SHOWN) {
+                        this._hide();
+                    } else {
+                        this._show();
+                    }
                 } else if (overviewAction == OverviewAction.HIDE) {
                     this._hide();
                 }
