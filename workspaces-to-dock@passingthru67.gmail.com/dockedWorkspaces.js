@@ -1560,7 +1560,11 @@ const DockedWorkspaces = new Lang.Class({
             this._removeAnimations();
         }
 
-        this._animateOut(this._settings.get_double('animation-time'), delay, this._autohideStatus);
+        if (Main.overview._shown && Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage) {
+            this._animateOut(this._settings.get_double('animation-time'), delay, false);
+        } else {
+            this._animateOut(this._settings.get_double('animation-time'), delay, this._autohideStatus);
+        }
     },
 
     setPopupMenuFlag: function(showing) {
@@ -1660,7 +1664,6 @@ const DockedWorkspaces = new Lang.Class({
         if (!force && !fixedPosition) {
             if ((Main.overview._shown && overviewAction == OverviewAction.SHOW_PARTIAL)
                 ||  (!Main.overview._shown && intellihideAction == IntellihideAction.SHOW_PARTIAL)) {
-                    if (_DEBUG_) global.log("... checking partialSlide");
                 if (this._slider.partialSlideoutSize) {
                     if (_DEBUG_) global.log("... animateOut: partial="+this._slider.partialSlideoutSize);
                     let fullsize;
