@@ -1266,7 +1266,7 @@ const DockedWorkspaces = new Lang.Class({
 
 
         if (this._canUsePressure && this._settings.get_boolean('require-pressure-to-show') && this._barrier) {
-            if (this._pressureSensed == false && this._dockState != DockState.SHOWN && this._autohideStatus == false) {
+            if (this._pressureSensed == false && this._dockState != DockState.SHOWN) {
                 if(_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - presureSensed = "+this._pressureSensed+" RETURN");
                 return;
             }
