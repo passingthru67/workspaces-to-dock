@@ -1563,8 +1563,8 @@ const DockedWorkspaces = new Lang.Class({
         if (_DEBUG_) global.log("dockedWorkspaces: setPopupMenuFlag - showing="+showing);
         this._popupMenuShowing = showing;
         if (!showing) {
-            if (this.actor.hover == true) {
-                this.actor.sync_hover();
+            if (this._container.hover == true) {
+                this._container.sync_hover();
             } else {
                 this._hide();
             }
@@ -2233,7 +2233,7 @@ const DockedWorkspaces = new Lang.Class({
         this._autohideStatus = true;
 
         if (this._container.hover == true) {
-            this._dock.sync_hover();
+            this._container.sync_hover();
         }
 
         let delay = 0; // immediately fadein background if hide is blocked by mouseover, otherwise start fadein when dock is already hidden.
