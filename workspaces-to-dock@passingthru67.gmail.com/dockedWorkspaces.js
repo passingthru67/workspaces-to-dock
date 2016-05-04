@@ -2250,7 +2250,11 @@ const DockedWorkspaces = new Lang.Class({
             if (!this._container.hover && !(this._hoveringDash && !Main.overview._shown)) {
                 if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - mouse not hovering OR dock not using autohide, so animate out");
                 this._removeAnimations();
-                this._animateOut(this._settings.get_double('animation-time'), 0, !Main.overview._shown);
+                if (Main.overview._shown && Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage) {
+                    this._animateOut(this._settings.get_double('animation-time'), 0, false);
+                } else {
+                    this._animateOut(this._settings.get_double('animation-time'), 0, true);
+                }
                 delay = this._settings.get_double('animation-time');
             }
         }
