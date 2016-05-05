@@ -104,11 +104,15 @@ Behavior Settings:
 
     SHOW-PARTIAL OPTION - When the favorites panel is enabled and oriented inside, the show-partial option shows the favorites panel. Otherwise, a 30px portion (adjustable through the gnome-shell css) of the workspace thumbnails are shown. Mouse pressure (if require-pressure-to-show-the-dock is enabled under Autohide Options) or mouse hover will cause the dock to fully show.
 
-    Below are examples of the dock partially and fully shown with the favorites panel oriented inside and outside.
+	Below are examples of the dock partially and fully shown with the favorites panel oriented inside and outside.
 
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/ShowPartial.png)
+    **Dock at bottom of screen with favorites panel oriented inside:**
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/ShowPartial-Inside.png)
 
-    To reiterate, when the favorites panel is enabled and oriented inside, the show-partial option essentially provides a favorites dock. The full dock, with workspace thumbnails, is shown when the mouse hovers over the panel or, if require-pressure is enabled, when pressure is applied to the edge of the screen.
+	**Dock at bottom of screen with favorites panel oriented outside**
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/ShowPartial-Outside.png)
+
+	To reiterate, when the favorites panel is enabled and oriented inside, the show-partial option essentially provides a favorites dock. The full dock, with workspace thumbnails, is shown when the mouse hovers over the panel or, if require-pressure is enabled, when pressure is applied to the edge of the screen.
 
     **What should we do with the dock in overview mode?** - Option to show the full dock, hide the dock, or show a partial dock when in overview mode. See the note above regarding the show-partial option.
 
