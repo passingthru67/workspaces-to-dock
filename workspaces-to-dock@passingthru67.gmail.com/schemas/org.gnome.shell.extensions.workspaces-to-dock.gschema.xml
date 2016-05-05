@@ -10,7 +10,7 @@
     <value value='0' nick='OUTSIDE'/>
     <value value='1' nick='INSIDE'/>
   </enum>
-  <enum id='org.gnome.shell.extensions.workspaces-to-dock.overviewoption'>
+  <enum id='org.gnome.shell.extensions.workspaces-to-dock.overviewaction'>
     <value value='0' nick='SHOW_FULL'/>
     <value value='1' nick='HIDE'/>
     <value value='2' nick='SHOW_PARTIAL'/>
@@ -205,7 +205,7 @@
       <summary>Dock shown on Dash-To-Dock mouse over</summary>
       <description>Enable or disable Dash-To-Dock hover mode</description>
     </key>
-    <key name="overview-action" enum="org.gnome.shell.extensions.workspaces-to-dock.overviewoption">
+    <key name="overview-action" enum="org.gnome.shell.extensions.workspaces-to-dock.overviewaction">
       <default>'SHOW_FULL'</default>
       <summary>Show, hide, or partially hide the dock in overview mode</summary>
       <description>Show, hide, or partially hide the dock in overview mode.</description>
