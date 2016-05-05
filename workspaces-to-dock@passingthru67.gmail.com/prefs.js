@@ -148,7 +148,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         /* TITLE: HEIGHT */
 
         let dockHeightTitle = new Gtk.Label({
-            label: _("<b>Height</b>"),
+            label: _("<b>Height (Width when positioned horizontally)</b>"),
             use_markup: true,
             xalign: 0,
             margin_top: 25,
@@ -159,7 +159,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         /* HEIGHT WIDGETS */
 
         let customizeHeightLabel = new Gtk.Label({
-            label: _("Customize the height of the dock"),
+            label: _("Customize the height (width) of the dock"),
             xalign: 0,
             hexpand: true
         });
@@ -181,7 +181,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }));
 
         let customizeHeightExtend =  new Gtk.RadioButton({
-            label: _("Extend the height of the dock to fill the screen"),
+            label: _("Extend the height (width) of the dock to fill the screen"),
             group: customizeHeightAutosize,
             margin_top: 0
         });
@@ -202,7 +202,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }
 
         let topMarginLabel = new Gtk.Label({
-            label: _("Top margin"),
+            label: _("Top margin (Left when positioned horizontally)"),
             use_markup: true,
             xalign: 0,
             hexpand: true
@@ -225,7 +225,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
 
         let bottomMarginLabel = new Gtk.Label({
-            label: _("Bottom margin"),
+            label: _("Bottom margin (Right when positioned horizontally)"),
             use_markup: true,
             xalign: 0,
             hexpand: true
