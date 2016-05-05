@@ -661,7 +661,7 @@ const DockedWorkspaces = new Lang.Class({
         // Change source of swarm animation to shortcuts panel apps button
         GSFunctions['Overview_getShowAppsButton'] = Overview.Overview.prototype.getShowAppsButton;
         Overview.Overview.prototype.getShowAppsButton = function() {
-            if (self._settings.get_boolean('shortcuts-panel-appsbutton-animation')) {
+            if (self._settings.get_boolean('show-shortcuts-panel') && self._settings.get_boolean('shortcuts-panel-appsbutton-animation')) {
                 return self._shortcutsPanel._appsButton.actor;
             } else {
                 return this._dash.showAppsButton;
