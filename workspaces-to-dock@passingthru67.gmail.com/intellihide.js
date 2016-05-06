@@ -480,14 +480,16 @@ const Intellihide = new Lang.Class({
         if (_DEBUG_) global.log("intellihide: _overviewExiting");
         this._inOverview = false;
 
-        let intellihideAction = this._settings.get_enum('intellihide-action');
-        if (intellihideAction == IntellihideAction.SHOW_FULL) {
-            this._show();
-        } else if (intellihideAction == IntellihideAction.SHOW_PARTIAL) {
-            if (this._dock._dockState == DockState.SHOWING || this._dock._dockState == DockState.SHOWN) {
-                this._hide();
-            } else {
+        if (!this._settings.get_boolean('dock-fixed')) {
+            let intellihideAction = this._settings.get_enum('intellihide-action');
+            if (intellihideAction == IntellihideAction.SHOW_FULL) {
                 this._show();
+            } else if (intellihideAction == IntellihideAction.SHOW_PARTIAL) {
+                if (this._dock._dockState == DockState.SHOWING || this._dock._dockState == DockState.SHOWN) {
+                    this._hide();
+                } else {
+                    this._show();
+                }
             }
         }
     },
@@ -504,17 +506,21 @@ const Intellihide = new Lang.Class({
         if (_DEBUG_) global.log("intellihide: _overviewEnter");
         this._inOverview = true;
         if (Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage) {
-            let overviewAction = this._settings.get_enum('overview-action');
-            if (overviewAction == OverviewAction.SHOW_FULL) {
+            if (this._settings.get_boolean('dock-fixed')) {
                 this._show();
-            } else if (overviewAction == OverviewAction.SHOW_PARTIAL) {
-                if (this._dock._dockState == DockState.SHOWING || this._dock._dockState == DockState.SHOWN) {
-                    this._hide();
-                } else {
+            } else {
+                let overviewAction = this._settings.get_enum('overview-action');
+                if (overviewAction == OverviewAction.SHOW_FULL) {
                     this._show();
+                } else if (overviewAction == OverviewAction.SHOW_PARTIAL) {
+                    if (this._dock._dockState == DockState.SHOWING || this._dock._dockState == DockState.SHOWN) {
+                        this._hide();
+                    } else {
+                        this._show();
+                    }
+                } else if (overviewAction == OverviewAction.HIDE) {
+                    this._hide();
                 }
-            } else if (overviewAction == OverviewAction.HIDE) {
-                this._hide();
             }
         } else {
             this._hide();
@@ -534,17 +540,21 @@ const Intellihide = new Lang.Class({
 
         if (this._inOverview) {
             if (newPage == Main.overview.viewSelector._workspacesPage) {
-                let overviewAction = this._settings.get_enum('overview-action');
-                if (overviewAction == OverviewAction.SHOW_FULL) {
+                if (this._settings.get_boolean('dock-fixed')) {
                     this._show();
-                } else if (overviewAction == OverviewAction.SHOW_PARTIAL) {
-                    if (this._dock._dockState == DockState.SHOWING || this._dock._dockState == DockState.SHOWN) {
-                        this._hide();
-                    } else {
+                } else {
+                    let overviewAction = this._settings.get_enum('overview-action');
+                    if (overviewAction == OverviewAction.SHOW_FULL) {
                         this._show();
+                    } else if (overviewAction == OverviewAction.SHOW_PARTIAL) {
+                        if (this._dock._dockState == DockState.SHOWING || this._dock._dockState == DockState.SHOWN) {
+                            this._hide();
+                        } else {
+                            this._show();
+                        }
+                    } else if (overviewAction == OverviewAction.HIDE) {
+                        this._hide();
                     }
-                } else if (overviewAction == OverviewAction.HIDE) {
-                    this._hide();
                 }
             } else {
                 this._hide();
