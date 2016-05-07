@@ -102,19 +102,21 @@ Behavior Settings:
 
     **What should we do with the dock when not dodging windows?** - Option for intellihide to show the full dock or show a partial dock when not dodging windows. The dock will fully hide when dodging windows.
 
-    SHOW-PARTIAL OPTION - When the favorites panel is enabled and oriented inside, the show-partial option shows the favorites panel. Otherwise, a 30px portion (adjustable through the gnome-shell css) of the workspace thumbnails are shown. Mouse pressure (if require-pressure-to-show-the-dock is enabled under Autohide Options) or mouse hover will cause the dock to fully show.
+	**SHOW-FULL Option** - The Dock is fully shown when not dodging windows. This is the default setting.
+    
+    **SHOW-PARTIAL Option** - The Dock is partially shown when not dodging windows. Mouse pressure (if require-pressure-to-show-the-dock is enabled under Autohide Options) or mouse hover will cause the dock to fully show.
+    
+    NOTE: When the favorites panel is enabled and oriented inside, the show-partial option shows the favorites panel. Otherwise, a 30px portion (adjustable through the gnome-shell css) of the workspace thumbnails are shown.
 
-	Below are examples of the dock partially and fully shown with the favorites panel oriented inside and outside.
+	Below are screencasts of the dock partially shown with the favorites panel oriented inside and outside.
 
-    **Dock at bottom of screen with favorites panel oriented inside:**
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/ShowPartial-Inside.png)
+    **Show-partial feature with favorites panel oriented inside**
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/ShowPartial-Inside.gif)
 
-	**Dock at bottom of screen with favorites panel oriented outside**
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/ShowPartial-Outside.png)
+	**Show-partial feature with favorites panel oriented outside**
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/ShowPartial-Outside.gif)
 
-	To reiterate, when the favorites panel is enabled and oriented inside, the show-partial option essentially provides a favorites dock. The full dock, with workspace thumbnails, is shown when the mouse hovers over the panel or, if require-pressure is enabled, when pressure is applied to the edge of the screen.
-
-    **What should we do with the dock in overview mode?** - Option to show the full dock, hide the dock, or show a partial dock when in overview mode. See the note above regarding the show-partial option.
+	**What should we do with the dock in overview mode?** - Option to show the full dock, hide the dock, or show a partial dock when in overview mode. See the note above regarding the show-partial option.
 
     **Miscellaneous Options**
 
@@ -173,7 +175,7 @@ Below are examples of the workspace (thumbnail) caption in various configuration
 
 Workspace Caption Theming:
 -------------------------
-Adding workspaces-to-dock caption support to a theme can be accomplished by placing a custom 'workspaces-to-dock.css' stylesheet in the theme's gnome-shell/extensions folder. There is no need to use the @import directive to incorporate the stylesheet classes into your theme's gnome-shell.css. The extension will automatically detect the stylesheet file. Please see the workspaces-to-dock.css stylesheet for a description of the css classes.
+Captions may be themed by editing the workspaces-to-dock.css file inside the extension folder, or by including a 'workspaces-to-dock.css' stylesheet inside the theme's gnome-shell/extension folder. For more details on theme support, see the 'Theme Support' section below.
 
 
 Favorites Settings:
@@ -206,6 +208,11 @@ Favorites Settings:
     **Hide thumbnails when a popup menu is shown** - Option to hide the thumbnails when a popup menu is show by right clicking a favorite application icon. This only applies when the shortcuts panel is oriented on the outside of the thumbnails.
 
 
+Theme Support:
+-------------------------
+Adding workspaces-to-dock support to a theme can be accomplished by placing a custom 'workspaces-to-dock.css' stylesheet in the theme's gnome-shell/extensions folder. There is no need to use the @import directive to incorporate the stylesheet classes into your theme's gnome-shell.css. The extension will automatically detect the stylesheet file. Please see the workspaces-to-dock.css stylesheet for a description of the css classes.
+
+
 Localization Support:
 --------------------
 Support for languages is now provided with the editable translation files being located in the po folder of the repository. If you would like to help with translations, please download one of the po files (en_US.po serves as a clean template) and email your translation to me at passingthru67@gmail.com.
@@ -215,7 +222,6 @@ Features Planned:
 -----------------
 - Ability to edit the workspace caption name.
 - Making the favorite shortcuts panel scrollable.
-- Ability to rearrange the position of favorite applications (similar to the dash)
 
 
 Known Issues:
