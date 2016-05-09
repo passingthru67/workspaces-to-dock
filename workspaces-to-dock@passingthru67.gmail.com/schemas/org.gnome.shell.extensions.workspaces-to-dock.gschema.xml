@@ -18,6 +18,7 @@
   <enum id='org.gnome.shell.extensions.workspaces-to-dock.intellihideaction'>
     <value value='0' nick='SHOW_FULL'/>
     <value value='1' nick='SHOW_PARTIAL'/>
+    <value value='2' nick='SHOW_PARTIAL_FIXED'/>
   </enum>
   <schema path="/org/gnome/shell/extensions/workspaces-to-dock/" id="org.gnome.shell.extensions.workspaces-to-dock">
     <key type="b" name="dock-fixed">

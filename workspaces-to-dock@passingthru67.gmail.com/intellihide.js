@@ -43,7 +43,8 @@ const handledWindowTypes2 = [
 
 const IntellihideAction = {
     SHOW_FULL: 0,
-    SHOW_PARTIAL: 1
+    SHOW_PARTIAL: 1,
+    SHOW_PARTIAL_FIXED: 2
 };
 
 const OverviewAction = {
@@ -484,7 +485,7 @@ const Intellihide = new Lang.Class({
             let intellihideAction = this._settings.get_enum('intellihide-action');
             if (intellihideAction == IntellihideAction.SHOW_FULL) {
                 this._show();
-            } else if (intellihideAction == IntellihideAction.SHOW_PARTIAL) {
+            } else if (intellihideAction == IntellihideAction.SHOW_PARTIAL || intellihideAction == IntellihideAction.SHOW_PARTIAL_FIXED) {
                 if (this._dock._dockState == DockState.SHOWING || this._dock._dockState == DockState.SHOWN) {
                     this._hide();
                 } else {
@@ -578,7 +579,7 @@ const Intellihide = new Lang.Class({
             dx = dcx;
             dw = dcw;
             let intellihideAction = this._settings.get_enum('intellihide-action');
-            if (intellihideAction == IntellihideAction.SHOW_PARTIAL) {
+            if (intellihideAction == IntellihideAction.SHOW_PARTIAL || intellihideAction == IntellihideAction.SHOW_PARTIAL_FIXED) {
                 if (this._dock._slider.partialSlideoutSize)
                     dh = this._dock._slider.partialSlideoutSize;
             }
@@ -586,7 +587,7 @@ const Intellihide = new Lang.Class({
             dy = dcy;
             dh = dch;
             let intellihideAction = this._settings.get_enum('intellihide-action');
-            if (intellihideAction == intellihideAction.SHOW_PARTIAL) {
+            if (intellihideAction == intellihideAction.SHOW_PARTIAL || intellihideAction == IntellihideAction.SHOW_PARTIAL_FIXED) {
                 if (this._dock._slider.partialSlideoutSize)
                     dw = this._dock._slider.partialSlideoutSize;
             }
@@ -771,7 +772,7 @@ const Intellihide = new Lang.Class({
                                 dx = dcx;
                                 dw = dcw;
                                 let intellihideAction = this._settings.get_enum('intellihide-action');
-                                if (intellihideAction == IntellihideAction.SHOW_PARTIAL) {
+                                if (intellihideAction == IntellihideAction.SHOW_PARTIAL || intellihideAction == IntellihideAction.SHOW_PARTIAL_FIXED) {
                                     if (this._dock._slider.partialSlideoutSize)
                                         dh = this._dock._slider.partialSlideoutSize;
                                 }
@@ -779,7 +780,7 @@ const Intellihide = new Lang.Class({
                                 dy = dcy;
                                 dh = dch;
                                 let intellihideAction = this._settings.get_enum('intellihide-action');
-                                if (intellihideAction == IntellihideAction.SHOW_PARTIAL) {
+                                if (intellihideAction == IntellihideAction.SHOW_PARTIAL || intellihideAction == IntellihideAction.SHOW_PARTIAL_FIXED) {
                                     if (this._dock._slider.partialSlideoutSize)
                                         dw = this._dock._slider.partialSlideoutSize;
                                 }
@@ -906,7 +907,8 @@ const Intellihide = new Lang.Class({
         var wtype = metaWindow.get_window_type();
 
         if (grptype == null || grptype == 1) {
-            if (!this._settings.get_boolean('dock-fixed')) {
+            if (!this._settings.get_boolean('dock-fixed')
+            && !(this._settings.get_boolean('intellihide') && this._settings.get_enum('intellihide-action') == IntellihideAction.SHOW_PARTIAL_FIXED)) {
                 // Test primary window types .. only if dock is not fixed
                 for (var i = 0; i < handledWindowTypes.length; i++) {
                     var hwtype = handledWindowTypes[i];
@@ -918,11 +920,14 @@ const Intellihide = new Lang.Class({
         }
 
         if (grptype == null || grptype == 2) {
-            // Test secondary window types .. even if dock is fixed
-            for (var i = 0; i < handledWindowTypes2.length; i++) {
-                var hwtype = handledWindowTypes2[i];
-                if (hwtype == wtype) {
-                    return true;
+            // Test secondary window types .. only if dock is not fixed
+            if (!this._settings.get_boolean('dock-fixed')
+            && !(this._settings.get_boolean('intellihide') && this._settings.get_enum('intellihide-action') == IntellihideAction.SHOW_PARTIAL_FIXED)) {
+                for (var i = 0; i < handledWindowTypes2.length; i++) {
+                    var hwtype = handledWindowTypes2[i];
+                    if (hwtype == wtype) {
+                        return true;
+                    }
                 }
             }
         }

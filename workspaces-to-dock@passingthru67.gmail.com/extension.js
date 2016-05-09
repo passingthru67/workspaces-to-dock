@@ -126,6 +126,12 @@ function bindSettingsChanges() {
         dock = new DockedWorkspaces.DockedWorkspaces();
         intellihide = new Intellihide.Intellihide(dock);
     });
+    settings.connect('changed::intellihide-action', function(){
+        intellihide.destroy();
+        dock.destroy();
+        dock = new DockedWorkspaces.DockedWorkspaces();
+        intellihide = new Intellihide.Intellihide(dock);
+    });
     settings.connect('changed::shortcuts-panel-orientation', function(){
         intellihide.destroy();
         dock.destroy();

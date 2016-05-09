@@ -864,6 +864,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
         intellhideActionCombo.append_text(_('Show Full'));
         intellhideActionCombo.append_text(_('Show Partial'));
+        intellhideActionCombo.append_text(_('Show Partial Fixed'));
 
         let intellhideAction = this.settings.get_enum('intellihide-action');
         intellhideActionCombo.set_active(intellhideAction);

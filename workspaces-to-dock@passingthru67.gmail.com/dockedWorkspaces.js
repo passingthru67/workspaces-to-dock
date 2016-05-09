@@ -56,7 +56,8 @@ let GSFunctions = {};
 
 const IntellihideAction = {
     SHOW_FULL: 0,
-    SHOW_PARTIAL: 1
+    SHOW_PARTIAL: 1,
+    SHOW_PARTIAL_FIXED: 2
 };
 
 const OverviewAction = {
@@ -322,8 +323,11 @@ const DockedWorkspaces = new Lang.Class({
         // Create the main dock container, turn on track hover, add hoverChange signal
         let positionStyleClass = ['top', 'right', 'bottom', 'left'];
         let styleClass = positionStyleClass[this._position];
-        if (this._settings.get_boolean('dock-fixed'))
-            styleClass += " fixed";
+        if (this._settings.get_boolean('dock-fixed')
+            || (this._settings.get_boolean('intellihide') && this._settings.get_enum('intellihide-action') == IntellihideAction.SHOW_PARTIAL_FIXED)) {
+                styleClass += " fixed";
+        }
+
 
         let shortcutsPanelOrientation = this._settings.get_enum('shortcuts-panel-orientation');
         if (this._settings.get_boolean('show-shortcuts-panel')) {
@@ -551,6 +555,17 @@ const DockedWorkspaces = new Lang.Class({
         this.actor.connect('notify::allocation',
                                               Lang.bind(Main.layoutManager, Main.layoutManager._queueUpdateRegions));
 
+        // Create struts actor for tracking workspace region of fixed dock or partially fixed dock
+        this._struts = new St.Bin({ reactive: false });
+        if (this._settings.get_boolean('dock-fixed')
+            || (this._settings.get_boolean('intellihide') && this._settings.get_enum('intellihide-action') == IntellihideAction.SHOW_PARTIAL_FIXED)) {
+                Main.uiGroup.add_child(this._struts);
+                Main.layoutManager.uiGroup.set_child_below_sibling(this._struts, Main.layoutManager.modalDialogGroup);
+                Main.layoutManager._trackActor(this._struts, {affectsStruts: true});
+                // Force region update to update workspace area
+                Main.layoutManager._queueUpdateRegions();
+        }
+
         // Add aligning container without tracking it for input region (old affectsinputRegion: false that was removed).
         // The public method trackChrome requires the actor to be child of a tracked actor. Since I don't want the parent
         // to be tracked I use the private internal _trackActor instead.
@@ -559,12 +574,6 @@ const DockedWorkspaces = new Lang.Class({
 
         // Keep the dash below the modalDialogGroup
         Main.layoutManager.uiGroup.set_child_below_sibling(this.actor, Main.layoutManager.modalDialogGroup);
-
-        if (this._settings.get_boolean('dock-fixed')) {
-            Main.layoutManager._trackActor(this.actor, {affectsStruts: true});
-            // Force region update to update workspace area
-            Main.layoutManager._queueUpdateRegions();
-        }
 
         // pretend this._slider is isToplevel child so that fullscreen is actually tracked
         let index = Main.layoutManager._findActor(this._slider.actor);
@@ -635,6 +644,8 @@ const DockedWorkspaces = new Lang.Class({
         }
 
         this._slider.destroy();
+
+        this._struts.destroy();
 
         // Destroy main clutter actor: this should be sufficient
         // From clutter documentation:
@@ -961,6 +972,7 @@ const DockedWorkspaces = new Lang.Class({
     _updateTriggerWidth: function() {
         // Calculate and set triggerWidth
         if (!this._settings.get_boolean('dock-fixed')
+            && !(this._settings.get_boolean('intellihide') && this._settings.get_enum('intellihide-action') == IntellihideAction.SHOW_PARTIAL_FIXED)
             && !this._settings.get_boolean('dock-edge-visible')
             && this._settings.get_boolean('require-pressure-to-show')
             && this._settings.get_boolean('disable-scroll')) {
@@ -978,11 +990,11 @@ const DockedWorkspaces = new Lang.Class({
         // Set triggerSpacer
         if (this._isHorizontal) {
             this._triggerSpacer.height = this._triggerWidth;
-            if (this._settings.get_boolean('dock-fixed'))
+            if (this._settings.get_boolean('dock-fixed') || (this._settings.get_boolean('intellihide') && this._settings.get_enum('intellihide-action') == IntellihideAction.SHOW_PARTIAL_FIXED))
                 this._triggerSpacer.height = 0;
         } else {
             this._triggerSpacer.width = this._triggerWidth;
-            if (this._settings.get_boolean('dock-fixed'))
+            if (this._settings.get_boolean('dock-fixed') || (this._settings.get_boolean('intellihide') && this._settings.get_enum('intellihide-action') == IntellihideAction.SHOW_PARTIAL_FIXED))
                 this._triggerSpacer.width = 0;
         }
 
@@ -1072,11 +1084,6 @@ const DockedWorkspaces = new Lang.Class({
         }));
 
         this._settings.connect('changed::dock-edge-visible', Lang.bind(this, function() {
-            this._updateTriggerWidth();
-            this._redisplay();
-        }));
-
-        this._settings.connect('changed::intellihide-action', Lang.bind(this, function() {
             this._updateTriggerWidth();
             this._redisplay();
         }));
@@ -1595,7 +1602,7 @@ const DockedWorkspaces = new Lang.Class({
         if (_DEBUG_) global.log("... overview="+Main.overview.visible+" - "+Main.overview._shown+" ia="+intellihideAction+" oa="+overviewAction);
         if (!force && !fixedPosition) {
             if ((Main.overview._shown && overviewAction == OverviewAction.SHOW_PARTIAL)
-                || (!Main.overview._shown && intellihideAction == IntellihideAction.SHOW_PARTIAL)) {
+                || (!Main.overview._shown && (intellihideAction == IntellihideAction.SHOW_PARTIAL || intellihideAction == IntellihideAction.SHOW_PARTIAL_FIXED))) {
                 if (this._slider.partialSlideoutSize) {
                     if (_DEBUG_) global.log("... animateIn: partial="+this._slider.partialSlideoutSize);
                     let fullsize;
@@ -1622,7 +1629,7 @@ const DockedWorkspaces = new Lang.Class({
                 if (_DEBUG_) global.log("dockedWorkspaces: _animateIN onComplete");
                 if (!force && !fixedPosition) {
                     if ((Main.overview._shown && overviewAction == OverviewAction.SHOW_PARTIAL)
-                        || (!Main.overview._shown && intellihideAction == IntellihideAction.SHOW_PARTIAL)) {
+                        || (!Main.overview._shown && (intellihideAction == IntellihideAction.SHOW_PARTIAL || intellihideAction == IntellihideAction.SHOW_PARTIAL_FIXED))) {
                         this._updateBarrier();
                     } else {
                         this._dockState = DockState.SHOWN;
@@ -1669,7 +1676,7 @@ const DockedWorkspaces = new Lang.Class({
         if (_DEBUG_) global.log("... overview="+Main.overview.visible+" - "+Main.overview._shown+" ia="+intellihideAction+" oa="+overviewAction);
         if (!force && !fixedPosition) {
             if ((Main.overview._shown && overviewAction == OverviewAction.SHOW_PARTIAL)
-                ||  (!Main.overview._shown && intellihideAction == IntellihideAction.SHOW_PARTIAL)) {
+                ||  (!Main.overview._shown && (intellihideAction == IntellihideAction.SHOW_PARTIAL || intellihideAction == IntellihideAction.SHOW_PARTIAL_FIXED))) {
                 if (this._slider.partialSlideoutSize) {
                     if (_DEBUG_) global.log("... animateOut: partial="+this._slider.partialSlideoutSize);
                     let fullsize;
@@ -2020,6 +2027,7 @@ const DockedWorkspaces = new Lang.Class({
 
         // Update position of wrapper actor (used to detect window overlaps)
         this.actor.set_position(x, y);
+        this._struts.set_position(x, y);
         if (_DEBUG_) global.log("dockedWorkspaces: _updateSize new x = "+x+" y = "+y);
 
         // Update size of wrapper actor and _dock inside the slider
@@ -2065,6 +2073,7 @@ const DockedWorkspaces = new Lang.Class({
 
         // Set anchor points
         this.actor.move_anchor_point_from_gravity(anchorPoint);
+        this._struts.move_anchor_point_from_gravity(anchorPoint);
 
         // Update slider slideout width
         let slideoutSize = this._triggerWidth;
@@ -2089,6 +2098,19 @@ const DockedWorkspaces = new Lang.Class({
                 slidePartialVisibleWidth = themeVisibleWidth;
         }
         this._slider.partialSlideoutSize = slidePartialVisibleWidth;
+
+        // Set struts size
+        if (!this._settings.get_boolean('dock-fixed')
+        && (this._settings.get_boolean('intellihide') && this._settings.get_enum('intellihide-action') == IntellihideAction.SHOW_PARTIAL_FIXED)) {
+            if (this._isHorizontal) {
+                this._struts.set_size(width, slidePartialVisibleWidth);
+            } else {
+                this._struts.set_size(slidePartialVisibleWidth, height);
+            }
+        } else {
+            this._struts.set_size(this.actor.width, this.actor.height);
+        }
+
     },
 
     // 'Hard' reset dock positon: called on start and when monitor changes
