@@ -328,7 +328,6 @@ const DockedWorkspaces = new Lang.Class({
                 styleClass += " fixed";
         }
 
-
         let shortcutsPanelOrientation = this._settings.get_enum('shortcuts-panel-orientation');
         if (this._settings.get_boolean('show-shortcuts-panel')) {
             if (shortcutsPanelOrientation == 1) {
@@ -971,31 +970,37 @@ const DockedWorkspaces = new Lang.Class({
 
     _updateTriggerWidth: function() {
         // Calculate and set triggerWidth
-        if (!this._settings.get_boolean('dock-fixed')
-            && !(this._settings.get_boolean('intellihide') && this._settings.get_enum('intellihide-action') == IntellihideAction.SHOW_PARTIAL_FIXED)
-            && !this._settings.get_boolean('dock-edge-visible')
-            && this._settings.get_boolean('require-pressure-to-show')
-            && this._settings.get_boolean('disable-scroll')) {
-                if (this._pressureSensed) {
-                    this._triggerWidth = 1;
-                } else if (this._dockState == DockState.SHOWN) {
-                    this._triggerWidth = 1;
-                } else {
-                    this._triggerWidth = 0;
-                }
+        if (this._settings.get_boolean('dock-fixed')) {
+            this._triggerWidth = 0;
+        } else if (this._settings.get_boolean('intellihide') && this._settings.get_enum('intellihide-action') == IntellihideAction.SHOW_PARTIAL_FIXED) {
+            if (this._pressureSensed) {
+                this._triggerWidth = 1;
+            } else if (this._dockState == DockState.SHOWN) {
+                this._triggerWidth = 1;
+            } else {
+                this._triggerWidth = 0;
+            }
         } else {
-            this._triggerWidth = 1;
+            if (!this._settings.get_boolean('dock-edge-visible') &&
+                 this._settings.get_boolean('require-pressure-to-show') &&
+                 this._settings.get_boolean('disable-scroll')) {
+                    if (this._pressureSensed) {
+                        this._triggerWidth = 1;
+                    } else if (this._dockState == DockState.SHOWN) {
+                        this._triggerWidth = 1;
+                    } else {
+                        this._triggerWidth = 0;
+                    }
+            } else {
+                this._triggerWidth = 1;
+            }
         }
 
-        // Set triggerSpacer
+        // Set actual triggerSpacer based on triggerWidth
         if (this._isHorizontal) {
             this._triggerSpacer.height = this._triggerWidth;
-            if (this._settings.get_boolean('dock-fixed') || (this._settings.get_boolean('intellihide') && this._settings.get_enum('intellihide-action') == IntellihideAction.SHOW_PARTIAL_FIXED))
-                this._triggerSpacer.height = 0;
         } else {
             this._triggerSpacer.width = this._triggerWidth;
-            if (this._settings.get_boolean('dock-fixed') || (this._settings.get_boolean('intellihide') && this._settings.get_enum('intellihide-action') == IntellihideAction.SHOW_PARTIAL_FIXED))
-                this._triggerSpacer.width = 0;
         }
 
         if (!this._disableRedisplay)
