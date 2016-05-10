@@ -973,13 +973,7 @@ const DockedWorkspaces = new Lang.Class({
         if (this._settings.get_boolean('dock-fixed')) {
             this._triggerWidth = 0;
         } else if (this._settings.get_boolean('intellihide') && this._settings.get_enum('intellihide-action') == IntellihideAction.SHOW_PARTIAL_FIXED) {
-            if (this._pressureSensed) {
-                this._triggerWidth = 1;
-            } else if (this._dockState == DockState.SHOWN) {
-                this._triggerWidth = 1;
-            } else {
-                this._triggerWidth = 0;
-            }
+            this._triggerWidth = 1;
         } else {
             if (!this._settings.get_boolean('dock-edge-visible') &&
                  this._settings.get_boolean('require-pressure-to-show') &&
@@ -1616,7 +1610,13 @@ const DockedWorkspaces = new Lang.Class({
                     } else {
                         fullsize = this._dock.width;
                     }
-                    sliderVariable = this._slider.partialSlideoutSize / fullsize;
+                    if (this._settings.get_boolean('dock-edge-visible')) {
+                        let triggerWidth = 1; // We need trigger width to always be set to 1
+                        let slideoutSize = DOCK_EDGE_VISIBLE_WIDTH - triggerWidth;
+                        sliderVariable = (this._slider.partialSlideoutSize - slideoutSize) / fullsize;
+                    } else {
+                        sliderVariable = this._slider.partialSlideoutSize / fullsize;
+                    }
                 }
             } else {
                 this._dockState = DockState.SHOWING;
@@ -1690,7 +1690,13 @@ const DockedWorkspaces = new Lang.Class({
                     } else {
                         fullsize = this._dock.width;
                     }
-                    sliderVariable = this._slider.partialSlideoutSize / fullsize;
+                    if (this._settings.get_boolean('dock-edge-visible')) {
+                        let triggerWidth = 1; // We need trigger width to always be set to 1
+                        let slideoutSize = DOCK_EDGE_VISIBLE_WIDTH - triggerWidth;
+                        sliderVariable = (this._slider.partialSlideoutSize - slideoutSize) / fullsize;
+                    } else {
+                        sliderVariable = this._slider.partialSlideoutSize / fullsize;
+                    }
                 }
             }
         }
