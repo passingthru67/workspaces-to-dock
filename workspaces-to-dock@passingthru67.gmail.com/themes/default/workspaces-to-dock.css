@@ -16,38 +16,38 @@
 
 #workspacestodockDock.right .workspace-thumbnails {
     border-radius: 9px 0 0 9px;
+    border-right: none;
 }
 
 #workspacestodockDock.left .workspace-thumbnails {
     border-radius: 0 9px 9px 0;
+    border-left: none;
 }
 
 #workspacestodockDock.top .workspace-thumbnails {
     border-radius: 0 0 9px 9px;
+    border-top: none;
 }
 
 #workspacestodockDock.bottom .workspace-thumbnails {
     border-radius: 9px 9px 0 0;
+    border-bottom: none;
 }
 
 #workspacestodockDock.right.inside .workspace-thumbnails {
     border-radius: 0px;
-    border-left: none;
 }
 
 #workspacestodockDock.left.inside .workspace-thumbnails {
     border-radius: 0px;
-    border-right: none;
 }
 
 #workspacestodockDock.top.inside .workspace-thumbnails {
     border-radius: 0px;
-    border-bottom: none;
 }
 
 #workspacestodockDock.bottom.inside .workspace-thumbnails {
     border-radius: 0px;
-    border-top: none;
 }
 
 #workspacestodockDock.right.fullheight .workspace-thumbnails {
@@ -70,28 +70,28 @@
     border-radius: 0px;
     padding: 2px;
     spacing: 0px;
-    border-left: none;
+    border-right: none;
 }
 
 #workspacestodockDock.left .workspacestodock-shortcuts-panel {
     border-radius: 0px;
     padding: 2px;
     spacing: 0px;
-    border-right: none;
+    border-left: none;
 }
 
 #workspacestodockDock.top .workspacestodock-shortcuts-panel {
     border-radius: 0px;
     padding: 2px;
     spacing: 0px;
-    border-bottom: none;
+    border-top: none;
 }
 
 #workspacestodockDock.bottom .workspacestodock-shortcuts-panel {
     border-radius: 0px;
     padding: 2px;
     spacing: 0px;
-    border-top: none;
+    border-bottom: none;
 }
 
 #workspacestodockDock.right.inside .workspacestodock-shortcuts-panel {
