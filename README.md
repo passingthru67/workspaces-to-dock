@@ -108,13 +108,20 @@ Behavior Settings:
     
     NOTE: When the favorites panel is enabled and oriented inside, the show-partial option shows the favorites panel. Otherwise, a 30px portion (adjustable through the gnome-shell css) of the workspace thumbnails are shown.
 
+    **SHOW-PARTIAL-FIXED Option** - This option allows part of the dock to be visible at all times. Similar to the show-partial option but with a fixed (always visible) element.
+
 	Below are screencasts of the dock partially shown with the favorites panel oriented inside and outside.
 
-    **Show-partial feature with favorites panel oriented inside**
+    **Show-partial with favorites panel oriented inside**
 ![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/ShowPartial-Inside.gif)
 
-	**Show-partial feature with favorites panel oriented outside**
+	**Show-partial with favorites panel oriented outside**
 ![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/ShowPartial-Outside.gif)
+
+	**Show-partial-fixed with favorites panel oriented inside**
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/ShowPartial-Fixed.gif)
+
+	In the screencast above, note how the partial dock affects the desktop workspace and remains visible at all times.
 
 	**What should we do with the dock in overview mode?** - Option to show the full dock, hide the dock, or show a partial dock when in overview mode. See the note above regarding the show-partial option.
 
