@@ -1748,7 +1748,7 @@ const DockedWorkspaces = new Lang.Class({
 
     // This function handles hiding the dock when dock is in stationary-fixed
     // position but overlapped by gnome panel menus or meta popup windows
-    fadeOutDock: function(time, delay, metaOverlap) {
+    fadeOutDock: function(time, delay) {
         if (_DEBUG_) global.log("dockedWorkspaces: fadeOutDock");
         if (Main.layoutManager._inOverview) {
             // Hide fixed dock when in overviewmode applications view
@@ -2260,12 +2260,17 @@ const DockedWorkspaces = new Lang.Class({
     },
 
     // Disable autohide effect, thus show workspaces
-    disableAutoHide: function() {
+    disableAutoHide: function(force) {
         if (_DEBUG_) global.log("dockedWorkspaces: disableAutoHide - autohideStatus = "+this._autohideStatus+" dockState = "+getDockStateDesc(this._dockState));
+        // NOTE: default functionality is to not force complete animateIn
         this._autohideStatus = false;
         if (this._dockState == DockState.HIDING || this._dockState == DockState.HIDDEN) {
             this._removeAnimations();
-            this._animateIn(this._settings.get_double('animation-time'), 0);
+            if (force) {
+                this._animateIn(this._settings.get_double('animation-time'), 0, true);
+            } else {
+                this._animateIn(this._settings.get_double('animation-time'), 0);
+            }
         }
 
         if (this._settings.get_boolean('opaque-background') && !this._settings.get_boolean('opaque-background-always'))
@@ -2274,9 +2279,15 @@ const DockedWorkspaces = new Lang.Class({
     },
 
     // Enable autohide effect, hide workspaces
-    enableAutoHide: function() {
+    enableAutoHide: function(dontforce) {
         if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - autohideStatus = "+this._autohideStatus);
-        this._autohideStatus = true;
+        // NOTE: default functionality is to force complete animateOut
+        // autohide status shouldn't change if not completely animating out
+        if (dontforce) {
+            this._autohideStatus = false;
+        } else {
+            this._autohideStatus = true;
+        }
 
         if (this._container.hover == true) {
             this._container.sync_hover();
@@ -2289,10 +2300,14 @@ const DockedWorkspaces = new Lang.Class({
             if (!this._container.hover && !(this._hoveringDash && !Main.overview._shown)) {
                 if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - mouse not hovering OR dock not using autohide, so animate out");
                 this._removeAnimations();
-                if (Main.overview._shown && Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage) {
+                if (dontforce) {
                     this._animateOut(this._settings.get_double('animation-time'), 0, false);
                 } else {
-                    this._animateOut(this._settings.get_double('animation-time'), 0, true);
+                    if (Main.overview._shown && Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage) {
+                        this._animateOut(this._settings.get_double('animation-time'), 0, false);
+                    } else {
+                        this._animateOut(this._settings.get_double('animation-time'), 0, true);
+                    }
                 }
                 delay = this._settings.get_double('animation-time');
             }
