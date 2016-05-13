@@ -151,6 +151,16 @@
       <summary>Set custom workspace thumbnail size</summary>
       <description>Set the custom size for the workspace thumbnail.</description>
     </key>
+    <key type="b" name="customize-thumbnail-visible-width">
+      <default>false</default>
+      <summary>Customize workspace thumbnail visible width</summary>
+      <description>Customize the workspace thumbnail visible width.</description>
+    </key>
+    <key type="d" name="thumbnail-visible-width">
+      <default>27</default>
+      <summary>Set custom workspace thumbnail visible width</summary>
+      <description>Set the custom visible width for the workspace thumbnail.</description>
+    </key>
     <key type="b" name="workspace-captions">
       <default>true</default>
       <summary>Show workspace captions</summary>

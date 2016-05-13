@@ -1127,7 +1127,14 @@ const DockedWorkspaces = new Lang.Class({
             // hide and show thumbnailsBox to resize thumbnails
             this._refreshThumbnails();
         }));
-
+        this._settings.connect('changed::customize-thumbnail-visible-width', Lang.bind(this, function() {
+            this._updateTriggerWidth();
+            this._redisplay();
+        }));
+        this._settings.connect('changed::thumbnail-visible-width', Lang.bind(this, function() {
+            this._updateTriggerWidth();
+            this._redisplay();
+        }));
         this._settings.connect('changed::workspace-captions', Lang.bind(this, function() {
             // hide and show thumbnailsBox to reset workspace apps in caption
             this._refreshThumbnails();
@@ -2100,9 +2107,14 @@ const DockedWorkspaces = new Lang.Class({
                     slidePartialVisibleWidth = this._shortcutsPanel.actor.width;
                 }
         } else {
-            let themeVisibleWidth = this._thumbnailsBox.actor.get_theme_node().get_length('visible-width');
-            if (themeVisibleWidth > 0)
-                slidePartialVisibleWidth = themeVisibleWidth;
+            // NOTE: Gnome css top panel height is 1.86em
+            if (this._settings.get_boolean('customize-thumbnail-visible-width')) {
+                slidePartialVisibleWidth = this._settings.get_double('thumbnail-visible-width');
+            } else {
+                let themeVisibleWidth = this._thumbnailsBox.actor.get_theme_node().get_length('visible-width');
+                if (themeVisibleWidth > 0)
+                    slidePartialVisibleWidth = themeVisibleWidth;
+            }
         }
         this._slider.partialSlideoutSize = slidePartialVisibleWidth;
 

@@ -1170,8 +1170,63 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         customizeThumbnailContainerGrid.attach(thumbnailSizeLabel, 0, 0, 1, 1);
         customizeThumbnailContainerGrid.attach(thumbnailSizeSpinner, 1, 0, 1, 1);
 
+
+        /* THUMBNAIL VISIBLE WIDTH */
+
+        let customizeThumbnailVisibleWidthLabel = new Gtk.Label({
+            label: _("Customize the visible width (height) for intellihide show-partial"),
+            xalign: 0,
+            hexpand: true
+        });
+
+        let customizeThumbnailVisibleWidthSwitch = new Gtk.Switch ({
+            halign: Gtk.Align.END
+        });
+        customizeThumbnailVisibleWidthSwitch.set_active(this.settings.get_boolean('customize-thumbnail-visible-width'));
+        customizeThumbnailVisibleWidthSwitch.connect('notify::active', Lang.bind(this, function(check) {
+            this.settings.set_boolean('customize-thumbnail-visible-width', check.get_active());
+        }));
+
+        let thumbnailVisibleWidthLabel = new Gtk.Label({
+            label: _("Visible width (height when positioned horizontally)"),
+            use_markup: true,
+            xalign: 0,
+            hexpand: true
+        });
+
+        let thumbnailVisibleWidthSpinner = new Gtk.SpinButton();
+        thumbnailVisibleWidthSpinner.set_range(10, 60);
+        thumbnailVisibleWidthSpinner.set_value(this.settings.get_double('thumbnail-visible-width') * 1);
+        thumbnailVisibleWidthSpinner.set_digits(0);
+        thumbnailVisibleWidthSpinner.set_increments(1, 10);
+        thumbnailVisibleWidthSpinner.set_size_request(120, -1);
+        thumbnailVisibleWidthSpinner.connect('value-changed', Lang.bind(this, function(button) {
+            let s = button.get_value() / 1;
+            this.settings.set_double('thumbnail-visible-width', s);
+        }));
+
+
+        // Add to layout
+        let customizeThumbnailVisibleWidthControlGrid = new Gtk.Grid({
+            row_homogeneous: false,
+            column_homogeneous: false,
+            margin_top: 0,
+            margin_left: 0
+        });
+        let customizeThumbnailVisibleWidthContainerGrid = new Gtk.Grid({
+            row_homogeneous: false,
+            column_homogeneous: false,
+            margin_top: 0,
+            margin_left: 10
+        });
+        customizeThumbnailVisibleWidthControlGrid.attach(customizeThumbnailVisibleWidthLabel, 0, 0, 1, 1);
+        customizeThumbnailVisibleWidthControlGrid.attach(customizeThumbnailVisibleWidthSwitch, 1, 0, 1, 1);
+        customizeThumbnailVisibleWidthContainerGrid.attach(thumbnailVisibleWidthLabel, 0, 0, 1, 1);
+        customizeThumbnailVisibleWidthContainerGrid.attach(thumbnailVisibleWidthSpinner, 1, 0, 1, 1);
+
+
         // Bind interactions
-        this.settings.bind('customize-thumbnail', customizeThumbnailContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+        this.settings.bind('customize-thumbnail-visible-width', customizeThumbnailVisibleWidthContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
 
 
         /* TITLE: THUMBNAIL CAPTIONS */
@@ -1512,7 +1567,8 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             row_homogeneous: false,
             column_homogeneous: false,
             margin_top: 0,
-            margin_left: 10
+            margin_left: 10,
+            margin_bottom: 20
         });
 
         workspaceCaptionsControlGrid.attach(workspaceCaptionsLabel, 0, 0, 1, 1);
@@ -1604,6 +1660,8 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         notebookWorkspacesSettings.add(customizeThumbnailTitle);
         notebookWorkspacesSettings.add(customizeThumbnailControlGrid);
         notebookWorkspacesSettings.add(customizeThumbnailContainerGrid);
+        notebookWorkspacesSettings.add(customizeThumbnailVisibleWidthControlGrid);
+        notebookWorkspacesSettings.add(customizeThumbnailVisibleWidthContainerGrid);
         notebookWorkspacesSettings.add(workspaceCaptionsTitle);
         notebookWorkspacesSettings.add(workspaceCaptionsControlGrid);
         notebookWorkspacesSettings.add(workspaceCaptionsContainerGrid);
