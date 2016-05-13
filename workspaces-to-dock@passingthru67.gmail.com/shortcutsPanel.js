@@ -140,15 +140,18 @@ const ShortcutButtonMenu = new Lang.Class({
         if (!this._source._app.is_window_backed()) {
             this._appendSeparator();
 
-            this._newWindowMenuItem = this._appendMenuItem(_("New Window"));
-            this._newWindowMenuItem.connect('activate', Lang.bind(this, function() {
-                this._source._app.open_new_window(-1);
-                this.emit('activate-window', null);
-            }));
-            this._appendSeparator();
-
             let appInfo = this._source._app.get_app_info();
             let actions = appInfo.list_actions();
+            if (this._source._app.can_open_new_window() &&
+                actions.indexOf('new-window') == -1) {
+                this._newWindowMenuItem = this._appendMenuItem(_("New Window"));
+                this._newWindowMenuItem.connect('activate', Lang.bind(this, function() {
+                    this._source._app.open_new_window(-1);
+                    this.emit('activate-window', null);
+                }));
+                this._appendSeparator();
+            }
+
             for (let i = 0; i < actions.length; i++) {
                 let action = actions[i];
                 let item = this._appendMenuItem(appInfo.get_action_name(action));
