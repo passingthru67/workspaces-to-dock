@@ -479,20 +479,6 @@ const Intellihide = new Lang.Class({
     // handler for when overview mode exiting
     _overviewExiting: function() {
         if (_DEBUG_) global.log("intellihide: _overviewExiting");
-        this._inOverview = false;
-
-        if (!this._settings.get_boolean('dock-fixed')) {
-            let intellihideAction = this._settings.get_enum('intellihide-action');
-            if (intellihideAction == IntellihideAction.SHOW_FULL) {
-                this._show();
-            } else if (intellihideAction == IntellihideAction.SHOW_PARTIAL || intellihideAction == IntellihideAction.SHOW_PARTIAL_FIXED) {
-                if (this._dock._dockState == DockState.SHOWING || this._dock._dockState == DockState.SHOWN) {
-                    this._hide();
-                } else {
-                    this._show();
-                }
-            }
-        }
     },
 
     // handler for when overview mode exited
@@ -512,10 +498,10 @@ const Intellihide = new Lang.Class({
             } else {
                 let overviewAction = this._settings.get_enum('overview-action');
                 if (overviewAction == OverviewAction.SHOW_FULL) {
-                    this._show();
+                    this._show(true);
                 } else if (overviewAction == OverviewAction.SHOW_PARTIAL) {
                     if (this._dock._dockState == DockState.SHOWING || this._dock._dockState == DockState.SHOWN) {
-                        this._hide();
+                        this._hide(true);
                     } else {
                         this._show();
                     }
