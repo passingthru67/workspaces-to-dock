@@ -1018,10 +1018,6 @@ const DockedWorkspaces = new Lang.Class({
             this._updateBackgroundOpacity();
         }));
 
-        this._settings.connect('changed::opaque-background-always', Lang.bind(this, function() {
-            this._updateBackgroundOpacity();
-        }));
-
         this._settings.connect('changed::autohide', Lang.bind(this, function() {
             this.emit('box-changed');
             this._updateBarrier();
@@ -1821,9 +1817,9 @@ const DockedWorkspaces = new Lang.Class({
             this._defaultBackground = "rgba(" + backgroundColor.red + "," + backgroundColor.green + "," + backgroundColor.blue + "," + Math.round(backgroundColor.alpha/2.55)/100 + ")";
             this._customBackground = "rgba(" + backgroundColor.red + "," + backgroundColor.green + "," + backgroundColor.blue + "," + newAlpha + ")";
 
-            if (this._settings.get_boolean('opaque-background') && (this._autohideStatus || this._settings.get_boolean('opaque-background-always'))) {
+            if (this._settings.get_boolean('opaque-background')) {
                 this._fadeInBackground(this._settings.get_double('animation-time'), 0);
-            } else if (!this._settings.get_boolean('opaque-background') || (!this._autohideStatus && !this._settings.get_boolean('opaque-background-always'))) {
+            } else {
                 this._fadeOutBackground(this._settings.get_double('animation-time'), 0);
             }
         }
@@ -2272,10 +2268,6 @@ const DockedWorkspaces = new Lang.Class({
                 this._animateIn(this._settings.get_double('animation-time'), 0);
             }
         }
-
-        if (this._settings.get_boolean('opaque-background') && !this._settings.get_boolean('opaque-background-always'))
-            this._fadeOutBackground(this._settings.get_double('animation-time'), 0);
-
     },
 
     // Enable autohide effect, hide workspaces
@@ -2311,10 +2303,6 @@ const DockedWorkspaces = new Lang.Class({
                 }
                 delay = this._settings.get_double('animation-time');
             }
-        }
-
-        if (this._settings.get_boolean('opaque-background') && !this._settings.get_boolean('opaque-background-always')) {
-            this._fadeInBackground(this._settings.get_double('animation-time'), delay);
         }
     }
 

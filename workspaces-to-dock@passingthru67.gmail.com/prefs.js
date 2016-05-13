@@ -322,15 +322,6 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             this.settings.set_double('background-opacity', s);
         }));
 
-        let opaqueLayeralwaysVisibleButton = new Gtk.CheckButton({
-            label: _("Only when the dock is shown by mouse hover"),
-            margin_left: 0
-        });
-        opaqueLayeralwaysVisibleButton.set_active(!this.settings.get_boolean('opaque-background-always'));
-        opaqueLayeralwaysVisibleButton.connect('toggled', Lang.bind(this, function(check) {
-            this.settings.set_boolean('opaque-background-always', !check.get_active());
-        }));
-
         // Add to layout
         let backgroundControlGrid = new Gtk.Grid({
             row_homogeneous: false,
@@ -346,7 +337,6 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         backgroundControlGrid.attach(opaqueLayerSwitch, 1, 0, 1, 1);
         backgroundContainerGrid.attach(layerOpacityLabel, 0, 0, 1, 1);
         backgroundContainerGrid.attach(layerOpacityScaler, 1, 0, 1, 1);
-        backgroundContainerGrid.attach(opaqueLayeralwaysVisibleButton, 0, 1, 2, 1);
 
         // Bind interactions
         this.settings.bind('opaque-background', backgroundContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
