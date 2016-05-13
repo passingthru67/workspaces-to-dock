@@ -2234,8 +2234,9 @@ const DockedWorkspaces = new Lang.Class({
                 y2 = this.actor.y + this.actor.height;
                 direction = Meta.BarrierDirection.NEGATIVE_X;
             } else if(this._position==St.Side.TOP) {
-                x1 = this.actor.x;
-                x2 = this.actor.x + this.actor.width;
+                let hotCornerPadding = 1;
+                x1 = this.actor.x + hotCornerPadding;
+                x2 = this.actor.x + hotCornerPadding + this.actor.width;
                 y1 = this._monitor.y;
                 y2 = this._monitor.y;
                 direction = Meta.BarrierDirection.POSITIVE_Y;
