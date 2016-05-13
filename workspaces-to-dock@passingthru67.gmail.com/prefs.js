@@ -753,7 +753,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }));
 
         let intellihideOptionsButton = new Gtk.Button({
-            label: _("Intellihide Options .."),
+            label: _("Intellihide Dodging Options .."),
             margin_top: 10,
             halign: Gtk.Align.START
         });
@@ -941,7 +941,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         /* TITLE: MISC OPTIONS */
 
         let miscOptionsTitle = new Gtk.Label({
-            label: _("<b>Miscellaneous Options</b>"),
+            label: _("<b>Miscellaneous</b> : Uncategorized options that affect behavior"),
             use_markup: true,
             xalign: 0,
             hexpand: true,
@@ -952,130 +952,161 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
         /* MISC OPTIONS WIDGETS */
 
-        let leaveVisibleButton = new Gtk.CheckButton({
-            label: _("Leave a visible edge when dock is hidden"),
-            margin_left: 0,
-            margin_top: 0
+
+        let miscOptionsButton = new Gtk.Button({
+            label: _("Miscellaneous Options .."),
+            margin_top: 10,
+            halign: Gtk.Align.START
         });
-        leaveVisibleButton.set_active(this.settings.get_boolean('dock-edge-visible'));
-        leaveVisibleButton.connect('toggled', Lang.bind(this, function(check) {
-            this.settings.set_boolean('dock-edge-visible', check.get_active());
+        miscOptionsButton.connect("clicked", Lang.bind(this, function() {
+            let dialog = new Gtk.Dialog({ title: _("Miscellaneous Options"),
+                                          transient_for: notebook.get_toplevel(),
+                                          use_header_bar: true,
+                                          modal: true });
+
+
+            /* MISCELLANEOUS OPTIONS DIALOG */
+
+            let leaveVisibleButton = new Gtk.CheckButton({
+                label: _("Leave a visible edge when dock is hidden"),
+                margin_left: 0,
+                margin_top: 0
+            });
+            leaveVisibleButton.set_active(this.settings.get_boolean('dock-edge-visible'));
+            leaveVisibleButton.connect('toggled', Lang.bind(this, function(check) {
+                this.settings.set_boolean('dock-edge-visible', check.get_active());
+            }));
+
+            let disableScrollButton = new Gtk.CheckButton({
+                label: _("Disable scroll when dock is hidden to prevent workspace switching"),
+                margin_left: 0,
+                margin_top: 0
+            });
+            disableScrollButton.set_active(this.settings.get_boolean('disable-scroll'));
+            disableScrollButton.connect('toggled', Lang.bind(this, function(check) {
+                this.settings.set_boolean('disable-scroll', check.get_active());
+            }));
+
+            let dashToDockHoverButton = new Gtk.CheckButton({
+                label: _("Show the dock when hovering over Dash-To-Dock extension"),
+                margin_left: 0,
+                margin_top: 0
+            });
+            dashToDockHoverButton.set_active(this.settings.get_boolean('dashtodock-hover'));
+            dashToDockHoverButton.connect('toggled', Lang.bind(this, function(check) {
+                this.settings.set_boolean('dashtodock-hover', check.get_active());
+            }));
+
+            let quickShowButton = new Gtk.CheckButton({
+                label: _("Show the dock temporarily when switching workspaces"),
+                margin_left: 0,
+                margin_top: 0
+            });
+            quickShowButton.set_active(this.settings.get_boolean('quick-show-on-workspace-change'));
+            quickShowButton.connect('toggled', Lang.bind(this, function(check) {
+                this.settings.set_boolean('quick-show-on-workspace-change', check.get_active());
+            }));
+
+            let quickShowLabel = new Gtk.Label({
+                label: _("Length of time shown [ms]"),
+                use_markup: true,
+                xalign: 0,
+                margin_left: 25,
+                margin_top: 0,
+                hexpand: true
+            });
+
+            let quickShowSpinner = new Gtk.SpinButton({
+                halign: Gtk.Align.END,
+                margin_top: 0
+            });
+            quickShowSpinner.set_sensitive(true);
+            quickShowSpinner.set_range(100, 3000);
+            quickShowSpinner.set_value(this.settings.get_double("quick-show-timeout") * 1);
+            quickShowSpinner.set_increments(100, 1000);
+            quickShowSpinner.connect("value-changed", Lang.bind(this, function(button) {
+                let s = button.get_value_as_int() / 1;
+                this.settings.set_double("quick-show-timeout", s);
+            }));
+
+            let toggleDockShortcutButton = new Gtk.CheckButton({
+                label: _("Toggle the dock with a keyboard shortcut"),
+                margin_left: 0,
+                margin_top: 0
+            });
+            toggleDockShortcutButton.set_active(this.settings.get_boolean('toggle-dock-with-keyboard-shortcut'));
+            toggleDockShortcutButton.connect('toggled', Lang.bind(this, function(check) {
+                this.settings.set_boolean('toggle-dock-with-keyboard-shortcut', check.get_active());
+            }));
+
+            let toggleDockShortcutLabel = new Gtk.Label({
+                label: _("Keyboard shortcut"),
+                use_markup: true,
+                xalign: 0,
+                margin_left: 25,
+                margin_top: 0,
+                hexpand: true
+            });
+
+            let toggleDockShortcutEntry = new Gtk.Entry({
+                margin_top: 0,
+                margin_left: 5,
+                margin_right: 0,
+                halign: Gtk.Align.END
+            });
+            toggleDockShortcutEntry.set_width_chars(20);
+            toggleDockShortcutEntry.set_text(this.settings.get_strv('dock-keyboard-shortcut')[0]);
+            toggleDockShortcutEntry.connect('changed', Lang.bind(this, function(entry) {
+                let [key, mods] = Gtk.accelerator_parse(entry.get_text());
+                if(Gtk.accelerator_valid(key, mods)) {
+                    toggleDockShortcutEntry["secondary-icon-name"] = null;
+                    toggleDockShortcutEntry["secondary-icon-tooltip-text"] = null;
+                    let shortcut = Gtk.accelerator_name(key, mods);
+                    this.settings.set_strv('dock-keyboard-shortcut', [shortcut]);
+                } else {
+                    toggleDockShortcutEntry["secondary-icon-name"] = "dialog-warning-symbolic";
+                    toggleDockShortcutEntry["secondary-icon-tooltip-text"] = _("Invalid accelerator. Try F12, <Super>space, <Ctrl><Alt><Shift>w, etc.");
+                }
+            }));
+
+            // Add to layout
+            let miscOptionsDialogGrid = new Gtk.Grid({
+                row_homogeneous: false,
+                column_homogeneous: false
+            });
+            miscOptionsDialogGrid.attach(miscOptionsTitle, 0, 0, 2, 1);
+            miscOptionsDialogGrid.attach(leaveVisibleButton, 0, 1, 2, 1);
+            miscOptionsDialogGrid.attach(disableScrollButton, 0, 2, 2, 1);
+            miscOptionsDialogGrid.attach(dashToDockHoverButton, 0, 3, 2, 1);
+            miscOptionsDialogGrid.attach(quickShowButton, 0, 4, 2, 1);
+            miscOptionsDialogGrid.attach(quickShowLabel, 0, 5, 1, 1);
+            miscOptionsDialogGrid.attach(quickShowSpinner, 1, 5, 1, 1);
+            miscOptionsDialogGrid.attach(toggleDockShortcutButton, 0, 6, 2, 1);
+            miscOptionsDialogGrid.attach(toggleDockShortcutLabel, 0, 7, 1, 1);
+            miscOptionsDialogGrid.attach(toggleDockShortcutEntry, 1, 7, 1, 1);
+
+            /* Bind interactions */
+            this.settings.bind('toggle-dock-with-keyboard-shortcut', toggleDockShortcutEntry, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+            this.settings.bind('quick-show-on-workspace-change', quickShowLabel, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+            this.settings.bind('quick-show-on-workspace-change', quickShowSpinner, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+
+            // Add to dialog
+            let miscOptionsDialogContainerBox = new Gtk.Box({
+                orientation: Gtk.Orientation.VERTICAL,
+                spacing: 0,
+                homogeneous: false,
+                margin_left: 10,
+                margin_top: 20,
+                margin_bottom: 20,
+                margin_right: 10
+            });
+            miscOptionsDialogContainerBox.add(miscOptionsDialogGrid);
+            dialog.get_content_area().add(miscOptionsDialogContainerBox);
+            dialog.show_all();
         }));
 
-        let disableScrollButton = new Gtk.CheckButton({
-            label: _("Disable scroll when dock is hidden to prevent workspace switching"),
-            margin_left: 0,
-            margin_top: 0
-        });
-        disableScrollButton.set_active(this.settings.get_boolean('disable-scroll'));
-        disableScrollButton.connect('toggled', Lang.bind(this, function(check) {
-            this.settings.set_boolean('disable-scroll', check.get_active());
-        }));
-
-        let dashToDockHoverButton = new Gtk.CheckButton({
-            label: _("Show the dock when hovering over Dash-To-Dock extension"),
-            margin_left: 0,
-            margin_top: 0
-        });
-        dashToDockHoverButton.set_active(this.settings.get_boolean('dashtodock-hover'));
-        dashToDockHoverButton.connect('toggled', Lang.bind(this, function(check) {
-            this.settings.set_boolean('dashtodock-hover', check.get_active());
-        }));
-
-        let quickShowButton = new Gtk.CheckButton({
-            label: _("Show the dock temporarily when switching workspaces"),
-            margin_left: 0,
-            margin_top: 0
-        });
-        quickShowButton.set_active(this.settings.get_boolean('quick-show-on-workspace-change'));
-        quickShowButton.connect('toggled', Lang.bind(this, function(check) {
-            this.settings.set_boolean('quick-show-on-workspace-change', check.get_active());
-        }));
-
-        let quickShowLabel = new Gtk.Label({
-            label: _("Length of time shown [ms]"),
-            use_markup: true,
-            xalign: 0,
-            margin_left: 25,
-            margin_top: 0,
-            hexpand: true
-        });
-
-        let quickShowSpinner = new Gtk.SpinButton({
-            halign: Gtk.Align.END,
-            margin_top: 0
-        });
-        quickShowSpinner.set_sensitive(true);
-        quickShowSpinner.set_range(100, 3000);
-        quickShowSpinner.set_value(this.settings.get_double("quick-show-timeout") * 1);
-        quickShowSpinner.set_increments(100, 1000);
-        quickShowSpinner.connect("value-changed", Lang.bind(this, function(button) {
-            let s = button.get_value_as_int() / 1;
-            this.settings.set_double("quick-show-timeout", s);
-        }));
-
-        let toggleDockShortcutButton = new Gtk.CheckButton({
-            label: _("Toggle the dock with a keyboard shortcut"),
-            margin_left: 0,
-            margin_top: 0
-        });
-        toggleDockShortcutButton.set_active(this.settings.get_boolean('toggle-dock-with-keyboard-shortcut'));
-        toggleDockShortcutButton.connect('toggled', Lang.bind(this, function(check) {
-            this.settings.set_boolean('toggle-dock-with-keyboard-shortcut', check.get_active());
-        }));
-
-        let toggleDockShortcutLabel = new Gtk.Label({
-            label: _("Keyboard shortcut"),
-            use_markup: true,
-            xalign: 0,
-            margin_left: 25,
-            margin_top: 0,
-            hexpand: true
-        });
-
-        let toggleDockShortcutEntry = new Gtk.Entry({
-            margin_top: 0,
-            margin_left: 5,
-            margin_right: 0,
-            halign: Gtk.Align.END
-        });
-        toggleDockShortcutEntry.set_width_chars(20);
-        toggleDockShortcutEntry.set_text(this.settings.get_strv('dock-keyboard-shortcut')[0]);
-        toggleDockShortcutEntry.connect('changed', Lang.bind(this, function(entry) {
-            let [key, mods] = Gtk.accelerator_parse(entry.get_text());
-            if(Gtk.accelerator_valid(key, mods)) {
-                toggleDockShortcutEntry["secondary-icon-name"] = null;
-                toggleDockShortcutEntry["secondary-icon-tooltip-text"] = null;
-                let shortcut = Gtk.accelerator_name(key, mods);
-                this.settings.set_strv('dock-keyboard-shortcut', [shortcut]);
-            } else {
-                toggleDockShortcutEntry["secondary-icon-name"] = "dialog-warning-symbolic";
-                toggleDockShortcutEntry["secondary-icon-tooltip-text"] = _("Invalid accelerator. Try F12, <Super>space, <Ctrl><Alt><Shift>w, etc.");
-            }
-        }));
-
-        // Add to layout
-        let miscOptionsContainerGrid = new Gtk.Grid({
-            row_homogeneous: false,
-            column_homogeneous: false
-        });
-        miscOptionsContainerGrid.attach(miscOptionsTitle, 0, 0, 2, 1);
-        miscOptionsContainerGrid.attach(leaveVisibleButton, 0, 1, 2, 1);
-        miscOptionsContainerGrid.attach(disableScrollButton, 0, 2, 2, 1);
-        miscOptionsContainerGrid.attach(dashToDockHoverButton, 0, 3, 2, 1);
-        miscOptionsContainerGrid.attach(quickShowButton, 0, 4, 2, 1);
-        miscOptionsContainerGrid.attach(quickShowLabel, 0, 5, 1, 1);
-        miscOptionsContainerGrid.attach(quickShowSpinner, 1, 5, 1, 1);
-        miscOptionsContainerGrid.attach(toggleDockShortcutButton, 0, 6, 2, 1);
-        miscOptionsContainerGrid.attach(toggleDockShortcutLabel, 0, 7, 1, 1);
-        miscOptionsContainerGrid.attach(toggleDockShortcutEntry, 1, 7, 1, 1);
-
-        visibilityContainerBox.add(miscOptionsContainerGrid);
-
-        /* Bind interactions */
-        this.settings.bind('toggle-dock-with-keyboard-shortcut', toggleDockShortcutEntry, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
-        this.settings.bind('quick-show-on-workspace-change', quickShowLabel, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
-        this.settings.bind('quick-show-on-workspace-change', quickShowSpinner, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+        visibilityContainerBox.add(miscOptionsTitle);
+        visibilityContainerBox.add(miscOptionsButton);
 
 
         /* ADD TO NOTEBOOK PAGE */
