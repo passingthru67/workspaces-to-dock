@@ -10,6 +10,10 @@
     <value value='0' nick='OUTSIDE'/>
     <value value='1' nick='INSIDE'/>
   </enum>
+  <enum id='org.gnome.shell.extensions.workspaces-to-dock.captionposition'>
+    <value value='0' nick='BOTTOM'/>
+    <value value='1' nick='TOP'/>
+  </enum>
   <enum id='org.gnome.shell.extensions.workspaces-to-dock.overviewaction'>
     <value value='0' nick='SHOW_FULL'/>
     <value value='1' nick='HIDE'/>
@@ -165,6 +169,11 @@
       <default>true</default>
       <summary>Show workspace captions</summary>
       <description>Enable or disable workspace captions.</description>
+    </key>
+    <key name="workspace-caption-position" enum="org.gnome.shell.extensions.workspaces-to-dock.captionposition">
+      <default>'BOTTOM'</default>
+      <summary>Set the workspace caption position</summary>
+      <description>Set the workspace caption position.</description>
     </key>
     <key type="d" name="workspace-caption-height">
       <default>22</default>

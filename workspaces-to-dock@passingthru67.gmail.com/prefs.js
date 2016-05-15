@@ -1297,6 +1297,18 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             this.settings.set_boolean('workspace-captions', check.get_active());
         }));
 
+        // Workspace Caption - Position
+        let wsCaptionPositionLabel = new Gtk.Label({label: _("Show the caption at the following position"), hexpand:true, xalign:0});
+        let wsCaptionPositionCombo = new Gtk.ComboBoxText({halign:Gtk.Align.END});
+        wsCaptionPositionCombo.append_text(_("Bottom"));
+        wsCaptionPositionCombo.append_text(_("Top"));
+
+        let captionPosition = this.settings.get_enum('workspace-caption-position');
+        wsCaptionPositionCombo.set_active(captionPosition);
+        wsCaptionPositionCombo.connect('changed', Lang.bind (this, function(widget) {
+                this.settings.set_enum('workspace-caption-position', widget.get_active());
+        }));
+
         // Workspace Captions - Height
         let wsCaptionHeightLabel = new Gtk.Label({
             label: _("Caption height [px]"),
@@ -1367,225 +1379,289 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         /* CAPTION ITEMS WIDGETS */
 
         let workspaceCaptionItemsTitle = new Gtk.Label({
-            label: _("<b>Caption Items</b>"),
+            label: _("<b>Caption Items</b> : Customize the items on the caption"),
             use_markup: true,
             xalign: 0,
             margin_top: 5,
             margin_bottom: 5
         });
 
-        // Workspace Captions - Number
-        let wsCaptionNumberButton =  new Gtk.CheckButton({
-            label: _("Show workspace number"),
-            hexpand: true
+
+        let workspaceCaptionItemsButton = new Gtk.Button({
+            label: _("Caption Items .."),
+            margin_top: 10,
+            halign: Gtk.Align.START
         });
-        wsCaptionNumberButton.set_active(this._getItemExists('number'));
-        wsCaptionNumberButton.connect('toggled', Lang.bind(this, function(check){
-            if (check.get_active()) {
-                this._addItem('number', wsCaptionNumberExpand.get_active());
-            } else {
-                this._removeItem('number');
-            }
+        workspaceCaptionItemsButton.connect("clicked", Lang.bind(this, function() {
+            let dialog = new Gtk.Dialog({ title: _("Caption Items"),
+                                          transient_for: notebook.get_toplevel(),
+                                          use_header_bar: true,
+                                          modal: true });
+
+
+            /* CAPTION ITEMS DIALOG */
+
+            // Workspace Captions - Number
+            let wsCaptionNumberButton =  new Gtk.CheckButton({
+                label: _("Show workspace number"),
+                hexpand: true
+            });
+            wsCaptionNumberButton.set_active(this._getItemExists('number'));
+            wsCaptionNumberButton.connect('toggled', Lang.bind(this, function(check){
+                if (check.get_active()) {
+                    this._addItem('number', wsCaptionNumberExpand.get_active());
+                } else {
+                    this._removeItem('number');
+                }
+            }));
+            let wsCaptionNumberExpand =  new Gtk.CheckButton({
+                label: _("Expand"),
+                hexpand: true
+            });
+
+            wsCaptionNumberExpand.set_active(this._getItemExpanded('number'));
+            wsCaptionNumberExpand.connect('toggled', Lang.bind(this, function(check){
+                this._setItemExpanded('number', check.get_active());
+            }));
+
+            let wsCaptionNumber_MoveLeftButton = new Gtk.Button({
+                image: new Gtk.Image({
+                    icon_name: icon_previous
+                })
+            });
+            wsCaptionNumber_MoveLeftButton.connect('clicked', function(){
+                self._moveItem('number', 1);
+            });
+            let wsCaptionNumber_MoveRightButton = new Gtk.Button({
+                image: new Gtk.Image({
+                    icon_name: icon_next
+                })
+            });
+            wsCaptionNumber_MoveRightButton.connect('clicked', function(){
+                self._moveItem('number', -1);
+            });
+
+            // Workspace Captions - Name
+            let wsCaptionNameButton =  new Gtk.CheckButton({
+                label: _("Show workspace name"),
+                hexpand: true
+            });
+            wsCaptionNameButton.set_active(this._getItemExists('name'));
+            wsCaptionNameButton.connect('toggled', Lang.bind(this, function(check){
+                if (check.get_active()) {
+                    this._addItem('name', wsCaptionNameExpand.get_active());
+                } else {
+                    this._removeItem('name');
+                }
+            }));
+
+            let wsCaptionNameExpand =  new Gtk.CheckButton({
+                label: _("Expand"),
+                hexpand: true
+            });
+            wsCaptionNameExpand.set_active(this._getItemExpanded('name'));
+            wsCaptionNameExpand.connect('toggled', Lang.bind(this, function(check){
+                this._setItemExpanded('name', check.get_active());
+            }));
+
+            let wsCaptionName_MoveLeftButton = new Gtk.Button({
+                image: new Gtk.Image({
+                    icon_name: icon_previous
+                })
+            });
+            wsCaptionName_MoveLeftButton.connect('clicked', function(){
+                self._moveItem('name', 1);
+            });
+            let wsCaptionName_MoveRightButton = new Gtk.Button({
+                image: new Gtk.Image({
+                    icon_name: icon_next
+                })
+            });
+            wsCaptionName_MoveRightButton.connect('clicked', function(){
+                self._moveItem('name', -1);
+            });
+
+            // Workspace Captions - Window Count
+            let wsCaptionWindowCount =  new Gtk.CheckButton({
+                label: _("Show workspace window count"),
+                hexpand: true
+            });
+
+            wsCaptionWindowCount.set_active(this._getItemExists('windowcount'));
+            wsCaptionWindowCount.connect('toggled', Lang.bind(this, function(check){
+                if (check.get_active()) {
+                    this._addItem('windowcount', wsCaptionWindowCountExpand.get_active());
+                } else {
+                    this._removeItem('windowcount');
+                }
+            }));
+
+            let wsCaptionWindowCountUseImage =  new Gtk.CheckButton({
+                label: _("Use image"),
+                hexpand: true
+            });
+            wsCaptionWindowCountUseImage.set_active(this.settings.get_boolean('workspace-caption-windowcount-image'));
+            wsCaptionWindowCountUseImage.connect('toggled', Lang.bind(this, function(check) {
+                this.settings.set_boolean('workspace-caption-windowcount-image', check.get_active());
+            }));
+
+            let wsCaptionWindowCountExpand =  new Gtk.CheckButton({
+                label: _("Expand"),
+                hexpand: true
+            });
+
+            wsCaptionWindowCountExpand.set_active(this._getItemExpanded('windowcount'));
+            wsCaptionWindowCountExpand.connect('toggled', Lang.bind(this, function(check){
+                this._setItemExpanded('windowcount', check.get_active());
+            }));
+
+            let wsCaptionWindowCount_MoveLeftButton = new Gtk.Button({
+                image: new Gtk.Image({
+                    icon_name: icon_previous
+                })
+            });
+            wsCaptionWindowCount_MoveLeftButton.connect('clicked', function(){
+                self._moveItem('windowcount', 1);
+            });
+            let wsCaptionWindowCount_MoveRightButton = new Gtk.Button({
+                image: new Gtk.Image({
+                    icon_name: icon_next
+                })
+            });
+            wsCaptionWindowCount_MoveRightButton.connect('clicked', function(){
+                self._moveItem('windowcount', -1);
+            });
+
+            // Workspace Captions - Window Apps (taskbar)
+            let wsCaptionWindowApps =  new Gtk.CheckButton({
+                label: _("Show workspace taskbar (apps)"),
+                hexpand: true
+            });
+            wsCaptionWindowApps.set_active(this._getItemExists('windowapps'));
+            wsCaptionWindowApps.connect('toggled', Lang.bind(this, function(check){
+                if (check.get_active()) {
+                    this._addItem('windowapps', wsCaptionWindowAppsExpand.get_active());
+                } else {
+                    this._removeItem('windowapps');
+                }
+            }));
+
+            let wsCaptionWindowAppsExpand =  new Gtk.CheckButton({
+                label: _("Expand"),
+                hexpand: true
+            });
+            wsCaptionWindowAppsExpand.set_active(this._getItemExpanded('windowapps'));
+            wsCaptionWindowAppsExpand.connect('toggled', Lang.bind(this, function(check){
+                this._setItemExpanded('windowapps', check.get_active());
+            }));
+
+            let wsCaptionWindowApps_MoveLeftButton = new Gtk.Button({
+                image: new Gtk.Image({
+                    icon_name: icon_previous
+                })
+            });
+            wsCaptionWindowApps_MoveLeftButton.connect('clicked', function(){
+                self._moveItem('windowapps', 1);
+            });
+            let wsCaptionWindowApps_MoveRightButton = new Gtk.Button({
+                image: new Gtk.Image({
+                    icon_name: icon_next
+                })
+            });
+            wsCaptionWindowApps_MoveRightButton.connect('clicked', function(){
+                self._moveItem('windowapps', -1);
+            });
+
+            // Workspace Captions - Spacer
+            let wsCaptionSpacer =  new Gtk.CheckButton({
+                label: _("Show a spacer/filler"),
+                hexpand: true
+            });
+
+            wsCaptionSpacer.set_active(this._getItemExists('spacer'));
+            wsCaptionSpacer.connect('toggled', Lang.bind(this, function(check){
+                if (check.get_active()) {
+                    this._addItem('spacer', wsCaptionSpacerExpand.get_active());
+                } else {
+                    this._removeItem('spacer');
+                }
+            }));
+
+            let wsCaptionSpacerExpand =  new Gtk.CheckButton({
+                label: _("Expand"),
+                hexpand: true
+            });
+
+            wsCaptionSpacerExpand.set_active(this._getItemExpanded('spacer'));
+            wsCaptionSpacerExpand.connect('toggled', Lang.bind(this, function(check){
+                this._setItemExpanded('spacer', check.get_active());
+            }));
+
+            let wsCaptionSpacer_MoveLeftButton = new Gtk.Button({
+                image: new Gtk.Image({
+                    icon_name: icon_previous
+                })
+            });
+            wsCaptionSpacer_MoveLeftButton.connect('clicked', function(){
+                self._moveItem('spacer', 1);
+            });
+            let wsCaptionSpacer_MoveRightButton = new Gtk.Button({
+                image: new Gtk.Image({
+                    icon_name: icon_next
+                })
+            });
+            wsCaptionSpacer_MoveRightButton.connect('clicked', function(){
+                self._moveItem('spacer', -1);
+            });
+
+
+            // Add to layout
+            let workspaceCaptionsDialogGrid = new Gtk.Grid({
+                row_homogeneous: false,
+                column_homogeneous: false
+            });
+
+
+            workspaceCaptionsDialogGrid.attach(wsCaptionNumberButton, 0, 5, 1, 1);
+            workspaceCaptionsDialogGrid.attach(wsCaptionNumberExpand, 2, 5, 1, 1);
+            workspaceCaptionsDialogGrid.attach(wsCaptionNumber_MoveLeftButton, 3, 5, 1, 1);
+            workspaceCaptionsDialogGrid.attach(wsCaptionNumber_MoveRightButton, 4, 5, 1, 1);
+
+            workspaceCaptionsDialogGrid.attach(wsCaptionNameButton, 0, 6, 1, 1);
+            workspaceCaptionsDialogGrid.attach(wsCaptionNameExpand, 2, 6, 1, 1);
+            workspaceCaptionsDialogGrid.attach(wsCaptionName_MoveLeftButton, 3, 6, 1, 1);
+            workspaceCaptionsDialogGrid.attach(wsCaptionName_MoveRightButton, 4, 6, 1, 1);
+
+            workspaceCaptionsDialogGrid.attach(wsCaptionWindowCount, 0, 7, 1, 1);
+            workspaceCaptionsDialogGrid.attach(wsCaptionWindowCountUseImage, 1, 7, 1, 1);
+            workspaceCaptionsDialogGrid.attach(wsCaptionWindowCountExpand, 2, 7, 1, 1);
+            workspaceCaptionsDialogGrid.attach(wsCaptionWindowCount_MoveLeftButton, 3, 7, 1, 1);
+            workspaceCaptionsDialogGrid.attach(wsCaptionWindowCount_MoveRightButton, 4, 7, 1, 1);
+
+            workspaceCaptionsDialogGrid.attach(wsCaptionWindowApps, 0, 8, 1, 1);
+            workspaceCaptionsDialogGrid.attach(wsCaptionWindowAppsExpand, 2, 8, 1, 1);
+            workspaceCaptionsDialogGrid.attach(wsCaptionWindowApps_MoveLeftButton, 3, 8, 1, 1);
+            workspaceCaptionsDialogGrid.attach(wsCaptionWindowApps_MoveRightButton, 4, 8, 1, 1);
+
+            workspaceCaptionsDialogGrid.attach(wsCaptionSpacer, 0, 9, 1, 1);
+            workspaceCaptionsDialogGrid.attach(wsCaptionSpacerExpand, 2, 9, 1, 1);
+            workspaceCaptionsDialogGrid.attach(wsCaptionSpacer_MoveLeftButton, 3, 9, 1, 1);
+            workspaceCaptionsDialogGrid.attach(wsCaptionSpacer_MoveRightButton, 4, 9, 1, 1);
+
+            // Add to dialog
+            let workspaceCaptionsDialogContainerBox = new Gtk.Box({
+                orientation: Gtk.Orientation.VERTICAL,
+                spacing: 0,
+                homogeneous: false,
+                margin_left: 10,
+                margin_top: 20,
+                margin_bottom: 20,
+                margin_right: 10
+            });
+            workspaceCaptionsDialogContainerBox.add(workspaceCaptionsDialogGrid);
+            dialog.get_content_area().add(workspaceCaptionsDialogContainerBox);
+            dialog.show_all();
         }));
-        let wsCaptionNumberExpand =  new Gtk.CheckButton({
-            label: _("Expand"),
-            hexpand: true
-        });
-
-        wsCaptionNumberExpand.set_active(this._getItemExpanded('number'));
-        wsCaptionNumberExpand.connect('toggled', Lang.bind(this, function(check){
-            this._setItemExpanded('number', check.get_active());
-        }));
-
-        let wsCaptionNumber_MoveLeftButton = new Gtk.Button({
-            image: new Gtk.Image({
-                icon_name: icon_previous
-            })
-        });
-        wsCaptionNumber_MoveLeftButton.connect('clicked', function(){
-            self._moveItem('number', 1);
-        });
-        let wsCaptionNumber_MoveRightButton = new Gtk.Button({
-            image: new Gtk.Image({
-                icon_name: icon_next
-            })
-        });
-        wsCaptionNumber_MoveRightButton.connect('clicked', function(){
-            self._moveItem('number', -1);
-        });
-
-        // Workspace Captions - Name
-        let wsCaptionNameButton =  new Gtk.CheckButton({
-            label: _("Show workspace name"),
-            hexpand: true
-        });
-        wsCaptionNameButton.set_active(this._getItemExists('name'));
-        wsCaptionNameButton.connect('toggled', Lang.bind(this, function(check){
-            if (check.get_active()) {
-                this._addItem('name', wsCaptionNameExpand.get_active());
-            } else {
-                this._removeItem('name');
-            }
-        }));
-
-        let wsCaptionNameExpand =  new Gtk.CheckButton({
-            label: _("Expand"),
-            hexpand: true
-        });
-        wsCaptionNameExpand.set_active(this._getItemExpanded('name'));
-        wsCaptionNameExpand.connect('toggled', Lang.bind(this, function(check){
-            this._setItemExpanded('name', check.get_active());
-        }));
-
-        let wsCaptionName_MoveLeftButton = new Gtk.Button({
-            image: new Gtk.Image({
-                icon_name: icon_previous
-            })
-        });
-        wsCaptionName_MoveLeftButton.connect('clicked', function(){
-            self._moveItem('name', 1);
-        });
-        let wsCaptionName_MoveRightButton = new Gtk.Button({
-            image: new Gtk.Image({
-                icon_name: icon_next
-            })
-        });
-        wsCaptionName_MoveRightButton.connect('clicked', function(){
-            self._moveItem('name', -1);
-        });
-
-        // Workspace Captions - Window Count
-        let wsCaptionWindowCount =  new Gtk.CheckButton({
-            label: _("Show workspace window count"),
-            hexpand: true
-        });
-
-        wsCaptionWindowCount.set_active(this._getItemExists('windowcount'));
-        wsCaptionWindowCount.connect('toggled', Lang.bind(this, function(check){
-            if (check.get_active()) {
-                this._addItem('windowcount', wsCaptionWindowCountExpand.get_active());
-            } else {
-                this._removeItem('windowcount');
-            }
-        }));
-
-        let wsCaptionWindowCountUseImage =  new Gtk.CheckButton({
-            label: _("Use image"),
-            hexpand: true
-        });
-        wsCaptionWindowCountUseImage.set_active(this.settings.get_boolean('workspace-caption-windowcount-image'));
-        wsCaptionWindowCountUseImage.connect('toggled', Lang.bind(this, function(check) {
-            this.settings.set_boolean('workspace-caption-windowcount-image', check.get_active());
-        }));
-
-        let wsCaptionWindowCountExpand =  new Gtk.CheckButton({
-            label: _("Expand"),
-            hexpand: true
-        });
-
-        wsCaptionWindowCountExpand.set_active(this._getItemExpanded('windowcount'));
-        wsCaptionWindowCountExpand.connect('toggled', Lang.bind(this, function(check){
-            this._setItemExpanded('windowcount', check.get_active());
-        }));
-
-        let wsCaptionWindowCount_MoveLeftButton = new Gtk.Button({
-            image: new Gtk.Image({
-                icon_name: icon_previous
-            })
-        });
-        wsCaptionWindowCount_MoveLeftButton.connect('clicked', function(){
-            self._moveItem('windowcount', 1);
-        });
-        let wsCaptionWindowCount_MoveRightButton = new Gtk.Button({
-            image: new Gtk.Image({
-                icon_name: icon_next
-            })
-        });
-        wsCaptionWindowCount_MoveRightButton.connect('clicked', function(){
-            self._moveItem('windowcount', -1);
-        });
-
-        // Workspace Captions - Window Apps (taskbar)
-        let wsCaptionWindowApps =  new Gtk.CheckButton({
-            label: _("Show workspace taskbar (apps)"),
-            hexpand: true
-        });
-        wsCaptionWindowApps.set_active(this._getItemExists('windowapps'));
-        wsCaptionWindowApps.connect('toggled', Lang.bind(this, function(check){
-            if (check.get_active()) {
-                this._addItem('windowapps', wsCaptionWindowAppsExpand.get_active());
-            } else {
-                this._removeItem('windowapps');
-            }
-        }));
-
-        let wsCaptionWindowAppsExpand =  new Gtk.CheckButton({
-            label: _("Expand"),
-            hexpand: true
-        });
-        wsCaptionWindowAppsExpand.set_active(this._getItemExpanded('windowapps'));
-        wsCaptionWindowAppsExpand.connect('toggled', Lang.bind(this, function(check){
-            this._setItemExpanded('windowapps', check.get_active());
-        }));
-
-        let wsCaptionWindowApps_MoveLeftButton = new Gtk.Button({
-            image: new Gtk.Image({
-                icon_name: icon_previous
-            })
-        });
-        wsCaptionWindowApps_MoveLeftButton.connect('clicked', function(){
-            self._moveItem('windowapps', 1);
-        });
-        let wsCaptionWindowApps_MoveRightButton = new Gtk.Button({
-            image: new Gtk.Image({
-                icon_name: icon_next
-            })
-        });
-        wsCaptionWindowApps_MoveRightButton.connect('clicked', function(){
-            self._moveItem('windowapps', -1);
-        });
-
-        // Workspace Captions - Spacer
-        let wsCaptionSpacer =  new Gtk.CheckButton({
-            label: _("Show a spacer/filler"),
-            hexpand: true
-        });
-
-        wsCaptionSpacer.set_active(this._getItemExists('spacer'));
-        wsCaptionSpacer.connect('toggled', Lang.bind(this, function(check){
-            if (check.get_active()) {
-                this._addItem('spacer', wsCaptionSpacerExpand.get_active());
-            } else {
-                this._removeItem('spacer');
-            }
-        }));
-
-        let wsCaptionSpacerExpand =  new Gtk.CheckButton({
-            label: _("Expand"),
-            hexpand: true
-        });
-
-        wsCaptionSpacerExpand.set_active(this._getItemExpanded('spacer'));
-        wsCaptionSpacerExpand.connect('toggled', Lang.bind(this, function(check){
-            this._setItemExpanded('spacer', check.get_active());
-        }));
-
-        let wsCaptionSpacer_MoveLeftButton = new Gtk.Button({
-            image: new Gtk.Image({
-                icon_name: icon_previous
-            })
-        });
-        wsCaptionSpacer_MoveLeftButton.connect('clicked', function(){
-            self._moveItem('spacer', 1);
-        });
-        let wsCaptionSpacer_MoveRightButton = new Gtk.Button({
-            image: new Gtk.Image({
-                icon_name: icon_next
-            })
-        });
-        wsCaptionSpacer_MoveRightButton.connect('clicked', function(){
-            self._moveItem('spacer', -1);
-        });
 
         // Add to layout
         let workspaceCaptionsControlGrid = new Gtk.Grid({
@@ -1598,52 +1674,38 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             row_homogeneous: false,
             column_homogeneous: false,
             margin_top: 0,
-            margin_left: 10,
-            margin_bottom: 20
+            margin_left: 10
         });
 
         workspaceCaptionsControlGrid.attach(workspaceCaptionsLabel, 0, 0, 1, 1);
         workspaceCaptionsControlGrid.attach(workspaceCaptionsSwitch, 1, 0, 1, 1);
 
-        workspaceCaptionsContainerGrid.attach(wsCaptionHeightLabel, 0, 1, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionHeightSpinner, 2, 1, 3, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionPositionLabel, 0, 2, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionPositionCombo, 1, 2, 3, 1);
 
-        workspaceCaptionsContainerGrid.attach(wsCaptionWindowAppsIconSizeLabel, 0, 2, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionWindowAppsIconSizeSpinner, 2, 2, 3, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionHeightLabel, 0, 3, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionHeightSpinner, 1, 3, 3, 1);
 
-        workspaceCaptionsContainerGrid.attach(wsCaptionMenuIconSizeLabel, 0, 3, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionMenuIconSizeSpinner, 2, 3, 3, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionWindowAppsIconSizeLabel, 0, 4, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionWindowAppsIconSizeSpinner, 1, 4, 3, 1);
 
-        workspaceCaptionsContainerGrid.attach(workspaceCaptionItemsTitle, 0, 4, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionMenuIconSizeLabel, 0, 5, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionMenuIconSizeSpinner, 1, 5, 3, 1);
 
-        workspaceCaptionsContainerGrid.attach(wsCaptionNumberButton, 0, 5, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionNumberExpand, 2, 5, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionNumber_MoveLeftButton, 3, 5, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionNumber_MoveRightButton, 4, 5, 1, 1);
-
-        workspaceCaptionsContainerGrid.attach(wsCaptionNameButton, 0, 6, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionNameExpand, 2, 6, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionName_MoveLeftButton, 3, 6, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionName_MoveRightButton, 4, 6, 1, 1);
-
-        workspaceCaptionsContainerGrid.attach(wsCaptionWindowCount, 0, 7, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionWindowCountUseImage, 1, 7, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionWindowCountExpand, 2, 7, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionWindowCount_MoveLeftButton, 3, 7, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionWindowCount_MoveRightButton, 4, 7, 1, 1);
-
-        workspaceCaptionsContainerGrid.attach(wsCaptionWindowApps, 0, 8, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionWindowAppsExpand, 2, 8, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionWindowApps_MoveLeftButton, 3, 8, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionWindowApps_MoveRightButton, 4, 8, 1, 1);
-
-        workspaceCaptionsContainerGrid.attach(wsCaptionSpacer, 0, 9, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionSpacerExpand, 2, 9, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionSpacer_MoveLeftButton, 3, 9, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionSpacer_MoveRightButton, 4, 9, 1, 1);
+        workspaceCaptionsContainerGrid.attach(workspaceCaptionItemsTitle, 0, 6, 1, 1);
+        workspaceCaptionsContainerGrid.attach(workspaceCaptionItemsButton, 0, 7, 1, 1);
 
         // Bind interactions
         this.settings.bind('workspace-captions', workspaceCaptionsContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+
+
+
+
+
+
+
+
+
 
 
         /* TITLE: MISC OPTIONS */

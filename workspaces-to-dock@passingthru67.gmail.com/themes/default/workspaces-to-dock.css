@@ -248,6 +248,10 @@
     border: 1px solid rgba(10,10,10,0.4);
     border-radius: 0px 0px 2px 2px;
 }
+.workspacestodock-workspace-caption-background.caption-top {
+    border-radius: 2px 2px 0px 0px;
+}
+
 .workspacestodock-workspace-caption {
 }
 
@@ -374,6 +378,8 @@
     background-gradient-end: rgba(0,0,0,0.5);
     background-gradient-direction: vertical;
     border: 1px solid rgba(0,0,0,0.4);
+}
+.workspacestodock-workspace-caption-background-current.caption-top {
 }
 .workspacestodock-caption-number-current {
     color: rgba(0,0,0,0.9);

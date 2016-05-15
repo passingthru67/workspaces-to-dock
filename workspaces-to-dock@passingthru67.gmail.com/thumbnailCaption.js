@@ -36,6 +36,11 @@ const WindowAppsUpdateAction = {
     CLEARALL: 2
 }
 
+const CaptionPosition = {
+    BOTTOM: 0,
+    TOP: 1
+}
+
 /* Return the actual position reverseing left and right in rtl */
 function getPosition(settings) {
     let position = settings.get_enum('dock-position');
@@ -193,12 +198,18 @@ const ThumbnailCaption = new Lang.Class({
         this._isHorizontal = (this._position == St.Side.TOP ||
                               this._position == St.Side.BOTTOM);
 
+        if (this._mySettings.get_enum('workspace-caption-position') == CaptionPosition.TOP) {
+            this._captionYAlign = St.Align.START;
+        } else {
+            this._captionYAlign = St.Align.END;
+        }
+
         this.actor = new St.Bin({
             name: 'workspacestodockCaptionContainer',
             reactive: false,
             style_class: 'workspacestodock-workspace-caption-container',
             x_fill: true,
-            y_align: St.Align.END,
+            y_align: this._captionYAlign,
             x_align: St.Align.START
         });
 
@@ -207,6 +218,9 @@ const ThumbnailCaption = new Lang.Class({
             reactive: false,
             style_class: 'workspacestodock-workspace-caption-background'
         });
+
+        if (this._mySettings.get_enum('workspace-caption-position') == CaptionPosition.TOP)
+            this._wsCaptionBackground.add_style_class_name('caption-top');
 
         this._taskBar = [];
         this._taskBarBox = null;
@@ -343,7 +357,7 @@ const ThumbnailCaption = new Lang.Class({
                             style_class: 'workspacestodock-caption-number'
                         });
                         this._wsNumberBox.add(this._wsNumber, {x_fill: false, x_align: St.Align.MIDDLE, y_fill: false, y_align: St.Align.MIDDLE});
-                        this._wsCaption.add(this._wsNumberBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END, expand: expandState});
+                        this._wsCaption.add(this._wsNumberBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: this._captionYAlign, expand: expandState});
                         break;
                     case "name":
                         this._wsName = new St.Label({
@@ -355,7 +369,7 @@ const ThumbnailCaption = new Lang.Class({
                             style_class: 'workspacestodock-caption-name'
                         });
                         this._wsNameBox.add(this._wsName, {x_fill: false, x_align: St.Align.MIDDLE, y_fill: false, y_align: St.Align.MIDDLE});
-                        this._wsCaption.add(this._wsNameBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END, expand: expandState});
+                        this._wsCaption.add(this._wsNameBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: this._captionYAlign, expand: expandState});
                         break;
                     case "windowcount":
                         this._wsWindowCount = new St.Label({
@@ -371,7 +385,7 @@ const ThumbnailCaption = new Lang.Class({
                             this._wsWindowCountBox.add_style_class_name("workspacestodock-caption-windowcount-image");
                         }
                         this._wsWindowCountBox.add(this._wsWindowCount, {x_fill: false, x_align: St.Align.MIDDLE, y_fill: false, y_align: St.Align.MIDDLE});
-                        this._wsCaption.add(this._wsWindowCountBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END, expand: expandState});
+                        this._wsCaption.add(this._wsWindowCountBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: this._captionYAlign, expand: expandState});
                         break;
                     case "windowapps":
                         this._taskBarBox = new St.BoxLayout({
@@ -379,7 +393,7 @@ const ThumbnailCaption = new Lang.Class({
                             reactive: false,
                             style_class: 'workspacestodock-caption-windowapps'
                         });
-                        this._wsCaption.add(this._taskBarBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END, expand: expandState});
+                        this._wsCaption.add(this._taskBarBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: this._captionYAlign, expand: expandState});
                         break;
                     case "spacer":
                         this._wsSpacer = new St.Label({
@@ -391,7 +405,7 @@ const ThumbnailCaption = new Lang.Class({
                             style_class: 'workspacestodock-caption-spacer'
                         });
                         this._wsSpacerBox.add(this._wsSpacer, {x_fill: false, x_align: St.Align.MIDDLE, y_fill: false, y_align: St.Align.MIDDLE});
-                        this._wsCaption.add(this._wsSpacerBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END, expand: expandState});
+                        this._wsCaption.add(this._wsSpacerBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: this._captionYAlign, expand: expandState});
                         break;
                 }
 
@@ -491,7 +505,7 @@ const ThumbnailCaption = new Lang.Class({
                 }
 
                 if (this._taskBarBox) {
-                    this._taskBarBox.add(button.actor, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
+                    this._taskBarBox.add(button.actor, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: this._captionYAlign});
                 }
                 let winInfo = {};
                 winInfo.app = app;
@@ -737,7 +751,7 @@ const ThumbnailCaption = new Lang.Class({
                         }
 
                         if (this._taskBarBox)
-                            this._taskBarBox.add(button.actor, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: St.Align.END});
+                            this._taskBarBox.add(button.actor, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: this._captionYAlign});
 
                         let winInfo = {};
                         winInfo.app = app;
@@ -849,7 +863,16 @@ const ThumbnailCaption = new Lang.Class({
             return;
 
         this._wsCaptionBackground.set_scale(unscale, unscale);
-        this._wsCaptionBackground.set_position(0, this._thumbnail._thumbnailsBox._porthole.height);
+        if (this._mySettings.get_enum('workspace-caption-position') == CaptionPosition.TOP) {
+            this._wsCaptionBackground.set_position(0, 0);
+            // ISSUE: Gnome uses monitor screen to create background actor
+            // passingthru67: Reposition background to match workspace desktop porthole
+            this._thumbnail._bgManager.backgroundActor.set_size(this._thumbnail._thumbnailsBox._porthole.width, this._thumbnail._thumbnailsBox._porthole.height);
+            this._thumbnail._bgManager.backgroundActor.set_position(this._thumbnail._thumbnailsBox._porthole.x, this._thumbnail._thumbnailsBox._porthole.y);
+            this._thumbnail._contents.set_position(0, captionBackgroundHeight * unscale - this._thumbnail._thumbnailsBox._porthole.y);
+        } else {
+            this._wsCaptionBackground.set_position(0, this._thumbnail._thumbnailsBox._porthole.height);
+        }
         this._wsCaptionBackground.set_size(containerWidth, captionBackgroundHeight);
 
         if (!this.actor)
@@ -884,7 +907,11 @@ const ThumbnailCaption = new Lang.Class({
 
 
         if (i == global.screen.get_active_workspace_index()) {
-            if (this._wsCaptionBackground) this._wsCaptionBackground.add_style_class_name('workspacestodock-workspace-caption-background-current');
+            if (this._wsCaptionBackground) {
+                this._wsCaptionBackground.add_style_class_name('workspacestodock-workspace-caption-background-current');
+                if (this._mySettings.get_enum('workspace-caption-position') == CaptionPosition.TOP)
+                    this._wsCaptionBackground.add_style_class_name('caption-top');
+            }
             if (this._wsCaption) this._wsCaption.add_style_class_name('workspacestodock-workspace-caption-current');
             if (this._wsNumberBox) this._wsNumberBox.add_style_class_name('workspacestodock-caption-number-current');
             if (this._wsNameBox) this._wsNameBox.add_style_class_name('workspacestodock-caption-name-current');
