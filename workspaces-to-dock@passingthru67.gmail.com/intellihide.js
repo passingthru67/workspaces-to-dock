@@ -422,7 +422,7 @@ const Intellihide = new Lang.Class({
         if (_DEBUG_) global.log("intellihide: _onWindowDragBegin");
         Main.overview.show();
         this._toggledOverviewOnDrag = true;
-        this._show();
+        this._show(true);
     },
 
     // handler for when thumbnail windows dragging cancelled
@@ -430,12 +430,31 @@ const Intellihide = new Lang.Class({
         if (_DEBUG_) global.log("intellihide: _onWindowDragCancelled");
         if (this._toggledOverviewOnDrag) {
             this._toggledOverviewOnDrag = false;
+
+            if (this._inOverview) {
+                if (Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage) {
+                    this._hide(true);
+                } else {
+                    this._hide();
+                }
+            }
         }
     },
 
     // handler for when thumbnail windows dragging ended
     _onWindowDragEnd: function() {
         if (_DEBUG_) global.log("intellihide: _onWindowDragEnd");
+        if (this._toggledOverviewOnDrag) {
+            this._toggledOverviewOnDrag = false;
+
+            if (this._inOverview) {
+                if (Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage) {
+                    this._hide(true);
+                } else {
+                    this._hide();
+                }
+            }
+        }
     },
 
     // handler for when app icon dragging started
@@ -443,7 +462,7 @@ const Intellihide = new Lang.Class({
         if (_DEBUG_) global.log("intellihide: _onItemDragBegin");
         Main.overview.show();
         this._toggledOverviewOnDrag = true;
-        this._show();
+        this._show(true);
     },
 
     // handler for when app icon dragging cancelled
@@ -455,8 +474,11 @@ const Intellihide = new Lang.Class({
             // Should we hide the dock?
             // GS38+ remains in same overview mode, therefore we need to detect mode to determine if we should hide dock.
             if (this._inOverview) {
-                if (Main.overview.viewSelector._activePage != Main.overview.viewSelector._workspacesPage)
+                if (Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage) {
+                    this._hide(true);
+                } else {
                     this._hide();
+                }
             }
         }
     },
@@ -470,8 +492,11 @@ const Intellihide = new Lang.Class({
             // Should we hide the dock?
             // GS38+ remains in same overview mode, therefore we need to detect mode to determine if we should hide dock.
             if (this._inOverview) {
-                if (Main.overview.viewSelector._activePage != Main.overview.viewSelector._workspacesPage)
+                if (Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage) {
+                    this._hide(true);
+                } else {
                     this._hide();
+                }
             }
         }
     },
@@ -532,10 +557,10 @@ const Intellihide = new Lang.Class({
                 } else {
                     let overviewAction = this._settings.get_enum('overview-action');
                     if (overviewAction == OverviewAction.SHOW_FULL) {
-                        this._show();
+                        this._show(true);
                     } else if (overviewAction == OverviewAction.SHOW_PARTIAL) {
                         if (this._dock._dockState == DockState.SHOWING || this._dock._dockState == DockState.SHOWN) {
-                            this._hide();
+                            this._hide(true);
                         } else {
                             this._show();
                         }
