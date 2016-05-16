@@ -24,6 +24,7 @@ const DND = imports.ui.dnd;
 const IconGrid = imports.ui.iconGrid;
 const Separator = imports.ui.separator;
 
+const Util = imports.misc.util;
 const ExtensionSystem = imports.ui.extensionSystem;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
@@ -115,6 +116,17 @@ const ShortcutButtonMenu = new Lang.Class({
 
     _redisplay: function() {
         this.removeAll();
+
+        // passingthru67: appsbutton menu to show extension preferences
+        if (this._source._type == ApplicationType.APPSBUTTON) {
+            let item = this._appendMenuItem(_("Extension Preferences"));
+            item.connect('activate', Lang.bind(this, function () {
+                // passingthru67: Should we use commandline or argv?
+                // Util.trySpawnCommandLine("gnome-shell-extension-prefs " + Me.metadata.uuid);
+                Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
+            }));
+            return;
+        }
 
         let windows = this._source._app.get_windows().filter(function(w) {
             return !w.skip_taskbar;
@@ -336,7 +348,7 @@ const ShortcutButton = new Lang.Class({
     },
 
     _onButtonPress: function(actor, event) {
-        if (this._type == ApplicationType.APPLICATION) {
+        if (this._type == ApplicationType.APPSBUTTON || this._type == ApplicationType.APPLICATION) {
             let button = event.get_button();
             if (button == 1) {
                 this._removeMenuTimeout();
@@ -457,12 +469,13 @@ const ShortcutButton = new Lang.Class({
     },
 
     popupMenu: function() {
-        if (this._type != ApplicationType.APPLICATION)
+        if (this._type != ApplicationType.APPSBUTTON && this._type != ApplicationType.APPLICATION)
              return false;
 
         this._removeMenuTimeout();
         this.actor.fake_release();
-        this._draggable.fakeRelease();
+        if (this._draggable)
+            this._draggable.fakeRelease();
 
         if (!this._menu) {
             this._menu = new ShortcutButtonMenu(this);
@@ -483,7 +496,7 @@ const ShortcutButton = new Lang.Class({
         this._panel.setPopupMenuFlag(true);
         this._panel.hideThumbnails();
         this.actor.set_hover(true);
-        this._menu.popup();
+        this._menu.popup(this);
         this._menuManager.ignoreRelease();
 
         return false;
@@ -959,7 +972,7 @@ const ShortcutsPanel = new Lang.Class({
         }
 
         // Add Apps Button to top or bottom of shortcuts panel
-        this._appsButton = new ShortcutButton(null, ApplicationType.APPSBUTTON);
+        this._appsButton = new ShortcutButton(null, ApplicationType.APPSBUTTON, this);
         if (this._settings.get_boolean('shortcuts-panel-appsbutton-at-bottom')) {
             let filler = new Separator.HorizontalSeparator({ style_class: 'popup-separator-menu-item workspacestodock-shortcut-panel-filler' });
             this.actor.add(filler.actor, { expand: true });

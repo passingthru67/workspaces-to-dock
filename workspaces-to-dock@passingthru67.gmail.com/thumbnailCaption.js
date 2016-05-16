@@ -19,6 +19,7 @@ const IconGrid = imports.ui.iconGrid;
 const PopupMenu = imports.ui.popupMenu;
 const DND = imports.ui.dnd;
 
+const Util = imports.misc.util;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 const MyWorkspaceThumbnail = Me.imports.myWorkspaceThumbnail;
@@ -27,8 +28,6 @@ const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 
 const CAPTION_APP_ICON_ZOOM = 8;
-const PREFS_DIALOG = 'gnome-shell-extension-prefs workspaces-to-dock@passingthru67.gmail.com';
-
 
 const WindowAppsUpdateAction = {
     ADD: 0,
@@ -675,7 +674,9 @@ const ThumbnailCaption = new Lang.Class({
     },
 
     _showExtensionPreferences: function(menuItem, event) {
-        Main.Util.trySpawnCommandLine(PREFS_DIALOG);
+        // passingthru67: Should we use commandline or argv?
+        // Util.trySpawnCommandLine("gnome-shell-extension-prefs " + Me.metadata.uuid);
+        Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
     },
 
     closeMetaWindow: function(metaWin) {
