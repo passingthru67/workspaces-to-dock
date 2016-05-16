@@ -70,6 +70,11 @@
       <summary>Leave dock edge visible when slid out</summary>
       <description>Enable or disable leaving dock edge visible when slid out</description>
     </key>
+    <key type="b" name="scroll-with-touchpad">
+      <default>false</default>
+      <summary>Enable to prevent multiple workspace switching when using touchpad</summary>
+      <description>Enable to prevent multiple workspace switching when using touchpad.</description>
+    </key>
     <key type="b" name="disable-scroll">
       <default>false</default>
       <summary>Disable scroll to prevent workspace switching when dock is slid out</summary>

@@ -354,6 +354,19 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }));
 
 
+        /* SCROLL WITH TOUCHPAD */
+        let scrollWithTouchpadButton = new Gtk.CheckButton({
+            label: _("Prevent multiple workspace switching when using touchpad to scroll"),
+            margin_left: 0,
+            margin_top: 10
+        });
+        scrollWithTouchpadButton.set_active(this.settings.get_boolean('scroll-with-touchpad'));
+        scrollWithTouchpadButton.connect('toggled', Lang.bind(this, function(check) {
+            this.settings.set_boolean('scroll-with-touchpad', check.get_active());
+        }));
+
+
+
         /* ADD TO NOTEBOOK PAGE */
         notebookAppearanceSettings.add(dockPositionTitle);
         notebookAppearanceSettings.add(dockMonitorControlGrid);
@@ -365,6 +378,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         notebookAppearanceSettings.add(backgroundControlGrid);
         notebookAppearanceSettings.add(backgroundContainerGrid);
         notebookAppearanceSettings.add(toggleOverviewButton);
+        notebookAppearanceSettings.add(scrollWithTouchpadButton);
         notebook.append_page(notebookAppearanceSettings, notebookAppearanceSettingsTitle);
 
 

@@ -1506,6 +1506,25 @@ const DockedWorkspaces = new Lang.Class({
         }
 
         if (direction) {
+            if (this._settings.get_boolean('scroll-with-touchpad')) {
+                // passingthru67: copied from dash-to-dock
+                // Prevent scroll events from triggering too many workspace switches
+                // by adding a 250ms deadtime between each scroll event.
+                // Usefull on laptops when using a touchpad.
+
+                // During the deadtime do nothing
+                if(this._scrollWorkspaceSwitchDeadTimeId > 0)
+                    return false;
+                else {
+                    this._scrollWorkspaceSwitchDeadTimeId =
+                        Mainloop.timeout_add(250,
+                            Lang.bind(this, function() {
+                                this._scrollWorkspaceSwitchDeadTimeId = 0;
+                            }
+                    ));
+                }
+            }
+
             let ws = activeWs.get_neighbor(direction);
 
             if (Main.wm._workspaceSwitcherPopup == null) {
