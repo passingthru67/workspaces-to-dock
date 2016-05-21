@@ -293,8 +293,10 @@ const DockedWorkspaces = new Lang.Class({
         this._popupMenuShowing = false;
 
         // initialize colors with generic values
-        this._defaultBackground = {red:0, green:0, blue:0};
-        this._customBackground = {red:0, green:0, blue:0};
+        this._defaultBackground = {red:0, green:0, blue:0, alpha:0};
+        this._customBackground = {red:0, green:0, blue:0, alpha:0};
+        this._defaultBorder = {red:0, green:0, blue:0, alpha:0};
+        this._customBorder = {red:0, green:0, blue:0, alpha:0};
         this._cssStylesheet = null;
 
         // Initialize pressure barrier variables
@@ -1752,11 +1754,13 @@ const DockedWorkspaces = new Lang.Class({
         // CSS time is in ms
         this._thumbnailsBox.actor.set_style('transition-duration:' + time*1000 + ';' +
             'transition-delay:' + delay*1000 + ';' +
-            'background-color:' + this._defaultBackground);
+            'background-color:' + this._defaultBackground + ';' +
+            'border-color:' + this._defaultBorder);
 
         this._shortcutsPanel.actor.set_style('transition-duration:' + time*1000 + ';' +
             'transition-delay:' + delay*1000 + ';' +
-            'background-color:' + this._defaultBackground);
+            'background-color:' + this._defaultBackground + ';' +
+            'border-color:' + this._defaultBorder);
     },
 
     // autohide function to fade in opaque background
@@ -1765,11 +1769,13 @@ const DockedWorkspaces = new Lang.Class({
         // CSS time is in ms
         this._thumbnailsBox.actor.set_style('transition-duration:' + time*1000 + ';' +
             'transition-delay:' + delay*1000 + ';' +
-            'background-color:' + this._customBackground);
+            'background-color:' + this._customBackground + ';' +
+            'border-color:' + this._customBorder);
 
         this._shortcutsPanel.actor.set_style('transition-duration:' + time*1000 + ';' +
             'transition-delay:' + delay*1000 + ';' +
-            'background-color:' + this._customBackground);
+            'background-color:' + this._customBackground + ';' +
+            'border-color:' + this._customBorder);
     },
 
     // This function handles hiding the dock when dock is in stationary-fixed
@@ -1833,19 +1839,40 @@ const DockedWorkspaces = new Lang.Class({
         let themeNode = this._thumbnailsBox.actor.get_theme_node();
         this._thumbnailsBox.actor.set_style(oldStyle);
 
+        // Just in case the theme has different border colors ..
+        // We want to find the inside border-color of the dock because it is
+        // the side most visible to the user. We do this by finding the side
+        // opposite the position
+        let side = this._position + 2;
+        if (side > 3)
+            side = Math.abs(side - 4);
+
         let backgroundColor = themeNode.get_background_color();
-        return backgroundColor;
+        let borderColor = themeNode.get_border_color(side);
+
+        return [backgroundColor, borderColor];
     },
 
     // update background opacity based on preferences
     _updateBackgroundOpacity: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _updateBackgroundOpacity");
-        let backgroundColor = this._getBackgroundColor();
-
+        let [backgroundColor, borderColor] = this._getBackgroundColor();
         if (backgroundColor) {
+            // We check the background alpha for a minimum of .001 to prevent
+            // division by 0 errors when calculating borderAlpha later
+            let backgroundAlpha = Math.max(Math.round(backgroundColor.alpha/2.55)/100, .001);
             let newAlpha = this._settings.get_double('background-opacity');
-            this._defaultBackground = "rgba(" + backgroundColor.red + "," + backgroundColor.green + "," + backgroundColor.blue + "," + Math.round(backgroundColor.alpha/2.55)/100 + ")";
+            this._defaultBackground = "rgba(" + backgroundColor.red + "," + backgroundColor.green + "," + backgroundColor.blue + "," + backgroundAlpha + ")";
             this._customBackground = "rgba(" + backgroundColor.red + "," + backgroundColor.green + "," + backgroundColor.blue + "," + newAlpha + ")";
+
+            if (borderColor) {
+                // The border and background alphas should remain in sync
+                // We also limit the borderAlpha to a maximum of 1 (full opacity)
+                let borderAlpha = Math.round(borderColor.alpha/2.55)/100;
+                borderAlpha = Math.min((borderAlpha/backgroundAlpha)*newAlpha, 1);
+                this._defaultBorder = "rgba(" + borderColor.red + "," + borderColor.green + "," + borderColor.blue + "," + Math.round(borderColor.alpha/2.55)/100 + ")";
+                this._customBorder = "rgba(" + borderColor.red + "," + borderColor.green + "," + borderColor.blue + "," + borderAlpha + ")";
+            }
 
             if (this._settings.get_boolean('opaque-background')) {
                 this._fadeInBackground(this._settings.get_double('animation-time'), 0);
