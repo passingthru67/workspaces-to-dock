@@ -504,13 +504,13 @@ const Intellihide = new Lang.Class({
     // handler for when overview mode exiting
     _overviewExiting: function() {
         if (_DEBUG_) global.log("intellihide: _overviewExiting");
+        this._inOverview = false;
+        this._updateDockVisibility();
     },
 
     // handler for when overview mode exited
     _overviewExited: function() {
         if (_DEBUG_) global.log("intellihide: _overviewExited");
-        this._inOverview = false;
-        this._updateDockVisibility();
     },
 
     // handler for when overview mode entered
