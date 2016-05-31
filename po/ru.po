@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Workspaces-To-Dock\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-05-31 03:17-0500\n"
+"POT-Creation-Date: 2016-05-31 14:17-0500\n"
 "PO-Revision-Date: 2016-02-03 10:52:39-0500\n"
 "Last-Translator: Igor Dyatlov <dyatlov.igor@gmail.com>\n"
 "Language-Team: Russian\n"
@@ -103,7 +103,7 @@ msgid "Customize the height of the dock"
 msgstr "Настройка высоты панели"
 
 msgid "Autosize and center the dock based on workspaces and shortcuts"
-msgstr ""
+msgstr "Авто-размер и панель по центру, на основе рабочих областей и ярлыков"
 
 msgid "Extend the height of the dock to fill the screen"
 msgstr "Расширить высоту панели, чтобы заполнить экран"
@@ -157,13 +157,13 @@ msgid "Hide delay [ms]"
 msgstr ""
 
 msgid "<b>Autohide</b> : Show the dock on mouse hover"
-msgstr "<b>Autohide</b> : Покажите док по наведению мыши"
+msgstr "<b>Авто-скрытие</b> : Покажите док по наведению мыши"
 
 msgid "Autohide Options .."
-msgstr ""
+msgstr "Опции авто-скрытия .."
 
 msgid "Autohide Options"
-msgstr ""
+msgstr "Опции авто-скрытия"
 
 msgid "Require click to show the dock when window maximized"
 msgstr ""
@@ -316,22 +316,22 @@ msgid "Favorites"
 msgstr "Избранные"
 
 msgid "<b>Favorite Shortcuts Panel</b>"
-msgstr ""
+msgstr "Избранные ярлыки панели"
 
 msgid "Show a favorite shortcuts panel"
-msgstr ""
+msgstr "Показать избранные ярлыки панели"
 
 msgid "Shortcuts panel orientation in reference to the thumbnails"
 msgstr ""
 
 msgid "Outside"
-msgstr ""
+msgstr "Снаружи"
 
 msgid "Inside"
-msgstr ""
+msgstr "Внутри"
 
 msgid "Shortcuts panel icon size [px]"
-msgstr ""
+msgstr "Размер иконок ярлыков на панели [пк]"
 
 msgid "Use the Apps button as the source of the swarm animation"
 msgstr ""
@@ -355,7 +355,7 @@ msgid "Hide thumbnails when a popup menu dialog is shown"
 msgstr ""
 
 msgid "NOTE: Only applies when the shortcuts panel is set to outside orientation"
-msgstr ""
+msgstr "ПРИМЕЧАНИЕ: Применяется только когда панель ярлыков установлена на наружной ориентации"
 
 
 #: shortcutsPanel.js
@@ -370,11 +370,11 @@ msgstr ""
 #: thumbnailCaption.js
 
 msgid "Extension Preferences"
-msgstr ""
+msgstr "Настройки расширения"
 
 msgid "Close All Applications"
-msgstr ""
+msgstr "Закрыть все приложения"
 
 msgid "Extension preferences"
-msgstr ""
+msgstr "Настройки расширения"
 
