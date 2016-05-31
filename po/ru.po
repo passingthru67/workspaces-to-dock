@@ -139,25 +139,25 @@ msgid "Dock is fixed and always visible. Turn off intelligent hiding"
 msgstr "Панель будет фиксированной и всегда видна. Интеллектуальное скрытие будет выключено"
 
 msgid "<b>Timing</b> : Adjust animation, show delay, and hide delay timing"
-msgstr ""
+msgstr "Настройка анимации, шоу задержки и скрыть временные задержки"
 
 msgid "Timing Options .."
-msgstr ""
+msgstr "Опции расчета времени .."
 
 msgid "Timing Options"
-msgstr ""
+msgstr "Опции расчета времени"
 
 msgid "Animation time [ms]"
-msgstr ""
+msgstr "Время анимации [мс]"
 
 msgid "Show delay [ms]"
-msgstr ""
+msgstr "Задержка [мс]"
 
 msgid "Hide delay [ms]"
-msgstr ""
+msgstr "Задержка скрытия [мс]"
 
 msgid "<b>Autohide</b> : Show the dock on mouse hover"
-msgstr "<b>Авто-скрытие</b> : Покажите док по наведению мыши"
+msgstr "<b>Авто-скрытие</b> : Показывать док-панель по наведению мыши"
 
 msgid "Autohide Options .."
 msgstr "Опции авто-скрытия .."
@@ -184,13 +184,13 @@ msgid "NOTE: For dual monitor setups. Allows the mouse to pass through \nthe bar
 msgstr ""
 
 msgid "<b>Intellihide</b> : Show the dock unless a window overlaps"
-msgstr ""
+msgstr "<b>Интеллектуальное скрытие</b> : Показывать док-панель, если окно не перекрывает её"
 
 msgid "Intellihide Options .."
-msgstr ""
+msgstr "Опции интеллектуального скрытия .."
 
 msgid "Intellihide Options"
-msgstr ""
+msgstr "Опции интеллектуального скрытия"
 
 msgid "Dodge all windows"
 msgstr ""
@@ -208,25 +208,25 @@ msgid "What should we do with the dock in overview mode?"
 msgstr ""
 
 msgid "Show"
-msgstr ""
+msgstr "Показать"
 
 msgid "Hide"
-msgstr ""
+msgstr "Скрыть"
 
 msgid "Partially Hide"
-msgstr ""
+msgstr "Частично скрыть"
 
 msgid "<b>Miscellaneous Options</b>"
-msgstr ""
+msgstr "<b>Различные опции</b>"
 
 msgid "Leave a visible edge when dock is hidden"
-msgstr ""
+msgstr "Оставлять видимый край, когда док-панель скрыта"
 
 msgid "Disable scroll when dock is hidden to prevent workspace switching"
-msgstr ""
+msgstr "Отключение прокрутки, когда док-панель скрыта, чтобы предотвратить переключение рабочего пространства"
 
 msgid "Show the dock when hovering over Dash-To-Dock extension"
-msgstr ""
+msgstr "Показывать док-панель при наведении курсора на расширение Dash-To-Dock"
 
 msgid "Show the dock temporarily when switching workspaces"
 msgstr ""
@@ -235,10 +235,10 @@ msgid "Length of time shown [ms]"
 msgstr ""
 
 msgid "Toggle the dock with a keyboard shortcut"
-msgstr ""
+msgstr "Переключение док с помощью сочетания клавиш"
 
 msgid "Keyboard shortcut"
-msgstr ""
+msgstr "Сочетание клавиш"
 
 msgid "Invalid accelerator. Try F12, <Super>space, <Ctrl><Alt><Shift>w, etc."
 msgstr ""
@@ -247,7 +247,7 @@ msgid "Thumbnails"
 msgstr "Миниатюры"
 
 msgid "<b>Thumbnail Size</b>"
-msgstr ""
+msgstr "<b>Размер миниатюр</b>"
 
 msgid "Customize the workspace thumbnail size"
 msgstr ""
@@ -265,7 +265,7 @@ msgid "Caption height [px]"
 msgstr ""
 
 msgid "Taskbar icon size [px]"
-msgstr ""
+msgstr "Размер значка панели задач [пк]"
 
 msgid "Caption popup menu icon size [px]"
 msgstr ""
@@ -310,7 +310,7 @@ msgid "Hide the favorite shortcuts panel when a popup menu is shown"
 msgstr ""
 
 msgid "NOTE: Only applies when the shortcuts panel is set to inside orientation"
-msgstr ""
+msgstr "ПРИМЕЧАНИЕ: Применяется только когда панель ярлыков установлена на внутренней ориентации"
 
 msgid "Favorites"
 msgstr "Избранные"
@@ -361,10 +361,10 @@ msgstr "ПРИМЕЧАНИЕ: Применяется только когда п�
 #: shortcutsPanel.js
 
 msgid "New Window"
-msgstr ""
+msgstr "Новое окно"
 
 msgid "Remove from Favorites"
-msgstr ""
+msgstr "Удалить из избранного"
 
 
 #: thumbnailCaption.js
