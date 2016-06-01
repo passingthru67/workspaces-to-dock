@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Workspaces-To-Dock\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-05-31 14:17-0500\n"
+"POT-Creation-Date: 2016-06-01 17:43-0500\n"
 "PO-Revision-Date: 2016-02-03 10:52:39-0500\n"
 "Last-Translator: Igor Dyatlov <dyatlov.igor@gmail.com>\n"
 "Language-Team: Russian\n"
@@ -46,7 +46,7 @@ msgstr ""
 #: placeDisplay.js
 
 msgid "Failed to launch \"%s\""
-msgstr ""
+msgstr "Не удалось запустить \"%s\""
 
 msgid "Home"
 msgstr ""
@@ -61,7 +61,7 @@ msgid "<b>Position</b>"
 msgstr "<b>Позиция</b>"
 
 msgid "Show the dock on the following monitor (if attached)"
-msgstr "Показать панель следующего монитора (если он подключен)"
+msgstr "Показать док-панель следующего монитора (если он подключен)"
 
 msgid "Primary (default)"
 msgstr "Основной (по умолчанию)"
@@ -79,7 +79,7 @@ msgid "4"
 msgstr ""
 
 msgid "Show the dock at the following screen position"
-msgstr "Показать панель в следующей позиции экрана"
+msgstr "Показать док-панель в следующей позиции экрана"
 
 msgid "Top"
 msgstr "Cверху"
@@ -100,10 +100,10 @@ msgid "<b>Height</b>"
 msgstr "<b>Высота</b>"
 
 msgid "Customize the height of the dock"
-msgstr "Настройка высоты панели"
+msgstr "Настройка высоты док-панели"
 
 msgid "Autosize and center the dock based on workspaces and shortcuts"
-msgstr "Авто-размер и панель по центру, на основе рабочих областей и ярлыков"
+msgstr "Авто-размер и док-панель по центру, на основе рабочих областей и ярлыков"
 
 msgid "Extend the height of the dock to fill the screen"
 msgstr "Расширить высоту панели, чтобы заполнить экран"
@@ -118,16 +118,16 @@ msgid "<b>Background</b>"
 msgstr "<b>Фон</b>"
 
 msgid "Customize the dock background opacity"
-msgstr "Настройка фоновой прозрачности панели"
+msgstr "Настройка фоновой прозрачности док-панели"
 
 msgid "Opacity"
 msgstr "Непрозрачность"
 
 msgid "Only when the dock is shown by mouse hover"
-msgstr "Только тогда, когда на панель наводится мышь"
+msgstr "Только тогда, когда на док-панель наводится курсор мыши"
 
 msgid "Toggle Gnome Shell's overview mode with right click"
-msgstr ""
+msgstr "Переключать на обзор Gnome Shell's по правому клику мыши"
 
 msgid "Behavior"
 msgstr "Поведение"
@@ -136,10 +136,10 @@ msgid "<b>Intelligent Hiding</b>"
 msgstr "Интеллектуальное скрытие"
 
 msgid "Dock is fixed and always visible. Turn off intelligent hiding"
-msgstr "Панель будет фиксированной и всегда видна. Интеллектуальное скрытие будет выключено"
+msgstr "Док-панель будет фиксированной и всегда видна. Интеллектуальное скрытие будет выключено"
 
 msgid "<b>Timing</b> : Adjust animation, show delay, and hide delay timing"
-msgstr "Настройка анимации, шоу задержки и скрыть временные задержки"
+msgstr "<b>Расчет времени</b> : Настройка анимации, время анимации и времени задержки скрытия"
 
 msgid "Timing Options .."
 msgstr "Опции расчета времени .."
@@ -166,22 +166,22 @@ msgid "Autohide Options"
 msgstr "Опции авто-скрытия"
 
 msgid "Require click to show the dock when window maximized"
-msgstr ""
+msgstr "Требовать нажатие чтобы показать док-панель, когда окно развернуто"
 
 msgid "Require pressure to show the dock"
-msgstr ""
+msgstr "Требовать нажатия, чтобы показать док"
 
 msgid "Pressure threshold [px]"
-msgstr ""
+msgstr "Порог нажатия [пк]"
 
 msgid "Limit pressure sense to slow mouse speeds"
-msgstr ""
+msgstr "Ограничить чувствительность нажатия, чтобы замедлить скорость мыши"
 
 msgid "Maximum speed [px]"
-msgstr ""
+msgstr "Максимальная скорость [пк]"
 
 msgid "NOTE: For dual monitor setups. Allows the mouse to pass through \nthe barrier by attacking the edge of the screen with a quick stroke."
-msgstr ""
+msgstr "ПРИМЕЧАНИЕ: Для сдвоенных установок монитора. Позволяет мыши, чтобы пройти через барьер \ нападая на край экрана с быстрым ходом."
 
 msgid "<b>Intellihide</b> : Show the dock unless a window overlaps"
 msgstr "<b>Интеллектуальное скрытие</b> : Показывать док-панель, если окно не перекрывает её"
@@ -193,7 +193,7 @@ msgid "Intellihide Options"
 msgstr "Опции интеллектуального скрытия"
 
 msgid "Dodge all windows"
-msgstr ""
+msgstr "все окна"
 
 msgid "Dodge all instances of focused app"
 msgstr ""
@@ -202,10 +202,10 @@ msgid "Dodge only top instance of focused app"
 msgstr ""
 
 msgid "Ignore top panel menus"
-msgstr ""
+msgstr "Игнорировать меню верхней панели"
 
 msgid "What should we do with the dock in overview mode?"
-msgstr ""
+msgstr "Действие с док-панелью в режиме обзора?"
 
 msgid "Show"
 msgstr "Показать"
