@@ -46,6 +46,13 @@ const ShortcutsPanelOrientation = {
     INSIDE: 1
 };
 
+// Filter out unnecessary windows, for instance nautilus desktop window.
+function getInterestingWindows(app) {
+    return app.get_windows().filter(function(w) {
+        return !w.skip_taskbar;
+    });
+}
+
 /* Return the actual position reverseing left and right in rtl */
 function getPosition(settings) {
     let position = settings.get_enum('dock-position');
@@ -407,7 +414,12 @@ const ShortcutButton = new Lang.Class({
                     if (this._app == tracker.focus_app && !Main.overview._shown) {
                         this._cycleThroughWindows();
                     } else {
-                        this._app.activate();
+                        // If we activate the app (this._app.activate), all app
+                        // windows will come to the foreground. We only want to
+                        // activate one window at a time
+                        let windows = getInterestingWindows(this._app);
+                        let w = windows[0];
+                        Main.activateWindow(w);
                     }
                 } else {
                     this._app.open_new_window(-1);
@@ -453,9 +465,7 @@ const ShortcutButton = new Lang.Class({
         // since the order changes upon window interaction
         let MEMORY_TIME = 3000;
 
-        let appWindows = this._app.get_windows().filter(function(w) {
-            return !w.skip_taskbar;
-        });
+        let appWindows = getInterestingWindows(this._app);
 
         if(recentlyClickedAppLoopId>0)
             Mainloop.source_remove(recentlyClickedAppLoopId);
