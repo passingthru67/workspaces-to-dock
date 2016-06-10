@@ -1,0 +1,380 @@
+
+msgid ""
+msgstr ""
+"Project-Id-Version: Workspaces-To-Dock\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-06-01 17:43-0500\n"
+"PO-Revision-Date: 2016-02-03 10:52:39-0500\n"
+"Last-Translator: Igor Dyatlov <dyatlov.igor@gmail.com>\n"
+"Language-Team: Russian\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+#: convenience.js
+
+
+#: dockedWorkspaces.js
+
+msgid "No Workspaces-To-Dock stylesheet found"
+msgstr ""
+
+
+#: extension.js
+
+msgid "No Workspaces-To-Dock stylesheet found"
+msgstr ""
+
+
+#: intellihide.js
+
+
+#: metadata.json
+
+
+#: myPressureBarrier.js
+
+
+#: myWorkspaceSwitcherPopup.js
+
+
+#: myWorkspaceThumbnail.js
+
+
+#: placeDisplay.js
+
+msgid "Failed to launch \"%s\""
+msgstr "Не удалось запустить \"%s\""
+
+msgid "Home"
+msgstr ""
+
+
+#: prefs.js
+
+msgid "General"
+msgstr "Общие"
+
+msgid "<b>Position</b>"
+msgstr "<b>Позиция</b>"
+
+msgid "Show the dock on the following monitor (if attached)"
+msgstr "Показать док-панель следующего монитора (если он подключен)"
+
+msgid "Primary (default)"
+msgstr "Основной (по умолчанию)"
+
+msgid "1"
+msgstr ""
+
+msgid "2"
+msgstr ""
+
+msgid "3"
+msgstr ""
+
+msgid "4"
+msgstr ""
+
+msgid "Show the dock at the following screen position"
+msgstr "Показать док-панель в следующей позиции экрана"
+
+msgid "Top"
+msgstr "Cверху"
+
+msgid "Left"
+msgstr "Слева"
+
+msgid "Right"
+msgstr "Справа"
+
+msgid "Bottom"
+msgstr "Снизу"
+
+msgid "Hide the Gnome Shell Dash"
+msgstr "Скрыть Gnome Shell Dash"
+
+msgid "<b>Height</b>"
+msgstr "<b>Высота</b>"
+
+msgid "Customize the height of the dock"
+msgstr "Настройка высоты док-панели"
+
+msgid "Autosize and center the dock based on workspaces and shortcuts"
+msgstr "Авто-размер и док-панель по центру, на основе рабочих областей и ярлыков"
+
+msgid "Extend the height of the dock to fill the screen"
+msgstr "Расширить высоту панели, чтобы заполнить экран"
+
+msgid "Top margin"
+msgstr "Верхнее отступление"
+
+msgid "Bottom margin"
+msgstr "Нижнее отступление"
+
+msgid "<b>Background</b>"
+msgstr "<b>Фон</b>"
+
+msgid "Customize the dock background opacity"
+msgstr "Настройка фоновой прозрачности док-панели"
+
+msgid "Opacity"
+msgstr "Непрозрачность"
+
+msgid "Only when the dock is shown by mouse hover"
+msgstr "Только тогда, когда на док-панель наводится курсор мыши"
+
+msgid "Toggle Gnome Shell's overview mode with right click"
+msgstr "Переключать на обзор Gnome Shell's по правому клику мыши"
+
+msgid "Behavior"
+msgstr "Поведение"
+
+msgid "<b>Intelligent Hiding</b>"
+msgstr "Интеллектуальное скрытие"
+
+msgid "Dock is fixed and always visible. Turn off intelligent hiding"
+msgstr "Док-панель будет фиксированной и всегда видна. Интеллектуальное скрытие будет выключено"
+
+msgid "<b>Timing</b> : Adjust animation, show delay, and hide delay timing"
+msgstr "<b>Расчет времени</b> : Настройка анимации, время анимации и времени задержки скрытия"
+
+msgid "Timing Options .."
+msgstr "Опции расчета времени .."
+
+msgid "Timing Options"
+msgstr "Опции расчета времени"
+
+msgid "Animation time [ms]"
+msgstr "Время анимации [мс]"
+
+msgid "Show delay [ms]"
+msgstr "Задержка [мс]"
+
+msgid "Hide delay [ms]"
+msgstr "Задержка скрытия [мс]"
+
+msgid "<b>Autohide</b> : Show the dock on mouse hover"
+msgstr "<b>Авто-скрытие</b> : Показывать док-панель по наведению мыши"
+
+msgid "Autohide Options .."
+msgstr "Опции авто-скрытия .."
+
+msgid "Autohide Options"
+msgstr "Опции авто-скрытия"
+
+msgid "Require click to show the dock when window maximized"
+msgstr "Требовать нажатие чтобы показать док-панель, когда окно развернуто"
+
+msgid "Require pressure to show the dock"
+msgstr "Требовать нажатия, чтобы показать док"
+
+msgid "Pressure threshold [px]"
+msgstr "Порог нажатия [пк]"
+
+msgid "Limit pressure sense to slow mouse speeds"
+msgstr "Ограничить чувствительность нажатия, чтобы замедлить скорость мыши"
+
+msgid "Maximum speed [px]"
+msgstr "Максимальная скорость [пк]"
+
+msgid "NOTE: For dual monitor setups. Allows the mouse to pass through \nthe barrier by attacking the edge of the screen with a quick stroke."
+msgstr "ПРИМЕЧАНИЕ: Для сдвоенных установок монитора. Позволяет мыши, чтобы пройти через барьер \ нападая на край экрана с быстрым ходом."
+
+msgid "<b>Intellihide</b> : Show the dock unless a window overlaps"
+msgstr "<b>Интеллектуальное скрытие</b> : Показывать док-панель, если окно не перекрывает её"
+
+msgid "Intellihide Options .."
+msgstr "Опции интеллектуального скрытия .."
+
+msgid "Intellihide Options"
+msgstr "Опции интеллектуального скрытия"
+
+msgid "Dodge all windows"
+msgstr "все окна"
+
+msgid "Dodge all instances of focused app"
+msgstr ""
+
+msgid "Dodge only top instance of focused app"
+msgstr ""
+
+msgid "Ignore top panel menus"
+msgstr "Игнорировать меню верхней панели"
+
+msgid "What should we do with the dock in overview mode?"
+msgstr "Действие с док-панелью в режиме обзора?"
+
+msgid "Show"
+msgstr "Показать"
+
+msgid "Hide"
+msgstr "Скрыть"
+
+msgid "Partially Hide"
+msgstr "Частично скрыть"
+
+msgid "<b>Miscellaneous Options</b>"
+msgstr "<b>Различные опции</b>"
+
+msgid "Leave a visible edge when dock is hidden"
+msgstr "Оставлять видимый край, когда док-панель скрыта"
+
+msgid "Disable scroll when dock is hidden to prevent workspace switching"
+msgstr "Отключение прокрутки, когда док-панель скрыта, чтобы предотвратить переключение рабочего пространства"
+
+msgid "Show the dock when hovering over Dash-To-Dock extension"
+msgstr "Показывать док-панель при наведении курсора на расширение Dash-To-Dock"
+
+msgid "Show the dock temporarily when switching workspaces"
+msgstr ""
+
+msgid "Length of time shown [ms]"
+msgstr ""
+
+msgid "Toggle the dock with a keyboard shortcut"
+msgstr "Переключение док с помощью сочетания клавиш"
+
+msgid "Keyboard shortcut"
+msgstr "Сочетание клавиш"
+
+msgid "Invalid accelerator. Try F12, <Super>space, <Ctrl><Alt><Shift>w, etc."
+msgstr ""
+
+msgid "Thumbnails"
+msgstr "Миниатюры"
+
+msgid "<b>Thumbnail Size</b>"
+msgstr "<b>Размер миниатюр</b>"
+
+msgid "Customize the workspace thumbnail size"
+msgstr ""
+
+msgid "Thumbnail size"
+msgstr ""
+
+msgid "<b>Thumbnail Captions</b>"
+msgstr ""
+
+msgid "Add captions to workspace thumbnails"
+msgstr ""
+
+msgid "Caption height [px]"
+msgstr ""
+
+msgid "Taskbar icon size [px]"
+msgstr "Размер значка панели задач [пк]"
+
+msgid "Caption popup menu icon size [px]"
+msgstr ""
+
+msgid "<b>Caption Items</b>"
+msgstr ""
+
+msgid "Show workspace number"
+msgstr ""
+
+msgid "Expand"
+msgstr ""
+
+msgid "Show workspace name"
+msgstr ""
+
+msgid "Expand"
+msgstr ""
+
+msgid "Show workspace window count"
+msgstr ""
+
+msgid "Use image"
+msgstr ""
+
+msgid "Expand"
+msgstr ""
+
+msgid "Show workspace taskbar (apps)"
+msgstr ""
+
+msgid "Expand"
+msgstr ""
+
+msgid "Show a spacer/filler"
+msgstr ""
+
+msgid "Expand"
+msgstr ""
+
+msgid "Hide the favorite shortcuts panel when a popup menu is shown"
+msgstr ""
+
+msgid "NOTE: Only applies when the shortcuts panel is set to inside orientation"
+msgstr "ПРИМЕЧАНИЕ: Применяется только когда панель ярлыков установлена на внутренней ориентации"
+
+msgid "Favorites"
+msgstr "Избранные"
+
+msgid "<b>Favorite Shortcuts Panel</b>"
+msgstr "Избранные ярлыки панели"
+
+msgid "Show a favorite shortcuts panel"
+msgstr "Показать избранные ярлыки панели"
+
+msgid "Shortcuts panel orientation in reference to the thumbnails"
+msgstr ""
+
+msgid "Outside"
+msgstr "Снаружи"
+
+msgid "Inside"
+msgstr "Внутри"
+
+msgid "Shortcuts panel icon size [px]"
+msgstr "Размер иконок ярлыков на панели [пк]"
+
+msgid "Use the Apps button as the source of the swarm animation"
+msgstr ""
+
+msgid "Show running applications"
+msgstr ""
+
+msgid "Show places"
+msgstr ""
+
+msgid "Show application window count indicators"
+msgstr ""
+
+msgid "Set the Apps button at the bottom"
+msgstr ""
+
+msgid "Set the menu context arrow at the top of the popup menu dialog"
+msgstr ""
+
+msgid "Hide thumbnails when a popup menu dialog is shown"
+msgstr ""
+
+msgid "NOTE: Only applies when the shortcuts panel is set to outside orientation"
+msgstr "ПРИМЕЧАНИЕ: Применяется только когда панель ярлыков установлена на наружной ориентации"
+
+
+#: shortcutsPanel.js
+
+msgid "New Window"
+msgstr "Новое окно"
+
+msgid "Remove from Favorites"
+msgstr "Удалить из избранного"
+
+
+#: thumbnailCaption.js
+
+msgid "Extension Preferences"
+msgstr "Настройки расширения"
+
+msgid "Close All Applications"
+msgstr "Закрыть все приложения"
+
+msgid "Extension preferences"
+msgstr "Настройки расширения"
+
