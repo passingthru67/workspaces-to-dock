@@ -3,7 +3,7 @@ workspaces-to-dock
 
 A Gnome Shell extension that transforms the workspaces of the overview mode into an intellihide dock.  The dock is positioned and sized to maintain tight integration with the Gnome Shell.
 
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Screenshot.png)
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/gnome-3.18/Screenshot.png)
 
 
 Installation:
@@ -27,7 +27,7 @@ The extension can be configured using `gnome-shell-extension-prefs`. No shell re
 General Settings:
 -----------------
 
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Prefs-General.png)
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/gnome-3.18/Prefs-General.png)
 
 - **Position:**
 
@@ -62,7 +62,7 @@ General Settings:
 Behavior Settings:
 ------------------
 
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Prefs-Behavior.png)
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/gnome-3.18/Prefs-Behavior.png)
 
 - **Intelligent Hiding:**
 
@@ -120,7 +120,7 @@ Behavior Settings:
 Thumbnails Settings:
 --------------------
 
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Prefs-Thumbnails.png)
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/gnome-3.18/Prefs-Thumbnails.png)
 
 - **Thumbnail Size:**
 
@@ -139,7 +139,7 @@ Thumbnails Settings:
     **Caption popup menu icon size** - Sets the size of the application icons in the caption popup menu.
 
 
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Popup.png)
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/gnome-3.18/Popup.png)
 
 - **Caption Items:**
 
@@ -154,18 +154,18 @@ Thumbnails Settings:
     **Show a spacer/filler** - When enabled, a spacer is inserted in the caption. It can be expanded to take up available space or its position can be adjusted using the arrow buttons.
 
 Below are examples of the workspace (thumbnail) caption in various configurations
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Thumbnails.png)
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/gnome-3.18/Thumbnails.png)
 
 
 Workspace Caption Theming:
 -------------------------
-Adding workspaces-to-dock caption support to a theme can be accomplished by placing a custom 'workspaces-to-dock.css' stylesheet in the theme's gnome-shell/extensions folder. There is no need to use the @import directive to incorporate the stylesheet classes into your theme's gnome-shell.css. The extension will automatically detect the stylesheet file. Please see the workspaces-to-dock.css stylesheet for a description of the css classes.
+Captions may be themed by editing the workspaces-to-dock.css file inside the extension folder, or by including a 'workspaces-to-dock.css' stylesheet inside the theme's gnome-shell/extension folder. For more details on theme support, see the 'Theme Support' section below.
 
 
 Favorites Settings:
 -------------------
 
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Prefs-Favorites.png)
+![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/gnome-3.18/Prefs-Favorites.png)
 
 - **Favorite Shortcuts Panel:**
 
@@ -192,6 +192,11 @@ Favorites Settings:
     **Hide thumbnails when a popup menu is shown** - Option to hide the thumbnails when a popup menu is show by right clicking a favorite application icon. This only applies when the shortcuts panel is oriented on the outside of the thumbnails.
 
 
+Theme Support:
+-------------------------
+Adding workspaces-to-dock support to a theme can be accomplished by placing a custom 'workspaces-to-dock.css' stylesheet in the theme's gnome-shell/extensions folder. There is no need to use the @import directive to incorporate the stylesheet classes into your theme's gnome-shell.css. The extension will automatically detect the stylesheet file. Please see the workspaces-to-dock.css stylesheet for a description of the css classes.
+
+
 Localization Support:
 --------------------
 Support for languages is now provided with the editable translation files being located in the po folder of the repository. If you would like to help with translations, please download one of the po files (en_US.po serves as a clean template) and email your translation to me at passingthru67@gmail.com.
@@ -201,7 +206,6 @@ Features Planned:
 -----------------
 - Ability to edit the workspace caption name.
 - Making the favorite shortcuts panel scrollable.
-- Ability to rearrange the position of favorite applications (similar to the dash)
 
 
 Known Issues:
@@ -242,7 +246,16 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
-**version 35 for Gnome 3.14 (Mar 1, 2015)**
+**Version 38 for Gnome 3.18 (Sep 8, 2016)**
+- Backported fixes and features
+
+**Version 37 for Gnome 3.16 (Sep 7, 2016)**
+- Backported fixes and features
+
+**version 36 for Gnome 3.20 (Apr 12, 2016)**
+- Support for Gnome 3.20
+
+**version 35 for Gnome 3.14 (Mar 14, 2016)**
 - Bug fixes
 
 **version 34 for Gnome 3.18 (Mar 1, 2016)**
