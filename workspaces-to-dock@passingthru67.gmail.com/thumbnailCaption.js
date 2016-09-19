@@ -645,7 +645,7 @@ const ThumbnailCaption = new Lang.Class({
                 this._menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
             }
 
-            let item2 = new PopupMenu.PopupMenuItem(_("Extension preferences"));
+            let item2 = new PopupMenu.PopupMenuItem(_("Extension Preferences"));
             item2.connect('activate', Lang.bind(this, this._showExtensionPreferences));
             this._menu.addMenuItem(item2);
 
