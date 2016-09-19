@@ -55,9 +55,10 @@ General Settings:
 
     **Opacity** - Percentage of transparency desired.
 
-    **Only when the dock is shown by hover** - Only customize the opacity when the dock is shown by the mouse touching the right edge of the screen. In such cases, the dock is usually shown over other windows so that less transparency is desired.
-
     **Toggle Gnome Shell's overview mode with right click** - When enabled, right clicking on the dock will toggle the overview mode.
+
+    **Prevent multiple workspace switching when using touchpad to scroll - When enabled, scroll events are inhibited to prevent triggering multiple workspace switching. This feature is useful when using a touchpad.
+
 
 Behavior Settings:
 ------------------
@@ -103,9 +104,9 @@ Behavior Settings:
     **What should we do with the dock when not dodging windows?** - Option for intellihide to show the full dock or show a partial dock when not dodging windows. The dock will fully hide when dodging windows.
 
 	**SHOW-FULL Option** - The Dock is fully shown when not dodging windows. This is the default setting.
-    
+
     **SHOW-PARTIAL Option** - The Dock is partially shown when not dodging windows. Mouse pressure (if require-pressure-to-show-the-dock is enabled under Autohide Options) or mouse hover will cause the dock to fully show.
-    
+
     NOTE: When the favorites panel is enabled and oriented inside, the show-partial option shows the favorites panel. Otherwise, a 30px portion (adjustable through the gnome-shell css) of the workspace thumbnails are shown.
 
     **SHOW-PARTIAL-FIXED Option** - This option allows part of the dock to be visible at all times. Similar to the show-partial option but with a fixed (always visible) element.
@@ -269,6 +270,19 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
+**Version 39 for Gnome 3.20 (Sep 9, 2016)**
+- Added option to show partial dock in normal desktop view
+- Added option to place captions at top of thumbnails
+- Added extension prefs menu item to favorites panel apps button
+- Reorganized preferences dialog
+- Bug fixes
+
+**Version 38 for Gnome 3.18 (Sep 8, 2016)**
+- Backported fixes and features
+
+**Version 37 for Gnome 3.16 (Sep 7, 2016)**
+- Backported fixes and features
+
 **version 36 for Gnome 3.20 (Apr 12, 2016)**
 - Support for Gnome 3.20
 
