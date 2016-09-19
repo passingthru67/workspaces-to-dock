@@ -1,0 +1,512 @@
+# Translations for workspaces-to-dock.
+# Copyright (C) 2016 workspaces-to-dock's COPYRIGHT HOLDER
+# This file is distributed under the same license as the workspaces-to-dock package.
+# Dingzhong Chen <wsxy162@gmail.com>, 2016.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: workspaces-to-dock 36\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-09-05 20:09+0800\n"
+"PO-Revision-Date: 2016-09-05 22:11+0800\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.8.8\n"
+"Last-Translator: Dingzhong Chen <wsxy162@gmail.com>\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"Language: zh_CN\n"
+
+#: workspaces-to-dock@passingthru67.gmail.com/dockedWorkspaces.js:1919
+#: workspaces-to-dock@passingthru67.gmail.com/extension.js:52
+msgid "No Workspaces-To-Dock stylesheet found"
+msgstr "未找到 Workspaces-To-Dock 样式表"
+
+#: workspaces-to-dock@passingthru67.gmail.com/placeDisplay.js:65
+#, javascript-format
+msgid "Failed to launch \"%s\""
+msgstr "启动“%s”失败"
+
+#: workspaces-to-dock@passingthru67.gmail.com/placeDisplay.js:125
+msgid "Home"
+msgstr "主目录"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:48
+msgid "General"
+msgstr "常规"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:57
+msgid "<b>Position</b>"
+msgstr "位置"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:67
+msgid "Show the dock on the following monitor (if attached)"
+msgstr "在以下显示器（如已连接）上显示 dock"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:69
+msgid "Primary (default)"
+msgstr "主要（默认）"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:70
+msgid "1"
+msgstr "1"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:71
+msgid "2"
+msgstr "2"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:72
+msgid "3"
+msgstr "3"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:73
+msgid "4"
+msgstr "4"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:100
+msgid "Show the dock at the following screen position"
+msgstr "在以下屏幕位置显示 dock"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:104
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1318
+msgid "Top"
+msgstr "顶部"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:107
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:117
+msgid "Left"
+msgstr "左侧"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:109
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:115
+msgid "Right"
+msgstr "右侧"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:112
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1317
+msgid "Bottom"
+msgstr "底部"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:127
+msgid "Hide the Gnome Shell Dash"
+msgstr "隐藏 GNOME Shell Dash"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:151
+msgid "<b>Height (Width when positioned horizontally)</b>"
+msgstr "<b>高度（水平放置时为宽度）</b>"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:162
+msgid "Customize the height (width) of the dock"
+msgstr "自定义 dock 的高度（宽度）"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:176
+msgid "Autosize and center the dock based on workspaces and shortcuts"
+msgstr "根据工作区和快捷键自动调整 dock 的大小和中心"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:184
+msgid "Extend the height (width) of the dock to fill the screen"
+msgstr "扩展 dock 的高度（宽度）以填满屏幕"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:205
+msgid "Top margin (Left when positioned horizontally)"
+msgstr "上边距（当水平放置时为左）"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:228
+msgid "Bottom margin (Right when positioned horizontally)"
+msgstr "下边距（当水平放置时为右）"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:279
+msgid "<b>Background</b>"
+msgstr "<b>背景</b>"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:290
+msgid "Customize the dock background opacity"
+msgstr "自定义 dock 的背景不透明度"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:304
+msgid "Opacity"
+msgstr "不透明度"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:347
+msgid "Toggle Gnome Shell's overview mode with right click"
+msgstr "使用右键点击来切换 GNOME Shell 的概览模式"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:359
+msgid "Prevent multiple workspace switching when using touchpad to scroll"
+msgstr "当使用触摸板来滚动时阻止多工作区切换"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:396
+msgid "Behavior"
+msgstr "行为"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:405
+msgid "<b>Intelligent Hiding</b>"
+msgstr "<b>智能隐藏</b>"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:416
+msgid "Dock is fixed and always visible. Turn off intelligent hiding"
+msgstr "Dock 为固定的并始终可见。关闭智能隐藏"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:456
+msgid "<b>Timing</b> : Adjust animation, show delay, and hide delay timing"
+msgstr "<b>计时</b>：调整动画、显示延迟和隐藏延迟的时间"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:464
+msgid "Timing Options .."
+msgstr "计时选项 .."
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:469
+msgid "Timing Options"
+msgstr "计时选项"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:478
+msgid "Animation time [ms]"
+msgstr "动画时间 [ms]"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:500
+msgid "Show delay [ms]"
+msgstr "显示延迟 [ms]"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:519
+msgid "Hide delay [ms]"
+msgstr "隐藏延迟 [ms]"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:580
+msgid "<b>Autohide</b> : Show the dock on mouse hover"
+msgstr "<b>自动隐藏</b>：鼠标悬停时显示 dock"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:597
+msgid "Autohide Options .."
+msgstr "自动隐藏选项 .."
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:602
+msgid "Autohide Options"
+msgstr "自动隐藏选项"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:611
+msgid "Require click to show the dock when window maximized"
+msgstr "当窗口最大化时需要点击来显示 dock"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:621
+msgid "Require pressure to show the dock"
+msgstr "需要压力来显示 dock"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:631
+msgid "Pressure threshold [px]"
+msgstr "压力阈值 [px]"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:653
+msgid "Limit pressure sense to slow mouse speeds"
+msgstr "限制压力敏感度以减缓鼠标速度"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:663
+msgid "Maximum speed [px]"
+msgstr "最大速度 [px]"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:685
+msgid ""
+"NOTE: For dual monitor setups. Allows the mouse to pass through \n"
+"the barrier by attacking the edge of the screen with a quick stroke."
+msgstr ""
+"注意：用于双显示器设置。允许鼠标通过对屏幕边缘进行快速冲击来穿越屏障。"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:753
+msgid "<b>Intellihide</b> : Show the dock unless a window overlaps"
+msgstr "<b>智能隐藏</b>：显示 dock 除非窗口重叠了"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:770
+msgid "Intellihide Dodging Options .."
+msgstr "智能隐藏躲避选项 .."
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:775
+msgid "Intellihide Options"
+msgstr "智能隐藏选项"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:784
+msgid "Dodge all windows"
+msgstr "躲避所有窗口"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:792
+msgid "Dodge all instances of focused app"
+msgstr "躲避聚焦应用的所有实例"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:801
+msgid "Dodge only top instance of focused app"
+msgstr "只躲避聚焦应用的前端实例"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:825
+msgid "Ignore top panel menus"
+msgstr "忽略顶部面板菜单"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:862
+msgid "What should we do with the dock when not dodging windows?"
+msgstr "没有需要躲避的窗口时要怎么处理 dock？"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:869
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:922
+msgid "Show Full"
+msgstr "完全显示"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:870
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:924
+msgid "Show Partial"
+msgstr "部分显示"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:871
+msgid "Show Partial Fixed"
+msgstr "显示固定部分"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:915
+msgid "What should we do with the dock in overview mode?"
+msgstr "概览模式下怎么处理 dock？"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:923
+msgid "Hide"
+msgstr "隐藏"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:943
+msgid ""
+"NOTE: Please see documentation for an explanation of the 'Show Partial' "
+"option."
+msgstr "注意：对于“部分显示”选项的解释请查看文档。"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:958
+msgid "<b>Miscellaneous</b> : Uncategorized options that affect behavior"
+msgstr "<b>杂项</b>：影响行为的未分类选项"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:971
+msgid "Miscellaneous Options .."
+msgstr "杂类选项 .."
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:976
+msgid "Miscellaneous Options"
+msgstr "杂类选项"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:985
+msgid "Leave a visible edge when dock is hidden"
+msgstr "dock 隐藏时留下一可视边缘"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:995
+msgid "Disable scroll when dock is hidden to prevent workspace switching"
+msgstr "当 dock 隐藏时禁用滚动以阻止工作区切换"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1005
+msgid "Show the dock when hovering over Dash-To-Dock extension"
+msgstr "当在 Dash-To-Dock 扩展上悬停时显示 dock"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1015
+msgid "Show the dock temporarily when switching workspaces"
+msgstr "当切换工作区时临时显示 dock"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1025
+msgid "Length of time shown [ms]"
+msgstr "显示时间的长度 [ms]"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1047
+msgid "Toggle the dock with a keyboard shortcut"
+msgstr "使用键盘快捷键开关 dock"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1057
+msgid "Keyboard shortcut"
+msgstr "键盘快捷键"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1082
+msgid "Invalid accelerator. Try F12, <Super>space, <Ctrl><Alt><Shift>w, etc."
+msgstr "无效的快捷键。试下 F12、<Super>space、<Ctrl><Alt><Shift>w，等等。"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1144
+msgid "Thumbnails"
+msgstr "缩略图"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1153
+msgid "<b>Thumbnail Size</b>"
+msgstr "<b>缩略图大小</b>"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1164
+msgid "Customize the workspace thumbnail size"
+msgstr "自定义工作区缩略图大小"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1178
+msgid "Thumbnail size"
+msgstr "缩略图大小"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1222
+msgid "Customize the visible width (height) for intellihide show-partial"
+msgstr "为智能隐藏的部分显示自定义可视宽度（高度）"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1236
+msgid "Visible width (height when positioned horizontally)"
+msgstr "可视宽度（水平放置时为高度）"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1280
+msgid "<b>Thumbnail Captions</b>"
+msgstr "<b>缩略图字幕</b>"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1300
+msgid "Add captions to workspace thumbnails"
+msgstr "添加字幕到工作区缩略图"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1315
+msgid "Show the caption at the following position"
+msgstr "在下列位置上显示字幕"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1328
+msgid "Caption height [px]"
+msgstr "字幕高度 [px]"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1349
+msgid "Taskbar icon size [px]"
+msgstr "任务栏图标大小 [px]"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1371
+msgid "Caption popup menu icon size [px]"
+msgstr "字幕弹出菜单图标大小 [px]"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1396
+msgid "<b>Caption Items</b> : Customize the items on the caption"
+msgstr "<b>字幕项目</b>：自定义字幕上的项目"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1405
+msgid "Caption Items .."
+msgstr "字幕项目 .."
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1410
+msgid "Caption Items"
+msgstr "字幕项目"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1420
+msgid "Show workspace number"
+msgstr "显示工作区号码"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1432
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1473
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1523
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1564
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1605
+msgid "Expand"
+msgstr "扩大"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1460
+msgid "Show workspace name"
+msgstr "显示工作区名称"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1500
+msgid "Show workspace window count"
+msgstr "显示工作区窗口数目"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1514
+msgid "Use image"
+msgstr "使用图像"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1551
+msgid "Show workspace taskbar (apps)"
+msgstr "显示工作区任务栏（应用）"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1591
+msgid "Show a spacer/filler"
+msgstr "显示间隔/填充"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1728
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1880
+msgid "<b>Miscellaneous Options</b>"
+msgstr "<b>杂项选项</b>"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1738
+msgid "Hide the favorite shortcuts panel when a popup menu is shown"
+msgstr "当弹出菜单显示时隐藏收藏快捷面板"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1748
+msgid ""
+"NOTE: Only applies when the shortcuts panel is set to inside orientation"
+msgstr "注意：只适用于快捷面板设为内部方向时。"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1791
+msgid "Favorites"
+msgstr "收藏"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1800
+msgid "<b>Favorite Shortcuts Panel</b>"
+msgstr "<b>收藏快捷面板</b>"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1811
+msgid "Show a favorite shortcuts panel"
+msgstr "显示收藏快捷面板"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1826
+msgid "Shortcuts panel orientation in reference to the thumbnails"
+msgstr "快捷面板方向参照缩略图的方向"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1833
+msgid "Outside"
+msgstr "外部"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1834
+msgid "Inside"
+msgstr "内部"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1846
+msgid "Shortcuts panel icon size [px]"
+msgstr "快捷面板图标大小 [px]"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1867
+msgid "Use the Apps button as the source of the swarm animation"
+msgstr "使用应用按钮作为群体动画的来源"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1891
+msgid "Show running applications"
+msgstr "显示运行中的应用程序"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1901
+msgid "Show places"
+msgstr "显示位置"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1911
+msgid "Show application window count indicators"
+msgstr "显示应用程序窗口数目指示器"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1921
+msgid "Set the Apps button at the bottom"
+msgstr "将应用按钮设在底部"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1931
+msgid "Set the menu context arrow at the top of the popup menu dialog"
+msgstr "将菜单上下文箭头设在弹出菜单对话框的顶端"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1941
+msgid "Hide thumbnails when a popup menu dialog is shown"
+msgstr "当弹出菜单对话框显示时隐藏缩略图"
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1951
+msgid ""
+"NOTE: Only applies when the shortcuts panel is set to outside orientation"
+msgstr "注意：只适用于快捷面板设为内部方向时。"
+
+#: workspaces-to-dock@passingthru67.gmail.com/shortcutsPanel.js:129
+#: workspaces-to-dock@passingthru67.gmail.com/thumbnailCaption.js:452
+msgid "Extension Preferences"
+msgstr "扩展首选项"
+
+#: workspaces-to-dock@passingthru67.gmail.com/shortcutsPanel.js:166
+msgid "New Window"
+msgstr "新建窗口"
+
+#: workspaces-to-dock@passingthru67.gmail.com/shortcutsPanel.js:191
+msgid "Remove from Favorites"
+msgstr "从收藏中移除"
+
+#: workspaces-to-dock@passingthru67.gmail.com/shortcutsPanel.js:197
+msgid "Add to Favorites"
+msgstr "添加到收藏"
+
+#: workspaces-to-dock@passingthru67.gmail.com/shortcutsPanel.js:207
+msgid "Show Details"
+msgstr "显示详细信息"
+
+#: workspaces-to-dock@passingthru67.gmail.com/thumbnailCaption.js:641
+msgid "Close All Applications"
+msgstr "关闭所有应用程序"
+
+#: workspaces-to-dock@passingthru67.gmail.com/thumbnailCaption.js:648
+msgid "Extension preferences"
+msgstr "扩展首选项"

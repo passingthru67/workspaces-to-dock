@@ -1,0 +1,510 @@
+# Translations for workspaces-to-dock.
+# Copyright (C) 2016 workspaces-to-dock's COPYRIGHT HOLDER
+# This file is distributed under the same license as the workspaces-to-dock package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: workspaces-to-dock 36\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-09-05 20:04+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: workspaces-to-dock@passingthru67.gmail.com/dockedWorkspaces.js:1919
+#: workspaces-to-dock@passingthru67.gmail.com/extension.js:52
+msgid "No Workspaces-To-Dock stylesheet found"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/placeDisplay.js:65
+#, javascript-format
+msgid "Failed to launch \"%s\""
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/placeDisplay.js:125
+msgid "Home"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:48
+msgid "General"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:57
+msgid "<b>Position</b>"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:67
+msgid "Show the dock on the following monitor (if attached)"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:69
+msgid "Primary (default)"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:70
+msgid "1"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:71
+msgid "2"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:72
+msgid "3"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:73
+msgid "4"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:100
+msgid "Show the dock at the following screen position"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:104
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1318
+msgid "Top"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:107
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:117
+msgid "Left"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:109
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:115
+msgid "Right"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:112
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1317
+msgid "Bottom"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:127
+msgid "Hide the Gnome Shell Dash"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:151
+msgid "<b>Height (Width when positioned horizontally)</b>"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:162
+msgid "Customize the height (width) of the dock"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:176
+msgid "Autosize and center the dock based on workspaces and shortcuts"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:184
+msgid "Extend the height (width) of the dock to fill the screen"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:205
+msgid "Top margin (Left when positioned horizontally)"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:228
+msgid "Bottom margin (Right when positioned horizontally)"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:279
+msgid "<b>Background</b>"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:290
+msgid "Customize the dock background opacity"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:304
+msgid "Opacity"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:347
+msgid "Toggle Gnome Shell's overview mode with right click"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:359
+msgid "Prevent multiple workspace switching when using touchpad to scroll"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:396
+msgid "Behavior"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:405
+msgid "<b>Intelligent Hiding</b>"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:416
+msgid "Dock is fixed and always visible. Turn off intelligent hiding"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:456
+msgid "<b>Timing</b> : Adjust animation, show delay, and hide delay timing"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:464
+msgid "Timing Options .."
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:469
+msgid "Timing Options"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:478
+msgid "Animation time [ms]"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:500
+msgid "Show delay [ms]"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:519
+msgid "Hide delay [ms]"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:580
+msgid "<b>Autohide</b> : Show the dock on mouse hover"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:597
+msgid "Autohide Options .."
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:602
+msgid "Autohide Options"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:611
+msgid "Require click to show the dock when window maximized"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:621
+msgid "Require pressure to show the dock"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:631
+msgid "Pressure threshold [px]"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:653
+msgid "Limit pressure sense to slow mouse speeds"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:663
+msgid "Maximum speed [px]"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:685
+msgid ""
+"NOTE: For dual monitor setups. Allows the mouse to pass through \n"
+"the barrier by attacking the edge of the screen with a quick stroke."
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:753
+msgid "<b>Intellihide</b> : Show the dock unless a window overlaps"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:770
+msgid "Intellihide Dodging Options .."
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:775
+msgid "Intellihide Options"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:784
+msgid "Dodge all windows"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:792
+msgid "Dodge all instances of focused app"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:801
+msgid "Dodge only top instance of focused app"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:825
+msgid "Ignore top panel menus"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:862
+msgid "What should we do with the dock when not dodging windows?"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:869
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:922
+msgid "Show Full"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:870
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:924
+msgid "Show Partial"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:871
+msgid "Show Partial Fixed"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:915
+msgid "What should we do with the dock in overview mode?"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:923
+msgid "Hide"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:943
+msgid ""
+"NOTE: Please see documentation for an explanation of the 'Show Partial' "
+"option."
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:958
+msgid "<b>Miscellaneous</b> : Uncategorized options that affect behavior"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:971
+msgid "Miscellaneous Options .."
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:976
+msgid "Miscellaneous Options"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:985
+msgid "Leave a visible edge when dock is hidden"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:995
+msgid "Disable scroll when dock is hidden to prevent workspace switching"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1005
+msgid "Show the dock when hovering over Dash-To-Dock extension"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1015
+msgid "Show the dock temporarily when switching workspaces"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1025
+msgid "Length of time shown [ms]"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1047
+msgid "Toggle the dock with a keyboard shortcut"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1057
+msgid "Keyboard shortcut"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1082
+msgid "Invalid accelerator. Try F12, <Super>space, <Ctrl><Alt><Shift>w, etc."
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1144
+msgid "Thumbnails"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1153
+msgid "<b>Thumbnail Size</b>"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1164
+msgid "Customize the workspace thumbnail size"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1178
+msgid "Thumbnail size"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1222
+msgid "Customize the visible width (height) for intellihide show-partial"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1236
+msgid "Visible width (height when positioned horizontally)"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1280
+msgid "<b>Thumbnail Captions</b>"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1300
+msgid "Add captions to workspace thumbnails"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1315
+msgid "Show the caption at the following position"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1328
+msgid "Caption height [px]"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1349
+msgid "Taskbar icon size [px]"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1371
+msgid "Caption popup menu icon size [px]"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1396
+msgid "<b>Caption Items</b> : Customize the items on the caption"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1405
+msgid "Caption Items .."
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1410
+msgid "Caption Items"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1420
+msgid "Show workspace number"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1432
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1473
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1523
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1564
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1605
+msgid "Expand"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1460
+msgid "Show workspace name"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1500
+msgid "Show workspace window count"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1514
+msgid "Use image"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1551
+msgid "Show workspace taskbar (apps)"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1591
+msgid "Show a spacer/filler"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1728
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1880
+msgid "<b>Miscellaneous Options</b>"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1738
+msgid "Hide the favorite shortcuts panel when a popup menu is shown"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1748
+msgid ""
+"NOTE: Only applies when the shortcuts panel is set to inside orientation"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1791
+msgid "Favorites"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1800
+msgid "<b>Favorite Shortcuts Panel</b>"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1811
+msgid "Show a favorite shortcuts panel"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1826
+msgid "Shortcuts panel orientation in reference to the thumbnails"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1833
+msgid "Outside"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1834
+msgid "Inside"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1846
+msgid "Shortcuts panel icon size [px]"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1867
+msgid "Use the Apps button as the source of the swarm animation"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1891
+msgid "Show running applications"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1901
+msgid "Show places"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1911
+msgid "Show application window count indicators"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1921
+msgid "Set the Apps button at the bottom"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1931
+msgid "Set the menu context arrow at the top of the popup menu dialog"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1941
+msgid "Hide thumbnails when a popup menu dialog is shown"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/prefs.js:1951
+msgid ""
+"NOTE: Only applies when the shortcuts panel is set to outside orientation"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/shortcutsPanel.js:129
+#: workspaces-to-dock@passingthru67.gmail.com/thumbnailCaption.js:452
+msgid "Extension Preferences"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/shortcutsPanel.js:166
+msgid "New Window"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/shortcutsPanel.js:191
+msgid "Remove from Favorites"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/shortcutsPanel.js:197
+msgid "Add to Favorites"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/shortcutsPanel.js:207
+msgid "Show Details"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/thumbnailCaption.js:641
+msgid "Close All Applications"
+msgstr ""
+
+#: workspaces-to-dock@passingthru67.gmail.com/thumbnailCaption.js:648
+msgid "Extension preferences"
+msgstr ""
