@@ -1,7 +1,10 @@
 workspaces-to-dock
 ==================
 
-A Gnome Shell extension that transforms the workspaces of the overview mode into an intellihide dock.  The dock is positioned and sized to maintain tight integration with the Gnome Shell.
+Workspaces-To-Dock is a Gnome Shell extension that transforms the workspaces of the overview mode into an intelligent dock.  The dock is positioned and sized to maintain tight integration with the Gnome Shell.
+
+While originally intended as a workspaces dock to operate alongside Dash-To-Dock, Workspaces-To-Dock has slowly evolved into an All-In-One dock. It merges the favorites dash and the workspaces thumbnails into one dock for convenient application and workspace navigation/management. Take a look at these [screencasts](#dockscreencasts) and you'll see what we're talking about.
+
 
 ![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/Screenshot.png)
 
@@ -57,7 +60,7 @@ General Settings:
 
     **Toggle Gnome Shell's overview mode with right click** - When enabled, right clicking on the dock will toggle the overview mode.
 
-    **Prevent multiple workspace switching when using touchpad to scroll - When enabled, scroll events are inhibited to prevent triggering multiple workspace switching. This feature is useful when using a touchpad.
+    **Prevent multiple workspace switching when using touchpad to scroll** - When enabled, scroll events are inhibited to prevent triggering multiple workspace switching. This feature is useful when using a touchpad.
 
 
 Behavior Settings:
@@ -111,16 +114,19 @@ Behavior Settings:
 
     **SHOW-PARTIAL-FIXED Option** - This option allows part of the dock to be visible at all times. Similar to the show-partial option but with a fixed (always visible) element.
 
-	Below are screencasts of the dock partially shown with the favorites panel oriented inside and outside.
+	<a name="dockscreencasts"></a>Below are screencasts of the dock partially shown with the favorites panel oriented inside and outside.
+    
+	**Show-partial with favorites panel oriented inside**
 
-    **Show-partial with favorites panel oriented inside**
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/ShowPartial-Inside.gif)
+	[![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/ShowPartial-Inside.gif)](https://www.youtube.com/watch?v=ZF_e4iSml-s) 
 
 	**Show-partial with favorites panel oriented outside**
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/ShowPartial-Outside.gif)
+
+	[![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/ShowPartial-Outside.gif)](https://www.youtube.com/watch?v=NWWxi1qCS5I) 
 
 	**Show-partial-fixed with favorites panel oriented inside**
-![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/ShowPartial-Fixed.gif)
+
+ 	[![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/ShowPartial-Fixed.gif)](https://www.youtube.com/watch?v=PpyLdt-Rfc4) 
 
 	In the screencast above, note how the partial dock affects the desktop workspace and remains visible at all times.
 
