@@ -1258,10 +1258,19 @@ const DockedWorkspaces = new Lang.Class({
         if (_DEBUG_) global.log("dockedWorkspaces: _bindDockKeyboardShortcut");
         Main.wm.addKeybinding('dock-keyboard-shortcut', this._settings, Meta.KeyBindingFlags.NONE, Shell.ActionMode.NORMAL,
             Lang.bind(this, function() {
-                if (this._autohideStatus && (this._dockState == DockState.HIDDEN || this._dockState == DockState.HIDING)) {
-                    this._show();
+                if (_DEBUG_) global.log("KEYBOARD SHORTCUT PRESSED autohideStatus = "+this._autohideStatus);
+                if (this._autohideStatus) {
+                    if (this._dockState == DockState.HIDDEN || this._dockState == DockState.HIDING) {
+                        this._show();
+                    } else {
+                        this._hide();
+                    }
                 } else {
-                    this._hide();
+                    if (this._dockState == DockState.SHOWN || this._dockState == DockState.SHOWING) {
+                        this._hide();
+                    } else {
+                        this._show();
+                    }
                 }
             })
         );
