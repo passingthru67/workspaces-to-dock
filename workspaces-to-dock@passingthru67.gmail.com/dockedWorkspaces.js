@@ -1332,6 +1332,8 @@ const DockedWorkspaces = new Lang.Class({
                 if(_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - hide");
                 this._hide();
             }
+        } else {
+            this._hide();
         }
     },
 
@@ -1626,10 +1628,11 @@ const DockedWorkspaces = new Lang.Class({
         let fixedPosition = this._settings.get_boolean('dock-fixed')
         let overviewAction = this._settings.get_enum('overview-action');
         let intellihideAction = this._settings.get_enum('intellihide-action');
+        let intellihide = this._settings.get_boolean('intellihide')
         if (_DEBUG_) global.log("... overview="+Main.overview.visible+" - "+Main.overview._shown+" ia="+intellihideAction+" oa="+overviewAction);
         if (!force && !fixedPosition) {
             if ((Main.overview._shown && overviewAction == OverviewAction.SHOW_PARTIAL)
-                || (!Main.overview._shown && (intellihideAction == IntellihideAction.SHOW_PARTIAL || intellihideAction == IntellihideAction.SHOW_PARTIAL_FIXED))) {
+                || (!Main.overview._shown && intellihide && (intellihideAction == IntellihideAction.SHOW_PARTIAL || intellihideAction == IntellihideAction.SHOW_PARTIAL_FIXED))) {
                 if (this._slider.partialSlideoutSize) {
                     if (_DEBUG_) global.log("... animateIn: partial="+this._slider.partialSlideoutSize);
                     let fullsize;
@@ -1706,10 +1709,11 @@ const DockedWorkspaces = new Lang.Class({
         let fixedPosition = this._settings.get_boolean('dock-fixed')
         let overviewAction = this._settings.get_enum('overview-action');
         let intellihideAction = this._settings.get_enum('intellihide-action');
+        let intellihide = this._settings.get_boolean('intellihide')
         if (_DEBUG_) global.log("... overview="+Main.overview.visible+" - "+Main.overview._shown+" ia="+intellihideAction+" oa="+overviewAction);
         if (!force && !fixedPosition) {
             if ((Main.overview._shown && overviewAction == OverviewAction.SHOW_PARTIAL)
-                ||  (!Main.overview._shown && (intellihideAction == IntellihideAction.SHOW_PARTIAL || intellihideAction == IntellihideAction.SHOW_PARTIAL_FIXED))) {
+                ||  (!Main.overview._shown && intellihide && (intellihideAction == IntellihideAction.SHOW_PARTIAL || intellihideAction == IntellihideAction.SHOW_PARTIAL_FIXED))) {
                 if (this._slider.partialSlideoutSize) {
                     if (_DEBUG_) global.log("... animateOut: partial="+this._slider.partialSlideoutSize);
                     let fullsize;
@@ -2366,6 +2370,19 @@ const DockedWorkspaces = new Lang.Class({
                 }
                 delay = this._settings.get_double('animation-time');
             }
+        } else {
+            if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - autohide off so animate out");
+            this._removeAnimations();
+            if (dontforce) {
+                this._animateOut(this._settings.get_double('animation-time'), 0, false);
+            } else {
+                if (Main.overview._shown && Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage) {
+                    this._animateOut(this._settings.get_double('animation-time'), 0, false);
+                } else {
+                    this._animateOut(this._settings.get_double('animation-time'), 0, true);
+                }
+            }
+            delay = this._settings.get_double('animation-time');
         }
     }
 

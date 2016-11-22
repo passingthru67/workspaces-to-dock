@@ -683,10 +683,11 @@ const Intellihide = new Lang.Class({
             if (_DEBUG_) global.log("intellihide: _show - fadeInDock");
             this._dock.fadeInDock(0, 0);
         } else {
-            if (_DEBUG_) global.log("intellihide: _show - disableAutoHide");
             if (force) {
+                if (_DEBUG_) global.log("intellihide: _show - disableAutoHide FORCED");
                 this._dock.disableAutoHide(true);
             } else {
+                if (_DEBUG_) global.log("intellihide: _show - disableAutoHide NOT forced");
                 this._dock.disableAutoHide();
             }
         }
@@ -700,10 +701,11 @@ const Intellihide = new Lang.Class({
             if (_DEBUG_) global.log("intellihide: _hide - fadeOutDock");
             this._dock.fadeOutDock(0, 0);
         } else {
-            if (_DEBUG_) global.log("intellihide: _hide - enableAutoHide");
             if (dontforce) {
+                if (_DEBUG_) global.log("intellihide: _hide - enableAutoHide FORCED");
                 this._dock.enableAutoHide(true);
             } else {
+                if (_DEBUG_) global.log("intellihide: _hide - enableAutoHide NOT forced");
                 this._dock.enableAutoHide();
             }
         }
