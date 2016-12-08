@@ -319,7 +319,7 @@ const DockedWorkspaces = new Lang.Class({
 
         // Create custom workspace switcher popup
         this._workspaceSwitcher = null;
-        if (this._isHorizontal)
+        if (this._isHorizontal && this._settings.get_boolean('horizontal-workspace-switching'))
             this._workspaceSwitcher = new MyWorkspaceSwitcherPopup.WorkspaceSwitcher();
 
         // Create the main dock container, turn on track hover, add hoverChange signal
@@ -1541,7 +1541,7 @@ const DockedWorkspaces = new Lang.Class({
             let ws = activeWs.get_neighbor(direction);
 
             if (Main.wm._workspaceSwitcherPopup == null) {
-                if (this._isHorizontal) {
+                if (this._isHorizontal && this._settings.get_boolean('horizontal-workspace-switching')) {
                     Main.wm._workspaceSwitcherPopup = new MyWorkspaceSwitcherPopup.myWorkspaceSwitcherPopup();
                 } else {
                     Main.wm._workspaceSwitcherPopup = new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup();

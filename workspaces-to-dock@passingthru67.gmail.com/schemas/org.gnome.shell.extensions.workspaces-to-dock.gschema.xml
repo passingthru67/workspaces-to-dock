@@ -130,6 +130,11 @@
       <summary>Hide the Gnome Shell dash</summary>
       <description>Hide the Gnome Shell dash.</description>
     </key>
+    <key type="b" name="horizontal-workspace-switching">
+      <default>true</default>
+      <summary>Use horizontal workspaces switching</summary>
+      <description>Use horizontal workspace switching when dock is positioned horizontally.</description>
+    </key>
     <key type="b" name="customize-height">
       <default>false</default>
       <summary>Customize height of dock</summary>
