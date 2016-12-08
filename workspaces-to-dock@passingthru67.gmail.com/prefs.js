@@ -133,6 +133,16 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             this.settings.set_boolean('hide-dash', check.get_active());
         }));
 
+        let horizontalSwitchingButton = new Gtk.CheckButton({
+            label: _("Use horizontal switching when the dock is positioned horizontally"),
+            margin_left: 0,
+            margin_top: 0
+        });
+        horizontalSwitchingButton.set_active(this.settings.get_boolean('horizontal-workspace-switching'));
+        horizontalSwitchingButton.connect('toggled', Lang.bind(this, function(check) {
+            this.settings.set_boolean('horizontal-workspace-switching', check.get_active());
+        }));
+
         // Add to layout
         let dockPositionControlGrid = new Gtk.Grid({
             row_homogeneous: false,
@@ -143,6 +153,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         dockPositionControlGrid.attach(dockPositionLabel, 0, 0, 1, 1);
         dockPositionControlGrid.attach(dockPositionCombo, 1, 0, 1, 1);
         dockPositionControlGrid.attach(hideDashButton, 0, 1, 1, 1);
+        dockPositionControlGrid.attach(horizontalSwitchingButton, 0, 2, 1, 1);
 
 
         /* TITLE: HEIGHT */

@@ -1503,14 +1503,14 @@ const DockedWorkspaces = new Lang.Class({
         let direction;
         switch (event.get_scroll_direction()) {
         case Clutter.ScrollDirection.UP:
-            if (this._isHorizontal) {
+            if (this._isHorizontal && this._settings.get_boolean('horizontal-workspace-switching')) {
                 direction = Meta.MotionDirection.LEFT;
             } else {
                 direction = Meta.MotionDirection.UP;
             }
             break;
         case Clutter.ScrollDirection.DOWN:
-            if (this._isHorizontal) {
+            if (this._isHorizontal && this._settings.get_boolean('horizontal-workspace-switching')) {
                 direction = Meta.MotionDirection.RIGHT;
             } else {
                 direction = Meta.MotionDirection.DOWN;

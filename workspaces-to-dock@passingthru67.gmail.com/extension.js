@@ -120,6 +120,12 @@ function bindSettingsChanges() {
         dock = new DockedWorkspaces.DockedWorkspaces();
         intellihide = new Intellihide.Intellihide(dock);
     });
+    settings.connect('changed::horizontal-workspace-switching', function(){
+        intellihide.destroy();
+        dock.destroy();
+        dock = new DockedWorkspaces.DockedWorkspaces();
+        intellihide = new Intellihide.Intellihide(dock);
+    });
     settings.connect('changed::dock-fixed', function(){
         intellihide.destroy();
         dock.destroy();
@@ -139,4 +145,3 @@ function bindSettingsChanges() {
         intellihide = new Intellihide.Intellihide(dock);
     });
 }
-
