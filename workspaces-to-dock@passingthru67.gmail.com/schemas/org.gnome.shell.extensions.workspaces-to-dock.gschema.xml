@@ -65,6 +65,11 @@
       <summary>Ignore top panel menus</summary>
       <description>Enable or disable dodging menu window belonging to the top panel</description>
     </key>
+    <key type="b" name="ignore-context-menus">
+      <default>true</default>
+      <summary>Ignore application context menus</summary>
+      <description>Enable or disable dodging application context menus</description>
+    </key>
     <key type="b" name="dock-edge-visible">
       <default>false</default>
       <summary>Leave dock edge visible when slid out</summary>

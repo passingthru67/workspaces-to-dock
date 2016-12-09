@@ -842,6 +842,16 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
                 this.settings.set_boolean('ignore-top-panel', check.get_active());
             }));
 
+            let ignoreContextMenusButton = new Gtk.CheckButton({
+                label: _("Ignore application context menus"),
+                margin_left: 0,
+                margin_top: 0
+            });
+            ignoreContextMenusButton.set_active(this.settings.get_boolean('ignore-context-menus'));
+            ignoreContextMenusButton.connect('toggled', Lang.bind(this, function(check) {
+                this.settings.set_boolean('ignore-context-menus', check.get_active());
+            }));
+
             // Add to layout
             let intellihideOptionsDialogGrid = new Gtk.Grid({
                 row_homogeneous: false,
@@ -851,6 +861,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             intellihideOptionsDialogGrid.attach(intellihideFocusApp, 0, 1, 1, 1);
             intellihideOptionsDialogGrid.attach(intellihideTopWindow, 0, 2, 1, 1);
             intellihideOptionsDialogGrid.attach(ignoreTopPanelButton, 0, 3, 1, 1);
+            intellihideOptionsDialogGrid.attach(ignoreContextMenusButton, 0, 4, 1, 1);
 
             // Add to dialog
             let intellihideOptionsDialogContainerBox = new Gtk.Box({

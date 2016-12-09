@@ -943,8 +943,10 @@ const Intellihide = new Lang.Class({
         }
 
         if (grptype == null || grptype == 2) {
-            // Test secondary window types .. only if dock is not fixed
-            if (!this._settings.get_boolean('dock-fixed')
+            // Test secondary window types .. only if ignore-context-menus is false
+            // and dock is not fixed
+            if (!this._settings.get_boolean('ignore-context-menus')
+            && !this._settings.get_boolean('dock-fixed')
             && !(this._settings.get_boolean('intellihide') && this._settings.get_enum('intellihide-action') == IntellihideAction.SHOW_PARTIAL_FIXED)) {
                 for (var i = 0; i < handledWindowTypes2.length; i++) {
                     var hwtype = handledWindowTypes2[i];
