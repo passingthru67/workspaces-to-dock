@@ -205,6 +205,11 @@
       <summary>Show workspace window count using images</summary>
       <description>Enable or disable using images for workspace window count.</description>
     </key>
+    <key type="b" name="workspace-caption-taskbar-tooltips">
+      <default>true</default>
+      <summary>Show caption taskbar tooltips</summary>
+      <description>Enable or disable showing caption taskbar application tooltips.</description>
+    </key>
     <key type="d" name="workspace-caption-taskbar-icon-size">
       <default>24</default>
       <summary>Workspace caption taskbar icon size</summary>

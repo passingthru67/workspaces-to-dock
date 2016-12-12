@@ -28,6 +28,9 @@ const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 
 const CAPTION_APP_ICON_ZOOM = 8;
+const TASKBAR_TOOLTIP_SHOW_TIME = 0.15;
+const TASKBAR_TOOLTIP_HIDE_TIME = 0.1;
+const TASKBAR_TOOLTIP_HOVER_TIMEOUT = 10;
 
 const WindowAppsUpdateAction = {
     ADD: 0,
@@ -73,6 +76,13 @@ const TaskbarIcon = new Lang.Class({
         this.actor.set_child(this._icon.actor);
         this.actor._delegate = this;
 
+        // this._tooltipText = this._app.get_name();
+        this._tooltipText = this._metaWin.title;
+        this.tooltip = new St.Label({ style_class: 'dash-label workspacestodock-caption-windowapps-button-tooltip'});
+        this.tooltip.hide();
+        Main.layoutManager.addChrome(this.tooltip);
+        this.tooltip_actor = this.tooltip;
+
         // Connect signals
         this.actor.connect('button-release-event', Lang.bind(this, this._onButtonRelease));
         this.actor.connect('enter-event', Lang.bind(this, this._onButtonEnter));
@@ -87,12 +97,26 @@ const TaskbarIcon = new Lang.Class({
         let icon = actor._delegate._icon;
         let zoomSize = this._mySettings.get_double('workspace-caption-taskbar-icon-size') + CAPTION_APP_ICON_ZOOM;
         icon.setIconSize(zoomSize);
+
+        if (this._mySettings.get_boolean('workspace-caption-taskbar-tooltips')) {
+            if (this._tooltipHoverTimeoutId > 0) {
+                Mainloop.source_remove(this._tooltipHoverTimeoutId);
+                this._tooltipHoverTimeoutId = 0;
+            }
+            this._tooltipHoverTimeoutId = Mainloop.timeout_add(TASKBAR_TOOLTIP_HOVER_TIMEOUT, Lang.bind(this, this.showTooltip));
+        }
     },
 
     _onButtonLeave: function(actor, event) {
         if (_DEBUG_) global.log("TaskbarIcon: _onButtonLeave");
         let icon = actor._delegate._icon;
         icon.setIconSize(this._mySettings.get_double('workspace-caption-taskbar-icon-size'));
+
+        this.hideTooltip();
+        if (this._tooltipHoverTimeoutId > 0) {
+            Mainloop.source_remove(this._tooltipHoverTimeoutId);
+            this._tooltipHoverTimeoutId = 0;
+        }
     },
 
     _onButtonRelease: function(actor, event) {
@@ -114,6 +138,70 @@ const TaskbarIcon = new Lang.Class({
     // we show as the item is being dragged.
     getDragActorSource: function() {
         return this._icon.actor;
+    },
+
+    showTooltip: function() {
+        if (!this._tooltipText)
+            return;
+
+        this._tooltipText = this._metaWin.title;
+        this.tooltip.set_text(this._tooltipText);
+        this.tooltip.opacity = 0;
+        this.tooltip.show();
+
+        let [buttonStageX, buttonStageY] = this.actor.get_transformed_position();
+        let labelWidth = this.tooltip.get_width();
+        let buttonWidth = this.actor.get_width();
+        let x = buttonStageX + (buttonWidth / 2) - (labelWidth / 2);
+        let labelHeight = this.tooltip.get_height();
+        let y = buttonStageY - labelHeight;
+
+        // Get monitor screen info
+        let monitorIndex = this._mySettings.get_int('preferred-monitor');
+        let monitor;
+        if (monitorIndex > 0 && monitorIndex < Main.layoutManager.monitors.length) {
+            monitor = Main.layoutManager.monitors[monitorIndex];
+        } else {
+            monitor = Main.layoutManager.primaryMonitor;
+        }
+
+        // Check that tooltip is not off screen
+        // Correct tooltip position if necessary
+        let position = getPosition(this._mySettings);
+        if (position == St.Side.LEFT) {
+            if (x < monitor.x)
+                x = monitor.x;
+        }
+        if (position == St.Side.RIGHT) {
+            if ((x + labelWidth) > (monitor.x + monitor.width))
+                x = (monitor.x + monitor.width) - labelWidth;
+        }
+        if (position == St.Side.TOP || position == St.Side.BOTTOM) {
+            if (x < monitor.x)
+                x = monitor.x;
+
+            if ((x + labelWidth) > (monitor.x + monitor.width))
+                x = (monitor.x + monitor.width) - labelWidth;
+        }
+
+        this.tooltip.set_position(x, y);
+        Tweener.addTween(this.tooltip,
+                         { opacity: 255,
+                           time: TASKBAR_TOOLTIP_SHOW_TIME,
+                           transition: 'easeOutQuad',
+                         });
+
+    },
+
+    hideTooltip: function () {
+        Tweener.addTween(this.tooltip,
+                         { opacity: 0,
+                           time: TASKBAR_TOOLTIP_HIDE_TIME,
+                           transition: 'easeOutQuad',
+                           onComplete: Lang.bind(this, function() {
+                               this.tooltip.hide();
+                           })
+                         });
     }
 });
 
@@ -131,7 +219,8 @@ const MenuTaskListItem = new Lang.Class({
         this._icon = new IconGrid.BaseIcon(app.get_name(), iconParams);
         this._icon.actor.add_style_class_name('workspacestodock-caption-windowapps-menu-icon');
         this._icon.setIconSize(this._mySettings.get_double('workspace-caption-menu-icon-size'));
-        this._label = new St.Label({ text: app.get_name(), style_class: 'workspacestodock-caption-windowapps-menu-label' });
+        // this._label = new St.Label({ text: app.get_name(), style_class: 'workspacestodock-caption-windowapps-menu-label' });
+        this._label = new St.Label({ text: this._metaWin.title, style_class: 'workspacestodock-caption-windowapps-menu-label' });
 
         this._buttonBox = new St.BoxLayout({style_class:'workspacestodock-caption-windowapps-menu-button'});
         this._buttonBox.add(this._icon.actor, {x_fill: false, y_fill: false, x_align: St.Align.START, y_align: St.Align.MIDDLE});

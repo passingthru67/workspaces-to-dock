@@ -1366,6 +1366,18 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             this.settings.set_double("workspace-caption-height", s);
         }));
 
+        // Workspace Captions - Window Apps (taskbar) tooltips
+        let wsCaptionWindowAppsTitleTooltipButton = new Gtk.CheckButton({
+            label: _("Show Taskbar tooltips"),
+            margin_left: 0,
+            margin_top: 0,
+            margin_bottom: 10,
+        });
+        wsCaptionWindowAppsTitleTooltipButton.set_active(this.settings.get_boolean('workspace-caption-taskbar-tooltips'));
+        wsCaptionWindowAppsTitleTooltipButton.connect('toggled', Lang.bind(this, function(check) {
+            this.settings.set_boolean('workspace-caption-taskbar-tooltips', check.get_active());
+        }));
+
         // Workspace Captions - Window Apps (taskbar) Icon Size
         let wsCaptionWindowAppsIconSizeLabel = new Gtk.Label({
             label: _("Taskbar icon size [px]"),
@@ -1722,14 +1734,16 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         workspaceCaptionsContainerGrid.attach(wsCaptionHeightLabel, 0, 3, 1, 1);
         workspaceCaptionsContainerGrid.attach(wsCaptionHeightSpinner, 1, 3, 3, 1);
 
-        workspaceCaptionsContainerGrid.attach(wsCaptionWindowAppsIconSizeLabel, 0, 4, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionWindowAppsIconSizeSpinner, 1, 4, 3, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionMenuIconSizeLabel, 0, 4, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionMenuIconSizeSpinner, 1, 4, 3, 1);
 
-        workspaceCaptionsContainerGrid.attach(wsCaptionMenuIconSizeLabel, 0, 5, 1, 1);
-        workspaceCaptionsContainerGrid.attach(wsCaptionMenuIconSizeSpinner, 1, 5, 3, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionWindowAppsIconSizeLabel, 0, 5, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionWindowAppsIconSizeSpinner, 1, 5, 3, 1);
 
-        workspaceCaptionsContainerGrid.attach(workspaceCaptionItemsTitle, 0, 6, 1, 1);
-        workspaceCaptionsContainerGrid.attach(workspaceCaptionItemsButton, 0, 7, 1, 1);
+        workspaceCaptionsContainerGrid.attach(wsCaptionWindowAppsTitleTooltipButton, 0, 6, 1, 1);
+
+        workspaceCaptionsContainerGrid.attach(workspaceCaptionItemsTitle, 0, 7, 1, 1);
+        workspaceCaptionsContainerGrid.attach(workspaceCaptionItemsButton, 0, 8, 1, 1);
 
         // Bind interactions
         this.settings.bind('workspace-captions', workspaceCaptionsContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
