@@ -113,10 +113,6 @@ const TaskbarIcon = new Lang.Class({
         icon.setIconSize(this._mySettings.get_double('workspace-caption-taskbar-icon-size'));
 
         this.hideTooltip();
-        if (this._tooltipHoverTimeoutId > 0) {
-            Mainloop.source_remove(this._tooltipHoverTimeoutId);
-            this._tooltipHoverTimeoutId = 0;
-        }
     },
 
     _onButtonRelease: function(actor, event) {
@@ -131,12 +127,14 @@ const TaskbarIcon = new Lang.Class({
     },
 
     getDragActor: function() {
+        this.hideTooltip();
         return this._app.create_icon_texture(this._iconSize);
     },
 
     // Returns the original actor that should align with the actor
     // we show as the item is being dragged.
     getDragActorSource: function() {
+        this.hideTooltip();
         return this._icon.actor;
     },
 
@@ -194,6 +192,11 @@ const TaskbarIcon = new Lang.Class({
     },
 
     hideTooltip: function () {
+        if (this._tooltipHoverTimeoutId > 0) {
+            Mainloop.source_remove(this._tooltipHoverTimeoutId);
+            this._tooltipHoverTimeoutId = 0;
+        }
+
         Tweener.addTween(this.tooltip,
                          { opacity: 0,
                            time: TASKBAR_TOOLTIP_HIDE_TIME,
