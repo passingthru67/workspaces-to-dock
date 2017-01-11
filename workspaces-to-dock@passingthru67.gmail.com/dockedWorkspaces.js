@@ -683,221 +683,221 @@ const DockedWorkspaces = new Lang.Class({
         // Hide normal workspaces thumbnailsBox
         Main.overview._controls._thumbnailsSlider.actor.opacity = 0;
 
-        // Set MAX_THUMBNAIL_SCALE to custom value
-        GSFunctions['WorkspaceThumbnail_MAX_THUMBNAIL_SCALE'] = WorkspaceThumbnail.MAX_THUMBNAIL_SCALE;
-        if (this._settings.get_boolean('customize-thumbnail')) {
-            WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = this._settings.get_double('thumbnail-size');
-        };
+        // // Set MAX_THUMBNAIL_SCALE to custom value
+        // GSFunctions['WorkspaceThumbnail_MAX_THUMBNAIL_SCALE'] = WorkspaceThumbnail.MAX_THUMBNAIL_SCALE;
+        // if (this._settings.get_boolean('customize-thumbnail')) {
+        //     WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = this._settings.get_double('thumbnail-size');
+        // };
 
-        // Extend LayoutManager _updateRegions function to destroy/create workspace thumbnails when completed.
-        // NOTE1: needed because 'monitors-changed' signal doesn't wait for queued regions to update.
-        // We need to wait so that the screen workspace workarea is adjusted before creating workspace thumbnails.
-        // Otherwise when we move the primary workspace to another monitor, the workspace thumbnails won't adjust for the top panel.
-        // NOTE2: also needed when dock-fixed is enabled/disabled to adjust for workspace area change
-        GSFunctions['LayoutManager_updateRegions'] = Layout.LayoutManager.prototype._updateRegions;
-        Layout.LayoutManager.prototype._updateRegions = function() {
-            let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
-            let ret = GSFunctions['LayoutManager_updateRegions'].call(this);
-            // SANITY CHECK:
-            if (_DEBUG_) global.log("dockedWorkspaces: UPDATEREGIONS - workArea W= "+workArea.width + "  H= "+workArea.height+ "  X= "+workArea.x+ "  Y= "+workArea.y+"  CURRENT W="+self._workAreaWidth+"  H="+self._workAreaHeight+"  FORCED?="+self._refreshThumbnailsOnRegionUpdate);
-            if (self._refreshThumbnailsOnRegionUpdate) {
-                self._refreshThumbnailsOnRegionUpdate = false;
-                self._refreshThumbnails();
-            } else {
-                if (self._workAreaWidth) {
-                    let widthTolerance = workArea.width * .01;
-                    let heightTolerance = workArea.height * .01;
-                    if (self._workAreaWidth < workArea.width-widthTolerance || self._workAreaWidth > workArea.width+widthTolerance) {
-                        self._refreshThumbnails();
-                    } else if (self._workAreaHeight < workArea.height-heightTolerance || self._workAreaHeight > workArea.height+heightTolerance) {
-                        self._refreshThumbnails();
-                    }
-                } else {
-                    self._refreshThumbnails();
-                }
-            }
-            return ret;
+        // // Extend LayoutManager _updateRegions function to destroy/create workspace thumbnails when completed.
+        // // NOTE1: needed because 'monitors-changed' signal doesn't wait for queued regions to update.
+        // // We need to wait so that the screen workspace workarea is adjusted before creating workspace thumbnails.
+        // // Otherwise when we move the primary workspace to another monitor, the workspace thumbnails won't adjust for the top panel.
+        // // NOTE2: also needed when dock-fixed is enabled/disabled to adjust for workspace area change
+        // GSFunctions['LayoutManager_updateRegions'] = Layout.LayoutManager.prototype._updateRegions;
+        // Layout.LayoutManager.prototype._updateRegions = function() {
+        //     let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
+        //     let ret = GSFunctions['LayoutManager_updateRegions'].call(this);
+        //     // SANITY CHECK:
+        //     if (_DEBUG_) global.log("dockedWorkspaces: UPDATEREGIONS - workArea W= "+workArea.width + "  H= "+workArea.height+ "  X= "+workArea.x+ "  Y= "+workArea.y+"  CURRENT W="+self._workAreaWidth+"  H="+self._workAreaHeight+"  FORCED?="+self._refreshThumbnailsOnRegionUpdate);
+        //     if (self._refreshThumbnailsOnRegionUpdate) {
+        //         self._refreshThumbnailsOnRegionUpdate = false;
+        //         self._refreshThumbnails();
+        //     } else {
+        //         if (self._workAreaWidth) {
+        //             let widthTolerance = workArea.width * .01;
+        //             let heightTolerance = workArea.height * .01;
+        //             if (self._workAreaWidth < workArea.width-widthTolerance || self._workAreaWidth > workArea.width+widthTolerance) {
+        //                 self._refreshThumbnails();
+        //             } else if (self._workAreaHeight < workArea.height-heightTolerance || self._workAreaHeight > workArea.height+heightTolerance) {
+        //                 self._refreshThumbnails();
+        //             }
+        //         } else {
+        //             self._refreshThumbnails();
+        //         }
+        //     }
+        //     return ret;
 
-        };
+        // };
 
-        // Override geometry calculations of activities overview to use workspaces-to-dock instead of the default thumbnailsbox.
-        // NOTE: This is needed for when the dock is positioned on a secondary monitor and also for when the shortcuts panel is visible
-        // causing the dock to be wider than normal.
-        GSFunctions['WorkspacesDisplay_updateWorkspacesActualGeometry'] = WorkspacesView.WorkspacesDisplay.prototype._updateWorkspacesActualGeometry;
-        WorkspacesView.WorkspacesDisplay.prototype._updateWorkspacesActualGeometry = function() {
-            if (_DEBUG_) global.log("WORKSPACESDISPLAY - _UPDATE ACTUALGEOMETRY");
-            if (!this._workspacesViews.length)
-                return;
+        // // Override geometry calculations of activities overview to use workspaces-to-dock instead of the default thumbnailsbox.
+        // // NOTE: This is needed for when the dock is positioned on a secondary monitor and also for when the shortcuts panel is visible
+        // // causing the dock to be wider than normal.
+        // GSFunctions['WorkspacesDisplay_updateWorkspacesActualGeometry'] = WorkspacesView.WorkspacesDisplay.prototype._updateWorkspacesActualGeometry;
+        // WorkspacesView.WorkspacesDisplay.prototype._updateWorkspacesActualGeometry = function() {
+        //     if (_DEBUG_) global.log("WORKSPACESDISPLAY - _UPDATE ACTUALGEOMETRY");
+        //     if (!this._workspacesViews.length)
+        //         return;
 
-            let [x, y] = this.actor.get_transformed_position();
-            let allocation = this.actor.allocation;
-            let width = allocation.x2 - allocation.x1;
-            let height = allocation.y2 - allocation.y1;
+        //     let [x, y] = this.actor.get_transformed_position();
+        //     let allocation = this.actor.allocation;
+        //     let width = allocation.x2 - allocation.x1;
+        //     let height = allocation.y2 - allocation.y1;
 
-            let spacing = Main.overview._controls.actor.get_theme_node().get_length('spacing');
-            let monitors = Main.layoutManager.monitors;
-            for (let i = 0; i < monitors.length; i++) {
-                let geometry = { x: monitors[i].x, y: monitors[i].y, width: monitors[i].width, height: monitors[i].height };
+        //     let spacing = Main.overview._controls.actor.get_theme_node().get_length('spacing');
+        //     let monitors = Main.layoutManager.monitors;
+        //     for (let i = 0; i < monitors.length; i++) {
+        //         let geometry = { x: monitors[i].x, y: monitors[i].y, width: monitors[i].width, height: monitors[i].height };
 
-                // Adjust width for dash
-                let dashWidth = 0;
-                let dashHeight = 0;
-                let dashMonitorIndex;
-                if (DashToDock && DashToDock.dock) {
-                    dashMonitorIndex = DashToDock.dock._settings.get_int('preferred-monitor');
-                    if (dashMonitorIndex < 0 || dashMonitorIndex >= Main.layoutManager.monitors.length) {
-                        dashMonitorIndex = this._primaryIndex;
-                    }
-                    if (i == dashMonitorIndex) {
-                        if (DashToDockExtension.hasDockPositionKey)  {
-                            if (DashToDock.dock._position == St.Side.LEFT ||
-                                DashToDock.dock._position == St.Side.RIGHT) {
-                                    dashWidth = DashToDock.dock._box.width + spacing;
-                            }
-                            if (DashToDock.dock._position == St.Side.TOP ||
-                                DashToDock.dock._position == St.Side.BOTTOM) {
-                                    dashHeight = DashToDock.dock._box.height + spacing;
-                            }
-                        } else {
-                            dashWidth = DashToDock.dock._box.width + spacing;
-                        }
-                    }
-                } else {
-                    if (!self._settings.get_boolean('hide-dash') &&
-                        i == this._primaryIndex) {
-                        dashWidth = Main.overview._controls._dashSlider.getVisibleWidth() + spacing;
-                    }
-                }
+        //         // Adjust width for dash
+        //         let dashWidth = 0;
+        //         let dashHeight = 0;
+        //         let dashMonitorIndex;
+        //         if (DashToDock && DashToDock.dock) {
+        //             dashMonitorIndex = DashToDock.dock._settings.get_int('preferred-monitor');
+        //             if (dashMonitorIndex < 0 || dashMonitorIndex >= Main.layoutManager.monitors.length) {
+        //                 dashMonitorIndex = this._primaryIndex;
+        //             }
+        //             if (i == dashMonitorIndex) {
+        //                 if (DashToDockExtension.hasDockPositionKey)  {
+        //                     if (DashToDock.dock._position == St.Side.LEFT ||
+        //                         DashToDock.dock._position == St.Side.RIGHT) {
+        //                             dashWidth = DashToDock.dock._box.width + spacing;
+        //                     }
+        //                     if (DashToDock.dock._position == St.Side.TOP ||
+        //                         DashToDock.dock._position == St.Side.BOTTOM) {
+        //                             dashHeight = DashToDock.dock._box.height + spacing;
+        //                     }
+        //                 } else {
+        //                     dashWidth = DashToDock.dock._box.width + spacing;
+        //                 }
+        //             }
+        //         } else {
+        //             if (!self._settings.get_boolean('hide-dash') &&
+        //                 i == this._primaryIndex) {
+        //                 dashWidth = Main.overview._controls._dashSlider.getVisibleWidth() + spacing;
+        //             }
+        //         }
 
-                // Adjust width for workspaces thumbnails
-                let thumbnailsWidth = 0;
-                let thumbnailsHeight = 0;
-                let thumbnailsMonitorIndex = self._settings.get_int('preferred-monitor');
-                if (thumbnailsMonitorIndex < 0 || thumbnailsMonitorIndex >= Main.layoutManager.monitors.length) {
-                    thumbnailsMonitorIndex = this._primaryIndex;
-                }
-                if (i == thumbnailsMonitorIndex) {
-                    let overviewAction = self._settings.get_enum('overview-action');
-                    let visibleEdge = self._triggerWidth;
-                    if (self._settings.get_boolean('dock-edge-visible')) {
-                        visibleEdge = self._triggerWidth + DOCK_EDGE_VISIBLE_WIDTH;
-                    }
-                    if (self._position == St.Side.LEFT ||
-                        self._position == St.Side.RIGHT) {
-                            if (overviewAction == OverviewAction.HIDE) {
-                                thumbnailsWidth = visibleEdge;
-                            } else if (overviewAction == OverviewAction.SHOW_PARTIAL) {
-                                thumbnailsWidth = self._slider.partialSlideoutSize;
-                            } else {
-                                thumbnailsWidth = self.actor.get_width() + spacing;
-                            }
-                    }
-                    if (self._position == St.Side.TOP ||
-                        self._position == St.Side.BOTTOM) {
-                            if (overviewAction == OverviewAction.HIDE) {
-                                thumbnailsHeight = visibleEdge;
-                            } else if (overviewAction == OverviewAction.SHOW_PARTIAL) {
-                                thumbnailsHeight = self._slider.partialSlideoutSize;
-                            } else {
-                                thumbnailsHeight = self.actor.get_height() + spacing;
-                            }
-                    }
-                }
+        //         // Adjust width for workspaces thumbnails
+        //         let thumbnailsWidth = 0;
+        //         let thumbnailsHeight = 0;
+        //         let thumbnailsMonitorIndex = self._settings.get_int('preferred-monitor');
+        //         if (thumbnailsMonitorIndex < 0 || thumbnailsMonitorIndex >= Main.layoutManager.monitors.length) {
+        //             thumbnailsMonitorIndex = this._primaryIndex;
+        //         }
+        //         if (i == thumbnailsMonitorIndex) {
+        //             let overviewAction = self._settings.get_enum('overview-action');
+        //             let visibleEdge = self._triggerWidth;
+        //             if (self._settings.get_boolean('dock-edge-visible')) {
+        //                 visibleEdge = self._triggerWidth + DOCK_EDGE_VISIBLE_WIDTH;
+        //             }
+        //             if (self._position == St.Side.LEFT ||
+        //                 self._position == St.Side.RIGHT) {
+        //                     if (overviewAction == OverviewAction.HIDE) {
+        //                         thumbnailsWidth = visibleEdge;
+        //                     } else if (overviewAction == OverviewAction.SHOW_PARTIAL) {
+        //                         thumbnailsWidth = self._slider.partialSlideoutSize;
+        //                     } else {
+        //                         thumbnailsWidth = self.actor.get_width() + spacing;
+        //                     }
+        //             }
+        //             if (self._position == St.Side.TOP ||
+        //                 self._position == St.Side.BOTTOM) {
+        //                     if (overviewAction == OverviewAction.HIDE) {
+        //                         thumbnailsHeight = visibleEdge;
+        //                     } else if (overviewAction == OverviewAction.SHOW_PARTIAL) {
+        //                         thumbnailsHeight = self._slider.partialSlideoutSize;
+        //                     } else {
+        //                         thumbnailsHeight = self.actor.get_height() + spacing;
+        //                     }
+        //             }
+        //         }
 
-                // Adjust x and width for workspacesView geometry
-                let controlsWidth = dashWidth + thumbnailsWidth;
-                if (DashToDock && DashToDock.dock && DashToDockExtension.hasDockPositionKey) {
-                    // What if dash and thumbnailsbox are both on the same side?
-                    if (DashToDock.dock._position == St.Side.LEFT &&
-                        self._position == St.Side.LEFT) {
-                            controlsWidth = Math.max(dashWidth, thumbnailsWidth);
-                            geometry.x += controlsWidth;
-                    } else {
-                        if (DashToDock.dock._position == St.Side.LEFT) {
-                            geometry.x += dashWidth;
-                        }
-                        if (self._position == St.Side.LEFT) {
-                            geometry.x += thumbnailsWidth;
-                        }
-                    }
-                    if (DashToDock.dock._position == St.Side.RIGHT &&
-                        self._position == St.Side.RIGHT) {
-                            controlsWidth = Math.max(dashWidth, thumbnailsWidth);
-                    }
-                } else {
-                    if (this.actor.get_text_direction() == Clutter.TextDirection.LTR) {
-                        if (self._position == St.Side.LEFT) {
-                            controlsWidth = Math.max(dashWidth, thumbnailsWidth);
-                            geometry.x += controlsWidth;
-                        } else {
-                            geometry.x += dashWidth;
-                        }
-                    } else {
-                        if (self._position == St.Side.RIGHT) {
-                            controlsWidth = Math.max(dashWidth, thumbnailsWidth);
-                        } else {
-                            geometry.x += thumbnailsWidth;
-                        }
-                    }
-                }
-                geometry.width -= controlsWidth;
+        //         // Adjust x and width for workspacesView geometry
+        //         let controlsWidth = dashWidth + thumbnailsWidth;
+        //         if (DashToDock && DashToDock.dock && DashToDockExtension.hasDockPositionKey) {
+        //             // What if dash and thumbnailsbox are both on the same side?
+        //             if (DashToDock.dock._position == St.Side.LEFT &&
+        //                 self._position == St.Side.LEFT) {
+        //                     controlsWidth = Math.max(dashWidth, thumbnailsWidth);
+        //                     geometry.x += controlsWidth;
+        //             } else {
+        //                 if (DashToDock.dock._position == St.Side.LEFT) {
+        //                     geometry.x += dashWidth;
+        //                 }
+        //                 if (self._position == St.Side.LEFT) {
+        //                     geometry.x += thumbnailsWidth;
+        //                 }
+        //             }
+        //             if (DashToDock.dock._position == St.Side.RIGHT &&
+        //                 self._position == St.Side.RIGHT) {
+        //                     controlsWidth = Math.max(dashWidth, thumbnailsWidth);
+        //             }
+        //         } else {
+        //             if (this.actor.get_text_direction() == Clutter.TextDirection.LTR) {
+        //                 if (self._position == St.Side.LEFT) {
+        //                     controlsWidth = Math.max(dashWidth, thumbnailsWidth);
+        //                     geometry.x += controlsWidth;
+        //                 } else {
+        //                     geometry.x += dashWidth;
+        //                 }
+        //             } else {
+        //                 if (self._position == St.Side.RIGHT) {
+        //                     controlsWidth = Math.max(dashWidth, thumbnailsWidth);
+        //                 } else {
+        //                     geometry.x += thumbnailsWidth;
+        //                 }
+        //             }
+        //         }
+        //         geometry.width -= controlsWidth;
 
-                // Adjust y and height for workspacesView geometry for primary monitor (top panel, etc.)
-                if (i == this._primaryIndex) {
-                    geometry.y = y;
-                    geometry.height = height;
-                }
+        //         // Adjust y and height for workspacesView geometry for primary monitor (top panel, etc.)
+        //         if (i == this._primaryIndex) {
+        //             geometry.y = y;
+        //             geometry.height = height;
+        //         }
 
-                // What if dash and thumbnailsBox are not on the primary monitor?
-                let controlsHeight = dashHeight + thumbnailsHeight;
-                if (DashToDock && DashToDock.dock && DashToDockExtension.hasDockPositionKey) {
-                    if (DashToDock.dock._position == St.Side.TOP &&
-                        self._position == St.Side.TOP) {
-                            controlsHeight = Math.max(dashHeight, thumbnailsHeight);
-                            geometry.y += controlsHeight;
-                    } else {
-                        if (DashToDock.dock._position == St.Side.TOP) {
-                            geometry.y += dashHeight;
-                        }
-                        if (self._position == St.Side.TOP) {
-                            geometry.y += thumbnailsHeight;
-                        }
-                    }
-                    if (DashToDock.dock._position == St.Side.BOTTOM &&
-                        self._position == St.Side.BOTTOM) {
-                            controlsHeight = Math.max(dashHeight, thumbnailsHeight);
-                    }
-                } else {
-                    if (self._position == St.Side.TOP) {
-                        geometry.y += thumbnailsHeight;
-                    }
-                }
-                geometry.height -= controlsHeight;
+        //         // What if dash and thumbnailsBox are not on the primary monitor?
+        //         let controlsHeight = dashHeight + thumbnailsHeight;
+        //         if (DashToDock && DashToDock.dock && DashToDockExtension.hasDockPositionKey) {
+        //             if (DashToDock.dock._position == St.Side.TOP &&
+        //                 self._position == St.Side.TOP) {
+        //                     controlsHeight = Math.max(dashHeight, thumbnailsHeight);
+        //                     geometry.y += controlsHeight;
+        //             } else {
+        //                 if (DashToDock.dock._position == St.Side.TOP) {
+        //                     geometry.y += dashHeight;
+        //                 }
+        //                 if (self._position == St.Side.TOP) {
+        //                     geometry.y += thumbnailsHeight;
+        //                 }
+        //             }
+        //             if (DashToDock.dock._position == St.Side.BOTTOM &&
+        //                 self._position == St.Side.BOTTOM) {
+        //                     controlsHeight = Math.max(dashHeight, thumbnailsHeight);
+        //             }
+        //         } else {
+        //             if (self._position == St.Side.TOP) {
+        //                 geometry.y += thumbnailsHeight;
+        //             }
+        //         }
+        //         geometry.height -= controlsHeight;
 
 
-                if (_DEBUG_) global.log("MONITOR = "+i);
-                this._workspacesViews[i].setMyActualGeometry(geometry);
-            }
-        };
+        //         if (_DEBUG_) global.log("MONITOR = "+i);
+        //         this._workspacesViews[i].setMyActualGeometry(geometry);
+        //     }
+        // };
 
-        // This override is needed to prevent calls from updateWorkspacesActualGeometry bound to the workspacesDisplay object
-        // without destroying and recreating Main.overview.viewSelector._workspacesDisplay.
-        // We replace this function with a new setMyActualGeometry function (see below)
-        // TODO: This is very hackish. We need to find a better way to accomplish this
-        GSFunctions['WorkspacesViewBase_setActualGeometry'] = WorkspacesView.WorkspacesViewBase.prototype.setActualGeometry;
-        WorkspacesView.WorkspacesViewBase.prototype.setActualGeometry = function(geom) {
-            if (_DEBUG_) global.log("WORKSPACESVIEW - setActualGeometry");
-            //GSFunctions['WorkspacesView_setActualGeometry'].call(this, geom);
-            return;
-        };
+        // // This override is needed to prevent calls from updateWorkspacesActualGeometry bound to the workspacesDisplay object
+        // // without destroying and recreating Main.overview.viewSelector._workspacesDisplay.
+        // // We replace this function with a new setMyActualGeometry function (see below)
+        // // TODO: This is very hackish. We need to find a better way to accomplish this
+        // GSFunctions['WorkspacesViewBase_setActualGeometry'] = WorkspacesView.WorkspacesViewBase.prototype.setActualGeometry;
+        // WorkspacesView.WorkspacesViewBase.prototype.setActualGeometry = function(geom) {
+        //     if (_DEBUG_) global.log("WORKSPACESVIEW - setActualGeometry");
+        //     //GSFunctions['WorkspacesView_setActualGeometry'].call(this, geom);
+        //     return;
+        // };
 
-        // This additional function replaces the WorkspacesView setActualGeometry function above.
-        // TODO: This is very hackish. We need to find a better way to accomplish this
-        WorkspacesView.WorkspacesViewBase.prototype.setMyActualGeometry = function(geom) {
-            if (_DEBUG_) global.log("WORKSPACESVIEW - setMyActualGeometry");
-            this._actualGeometry = geom;
-            this._syncActualGeometry();
-        };
+        // // This additional function replaces the WorkspacesView setActualGeometry function above.
+        // // TODO: This is very hackish. We need to find a better way to accomplish this
+        // WorkspacesView.WorkspacesViewBase.prototype.setMyActualGeometry = function(geom) {
+        //     if (_DEBUG_) global.log("WORKSPACESVIEW - setMyActualGeometry");
+        //     this._actualGeometry = geom;
+        //     this._syncActualGeometry();
+        // };
 
         this._overrideComplete = true;
     },
