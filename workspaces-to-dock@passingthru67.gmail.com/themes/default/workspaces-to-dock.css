@@ -52,18 +52,26 @@
 
 #workspacestodockDock.right.fullheight .workspace-thumbnails {
     border-radius: 0px;
+    border-top-width: 0px;
+    border-bottom-width: 0px;
 }
 
 #workspacestodockDock.left.fullheight .workspace-thumbnails {
     border-radius: 0px;
+    border-top-width: 0px;
+    border-bottom-width: 0px;
 }
 
 #workspacestodockDock.top.fullheight .workspace-thumbnails {
     border-radius: 0px;
+    border-left-width: 0px;
+    border-right-width: 0px;
 }
 
 #workspacestodockDock.bottom.fullheight .workspace-thumbnails {
     border-radius: 0px;
+    border-left-width: 0px;
+    border-right-width: 0px;
 }
 
 #workspacestodockDock.right .workspacestodock-shortcuts-panel {
