@@ -433,7 +433,11 @@ const Intellihide = new Lang.Class({
 
             if (this._inOverview) {
                 if (Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage) {
-                    this._hide(true);
+                    if (this._settings.get_boolean('dock-fixed')) {
+                        this._show();
+                    } else {
+                        this._hide(true);
+                    }
                 } else {
                     this._hide();
                 }
@@ -449,7 +453,11 @@ const Intellihide = new Lang.Class({
 
             if (this._inOverview) {
                 if (Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage) {
-                    this._hide(true);
+                    if (this._settings.get_boolean('dock-fixed')) {
+                        this._show();
+                    } else {
+                        this._hide(true);
+                    }
                 } else {
                     this._hide();
                 }
@@ -475,7 +483,11 @@ const Intellihide = new Lang.Class({
             // GS38+ remains in same overview mode, therefore we need to detect mode to determine if we should hide dock.
             if (this._inOverview) {
                 if (Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage) {
-                    this._hide(true);
+                    if (this._settings.get_boolean('dock-fixed')) {
+                        this._show();
+                    } else {
+                        this._hide(true);
+                    }
                 } else {
                     this._hide();
                 }
@@ -493,7 +505,11 @@ const Intellihide = new Lang.Class({
             // GS38+ remains in same overview mode, therefore we need to detect mode to determine if we should hide dock.
             if (this._inOverview) {
                 if (Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage) {
-                    this._hide(true);
+                    if (this._settings.get_boolean('dock-fixed')) {
+                        this._show();
+                    } else {
+                        this._hide(true);
+                    }
                 } else {
                     this._hide();
                 }
@@ -829,7 +845,8 @@ const Intellihide = new Lang.Class({
                         if (overlaps) {
                             this._hide();
                         } else {
-                            if (this._settings.get_boolean('intellihide') && (this._settings.get_enum('intellihide-action') == IntellihideAction.SHOW_PARTIAL || this._settings.get_enum('intellihide-action') == IntellihideAction.SHOW_PARTIAL_FIXED)) {
+
+                            if (!this._settings.get_boolean('dock-fixed') && this._settings.get_boolean('intellihide') && (this._settings.get_enum('intellihide-action') == IntellihideAction.SHOW_PARTIAL || this._settings.get_enum('intellihide-action') == IntellihideAction.SHOW_PARTIAL_FIXED)) {
                                 if (this._dock._dockState == DockState.SHOWING || this._dock._dockState == DockState.SHOWN) {
                                     this._hide(true);
                                 } else {
