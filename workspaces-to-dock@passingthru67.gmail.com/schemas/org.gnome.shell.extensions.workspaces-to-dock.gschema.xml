@@ -121,9 +121,14 @@
       <description>Sets the opacity of the workspaces background  when in autohide mode.</description>
     </key>
     <key type="i" name="preferred-monitor">
-      <default>-1</default>
+      <default>0</default>
       <summary>Monitor on which to put the dock</summary>
       <description>Choose on which monitor to put the dock, use -1 for the primary one</description>
+    </key>
+    <key type="i" name="primary-monitor">
+      <default>0</default>
+      <summary>Monitor on which Gnome Shell top bar resides</summary>
+      <description>Monitor on which Gnome Shell top bar resides. Not user selectable.</description>
     </key>
     <key name="dock-position" enum="org.gnome.shell.extensions.workspaces-to-dock.position">
       <default>'RIGHT'</default>

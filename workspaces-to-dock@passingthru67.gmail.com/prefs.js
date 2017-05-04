@@ -10,6 +10,7 @@ const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
 const GObject = imports.gi.GObject;
 const Gtk = imports.gi.Gtk;
+const Gdk = imports.gi.Gdk;
 const Lang = imports.lang;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
@@ -66,22 +67,32 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
         let dockMonitorLabel = new Gtk.Label({label: _("Show the dock on the following monitor (if attached)"), hexpand:true, xalign:0});
         let dockMonitorCombo = new Gtk.ComboBoxText({halign:Gtk.Align.END});
-            dockMonitorCombo.append_text(_('Primary (default)'));
-            dockMonitorCombo.append_text(_('1'));
-            dockMonitorCombo.append_text(_('2'));
-            dockMonitorCombo.append_text(_('3'));
-            dockMonitorCombo.append_text(_('4'));
+        let gdkNMonitors = Gdk.Screen.get_default().get_n_monitors();
+        let primaryMonitor = this.settings.get_int('primary-monitor');
+        // NOTE: we don't use gdk to get the primary monitor here because the
+        // gdk primary monitor differs from the global screen primary monitor
 
-        let active = this.settings.get_int('preferred-monitor');
-        if (active<0)
-            active = 0;
-        dockMonitorCombo.set_active(active);
+        // Add connected monitors
+        let ctr = 0;
+        for (let i = 0; i < gdkNMonitors; i++) {
+            if (i == primaryMonitor) {
+                dockMonitorCombo.append_text(_('Primary Monitor '));
+            } else {
+                dockMonitorCombo.append_text(_('Secondary Monitor ') + ++ctr);
+            }
+        }
+
+        let monitor = this.settings.get_int('preferred-monitor');
+        if (monitor < 0)
+            monitor = primaryMonitor;
+
+        if (monitor > gdkNMonitors - 1)
+            monitor = primaryMonitor;
+
+        dockMonitorCombo.set_active(monitor);
         dockMonitorCombo.connect('changed', Lang.bind (this, function(widget) {
             let active = widget.get_active();
-            if (active <=0)
-                this.settings.set_int('preferred-monitor', -1);
-            else
-                this.settings.set_int('preferred-monitor', active );
+            this.settings.set_int('preferred-monitor', active );
         }));
 
         // Add to layout

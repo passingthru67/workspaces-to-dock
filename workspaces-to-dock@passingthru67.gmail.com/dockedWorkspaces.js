@@ -2208,6 +2208,12 @@ const DockedWorkspaces = new Lang.Class({
 
     _onMonitorsChanged: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _onMonitorsChanged");
+
+        // Save the primary monitor to settings. This is needed by the prefs dialog
+        // because it cannot call main or global.screen for this info
+        this._settings.set_int('primary-monitor', Main.layoutManager.primaryIndex);
+
+        // Reset the dock position and redisplay
         this._resetPosition();
         this._redisplay();
         this._refreshThumbnailsOnRegionUpdate = true;
@@ -2235,7 +2241,7 @@ const DockedWorkspaces = new Lang.Class({
         let monitorIndex = this._settings.get_int('preferred-monitor');
         let monitor;
 
-        if (monitorIndex > 0 && monitorIndex < Main.layoutManager.monitors.length) {
+        if (monitorIndex > -1 && monitorIndex < Main.layoutManager.monitors.length) {
             monitor = Main.layoutManager.monitors[monitorIndex];
         } else {
             monitor = Main.layoutManager.primaryMonitor;
