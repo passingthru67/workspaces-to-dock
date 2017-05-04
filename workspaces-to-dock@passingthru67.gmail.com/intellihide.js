@@ -151,6 +151,11 @@ const Intellihide = new Lang.Class({
                 'size-change',
                 Lang.bind(this, this._onWindowSizeChange)
             ],
+            [
+                global.window_manager,
+                'size-changed',
+                Lang.bind(this, this._onWindowSizeChanged)
+            ],
             // Probably this is also included in restacked?
             [
                 global.window_manager,
@@ -372,6 +377,12 @@ const Intellihide = new Lang.Class({
     // handler for when window is resized
     _onWindowSizeChange: function() {
         if (_DEBUG_) global.log("intellihide: _onWindowSizeChange");
+        this._updateDockVisibility();
+    },
+
+    // handler for when window is resized
+    _onWindowSizeChanged: function() {
+        if (_DEBUG_) global.log("intellihide: _onWindowSizeChanged");
         this._updateDockVisibility();
     },
 
