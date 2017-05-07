@@ -562,7 +562,7 @@ const DockedWorkspaces = new Lang.Class({
             || (this._settings.get_boolean('intellihide') && this._settings.get_enum('intellihide-action') == IntellihideAction.SHOW_PARTIAL_FIXED)) {
                 Main.uiGroup.add_child(this._struts);
                 Main.layoutManager.uiGroup.set_child_below_sibling(this._struts, Main.layoutManager.modalDialogGroup);
-                Main.layoutManager._trackActor(this._struts, {affectsStruts: true});
+                Main.layoutManager._trackActor(this._struts, {affectsStruts: true, trackFullscreen: true});
                 // Force region update to update workspace area
                 Main.layoutManager._queueUpdateRegions();
         }
@@ -571,14 +571,13 @@ const DockedWorkspaces = new Lang.Class({
         // The public method trackChrome requires the actor to be child of a tracked actor. Since I don't want the parent
         // to be tracked I use the private internal _trackActor instead.
         Main.uiGroup.add_child(this.actor);
-        Main.layoutManager._trackActor(this._slider.actor, {trackFullscreen: true});
-
-        // Keep the dash below the modalDialogGroup
         Main.layoutManager.uiGroup.set_child_below_sibling(this.actor, Main.layoutManager.modalDialogGroup);
-
-        // pretend this._slider is isToplevel child so that fullscreen is actually tracked
-        let index = Main.layoutManager._findActor(this._slider.actor);
-        Main.layoutManager._trackedActors[index].isToplevel = true ;
+        if (this._settings.get_boolean('dock-fixed')
+            || (this._settings.get_boolean('intellihide') && this._settings.get_enum('intellihide-action') == IntellihideAction.SHOW_PARTIAL_FIXED)) {
+                Main.layoutManager._trackActor(this._slider.actor, {trackFullscreen: true});
+        } else {
+            Main.layoutManager._trackActor(this._slider.actor);
+        }
     },
 
     _initialize: function() {
