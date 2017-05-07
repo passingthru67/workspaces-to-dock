@@ -162,6 +162,11 @@ const Intellihide = new Lang.Class({
                 'switch-workspace',
                 Lang.bind(this, this._switchWorkspace)
             ],
+            [
+                global.screen,
+                'in-fullscreen-changed',
+                Lang.bind(this, this._onFullscreenChanged)
+            ],
             // trigggered for instance when a window is closed.
             [
                 global.screen,
@@ -383,6 +388,12 @@ const Intellihide = new Lang.Class({
     // handler for when window is resized
     _onWindowSizeChanged: function() {
         if (_DEBUG_) global.log("intellihide: _onWindowSizeChanged");
+        this._updateDockVisibility();
+    },
+
+    // handler for when monitor in fullscreen
+    _onFullscreenChanged: function() {
+        if (_DEBUG_) global.log("intellihide: _onFullscreenChanged");
         this._updateDockVisibility();
     },
 
@@ -864,7 +875,11 @@ const Intellihide = new Lang.Class({
                                     this._show();
                                 }
                             } else {
-                                this._show();
+                                if (this._settings.get_boolean('dock-fixed') && this._dock._monitor.inFullscreen) {
+                                    this._hide();
+                                } else {
+                                    this._show();
+                                }
                             }
                         }
                     }
