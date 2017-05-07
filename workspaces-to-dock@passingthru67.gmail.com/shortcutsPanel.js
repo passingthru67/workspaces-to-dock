@@ -942,6 +942,9 @@ const ShortcutsPanel = new Lang.Class({
         if (state == null)
             return;
 
+        // Deactive Apps button
+        this._appsButton.actor.reactive = state;
+
         // Deactivate favorites
         if (this._favoriteAppsBox) {
             let children = this._favoriteAppsBox.get_children();
