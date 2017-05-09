@@ -388,11 +388,6 @@ const Intellihide = new Lang.Class({
     // handler for when window is resized
     _onWindowSizeChanged: function() {
         if (_DEBUG_) global.log("intellihide: _onWindowSizeChanged");
-
-        // Update the thumbnails to reflect window size changes
-        this._dock._refreshThumbnailsOnRegionUpdate = true;
-        Main.layoutManager._queueUpdateRegions();
-
         this._updateDockVisibility();
     },
 
