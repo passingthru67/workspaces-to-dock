@@ -1,5 +1,6 @@
 const _DEBUG_ = false;
 
+const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 const Clutter = imports.gi.Clutter;
 const Lang = imports.lang;
@@ -663,6 +664,26 @@ const ThumbnailCaption = new Lang.Class({
 
     _onAfterWindowAdded: function(metaWorkspace, metaWin) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _onAfterWindowAdded");
+        this._doAfterWindowAdded(metaWin);
+    },
+
+    _doAfterWindowAdded: function(metaWin) {
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: _doAfterWindowAdded");
+        let win = metaWin.get_compositor_private();
+        if (!win) {
+            // Newly-created windows are added to a workspace before
+            // the compositor finds out about them...
+            let id = Mainloop.idle_add(Lang.bind(this,
+                                            function () {
+                                                if (this.actor &&
+                                                    metaWin.get_compositor_private())
+                                                    this._doAfterWindowAdded(metaWin);
+                                                return GLib.SOURCE_REMOVE;
+                                            }));
+            GLib.Source.set_name_by_id(id, '[gnome-shell] this._doAfterWindowAdded');
+            return;
+        }
+
         this._thumbnail._thumbnailsBox.updateTaskbars(metaWin, WindowAppsUpdateAction.ADD);
     },
 
