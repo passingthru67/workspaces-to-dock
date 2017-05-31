@@ -301,6 +301,12 @@ const WorkspaceSwitcher = new Lang.Class({
             case Clutter.ScrollDirection.DOWN:
                 ws = activeWs.get_neighbor(Meta.MotionDirection.RIGHT);
                 break;
+            case Clutter.ScrollDirection.LEFT:
+                ws = activeWs.get_neighbor(Meta.MotionDirection.LEFT);
+                break;
+            case Clutter.ScrollDirection.RIGHT:
+                ws = activeWs.get_neighbor(Meta.MotionDirection.RIGHT);
+                break;
             default:
                 return Clutter.EVENT_PROPAGATE;
             }
