@@ -735,6 +735,11 @@ const DockedWorkspaces = new Lang.Class({
 
             let spacing = Main.overview._controls.actor.get_theme_node().get_length('spacing');
             let monitors = Main.layoutManager.monitors;
+
+            // Get thumbnails monitor index
+            let preferredMonitorIndex = self._settings.get_int('preferred-monitor');
+            let thumbnailsMonitorIndex = (Main.layoutManager.primaryIndex + preferredMonitorIndex) % Main.layoutManager.monitors.length ;
+
             for (let i = 0; i < monitors.length; i++) {
                 let geometry = { x: monitors[i].x, y: monitors[i].y, width: monitors[i].width, height: monitors[i].height };
 
@@ -771,10 +776,6 @@ const DockedWorkspaces = new Lang.Class({
                 // Adjust width for workspaces thumbnails
                 let thumbnailsWidth = 0;
                 let thumbnailsHeight = 0;
-                let thumbnailsMonitorIndex = self._settings.get_int('preferred-monitor');
-                if (thumbnailsMonitorIndex < 0 || thumbnailsMonitorIndex >= Main.layoutManager.monitors.length) {
-                    thumbnailsMonitorIndex = this._primaryIndex;
-                }
                 if (i == thumbnailsMonitorIndex) {
                     let overviewAction = self._settings.get_enum('overview-action');
                     let visibleEdge = self._triggerWidth;
@@ -2218,10 +2219,6 @@ const DockedWorkspaces = new Lang.Class({
     _onMonitorsChanged: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _onMonitorsChanged");
 
-        // Save the primary monitor to settings. This is needed by the prefs dialog
-        // because it cannot call main or global.screen for this info
-        this._settings.set_int('primary-monitor', Main.layoutManager.primaryIndex);
-
         // Reset the dock position and redisplay
         this._resetPosition();
         this._redisplay();
@@ -2247,14 +2244,14 @@ const DockedWorkspaces = new Lang.Class({
 
     // Retrieve the preferred monitor
     _getMonitor: function() {
-        let monitorIndex = this._settings.get_int('preferred-monitor');
-        let monitor;
-
-        if (monitorIndex > -1 && monitorIndex < Main.layoutManager.monitors.length) {
-            monitor = Main.layoutManager.monitors[monitorIndex];
-        } else {
-            monitor = Main.layoutManager.primaryMonitor;
-        }
+        if (_DEBUG_) global.log("dockedWorkspaces: _getMonitor");
+        // We are using Gdk in settings prefs which sets the primary monitor to 0
+        // The shell can assign a different number (Main.layoutManager.primaryMonitor)
+        // This ensures that the indexing in the settings (Gdk) and in the shell are matched,
+        // i.e. that we start counting from the primaryMonitorIndex
+        let preferredMonitorIndex = this._settings.get_int('preferred-monitor');
+        let monitorIndex = (Main.layoutManager.primaryIndex + preferredMonitorIndex) % Main.layoutManager.monitors.length ;
+        let monitor = Main.layoutManager.monitors[monitorIndex];
 
         return monitor;
     },

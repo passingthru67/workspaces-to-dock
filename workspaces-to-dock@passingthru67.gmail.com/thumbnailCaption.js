@@ -156,13 +156,9 @@ const TaskbarIcon = new Lang.Class({
         let y = buttonStageY - labelHeight;
 
         // Get monitor screen info
-        let monitorIndex = this._mySettings.get_int('preferred-monitor');
-        let monitor;
-        if (monitorIndex > 0 && monitorIndex < Main.layoutManager.monitors.length) {
-            monitor = Main.layoutManager.monitors[monitorIndex];
-        } else {
-            monitor = Main.layoutManager.primaryMonitor;
-        }
+        let preferredMonitorIndex = this._mySettings.get_int('preferred-monitor');
+        let monitorIndex = (Main.layoutManager.primaryIndex + preferredMonitorIndex) % Main.layoutManager.monitors.length ;
+        let monitor = Main.layoutManager.monitors[monitorIndex];
 
         // Check that tooltip is not off screen
         // Correct tooltip position if necessary

@@ -65,34 +65,39 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
         /* MONITOR WIDGETS */
 
+        this._monitors = [];
         let dockMonitorLabel = new Gtk.Label({label: _("Show the dock on the following monitor (if attached)"), hexpand:true, xalign:0});
         let dockMonitorCombo = new Gtk.ComboBoxText({halign:Gtk.Align.END});
         let gdkNMonitors = Gdk.Screen.get_default().get_n_monitors();
-        let primaryMonitor = this.settings.get_int('primary-monitor');
-        // NOTE: we don't use gdk to get the primary monitor here because the
-        // gdk primary monitor differs from the global screen primary monitor
+        let gdkPrimaryMonitor = Gdk.Screen.get_default().get_primary_monitor();
+        // NOTE: we use gdk to get the primary monitor here which is always 0
+
+        // Add primary monitor
+        dockMonitorCombo.append_text(_('Primary Monitor'));
+        this._monitors.push(0);
 
         // Add connected monitors
         let ctr = 0;
         for (let i = 0; i < gdkNMonitors; i++) {
-            if (i == primaryMonitor) {
-                dockMonitorCombo.append_text(_('Primary Monitor '));
-            } else {
-                dockMonitorCombo.append_text(_('Secondary Monitor ') + ++ctr);
+            if (i !== gdkPrimaryMonitor) {
+                ctr++;
+                this._monitors.push(ctr);
+                dockMonitorCombo.append_text(_('Secondary Monitor ') + ctr);
             }
         }
 
         let monitor = this.settings.get_int('preferred-monitor');
-        if (monitor < 0)
-            monitor = primaryMonitor;
 
-        if (monitor > gdkNMonitors - 1)
-            monitor = primaryMonitor;
+        // If one of the external monitor is set as preferred, show it even if not attached
+        if ((monitor >= gdkNMonitors) && (monitor !== gdkPrimaryMonitor)) {
+            this._monitors.push(monitor)
+            dockMonitorCombo.append_text(_('Secondary Monitor ') + ++ctr);
+        }
 
-        dockMonitorCombo.set_active(monitor);
+        dockMonitorCombo.set_active(this._monitors.indexOf(monitor));
         dockMonitorCombo.connect('changed', Lang.bind (this, function(widget) {
-            let active = widget.get_active();
-            this.settings.set_int('preferred-monitor', active );
+            let active = this._monitors[widget.get_active()];
+            this.settings.set_int('preferred-monitor', active);
         }));
 
         // Add to layout
