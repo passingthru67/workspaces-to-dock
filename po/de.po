@@ -1,292 +1,503 @@
+# Translation template for Workspaces-To-Dock.
+# This file is distributed under the same license as the workspaces-to-dock package.
+#
+#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Workspaces-To-Dock\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-10-27 21:00+0100\n"
-"PO-Revision-Date: \n"
+"PO-Revision-Date: 2017-06-14 12:15-0400\n"
 "Last-Translator: Jonatan Zeidler <jonatan_zeidler@gmx.de>\n"
 "Language-Team: German <jonatan_zeidler@gmx.de>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.5.4\n"
-"Language: de\n"
-"X-Poedit-SourceCharset: UTF-8\n"
 
-#: prefs.js:47
+#: dockedWorkspaces.js:1932 extension.js:52
+msgid "No Workspaces-To-Dock stylesheet found"
+msgstr ""
+
+#: placeDisplay.js:65
+#, javascript-format
+msgid "Failed to launch \"%s\""
+msgstr ""
+
+#: placeDisplay.js:125
+msgid "Home"
+msgstr ""
+
+#: prefs.js:49
+msgid "General"
+msgstr ""
+
+#: prefs.js:58
+msgid "<b>Position</b>"
+msgstr ""
+
+#: prefs.js:69
+msgid "Show the dock on the following monitor (if attached)"
+msgstr ""
+
+#: prefs.js:76
+msgid "Primary Monitor"
+msgstr ""
+
+#: prefs.js:85 prefs.js:94
+msgid "Secondary Monitor "
+msgstr ""
+
+#: prefs.js:116
+msgid "Show the dock at the following screen position"
+msgstr ""
+
+#: prefs.js:120 prefs.js:1356
+msgid "Top"
+msgstr ""
+
+#: prefs.js:123 prefs.js:133
+msgid "Left"
+msgstr ""
+
+#: prefs.js:125 prefs.js:131
+msgid "Right"
+msgstr ""
+
+#: prefs.js:128 prefs.js:1355
+msgid "Bottom"
+msgstr ""
+
+#: prefs.js:143
+msgid "Hide the Gnome Shell Dash"
+msgstr ""
+
+#: prefs.js:153
+msgid "Use horizontal switching when the dock is positioned horizontally"
+msgstr ""
+
+#: prefs.js:178
+msgid "<b>Height (Width when positioned horizontally)</b>"
+msgstr "<b>Höhe</b>"
+
+#: prefs.js:189
+msgid "Customize the height (width) of the dock"
+msgstr ""
+
+#: prefs.js:203
+msgid "Autosize and center the dock based on workspaces and shortcuts"
+msgstr ""
+
+#: prefs.js:211
+msgid "Extend the height (width) of the dock to fill the screen"
+msgstr "Die Höhe auf die Bildschirmhöhe ausdehnen"
+
+#: prefs.js:232
+msgid "Top margin (Left when positioned horizontally)"
+msgstr "Oberer Rand"
+
+#: prefs.js:255
+msgid "Bottom margin (Right when positioned horizontally)"
+msgstr "Unterer Rand"
+
+#: prefs.js:306
+msgid "<b>Background</b>"
+msgstr ""
+
+#: prefs.js:317
+msgid "Customize the dock background opacity"
+msgstr ""
+
+#: prefs.js:331
+msgid "Opacity"
+msgstr ""
+
+#: prefs.js:374
+msgid "Toggle Gnome Shell's overview mode with right click"
+msgstr "Mit Rechtsklick zur Übersicht wechseln"
+
+#: prefs.js:386
+msgid "Prevent multiple workspace switching when using touchpad to scroll"
+msgstr ""
+
+#: prefs.js:423
 msgid "Behavior"
 msgstr "Verhalten"
 
-#: prefs.js:56
-msgid "<b>Visibility</b>"
-msgstr "<b>Sichtbarkeit</b>"
+#: prefs.js:432
+msgid "<b>Intelligent Hiding</b>"
+msgstr ""
 
-#: prefs.js:67
-msgid "Dock is fixed and always visible"
+#: prefs.js:443
+msgid "Dock is fixed and always visible. Turn off intelligent hiding"
 msgstr "Die Dock hat eine feste Position und ist immer sichtbar"
 
-#: prefs.js:105
+#: prefs.js:483
+msgid "<b>Timing</b> : Adjust animation, show delay, and hide delay timing"
+msgstr ""
+
+#: prefs.js:491
+msgid "Timing Options .."
+msgstr ""
+
+#: prefs.js:496
+msgid "Timing Options"
+msgstr ""
+
+#: prefs.js:505
 msgid "Animation time [ms]"
 msgstr "Animationsdauer [ms]"
 
-#: prefs.js:126
+#: prefs.js:527
 msgid "Show delay [ms]"
 msgstr "Einblendeverzögerung [ms]"
 
-#: prefs.js:145
+#: prefs.js:546
 msgid "Hide delay [ms]"
 msgstr "Ausblendeverzögerung [ms]"
 
-#: prefs.js:164
-msgid "Leave the dock edge visible when slid out"
-msgstr "Dock-Kante sichtbar lassen beim Ausblenden"
-
-#: prefs.js:174
-msgid "Disable scroll to prevent workspace switching when slid out"
-msgstr ""
-"Scrollen deaktivieren, um versehentliches Wechseln der Arbeitsfläche zu "
-"verhindern"
-
-#: prefs.js:203
+#: prefs.js:607
 msgid "<b>Autohide</b> : Show the dock on mouse hover"
 msgstr "<b>Autoverstecken</b>: Dock bei Mausberührung anzeigen"
 
-#: prefs.js:220
+#: prefs.js:624
+msgid "Autohide Options .."
+msgstr ""
+
+#: prefs.js:629
+msgid "Autohide Options"
+msgstr ""
+
+#: prefs.js:638
 msgid "Require click to show the dock when window maximized"
 msgstr ""
 "Mit der Maus drüberfahren und klicken, um Dock anzuzeigen, wenn Fenster "
 "maximiert ist"
 
-#: prefs.js:230
+#: prefs.js:648
 msgid "Require pressure to show the dock"
 msgstr "Dock nur anzeigen bei Druck durch die Maus "
 
-#: prefs.js:240
+#: prefs.js:658
 msgid "Pressure threshold [px]"
 msgstr "Druckschwelle [px]"
 
-#: prefs.js:288
+#: prefs.js:680
+msgid "Limit pressure sense to slow mouse speeds"
+msgstr ""
+
+#: prefs.js:690
+msgid "Maximum speed [px]"
+msgstr ""
+
+#: prefs.js:712
+msgid ""
+"NOTE: For dual monitor setups. Allows the mouse to pass through \n"
+"the barrier by attacking the edge of the screen with a quick stroke."
+msgstr ""
+
+#: prefs.js:780
 msgid "<b>Intellihide</b> : Show the dock unless a window overlaps"
 msgstr ""
 "<b>Intelligentes Verstecken</b>: Dock anzeigen, solange kein Fenster im Weg "
 "ist"
 
-#: prefs.js:305
+#: prefs.js:797
+msgid "Intellihide Dodging Options .."
+msgstr ""
+
+#: prefs.js:802
+msgid "Intellihide Options"
+msgstr ""
+
+#: prefs.js:811
 msgid "Dodge all windows"
 msgstr "Allen Fenstern ausweichen"
 
-#: prefs.js:313
+#: prefs.js:819
 msgid "Dodge all instances of focused app"
 msgstr "Allen Fenstern des fokusierten Programms ausweichen"
 
-#: prefs.js:322
+#: prefs.js:828
 msgid "Dodge only top instance of focused app"
 msgstr "Nur dem aktuell fokusiertem Fenster ausweichen"
 
-#: prefs.js:346
+#: prefs.js:852
 msgid "Ignore top panel menus"
 msgstr "Menüs der oberen Leiste ignorieren"
 
-#: prefs.js:356
-msgid "Ignore message tray menus + shift dock upward when tray is shown"
+#: prefs.js:862
+msgid "Ignore application context menus"
 msgstr ""
-"Menüs der Benachrichtigungsleiste ignorieren, aber Dock bei sichtbarer "
-"Leiste nach oben schieben"
 
-#: prefs.js:393
-msgid "<b>Custom Actions</b>"
-msgstr "<b>Aktionen anpassen</b>"
-
-#: prefs.js:403
-msgid "Toggle Gnome Shell's overview mode with right click"
-msgstr "Mit Rechtsklick zur Übersicht wechseln"
-
-#: prefs.js:430
-msgid "Toggle the dock with a keyboard shortcut"
-msgstr "Das Dock mit einem Tastenkürzel öffnen"
-
-#: prefs.js:453
-msgid "Invalid accelerator. Try F12, <Super>space, <Ctrl><Alt><Shift>w, etc."
+#: prefs.js:900
+msgid "What should we do with the dock when not dodging windows?"
 msgstr ""
-"Ungültige Unterstützungstaste. Möglich sind F12, <Super>Leertaste, "
-"<Strg><Alt><Shift>w, etc."
 
-#: prefs.js:505
-msgid "Appearance"
-msgstr "Erscheinungsbild"
+#: prefs.js:907 prefs.js:960
+msgid "Show Full"
+msgstr ""
 
-#: prefs.js:514
-msgid "<b>Background</b>"
-msgstr "<b>Hintergrund</b>"
+#: prefs.js:908 prefs.js:962
+msgid "Show Partial"
+msgstr ""
 
-#: prefs.js:525
-msgid "Customize the dock background opacity"
-msgstr "Dock-Hintergrundtransparenz anpassen"
+#: prefs.js:909
+msgid "Show Partial Fixed"
+msgstr ""
 
-#: prefs.js:539
-msgid "Opacity"
-msgstr "Transparenz"
+#: prefs.js:953
+msgid "What should we do with the dock in overview mode?"
+msgstr ""
 
-#: prefs.js:560
-msgid "Only when the dock is shown by autohide"
-msgstr "Nur im Autoverstecken-Modus"
+#: prefs.js:961
+msgid "Hide"
+msgstr ""
 
-#: prefs.js:592
-msgid "<b>Position</b>"
-msgstr "<b>Position</b>"
+#: prefs.js:981
+msgid ""
+"NOTE: Please see documentation for an explanation of the 'Show Partial' "
+"option."
+msgstr ""
 
-#: prefs.js:602
-msgid "Show the dock on the following monitor (if attached)"
-msgstr "Zeige Dock auf folgendem Monitor (falls angeschlossen)"
+#: prefs.js:996
+msgid "<b>Miscellaneous</b> : Uncategorized options that affect behavior"
+msgstr ""
 
-#: prefs.js:604
-msgid "Primary (default)"
-msgstr "Hauptmonitor (Vorgabe)"
+#: prefs.js:1009
+msgid "Miscellaneous Options .."
+msgstr ""
 
-#: prefs.js:605
-msgid "1"
-msgstr "1"
+#: prefs.js:1014
+msgid "Miscellaneous Options"
+msgstr ""
 
-#: prefs.js:606
-msgid "2"
-msgstr "2"
-
-#: prefs.js:607
-msgid "3"
-msgstr "3"
-
-#: prefs.js:608
-msgid "4"
-msgstr "4"
-
-#: prefs.js:636
-msgid "<b>Height</b>"
-msgstr "<b>Höhe</b>"
-
-#: prefs.js:647
-msgid "Extend the height of the dock to fill the screen"
-msgstr "Die Höhe auf die Bildschirmhöhe ausdehnen"
-
-#: prefs.js:661
-msgid "Top margin"
-msgstr "Oberer Rand"
-
-#: prefs.js:684
-msgid "Bottom margin"
-msgstr "Unterer Rand"
-
-#: prefs.js:733
-msgid "<b>Thumbnails</b>"
-msgstr "<b>Vorschaubilder</b>"
-
-#: prefs.js:744
-msgid "Customize the workspace thumbnail size"
-msgstr "Die Bildgröße der Arbeitsflächenvorschau festlegen"
-
-#: prefs.js:758
-msgid "Thumbnail size"
-msgstr "Vorschaubildgröße"
-
-#: prefs.js:829
-msgid "Additional"
-msgstr "Weitere"
-
-#: prefs.js:838
-msgid "<b>Workspace Captions</b>"
-msgstr "<b>Arbeitsflächenbeschriftungen</b>"
-
-#: prefs.js:858
-msgid "Add captions to workspace thumbnails"
-msgstr "Beschriftung auf Arbeitsflächenvorschau anzeigen"
-
-#: prefs.js:874
-msgid "Caption height [px]"
-msgstr "Höhe der Beschriftung [px]"
-
-#: prefs.js:895
-msgid "Taskbar icon size [px]"
-msgstr "Größe der Programmsymbole [px]"
-
-#: prefs.js:917
-msgid "Caption menu tasklist icon size [px]"
-msgstr "Symbolgröße der Menübeschriftungen der Anwendungenliste [px]"
-
-#: prefs.js:939
-msgid "Show workspace number"
-msgstr "Arbeitsflächennummer"
-
-#: prefs.js:951 prefs.js:992 prefs.js:1042 prefs.js:1083 prefs.js:1124
-msgid "Expand"
-msgstr "Ausdehnen"
-
-#: prefs.js:979
-msgid "Show workspace name"
-msgstr "Arbeitsflächennamen"
-
-#: prefs.js:1019
-msgid "Show workspace window count"
-msgstr "Fensteranzahl"
+#: prefs.js:1023
+msgid "Leave a visible edge when dock is hidden"
+msgstr "Dock-Kante sichtbar lassen beim Ausblenden"
 
 #: prefs.js:1033
-msgid "Use image"
-msgstr "Nutze Bild"
+msgid "Disable scroll when dock is hidden to prevent workspace switching"
+msgstr ""
+"Scrollen deaktivieren, um versehentliches Wechseln der Arbeitsfläche zu "
+"verhindern"
 
-#: prefs.js:1070
-msgid "Show workspace taskbar (apps)"
-msgstr "Zeige Arbeitsflächen-Task-Leiste (Programmsymbole)"
 
-#: prefs.js:1110
-msgid "Show a spacer/filler"
-msgstr "Platzhalter"
-
-#: prefs.js:1246
-msgid "<b>Dash Integration</b>"
-msgstr "<b>Dash-Integration</b>"
-
-#: prefs.js:1256
+#: prefs.js:1043
 msgid "Show the dock when hovering over Dash-To-Dock extension"
 msgstr ""
 "Zeige Arbeitsflächen, wenn sich die Maus über der Dash-To-Dock-Erweiterung "
 "befindet"
 
-#: prefs.js:1282
-msgid "Show a favorites shortcut panel (experimental)"
-msgstr "Favoritenleiste anzeigen (experimentell)"
 
-#: prefs.js:1296
+#: prefs.js:1053
+msgid "Show the dock temporarily when switching workspaces"
+msgstr ""
+
+#: prefs.js:1063
+msgid "Length of time shown [ms]"
+msgstr ""
+
+#: prefs.js:1085
+msgid "Toggle the dock with a keyboard shortcut"
+msgstr ""
+
+#: prefs.js:1095
+msgid "Keyboard shortcut"
+msgstr ""
+
+#: prefs.js:1120
+msgid "Invalid accelerator. Try F12, <Super>space, <Ctrl><Alt><Shift>w, etc."
+msgstr ""
+
+#: prefs.js:1182
+msgid "Thumbnails"
+msgstr "Vorschaubilder"
+
+#: prefs.js:1191
+msgid "<b>Thumbnail Size</b>"
+msgstr ""
+
+#: prefs.js:1202
+msgid "Customize the workspace thumbnail size"
+msgstr "Die Bildgröße der Arbeitsflächenvorschau festlegen"
+
+#: prefs.js:1216
+msgid "Thumbnail size"
+msgstr "Vorschaubildgröße"
+
+#: prefs.js:1260
+msgid "Customize the visible width (height) for intellihide show-partial"
+msgstr ""
+
+#: prefs.js:1274
+msgid "Visible width (height when positioned horizontally)"
+msgstr ""
+
+#: prefs.js:1318
+msgid "<b>Thumbnail Captions</b>"
+msgstr "<b>Arbeitsflächenbeschriftungen</b>"
+
+#: prefs.js:1338
+msgid "Add captions to workspace thumbnails"
+msgstr "Beschriftung auf Arbeitsflächenvorschau anzeigen"
+
+#: prefs.js:1353
+msgid "Show the caption at the following position"
+msgstr ""
+
+#: prefs.js:1366
+msgid "Caption height [px]"
+msgstr "Höhe der Beschriftung [px]"
+
+#: prefs.js:1387
+msgid "Show Taskbar tooltips"
+msgstr ""
+
+#: prefs.js:1399
+msgid "Taskbar icon size [px]"
+msgstr "Größe der Programmsymbole [px]"
+
+#: prefs.js:1421
+msgid "Caption popup menu icon size [px]"
+msgstr ""
+
+#: prefs.js:1446
+msgid "<b>Caption Items</b> : Customize the items on the caption"
+msgstr ""
+
+#: prefs.js:1455
+msgid "Caption Items .."
+msgstr ""
+
+#: prefs.js:1460
+msgid "Caption Items"
+msgstr ""
+
+#: prefs.js:1470
+msgid "Show workspace number"
+msgstr "Arbeitsflächennummer"
+
+#: prefs.js:1482 prefs.js:1523 prefs.js:1573 prefs.js:1614 prefs.js:1655
+msgid "Expand"
+msgstr "Ausdehnen"
+
+#: prefs.js:1510
+msgid "Show workspace name"
+msgstr "Arbeitsflächennamen"
+
+#: prefs.js:1550
+msgid "Show workspace window count"
+msgstr "Fensteranzahl"
+
+#: prefs.js:1564
+msgid "Use image"
+msgstr "Nutze Bild"
+
+#: prefs.js:1601
+msgid "Show workspace taskbar (apps)"
+msgstr "Zeige Arbeitsflächen-Task-Leiste (Programmsymbole)"
+
+#: prefs.js:1641
+msgid "Show a spacer/filler"
+msgstr "Platzhalter"
+
+#: prefs.js:1780 prefs.js:1932
+msgid "<b>Miscellaneous Options</b>"
+msgstr ""
+
+#: prefs.js:1790
+msgid "Hide the favorite shortcuts panel when a popup menu is shown"
+msgstr ""
+
+#: prefs.js:1800
+msgid ""
+"NOTE: Only applies when the shortcuts panel is set to inside orientation"
+msgstr ""
+
+#: prefs.js:1843
+msgid "Favorites"
+msgstr ""
+
+#: prefs.js:1852
+msgid "<b>Favorite Shortcuts Panel</b>"
+msgstr ""
+
+#: prefs.js:1863
+msgid "Show a favorite shortcuts panel"
+msgstr "Favoritenleiste anzeigen"
+
+#: prefs.js:1878
+msgid "Shortcuts panel orientation in reference to the thumbnails"
+msgstr ""
+
+#: prefs.js:1885
+msgid "Outside"
+msgstr ""
+
+#: prefs.js:1886
+msgid "Inside"
+msgstr ""
+
+#: prefs.js:1898
 msgid "Shortcuts panel icon size [px]"
 msgstr "Symbolgröße der Favoritenleiste [px]"
 
-#: prefs.js:1317
+#: prefs.js:1919
+msgid "Use the Apps button as the source of the swarm animation"
+msgstr ""
+
+#: prefs.js:1943
 msgid "Show running applications"
 msgstr "Laufende Anwendungen anzeigen"
 
-#: prefs.js:1327
+#: prefs.js:1953
 msgid "Show places"
 msgstr "Orte anzeigen"
 
-#: prefs.js:1337
-msgid "Show the applications button at the bottom"
+#: prefs.js:1963
+msgid "Show application window count indicators"
+msgstr ""
+
+#: prefs.js:1973
+msgid "Set the Apps button at the bottom"
 msgstr "Anwendungenknopf unten anzeigen"
 
-#: prefs.js:1347
-msgid "Show the shortcut button popup menu arrow at the top"
+#: prefs.js:1983
+msgid "Set the menu context arrow at the top of the popup menu dialog"
 msgstr "Favoritenknopf-Aufklappmenü-Pfeil oben anzeigen"
 
-#: prefs.js:1357
-msgid "Hide thumbnails when the shortcut button popup menu is shown"
+#: prefs.js:1993
+msgid "Hide thumbnails when a popup menu dialog is shown"
 msgstr ""
 "Vorschaubilder ausblenden, wenn das Favoritenknopf-Aufklappmenü angezeigt "
 "wird"
 
-#~ msgid "Unknown version number"
-#~ msgstr "Unbekannte Versionsnummer"
 
-#~ msgid "User theme supports workspaces-to-dock captions"
-#~ msgstr "Nutzerthema unterstützt workspaces-to-dock-Beschriftungen"
+#: prefs.js:2003
+msgid ""
+"NOTE: Only applies when the shortcuts panel is set to outside orientation"
+msgstr ""
 
-#~ msgid "Large icons"
-#~ msgstr "Große Symbole"
+#: shortcutsPanel.js:129 thumbnailCaption.js:541 thumbnailCaption.js:757
+msgid "Extension Preferences"
+msgstr ""
 
-#~ msgid "Extension preferences"
-#~ msgstr "Erweiterungseinstellungen"
+#: shortcutsPanel.js:166
+msgid "New Window"
+msgstr ""
+
+#: shortcutsPanel.js:191
+msgid "Remove from Favorites"
+msgstr ""
+
+#: shortcutsPanel.js:197
+msgid "Add to Favorites"
+msgstr ""
+
+#: shortcutsPanel.js:207
+msgid "Show Details"
+msgstr ""
+
+#: thumbnailCaption.js:750
+msgid "Close All Applications"
+msgstr ""

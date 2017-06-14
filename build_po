@@ -1,53 +1,11 @@
 #!/bin/bash
 # ===========================================================
-# This script creates the en_US.po file from the extension
+# This script creates the en_US.txt file from the extension
 # javascript files containing GetText
 # ===========================================================
-#    grep -P -o '_\(.*?\)' prefs.js |
-#    sed 's/_(/msgid /' |
-#    sed 's/)/\nmsgstr \n/'
-#
-# EXPLANATION: Find matching pattern _(.*?). Then substitute _( with msgid, and
-# substitute ) with newline+msgstr
-#
-# NOTE: To get .*? lazy (non-greedy) modifier to work, you need to use
-# perl syntax with grep. So grep -P would work but grep -E, which is same
-# as egrep, would not work (it would be greedy)
-# ===========================================================
-# NOTE2: Requires adjusting lines with parenthesis
-# Remove duplicates of Miscellaneous Options, Extension Preferences
-# Remove duplicates of Right, Left
-# ===========================================================
 
-#root_dir=`dirname "${PWD}"`
 root_dir=${PWD}
 files_dir=$root_dir/workspaces-to-dock@passingthru67.gmail.com
 output=$root_dir/po/en_US.txt
-app="Workspaces-To-Dock"
-echo "
-msgid \"\"
-msgstr \"\"
-\"Project-Id-Version: $app\n\"
-\"Report-Msgid-Bugs-To: \n\"
-\"POT-Creation-Date: \n\"
-\"PO-Revision-Date: $(date +'%F %T%z')\n\"
-\"Last-Translator: \n\"
-\"Language-Team: \n\"
-\"Language: en_US\n\"
-\"MIME-Version: 1.0\n\"
-\"Content-Type: text/plain; charset=UTF-8\n\"
-\"Content-Transfer-Encoding: 8bit\n\"
-" > "$output"
-
-FILES=$(ls "$files_dir" | grep js)
-for F in $FILES
-do
-    printf "\n#: $F\n\n" >> "$output"
-    cat "$files_dir/$F" |
-    grep -P -o '_\(.*?\)' |
-    sed "s/_('/_(\"/" |
-    sed "s/')/\")/" |
-    sed "s/_(/msgid /" |
-    sed 's/)/\nmsgstr ""\n/' >> "$output"
-done
-
+cd "$files_dir/"
+xgettext -o "$output" *.js
