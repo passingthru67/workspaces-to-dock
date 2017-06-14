@@ -973,16 +973,19 @@ const ThumbnailCaption = new Lang.Class({
             return;
 
         this._wsCaptionBackground.set_scale(unscale, unscale);
+
+        // ISSUE: Gnome uses monitor screen to create background actor
+        // passingthru67: Reposition background to match workspace desktop porthole
+        let px = this._thumbnail._thumbnailsBox._porthole.x - Main.layoutManager.monitors[this._thumbnail.monitorIndex].x;
+        let py = this._thumbnail._thumbnailsBox._porthole.y - Main.layoutManager.monitors[this._thumbnail.monitorIndex].y;
         if (this._mySettings.get_enum('workspace-caption-position') == CaptionPosition.TOP) {
             this._wsCaptionBackground.set_position(0, 0);
-            // ISSUE: Gnome uses monitor screen to create background actor
-            // passingthru67: Reposition background to match workspace desktop porthole
-            this._thumbnail._bgManager.backgroundActor.set_size(this._thumbnail._thumbnailsBox._porthole.width, this._thumbnail._thumbnailsBox._porthole.height);
-            this._thumbnail._bgManager.backgroundActor.set_position(this._thumbnail._thumbnailsBox._porthole.x, this._thumbnail._thumbnailsBox._porthole.y);
-            this._thumbnail._contents.set_position(0, captionBackgroundHeight * unscale - this._thumbnail._thumbnailsBox._porthole.y);
+            this._thumbnail._contents.set_position(-this._thumbnail._thumbnailsBox._porthole.x, -this._thumbnail._thumbnailsBox._porthole.y + (captionBackgroundHeight * unscale));
         } else {
             this._wsCaptionBackground.set_position(0, this._thumbnail._thumbnailsBox._porthole.height);
+            this._thumbnail._contents.set_position(-this._thumbnail._thumbnailsBox._porthole.x, -this._thumbnail._thumbnailsBox._porthole.y);
         }
+        this._thumbnail._bgManager.backgroundActor.set_clip(px, py, this._thumbnail._thumbnailsBox._porthole.width, this._thumbnail._thumbnailsBox._porthole.height);
         this._wsCaptionBackground.set_size(containerWidth, captionBackgroundHeight);
 
         if (!this.actor)
