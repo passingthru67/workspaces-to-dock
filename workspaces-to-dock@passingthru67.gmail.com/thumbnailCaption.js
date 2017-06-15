@@ -78,6 +78,7 @@ const TaskbarIcon = new Lang.Class({
         this.actor._delegate = this;
 
         // this._tooltipText = this._app.get_name();
+        this._tooltipHoverTimeoutId = 0;
         this._tooltipText = this._metaWin.title;
         this.tooltip = new St.Label({ style_class: 'dash-label workspacestodock-caption-windowapps-button-tooltip'});
         this.tooltip.hide();
@@ -140,6 +141,11 @@ const TaskbarIcon = new Lang.Class({
     },
 
     showTooltip: function() {
+        if (this._tooltipHoverTimeoutId > 0) {
+            Mainloop.source_remove(this._tooltipHoverTimeoutId);
+            this._tooltipHoverTimeoutId = 0;
+        }
+
         if (!this._tooltipText)
             return;
 
