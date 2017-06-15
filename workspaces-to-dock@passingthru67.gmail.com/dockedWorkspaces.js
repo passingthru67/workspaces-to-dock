@@ -464,35 +464,17 @@ const DockedWorkspaces = new Lang.Class({
             if (DashToDockExtension.state == ExtensionSystem.ExtensionState.ENABLED) {
                 if (_DEBUG_) global.log("dockeWorkspaces: init - DashToDock extension is installed and enabled");
                 DashToDock = DashToDockExtension.imports.extension;
-                if (DashToDock && DashToDock.dock) {
-                    var keys = DashToDock.dock._settings.list_keys();
-                    if (keys.indexOf('dock-position') > -1) {
+                if (DashToDock) {
+                    DashToDockExtension.hasDockPositionKey = false;
+                    if (DashToDock.dockManager) {
                         DashToDockExtension.hasDockPositionKey = true;
+                    } else {
+                        var keys = DashToDock.dock._settings.list_keys();
+                        if (keys.indexOf('dock-position') > -1) {
+                            DashToDockExtension.hasDockPositionKey = true;
+                        }
                     }
-                    // Connect DashToDock hover signal
-                    this._signalHandler.pushWithLabel(
-                        'DashToDockHoverSignal',
-                        [
-                            DashToDock.dock._box,
-                            'notify::hover',
-                            Lang.bind(this, this._onDashToDockHoverChanged)
-                        ],
-                        [
-                            DashToDock.dock._box,
-                            'leave-event',
-                            Lang.bind(this, this._onDashToDockLeave)
-                        ],
-                        [
-                            DashToDock.dock,
-                            'showing',
-                            Lang.bind(this, this._onDashToDockShowing)
-                        ],
-                        [
-                            DashToDock.dock,
-                            'hiding',
-                            Lang.bind(this, this._onDashToDockHiding)
-                        ]
-                    );
+                    this._connectDashToDockSignals();
                 }
             }
         }
@@ -736,34 +718,70 @@ const DockedWorkspaces = new Lang.Class({
             let spacing = Main.overview._controls.actor.get_theme_node().get_length('spacing');
             let monitors = Main.layoutManager.monitors;
 
-            // Get thumbnails monitor index
-            let preferredMonitorIndex = self._settings.get_int('preferred-monitor');
-            let thumbnailsMonitorIndex = (Main.layoutManager.primaryIndex + preferredMonitorIndex) % Main.layoutManager.monitors.length ;
-
-            for (let i = 0; i < monitors.length; i++) {
-                let geometry = { x: monitors[i].x, y: monitors[i].y, width: monitors[i].width, height: monitors[i].height };
-
-                // Adjust width for dash
-                let dashWidth = 0;
-                let dashHeight = 0;
-                let dashMonitorIndex;
-                if (DashToDock && DashToDock.dock) {
+            // Get Dash monitor index
+            let dashMonitorIndex = this._primaryIndex;
+            let dashMultiMonitor = false;
+            if (DashToDock) {
+                if (DashToDock.dockManager) {
+                    dashMonitorIndex = DashToDock.dockManager._preferredMonitorIndex;
+                    dashMultiMonitor = DashToDock.dockManager._settings.get_boolean('multi-monitor');
+                } else {
                     dashMonitorIndex = DashToDock.dock._settings.get_int('preferred-monitor');
                     if (dashMonitorIndex < 0 || dashMonitorIndex >= Main.layoutManager.monitors.length) {
                         dashMonitorIndex = this._primaryIndex;
                     }
-                    if (i == dashMonitorIndex) {
-                        if (DashToDockExtension.hasDockPositionKey)  {
-                            if (DashToDock.dock._position == St.Side.LEFT ||
-                                DashToDock.dock._position == St.Side.RIGHT) {
-                                    dashWidth = DashToDock.dock._box.width + spacing;
+                }
+            }
+
+            // Get thumbnails monitor index
+            let preferredMonitorIndex = self._settings.get_int('preferred-monitor');
+            let thumbnailsMonitorIndex = (Main.layoutManager.primaryIndex + preferredMonitorIndex) % Main.layoutManager.monitors.length ;
+
+            // Iterate through monitors
+            for (let i = 0; i < monitors.length; i++) {
+                let geometry = { x: monitors[i].x, y: monitors[i].y, width: monitors[i].width, height: monitors[i].height };
+
+                // Adjust index to point to correct dock
+                // Only needed when using DashToDock.dockManager
+                let idx;
+                if (i == dashMonitorIndex) {
+                    idx = 0;
+                } else if (i < dashMonitorIndex) {
+                    idx = i + 1;
+                }
+
+                // Adjust width for dash
+                let dashWidth = 0;
+                let dashHeight = 0;
+                let monitorHasDashDock = false;
+                if (DashToDock) {
+                    if (DashToDock.dockManager) {
+                        if (i == dashMonitorIndex || dashMultiMonitor) {
+                            monitorHasDashDock = true;
+                            if (DashToDock.dockManager._allDocks[idx]._position == St.Side.LEFT ||
+                                DashToDock.dockManager._allDocks[idx]._position == St.Side.RIGHT) {
+                                    dashWidth = DashToDock.dockManager._allDocks[idx]._box.width + spacing;
                             }
-                            if (DashToDock.dock._position == St.Side.TOP ||
-                                DashToDock.dock._position == St.Side.BOTTOM) {
-                                    dashHeight = DashToDock.dock._box.height + spacing;
+                            if (DashToDock.dockManager._allDocks[idx]._position == St.Side.TOP ||
+                                DashToDock.dockManager._allDocks[idx]._position == St.Side.BOTTOM) {
+                                    dashHeight = DashToDock.dockManager._allDocks[idx]._box.height + spacing;
                             }
-                        } else {
-                            dashWidth = DashToDock.dock._box.width + spacing;
+                        }
+                    } else {
+                        if (i == dashMonitorIndex) {
+                            monitorHasDashDock = true;
+                            if (DashToDockExtension.hasDockPositionKey)  {
+                                if (DashToDock.dock._position == St.Side.LEFT ||
+                                    DashToDock.dock._position == St.Side.RIGHT) {
+                                        dashWidth = DashToDock.dock._box.width + spacing;
+                                }
+                                if (DashToDock.dock._position == St.Side.TOP ||
+                                    DashToDock.dock._position == St.Side.BOTTOM) {
+                                        dashHeight = DashToDock.dock._box.height + spacing;
+                                }
+                            } else {
+                                dashWidth = DashToDock.dock._box.width + spacing;
+                            }
                         }
                     }
                 } else {
@@ -776,7 +794,9 @@ const DockedWorkspaces = new Lang.Class({
                 // Adjust width for workspaces thumbnails
                 let thumbnailsWidth = 0;
                 let thumbnailsHeight = 0;
+                let monitorHasThumbnailsDock = false;
                 if (i == thumbnailsMonitorIndex) {
+                    monitorHasThumbnailsDock = true;
                     let overviewAction = self._settings.get_enum('overview-action');
                     let visibleEdge = self._triggerWidth;
                     if (self._settings.get_boolean('dock-edge-visible')) {
@@ -806,34 +826,54 @@ const DockedWorkspaces = new Lang.Class({
 
                 // Adjust x and width for workspacesView geometry
                 let controlsWidth = dashWidth + thumbnailsWidth;
-                if (DashToDock && DashToDock.dock && DashToDockExtension.hasDockPositionKey) {
-                    // What if dash and thumbnailsbox are both on the same side?
-                    if (DashToDock.dock._position == St.Side.LEFT &&
-                        self._position == St.Side.LEFT) {
-                            controlsWidth = Math.max(dashWidth, thumbnailsWidth);
-                            geometry.x += controlsWidth;
+                if (DashToDock && DashToDockExtension.hasDockPositionKey) {
+                    if (DashToDock.dockManager) {
+                        // What if dash and thumbnailsbox are both on the same side?
+                        if ((monitorHasDashDock && DashToDock.dockManager._allDocks[idx]._position == St.Side.LEFT) &&
+                            (monitorHasThumbnailsDock && self._position == St.Side.LEFT)) {
+                                controlsWidth = Math.max(dashWidth, thumbnailsWidth);
+                                geometry.x += controlsWidth;
+                        } else {
+                            if (monitorHasDashDock && DashToDock.dockManager._allDocks[idx]._position == St.Side.LEFT) {
+                                geometry.x += dashWidth;
+                            }
+                            if (monitorHasThumbnailsDock && self._position == St.Side.LEFT) {
+                                geometry.x += thumbnailsWidth;
+                            }
+                        }
+                        if ((monitorHasDashDock && DashToDock.dockManager._allDocks[idx]._position == St.Side.RIGHT) &&
+                            (monitorHasThumbnailsDock && self._position == St.Side.RIGHT)) {
+                                controlsWidth = Math.max(dashWidth, thumbnailsWidth);
+                        }
                     } else {
-                        if (DashToDock.dock._position == St.Side.LEFT) {
-                            geometry.x += dashWidth;
+                        // What if dash and thumbnailsbox are both on the same side?
+                        if ((monitorHasDashDock && DashToDock.dock._position == St.Side.LEFT) &&
+                            (monitorHasThumbnailsDock && self._position == St.Side.LEFT)) {
+                                controlsWidth = Math.max(dashWidth, thumbnailsWidth);
+                                geometry.x += controlsWidth;
+                        } else {
+                            if (monitorHasDashDock && DashToDock.dock._position == St.Side.LEFT) {
+                                geometry.x += dashWidth;
+                            }
+                            if (monitorHasThumbnailsDock && self._position == St.Side.LEFT) {
+                                geometry.x += thumbnailsWidth;
+                            }
                         }
-                        if (self._position == St.Side.LEFT) {
-                            geometry.x += thumbnailsWidth;
+                        if ((monitorHasDashDock && DashToDock.dock._position == St.Side.RIGHT) &&
+                            (monitorHasThumbnailsDock && self._position == St.Side.RIGHT)) {
+                                controlsWidth = Math.max(dashWidth, thumbnailsWidth);
                         }
-                    }
-                    if (DashToDock.dock._position == St.Side.RIGHT &&
-                        self._position == St.Side.RIGHT) {
-                            controlsWidth = Math.max(dashWidth, thumbnailsWidth);
                     }
                 } else {
                     if (this.actor.get_text_direction() == Clutter.TextDirection.LTR) {
-                        if (self._position == St.Side.LEFT) {
+                        if (monitorHasThumbnailsDock && self._position == St.Side.LEFT) {
                             controlsWidth = Math.max(dashWidth, thumbnailsWidth);
                             geometry.x += controlsWidth;
                         } else {
                             geometry.x += dashWidth;
                         }
                     } else {
-                        if (self._position == St.Side.RIGHT) {
+                        if (monitorHasThumbnailsDock && self._position == St.Side.RIGHT) {
                             controlsWidth = Math.max(dashWidth, thumbnailsWidth);
                         } else {
                             geometry.x += thumbnailsWidth;
@@ -850,25 +890,44 @@ const DockedWorkspaces = new Lang.Class({
 
                 // What if dash and thumbnailsBox are not on the primary monitor?
                 let controlsHeight = dashHeight + thumbnailsHeight;
-                if (DashToDock && DashToDock.dock && DashToDockExtension.hasDockPositionKey) {
-                    if (DashToDock.dock._position == St.Side.TOP &&
-                        self._position == St.Side.TOP) {
-                            controlsHeight = Math.max(dashHeight, thumbnailsHeight);
-                            geometry.y += controlsHeight;
+                if (DashToDock && DashToDockExtension.hasDockPositionKey) {
+                    if (DashToDock.dockManager) {
+                        if ((monitorHasDashDock && DashToDock.dockManager._allDocks[idx]._position == St.Side.TOP) &&
+                            (monitorHasThumbnailsDock && self._position == St.Side.TOP)) {
+                                controlsHeight = Math.max(dashHeight, thumbnailsHeight);
+                                geometry.y += controlsHeight;
+                        } else {
+                            if (monitorHasDashDock && DashToDock.dockManager._allDocks[idx]._position == St.Side.TOP) {
+                                geometry.y += dashHeight;
+                            }
+                            if (monitorHasThumbnailsDock && self._position == St.Side.TOP) {
+                                geometry.y += thumbnailsHeight;
+                            }
+                        }
+                        if ((monitorHasDashDock && DashToDock.dockManager._allDocks[idx]._position == St.Side.BOTTOM) &&
+                            (monitorHasThumbnailsDock && self._position == St.Side.BOTTOM)) {
+                                controlsHeight = Math.max(dashHeight, thumbnailsHeight);
+                        }
                     } else {
-                        if (DashToDock.dock._position == St.Side.TOP) {
-                            geometry.y += dashHeight;
+                        if ((monitorHasDashDock && DashToDock.dock._position == St.Side.TOP) &&
+                            (monitorHasThumbnailsDock && self._position == St.Side.TOP)) {
+                                controlsHeight = Math.max(dashHeight, thumbnailsHeight);
+                                geometry.y += controlsHeight;
+                        } else {
+                            if (monitorHasDashDock && DashToDock.dock._position == St.Side.TOP) {
+                                geometry.y += dashHeight;
+                            }
+                            if (monitorHasThumbnailsDock && self._position == St.Side.TOP) {
+                                geometry.y += thumbnailsHeight;
+                            }
                         }
-                        if (self._position == St.Side.TOP) {
-                            geometry.y += thumbnailsHeight;
+                        if ((monitorHasDashDock && DashToDock.dock._position == St.Side.BOTTOM) &&
+                            (monitorHasThumbnailsDock && self._position == St.Side.BOTTOM)) {
+                                controlsHeight = Math.max(dashHeight, thumbnailsHeight);
                         }
-                    }
-                    if (DashToDock.dock._position == St.Side.BOTTOM &&
-                        self._position == St.Side.BOTTOM) {
-                            controlsHeight = Math.max(dashHeight, thumbnailsHeight);
                     }
                 } else {
-                    if (self._position == St.Side.TOP) {
+                    if (monitorHasThumbnailsDock && self._position == St.Side.TOP) {
                         geometry.y += thumbnailsHeight;
                     }
                 }
@@ -1035,7 +1094,7 @@ const DockedWorkspaces = new Lang.Class({
                 Main.overview._controls.dash.actor.hide();
                 Main.overview._controls.dash.actor.set_width(1);
             } else {
-                if (!DashToDock || !DashToDock.dock) {
+                if (!DashToDock) {
                     // Show normal dash (if no dash-to-dock)
                     Main.overview._controls.dash.actor.show();
                     Main.overview._controls.dash.actor.set_width(-1);
@@ -1402,11 +1461,18 @@ const DockedWorkspaces = new Lang.Class({
     _onDashToDockShowing: function() {
         if (_DEBUG_) global.log("Dash SHOWING");
         //Skip if dock is not in dashtodock hover mode
-        if (this._settings.get_boolean('dashtodock-hover') && DashToDock && DashToDock.dock) {
-            if (Main.overview.visible == false) {
-                if (DashToDock.dock._box.hover) {
-                    this._hoveringDash = true;
-                    this._show();
+        if (this._settings.get_boolean('dashtodock-hover')) {
+            if (DashToDock && Main.overview.visible == false) {
+                if (DashToDock.dockManager) {
+                    if (DashToDock.dockManager._allDocks[0]._box.hover) {
+                        this._hoveringDash = true;
+                        this._show();
+                    }
+                } else {
+                    if (DashToDock.dock._box.hover) {
+                        this._hoveringDash = true;
+                        this._show();
+                    }
                 }
             }
         }
@@ -1415,9 +1481,11 @@ const DockedWorkspaces = new Lang.Class({
     _onDashToDockHiding: function() {
         if (_DEBUG_) global.log("Dash HIDING");
         //Skip if dock is not in dashtodock hover mode
-        if (this._settings.get_boolean('dashtodock-hover') && DashToDock && DashToDock.dock) {
-            this._hoveringDash = false;
-            this._hide();
+        if (this._settings.get_boolean('dashtodock-hover')) {
+            if (DashToDock) {
+                this._hoveringDash = false;
+                this._hide();
+            }
         }
     },
 
@@ -1432,15 +1500,96 @@ const DockedWorkspaces = new Lang.Class({
     _onDashToDockHoverChanged: function() {
         if (_DEBUG_) global.log("Dash HOVER Changed");
         //Skip if dock is not in dashtodock hover mode
-        if (this._settings.get_boolean('dashtodock-hover') && DashToDock && DashToDock.dock) {
-            if (DashToDock.dock._box.hover) {
-                if (Main.overview.visible == false) {
-                    this._hoveringDash = true;
-                    this._show();
+        if (this._settings.get_boolean('dashtodock-hover')) {
+            if (DashToDock) {
+                if (DashToDock.dockManager) {
+                    if (DashToDock.dockManager._allDocks[0]._box.hover) {
+                        if (Main.overview.visible == false) {
+                            this._hoveringDash = true;
+                            this._show();
+                        }
+                    } else {
+                        this._hoveringDash = false;
+                        this._hide();
+                    }
+                } else {
+                    if (DashToDock.dock._box.hover) {
+                        if (Main.overview.visible == false) {
+                            this._hoveringDash = true;
+                            this._show();
+                        }
+                    } else {
+                        this._hoveringDash = false;
+                        this._hide();
+                    }
                 }
+            }
+        }
+    },
+
+    _onDashToDockToggled: function() {
+        if (_DEBUG_) global.log("Dash TOGGLED");
+        this._signalHandler.disconnectWithLabel('DashToDockHoverSignal');
+        this._hoveringDash = false;
+        this._connectDashToDockSignals();
+    },
+
+    _connectDashToDockSignals: function() {
+        if (DashToDock) {
+            // Connect DashToDock hover signal
+            if (DashToDock.dockManager) {
+                this._signalHandler.pushWithLabel(
+                    'DashToDockHoverSignal',
+                    [
+                        DashToDock.dockManager._allDocks[0]._box,
+                        'notify::hover',
+                        Lang.bind(this, this._onDashToDockHoverChanged)
+                    ],
+                    [
+                        DashToDock.dockManager._allDocks[0]._box,
+                        'leave-event',
+                        Lang.bind(this, this._onDashToDockLeave)
+                    ],
+                    [
+                        DashToDock.dockManager._allDocks[0],
+                        'showing',
+                        Lang.bind(this, this._onDashToDockShowing)
+                    ],
+                    [
+                        DashToDock.dockManager._allDocks[0],
+                        'hiding',
+                        Lang.bind(this, this._onDashToDockHiding)
+                    ],
+                    [
+                        DashToDock.dockManager,
+                        'toggled',
+                        Lang.bind(this, this._onDashToDockToggled)
+                    ]
+                );
             } else {
-                this._hoveringDash = false;
-                this._hide();
+                this._signalHandler.pushWithLabel(
+                    'DashToDockHoverSignal',
+                    [
+                        DashToDock.dock._box,
+                        'notify::hover',
+                        Lang.bind(this, this._onDashToDockHoverChanged)
+                    ],
+                    [
+                        DashToDock.dock._box,
+                        'leave-event',
+                        Lang.bind(this, this._onDashToDockLeave)
+                    ],
+                    [
+                        DashToDock.dock,
+                        'showing',
+                        Lang.bind(this, this._onDashToDockShowing)
+                    ],
+                    [
+                        DashToDock.dock,
+                        'hiding',
+                        Lang.bind(this, this._onDashToDockHiding)
+                    ]
+                );
             }
         }
     },
@@ -1453,35 +1602,17 @@ const DockedWorkspaces = new Lang.Class({
             DashToDockExtension = extension;
             if (DashToDockExtension.state == ExtensionSystem.ExtensionState.ENABLED) {
                 DashToDock = DashToDockExtension.imports.extension;
-                if (DashToDock && DashToDock.dock) {
-                    var keys = DashToDock.dock._settings.list_keys();
-                    if (keys.indexOf('dock-position') > -1) {
+                if (DashToDock) {
+                    DashToDockExtension.hasDockPositionKey = false;
+                    if (DashToDock.dockManager) {
                         DashToDockExtension.hasDockPositionKey = true;
+                    } else {
+                        var keys = DashToDock.dock._settings.list_keys();
+                        if (keys.indexOf('dock-position') > -1) {
+                            DashToDockExtension.hasDockPositionKey = true;
+                        }
                     }
-                    // Connect DashToDock hover signal
-                    this._signalHandler.pushWithLabel(
-                        'DashToDockHoverSignal',
-                        [
-                            DashToDock.dock._box,
-                            'notify::hover',
-                            Lang.bind(this, this._onDashToDockHoverChanged)
-                        ],
-                        [
-                            DashToDock.dock._box,
-                            'leave-event',
-                            Lang.bind(this, this._onDashToDockLeave)
-                        ],
-                        [
-                            DashToDock.dock,
-                            'showing',
-                            Lang.bind(this, this._onDashToDockShowing)
-                        ],
-                        [
-                            DashToDock.dock,
-                            'hiding',
-                            Lang.bind(this, this._onDashToDockHiding)
-                        ]
-                    );
+                    this._connectDashToDockSignals();
                 }
             } else if (extension.state == ExtensionSystem.ExtensionState.DISABLED || extension.state == ExtensionSystem.ExtensionState.UNINSTALLED) {
                 DashToDock = null;
