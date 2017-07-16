@@ -22,7 +22,6 @@ const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 const DND = imports.ui.dnd;
 const IconGrid = imports.ui.iconGrid;
-const Separator = imports.ui.separator;
 
 const Util = imports.misc.util;
 const ExtensionSystem = imports.ui.extensionSystem;
@@ -31,6 +30,7 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 
 const PlaceDisplay = Me.imports.placeDisplay;
 const Convenience = Me.imports.convenience;
+const Separator = Me.imports.separator;
 
 const MENU_POPUP_TIMEOUT = 600;
 
