@@ -398,7 +398,8 @@ const myWorkspaceThumbnail = new Lang.Class({
             return;
 
         // Deactivate caption
-        this.caption._wsCaption.reactive = state;
+        if (this.caption._wsCaption)
+            this.caption._wsCaption.reactive = state;
 
         // Deactivate caption tasbar icons
         if (this.caption._taskBarBox) {
