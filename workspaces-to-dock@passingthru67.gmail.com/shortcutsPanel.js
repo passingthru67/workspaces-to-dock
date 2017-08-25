@@ -671,8 +671,6 @@ const ShortcutsPanel = new Lang.Class({
             this.refresh();
         }));
 
-        this._appsButton;
-
         // Connect to AppSystem and listen for app state changes
         this._appStateChangedId = this._appSystem.connect('app-state-changed', Lang.bind(this, this._updateRunningApps));
 
