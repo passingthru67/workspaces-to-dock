@@ -22,7 +22,6 @@ const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 const DND = imports.ui.dnd;
 const IconGrid = imports.ui.iconGrid;
-const Separator = imports.ui.separator;
 
 const Util = imports.misc.util;
 const ExtensionSystem = imports.ui.extensionSystem;
@@ -1018,8 +1017,8 @@ const ShortcutsPanel = new Lang.Class({
         // Add Apps Button to top or bottom of shortcuts panel
         this._appsButton = new ShortcutButton(null, ApplicationType.APPSBUTTON, this);
         if (this._settings.get_boolean('shortcuts-panel-appsbutton-at-bottom')) {
-            let filler = new Separator.HorizontalSeparator({ style_class: 'popup-separator-menu-item workspacestodock-shortcut-panel-filler' });
-            this.actor.add(filler.actor, { expand: true });
+            let filler = new St.Widget({ style_class: 'popup-separator-menu-item workspacestodock-shortcut-panel-filler' });
+            this.actor.add(filler, { expand: true });
             this.actor.add_actor(this._appsButton.actor);
         } else {
             this.actor.insert_child_at_index(this._appsButton.actor, 0);
