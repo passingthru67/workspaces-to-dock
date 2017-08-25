@@ -30,6 +30,7 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 
 const PlaceDisplay = Me.imports.placeDisplay;
 const Convenience = Me.imports.convenience;
+const Separator = Me.imports.separator;
 
 const MENU_POPUP_TIMEOUT = 600;
 
