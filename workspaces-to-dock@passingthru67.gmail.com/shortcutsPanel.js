@@ -320,6 +320,7 @@ const ShortcutButton = new Lang.Class({
 
         this._menu = null;
         this._menuManager = new PopupMenu.PopupMenuManager(this);
+        this._menuTimeoutId = 0;
 
         // Connect button signals
         this.actor.connect('destroy', Lang.bind(this, this._onDestroy));
