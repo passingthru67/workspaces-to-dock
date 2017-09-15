@@ -115,18 +115,18 @@ Behavior Settings:
     **SHOW-PARTIAL-FIXED Option** - This option allows part of the dock to be visible at all times. Similar to the show-partial option but with a fixed (always visible) element.
 
 	<a name="dockscreencasts"></a>Below are screencasts of the dock partially shown with the favorites panel oriented inside and outside.
-    
+
 	**Show-partial with favorites panel oriented inside**
 
-	[![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/ShowPartial-Inside.gif)](https://www.youtube.com/watch?v=ZF_e4iSml-s) 
+	[![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/ShowPartial-Inside.gif)](https://www.youtube.com/watch?v=ZF_e4iSml-s)
 
 	**Show-partial with favorites panel oriented outside**
 
-	[![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/ShowPartial-Outside.gif)](https://www.youtube.com/watch?v=NWWxi1qCS5I) 
+	[![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/ShowPartial-Outside.gif)](https://www.youtube.com/watch?v=NWWxi1qCS5I)
 
 	**Show-partial-fixed with favorites panel oriented inside**
 
- 	[![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/ShowPartial-Fixed.gif)](https://www.youtube.com/watch?v=PpyLdt-Rfc4) 
+ 	[![screenshot](https://github.com/passingthru67/workspaces-to-dock/raw/master/ShowPartial-Fixed.gif)](https://www.youtube.com/watch?v=PpyLdt-Rfc4)
 
 	In the screencast above, note how the partial dock affects the desktop workspace and remains visible at all times.
 
@@ -276,6 +276,19 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
+**Version 43 for Gnome 3.26 (Sep 15, 2017)**
+
+**Version 42 for Gnome 3.24 (May 30, 2017)**
+-   Updates specific to Gnome 3.24 changes
+-   Bug fixes
+
+**Version 41 for Gnome 3.24 (Apr 10, 2017)**
+- Added intellihide dodging option to ignore application context menus
+- Added option to use horizontal workspace switching
+- Bug fixes
+
+**Version 40 for Gnome 3.22 (Sep 20, 2016)**
+
 **Version 39 for Gnome 3.20 (Sep 9, 2016)**
 - Added option to show partial dock in normal desktop view
 - Added option to place captions at top of thumbnails
