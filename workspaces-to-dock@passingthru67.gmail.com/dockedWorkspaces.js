@@ -1626,9 +1626,13 @@ const DockedWorkspaces = new Lang.Class({
     // Switches workspace by scrolling over the dock
     // This comes from desktop-scroller@obsidien.github.com
     _onScrollEvent: function (actor, event) {
-        if(_DEBUG_) global.log("dockedWorkspaces: _onScrollEvent autohideStatus = "+this._autohideStatus+" dockState = "+this._dockState);
-        if (this._settings.get_boolean('disable-scroll') && this._autohideStatus && (this._dockState == DockState.HIDDEN || this._dockState == DockState.HIDING))
-            return Clutter.EVENT_STOP;
+        if (_DEBUG_) global.log("dockedWorkspaces: _onScrollEvent autohideStatus = "+this._autohideStatus+" dockState = "+this._dockState + " slidex = "+this._slider.slidex);
+        let intellihideAction = this._settings.get_enum('intellihide-action');
+        if (this._settings.get_boolean('disable-scroll') &&
+            this._autohideStatus &&
+            this._slider.slidex == 0 && // Need to check the slidex for partially showing dock
+            (this._dockState == DockState.HIDDEN || this._dockState == DockState.HIDING))
+                return Clutter.EVENT_STOP;
 
         let activeWs = global.screen.get_active_workspace();
         let direction;
