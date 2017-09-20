@@ -371,6 +371,7 @@ const DockedWorkspaces = new Lang.Class({
         this._container.connect("notify::hover", Lang.bind(this, this._hoverChanged));
         this._container.connect("scroll-event", Lang.bind(this, this._onScrollEvent));
         this._container.connect("button-release-event", Lang.bind(this, this._onDockClicked));
+        this._checkHoverStatusId = 0;
 
         // Create the dock wrapper
         let align;
@@ -1405,6 +1406,15 @@ const DockedWorkspaces = new Lang.Class({
         }
     },
 
+    _checkHoverStatus: function() {
+        if (_DEBUG_) global.log("dockedWorkspaces: _checkHoverStatus");
+        if (this._checkHoverStatusId > 0) {
+            Mainloop.source_remove(this._checkHoverStatusId);
+            this._checkHoverStatusId = 0;
+        }
+        this._hoverChanged();
+    },
+
     // handler for mouse click events - works in conjuction with hover event to show dock for maxmized windows
     _onDockClicked: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _onDockClicked");
@@ -1713,16 +1723,18 @@ const DockedWorkspaces = new Lang.Class({
     // autohide function to show dock
     _show: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _show autohideStatus = "+this._autohideStatus+" dockState = "+getDockStateDesc(this._dockState));
-        let delay = 0;
-        // If the dock is hidden, wait this._settings.get_double('show-delay') before showing it;
-        // otherwise show it immediately.
-        if (this._dockState == DockState.HIDDEN || this._dockState == DockState.HIDING) {
-            delay = this._settings.get_double('show-delay');
-        } else if (this._dockState == DockState.HIDING) {
+        // Only show if dock hidden, is hiding, or is partially shown/hidden
+        if (this._dockState == DockState.HIDDEN || this._dockState == DockState.HIDING || this._slider.slidex < 1) {
             this._removeAnimations();
-        }
 
-        this._animateIn(this._settings.get_double('animation-time'), delay, true);
+            // If the dock is hidden, wait this._settings.get_double('show-delay') before showing it;
+            // otherwise show it immediately.
+            let delay = 0;
+            if (this._dockState == DockState.HIDDEN)
+                delay = this._settings.get_double('show-delay');
+
+            this._animateIn(this._settings.get_double('animation-time'), delay, true);
+        }
     },
 
     // autohide function to hide dock
@@ -1746,20 +1758,21 @@ const DockedWorkspaces = new Lang.Class({
             return;
         }
 
-        let delay = 0;
-
-        // If the dock is shown, wait this._settings.get_double('show-delay') before hiding it;
-        // otherwise hide it immediately.
-        if (this._dockState == DockState.SHOWN) {
-            delay = this._settings.get_double('hide-delay');
-        } else if (this._dockState == DockState.SHOWING) {
+        // Only hide if dock is shown, is showing, or is partially shown
+        if (this._dockState == DockState.SHOWN || this._dockState == DockState.SHOWING || this._slider.slidex > 0) {
             this._removeAnimations();
-        }
 
-        if (Main.overview._shown && Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage) {
-            this._animateOut(this._settings.get_double('animation-time'), delay, false);
-        } else {
-            this._animateOut(this._settings.get_double('animation-time'), delay, this._autohideStatus);
+            // If the dock is shown, wait this._settings.get_double('show-delay') before hiding it;
+            // otherwise hide it immediately.
+            let delay = 0;
+            if (this._dockState == DockState.SHOWN)
+                delay = this._settings.get_double('hide-delay');
+
+            if (Main.overview._shown && Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage) {
+                this._animateOut(this._settings.get_double('animation-time'), delay, false);
+            } else {
+                this._animateOut(this._settings.get_double('animation-time'), delay, this._autohideStatus);
+            }
         }
     },
 
@@ -1847,6 +1860,14 @@ const DockedWorkspaces = new Lang.Class({
                     this._removeBarrierTimeoutId = Mainloop.timeout_add(100, Lang.bind(this, this._removeBarrier));
                     this._updateTriggerWidth();
                 }
+
+                // Prevent dock from getting stuck animated in when mouse is no longer hovering
+                if (this._checkHoverStatusId > 0) {
+                    Mainloop.source_remove(this._checkHoverStatusId);
+                    this._checkHoverStatusId = 0;
+                }
+                this._checkHoverStatusId = Mainloop.timeout_add(100, Lang.bind(this, this._checkHoverStatus));
+
             })
         });
     },
