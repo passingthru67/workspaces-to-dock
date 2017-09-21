@@ -76,7 +76,11 @@ const myWindowClone = new Lang.Class({
         this._mySettings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
         // passingthru67: Using the realWindow caused a bug where the parent window disappeared
         // We've gone back to using the realWindow's texture as was used in Gnome 3.10
-        this.clone = new Clutter.Clone({ source: realWindow.get_texture() });
+        if (realWindow.get_texture()) {
+            this.clone = new Clutter.Clone({ source: realWindow.get_texture() });
+        } else {
+            this.clone = new Clutter.Clone({ source: realWindow });
+        }
 
         /* Can't use a Shell.GenericContainer because of DND and reparenting... */
         this.actor = new Clutter.Actor({ layout_manager: new WorkspaceThumbnail.PrimaryActorLayout(this.clone),
