@@ -76,6 +76,7 @@ const myWindowClone = new Lang.Class({
         this._mySettings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
         // passingthru67: Using the realWindow caused a bug where the parent window disappeared
         // We've gone back to using the realWindow's texture as was used in Gnome 3.10
+        // Unless the realWindow's texture is not yet available
         if (realWindow.get_texture()) {
             this.clone = new Clutter.Clone({ source: realWindow.get_texture() });
         } else {
@@ -197,6 +198,8 @@ const myWorkspaceThumbnail = new Lang.Class({
 
         this._thumbnailsBox = thumbnailsBox;
         this.caption = new ThumbnailCaption.ThumbnailCaption(this);
+
+        this._getWinTextureIdleId = 0;
     },
 
     refreshWindowClones: function() {
@@ -350,6 +353,24 @@ const myWorkspaceThumbnail = new Lang.Class({
     // Create a clone of a (non-desktop) window and add it to the window list
     _addWindowClone : function(win, refresh) {
         if (_DEBUG_ && !this._removed) global.log("myWorkspaceThumbnail: _addWindowClone for metaWorkspace "+this.metaWorkspace.index());
+
+        if (this._getWinTextureIdleId > 0) {
+            Mainloop.source_remove(this._getWinTextureIdleId);
+            this._getWinTextureIdleId = 0;
+        }
+
+        // We may have to wait for the window texture to be available.
+        // Such is the case with Chrome browser in Wayland
+        if (!win.get_texture()) {
+            if (_DEBUG_) global.log("myWorkspaceThumbnail: _addWindowClone - WINDOW TEXTURE NOT YET AVAILABLE");
+            this._getWinTextureIdleId = Mainloop.idle_add(Lang.bind(this,
+                                       function () {
+                                           this._addWindowClone(win, refresh);
+                                        }));
+            return;
+        }
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: _addWindowClone - WINDOW TEXTURE AVAILABLE");
+
         let clone = new myWindowClone(win);
 
         clone.connect('selected',
