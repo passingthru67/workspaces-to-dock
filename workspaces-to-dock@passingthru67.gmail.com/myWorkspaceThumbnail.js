@@ -193,13 +193,12 @@ const myWorkspaceThumbnail = new Lang.Class({
     Extends: WorkspaceThumbnail.WorkspaceThumbnail,
 
     _init: function(metaWorkspace, thumbnailsBox) {
+        this._getWinTextureIdleId = 0;
         this._windowsOnAllWorkspaces = [];
         this.parent(metaWorkspace);
 
         this._thumbnailsBox = thumbnailsBox;
         this.caption = new ThumbnailCaption.ThumbnailCaption(this);
-
-        this._getWinTextureIdleId = 0;
     },
 
     refreshWindowClones: function() {
