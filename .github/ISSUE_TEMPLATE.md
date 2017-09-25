@@ -4,6 +4,9 @@
 ###Gnome Shell version
 
 
+###Xorg or Wayland (or both)
+
+
 ###Extension version or branch
 
 
