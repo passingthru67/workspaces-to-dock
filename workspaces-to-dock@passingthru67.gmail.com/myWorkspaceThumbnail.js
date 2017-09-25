@@ -850,9 +850,9 @@ const myThumbnailsBox = new Lang.Class({
         this._switchWorkspaceNotifyId =
             global.window_manager.connect('switch-workspace',
                                           Lang.bind(this, this._activeWorkspaceChanged));
-        //this._nWorkspacesNotifyId =
-            //global.screen.connect('notify::n-workspaces',
-                                  //Lang.bind(this, this._workspacesChanged));
+
+        this._nWorkspacesNotifyId = 0;
+
         this._syncStackingId =
             Main.overview.connect('windows-restacked',
                                   Lang.bind(this, this._syncStacking));
