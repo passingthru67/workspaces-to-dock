@@ -757,15 +757,17 @@ const DockedWorkspaces = new Lang.Class({
                 let monitorHasDashDock = false;
                 if (DashToDock) {
                     if (DashToDock.dockManager) {
-                        if (i == dashMonitorIndex || dashMultiMonitor) {
-                            monitorHasDashDock = true;
-                            if (DashToDock.dockManager._allDocks[idx]._position == St.Side.LEFT ||
-                                DashToDock.dockManager._allDocks[idx]._position == St.Side.RIGHT) {
-                                    dashWidth = DashToDock.dockManager._allDocks[idx]._box.width + spacing;
-                            }
-                            if (DashToDock.dockManager._allDocks[idx]._position == St.Side.TOP ||
-                                DashToDock.dockManager._allDocks[idx]._position == St.Side.BOTTOM) {
-                                    dashHeight = DashToDock.dockManager._allDocks[idx]._box.height + spacing;
+                        if (DashToDock.dockManager._allDocks[0]) {
+                            if (i == dashMonitorIndex || dashMultiMonitor) {
+                                monitorHasDashDock = true;
+                                if (DashToDock.dockManager._allDocks[idx]._position == St.Side.LEFT ||
+                                    DashToDock.dockManager._allDocks[idx]._position == St.Side.RIGHT) {
+                                        dashWidth = DashToDock.dockManager._allDocks[idx]._box.width + spacing;
+                                }
+                                if (DashToDock.dockManager._allDocks[idx]._position == St.Side.TOP ||
+                                    DashToDock.dockManager._allDocks[idx]._position == St.Side.BOTTOM) {
+                                        dashHeight = DashToDock.dockManager._allDocks[idx]._box.height + spacing;
+                                }
                             }
                         }
                     } else {
@@ -829,22 +831,24 @@ const DockedWorkspaces = new Lang.Class({
                 let controlsWidth = dashWidth + thumbnailsWidth;
                 if (DashToDock && DashToDockExtension.hasDockPositionKey) {
                     if (DashToDock.dockManager) {
-                        // What if dash and thumbnailsbox are both on the same side?
-                        if ((monitorHasDashDock && DashToDock.dockManager._allDocks[idx]._position == St.Side.LEFT) &&
-                            (monitorHasThumbnailsDock && self._position == St.Side.LEFT)) {
-                                controlsWidth = Math.max(dashWidth, thumbnailsWidth);
-                                geometry.x += controlsWidth;
-                        } else {
-                            if (monitorHasDashDock && DashToDock.dockManager._allDocks[idx]._position == St.Side.LEFT) {
-                                geometry.x += dashWidth;
+                        if (DashToDock.dockManager._allDocks[0]) {
+                            // What if dash and thumbnailsbox are both on the same side?
+                            if ((monitorHasDashDock && DashToDock.dockManager._allDocks[idx]._position == St.Side.LEFT) &&
+                                (monitorHasThumbnailsDock && self._position == St.Side.LEFT)) {
+                                    controlsWidth = Math.max(dashWidth, thumbnailsWidth);
+                                    geometry.x += controlsWidth;
+                            } else {
+                                if (monitorHasDashDock && DashToDock.dockManager._allDocks[idx]._position == St.Side.LEFT) {
+                                    geometry.x += dashWidth;
+                                }
+                                if (monitorHasThumbnailsDock && self._position == St.Side.LEFT) {
+                                    geometry.x += thumbnailsWidth;
+                                }
                             }
-                            if (monitorHasThumbnailsDock && self._position == St.Side.LEFT) {
-                                geometry.x += thumbnailsWidth;
+                            if ((monitorHasDashDock && DashToDock.dockManager._allDocks[idx]._position == St.Side.RIGHT) &&
+                                (monitorHasThumbnailsDock && self._position == St.Side.RIGHT)) {
+                                    controlsWidth = Math.max(dashWidth, thumbnailsWidth);
                             }
-                        }
-                        if ((monitorHasDashDock && DashToDock.dockManager._allDocks[idx]._position == St.Side.RIGHT) &&
-                            (monitorHasThumbnailsDock && self._position == St.Side.RIGHT)) {
-                                controlsWidth = Math.max(dashWidth, thumbnailsWidth);
                         }
                     } else {
                         // What if dash and thumbnailsbox are both on the same side?
@@ -893,21 +897,23 @@ const DockedWorkspaces = new Lang.Class({
                 let controlsHeight = dashHeight + thumbnailsHeight;
                 if (DashToDock && DashToDockExtension.hasDockPositionKey) {
                     if (DashToDock.dockManager) {
-                        if ((monitorHasDashDock && DashToDock.dockManager._allDocks[idx]._position == St.Side.TOP) &&
-                            (monitorHasThumbnailsDock && self._position == St.Side.TOP)) {
-                                controlsHeight = Math.max(dashHeight, thumbnailsHeight);
-                                geometry.y += controlsHeight;
-                        } else {
-                            if (monitorHasDashDock && DashToDock.dockManager._allDocks[idx]._position == St.Side.TOP) {
-                                geometry.y += dashHeight;
+                        if (DashToDock.dockManager._allDocks[0]) {
+                            if ((monitorHasDashDock && DashToDock.dockManager._allDocks[idx]._position == St.Side.TOP) &&
+                                (monitorHasThumbnailsDock && self._position == St.Side.TOP)) {
+                                    controlsHeight = Math.max(dashHeight, thumbnailsHeight);
+                                    geometry.y += controlsHeight;
+                            } else {
+                                if (monitorHasDashDock && DashToDock.dockManager._allDocks[idx]._position == St.Side.TOP) {
+                                    geometry.y += dashHeight;
+                                }
+                                if (monitorHasThumbnailsDock && self._position == St.Side.TOP) {
+                                    geometry.y += thumbnailsHeight;
+                                }
                             }
-                            if (monitorHasThumbnailsDock && self._position == St.Side.TOP) {
-                                geometry.y += thumbnailsHeight;
+                            if ((monitorHasDashDock && DashToDock.dockManager._allDocks[idx]._position == St.Side.BOTTOM) &&
+                                (monitorHasThumbnailsDock && self._position == St.Side.BOTTOM)) {
+                                    controlsHeight = Math.max(dashHeight, thumbnailsHeight);
                             }
-                        }
-                        if ((monitorHasDashDock && DashToDock.dockManager._allDocks[idx]._position == St.Side.BOTTOM) &&
-                            (monitorHasThumbnailsDock && self._position == St.Side.BOTTOM)) {
-                                controlsHeight = Math.max(dashHeight, thumbnailsHeight);
                         }
                     } else {
                         if ((monitorHasDashDock && DashToDock.dock._position == St.Side.TOP) &&
@@ -1548,34 +1554,36 @@ const DockedWorkspaces = new Lang.Class({
         if (DashToDock) {
             // Connect DashToDock hover signal
             if (DashToDock.dockManager) {
-                this._signalHandler.pushWithLabel(
-                    'DashToDockHoverSignal',
-                    [
-                        DashToDock.dockManager._allDocks[0]._box,
-                        'notify::hover',
-                        Lang.bind(this, this._onDashToDockHoverChanged)
-                    ],
-                    [
-                        DashToDock.dockManager._allDocks[0]._box,
-                        'leave-event',
-                        Lang.bind(this, this._onDashToDockLeave)
-                    ],
-                    [
-                        DashToDock.dockManager._allDocks[0],
-                        'showing',
-                        Lang.bind(this, this._onDashToDockShowing)
-                    ],
-                    [
-                        DashToDock.dockManager._allDocks[0],
-                        'hiding',
-                        Lang.bind(this, this._onDashToDockHiding)
-                    ],
-                    [
-                        DashToDock.dockManager,
-                        'toggled',
-                        Lang.bind(this, this._onDashToDockToggled)
-                    ]
-                );
+                if (DashToDock.dockManager._allDocks[0]) {
+                    this._signalHandler.pushWithLabel(
+                        'DashToDockHoverSignal',
+                        [
+                            DashToDock.dockManager._allDocks[0]._box,
+                            'notify::hover',
+                            Lang.bind(this, this._onDashToDockHoverChanged)
+                        ],
+                        [
+                            DashToDock.dockManager._allDocks[0]._box,
+                            'leave-event',
+                            Lang.bind(this, this._onDashToDockLeave)
+                        ],
+                        [
+                            DashToDock.dockManager._allDocks[0],
+                            'showing',
+                            Lang.bind(this, this._onDashToDockShowing)
+                        ],
+                        [
+                            DashToDock.dockManager._allDocks[0],
+                            'hiding',
+                            Lang.bind(this, this._onDashToDockHiding)
+                        ],
+                        [
+                            DashToDock.dockManager,
+                            'toggled',
+                            Lang.bind(this, this._onDashToDockToggled)
+                        ]
+                    );
+                }
             } else {
                 this._signalHandler.pushWithLabel(
                     'DashToDockHoverSignal',
