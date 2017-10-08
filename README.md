@@ -276,6 +276,9 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
+**Version 44 for Gnome 3.26 (Oct 7, 2017)**
+- Bug fixes
+
 **Version 43 for Gnome 3.26 (Sep 15, 2017)**
 
 **Version 42 for Gnome 3.24 (May 30, 2017)**
