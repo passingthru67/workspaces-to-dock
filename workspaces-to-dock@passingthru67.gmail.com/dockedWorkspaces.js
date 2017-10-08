@@ -2084,9 +2084,9 @@ const DockedWorkspaces = new Lang.Class({
         let filename = "workspaces-to-dock.css";
 
         // Get new theme stylesheet
-        let themeStylesheet = Main._defaultCssStylesheet;
-        if (Main._cssStylesheet != null)
-            themeStylesheet = Main._cssStylesheet;
+        let themeStylesheet = Main._getDefaultStylesheet();
+        if (Main.getThemeStylesheet())
+            themeStylesheet = Main.getThemeStylesheet();
 
         // Get theme directory
         let themeDirectory = themeStylesheet.get_path() ? GLib.path_get_dirname(themeStylesheet.get_path()) : "";

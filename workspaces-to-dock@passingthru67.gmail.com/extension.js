@@ -29,11 +29,12 @@ function loadStylesheet() {
     // Get css filename
     let filename = "workspaces-to-dock.css";
 
-    // Get current theme stylesheet
-    let themeStylesheet = Main._defaultCssStylesheet;
+    // Get default stylesheet
+    let themeStylesheet = Main._getDefaultStylesheet();
 
-    if (Main._cssStylesheet != null)
-        themeStylesheet = Main._cssStylesheet;
+    // Get current theme stylesheet
+    if (Main.getThemeStylesheet())
+        themeStylesheet = Main.getThemeStylesheet();
 
     // Get theme directory
     let themeDirectory = themeStylesheet.get_path() ? GLib.path_get_dirname(themeStylesheet.get_path()) : "";
