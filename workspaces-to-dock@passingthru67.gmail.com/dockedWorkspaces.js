@@ -265,7 +265,8 @@ const DockedWorkspaces = new Lang.Class({
         this._settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
         this._signalHandler = new Convenience.globalSignalHandler();
 
-        // temporarily disable redisplay until initialized (prevents connected signals from trying to update dock visibility)
+        // Temporarily disable redisplay until initialized
+        // NOTE: This prevents connected signals from trying to update dock visibility
         this._disableRedisplay = true;
         this._refreshThumbnailsOnRegionUpdate = true;
         if (_DEBUG_) global.log("dockedWorkspaces: init - disableRediplay");
@@ -286,13 +287,13 @@ const DockedWorkspaces = new Lang.Class({
         // Initially set to null - will be set during first enable/disable autohide
         this._autohideStatus = null;
 
-        // initialize dock state
+        // Initialize dock state
         this._dockState = DockState.HIDDEN;
 
-        // initialize popup menu flag
+        // Initialize popup menu flag
         this._popupMenuShowing = false;
 
-        // initialize colors with generic values
+        // Initialize colors with generic values
         this._defaultBackground = {red:0, green:0, blue:0, alpha:0};
         this._customBackground = {red:0, green:0, blue:0, alpha:0};
         this._defaultBorder = {red:0, green:0, blue:0, alpha:0};
@@ -309,6 +310,9 @@ const DockedWorkspaces = new Lang.Class({
         // Override Gnome Shell functions
         this._overrideGnomeShellFunctions();
 
+        // Set the _monitor property to the primary monitor
+        this._monitor = Main.layoutManager.primaryMonitor;
+
         // Create a new thumbnailsbox object
         this._thumbnailsBox = new MyWorkspaceThumbnail.myThumbnailsBox(this);
 
@@ -322,7 +326,7 @@ const DockedWorkspaces = new Lang.Class({
         if (this._isHorizontal && this._settings.get_boolean('horizontal-workspace-switching'))
             this._workspaceSwitcher = new MyWorkspaceSwitcherPopup.WorkspaceSwitcher();
 
-        // Create the main dock container, turn on track hover, add hoverChange signal
+        // Create position styles for dock container
         let positionStyleClass = ['top', 'right', 'bottom', 'left'];
         let styleClass = positionStyleClass[this._position];
         if (this._settings.get_boolean('dock-fixed')
@@ -334,6 +338,8 @@ const DockedWorkspaces = new Lang.Class({
         if (this._settings.get_boolean('show-shortcuts-panel')) {
             if (shortcutsPanelOrientation == 1) {
                 styleClass += " inside";
+            } else {
+                styleClass += " outside";
             }
         }
 
@@ -343,61 +349,122 @@ const DockedWorkspaces = new Lang.Class({
             }
         }
 
-        let packVertical = false;
-        if (this._isHorizontal)
-            packVertical = true;
+        // Set _extendContainer property
+        if (this._settings.get_boolean('customize-height') && this._settings.get_int('customize-height-option') == 1) {
+            this._extendContainer = true;
+        } else {
+            this._extendContainer = false;
+        }
 
+        // Set _centerContainer property
+        if (this._settings.get_boolean('customize-height') && this._settings.get_boolean('center-thumbnails-on-dock')) {
+            this._centerContainer = true;
+        } else {
+            this._centerContainer = false;
+        }
+
+        // Set _centerPanelsIndependently property
+        if (this._centerContainer && this._settings.get_int('center-thumbnails-option') == 0) {
+            this._centerPanelsIndependently = true;
+        } else {
+            this._centerPanelsIndependently = false;
+        }
+
+        // Initialize alignment and box packing variables
+        let align;
+        let packStart;
+        let packVertical = this._isHorizontal? true : false;
+        if (this._position == St.Side.TOP || this._position == St.Side.LEFT) {
+            align = St.Align.START;
+            packStart = true;
+        } else {
+            align = St.Align.END;
+            packStart = false;
+        }
+
+        // Create the main dock and container
         this._dock = new St.BoxLayout({
             name: 'workspacestodockDock',
-            reactive: false,
-            track_hover: false,
+            reactive: true,
+            track_hover: true,
             vertical: packVertical,
+            pack_start: !packStart,
             style_class: styleClass
         });
 
-        // Create centering containers
-        this._container = new St.BoxLayout({
-            name: 'workspacestodockContainer',
-            reactive: true,
-            track_hover: true,
-            vertical: packVertical
-        });
-        this._containerWrapper = new St.BoxLayout({
-            name: 'workspacestodockContainerWrapper',
+        this._dockContainer = new St.BoxLayout({
+            name: 'workspacestodockDockContainer',
             reactive: false,
+            track_hover: false,
             vertical: !packVertical
         });
-        this._containerWrapper.add(this._container,{x_fill: false, y_fill: false, x_align: St.Align.MIDDLE, y_align: St.Align.MIDDLE, expand: true});
-        this._container.connect("notify::hover", Lang.bind(this, this._hoverChanged));
-        this._container.connect("scroll-event", Lang.bind(this, this._onScrollEvent));
-        this._container.connect("button-release-event", Lang.bind(this, this._onDockClicked));
-        this._checkHoverStatusId = 0;
 
-        // Create the dock wrapper
-        let align;
-        if (this._isHorizontal) {
-            if (this._position == St.Side.TOP) {
-                align = St.Align.START;
+        // Create the panels and container
+        this._panels = new St.BoxLayout({
+            name: 'workspacestodockPanels',
+            reactive: false,
+            track_hover: false,
+            vertical: packVertical,
+            pack_start: !packStart
+        });
+
+        this._panelsContainer = new St.BoxLayout({
+            name: 'workspacestodockPanelsContainer',
+            reactive: false,
+            track_hover: false,
+            vertical: packVertical,
+            pack_start: packStart
+        });
+
+        // To center the panels on the extended dock, we expand the panels box to fit the
+        // dock container and align it in the middle
+        let expandContainer = this._centerContainer ? true : false;
+        this._panels.add_actor(this._panelsContainer);
+        this._dockContainer.add(this._panels,{x_fill: false, y_fill: false, x_align: St.Align.MIDDLE, y_align: St.Align.MIDDLE, expand: expandContainer});
+
+        // Connect the _dock hover, scroll and button release events
+        this._checkHoverStatusId = 0;
+        this._dock.connect("notify::hover", Lang.bind(this, this._hoverChanged));
+        this._dock.connect("scroll-event", Lang.bind(this, this._onScrollEvent));
+        this._dock.connect("button-release-event", Lang.bind(this, this._onDockClicked));
+
+        // Add workspaces, and shortcuts panel to dock container based on dock position
+        // and shortcuts panel orientation
+        if (shortcutsPanelOrientation == 1) {
+            if (this._centerContainer && this._centerPanelsIndependently) {
+                this._panelsContainer.add(this._shortcutsPanel.actor,{x_fill: false, y_fill: false, x_align: St.Align.MIDDLE, y_align: St.Align.MIDDLE});
+                this._panelsContainer.add(this._thumbnailsBox.actor,{x_fill: false, y_fill: false, x_align: St.Align.MIDDLE, y_align: St.Align.MIDDLE});
             } else {
-                align = St.Align.END;
+                this._panelsContainer.add_actor(this._shortcutsPanel.actor);
+                this._panelsContainer.add_actor(this._thumbnailsBox.actor);
             }
         } else {
-            if (this._position == St.Side.LEFT) {
-                align = St.Align.START;
+            if (this._centerContainer && this._centerPanelsIndependently) {
+                this._panelsContainer.add(this._thumbnailsBox.actor,{x_fill: false, y_fill: false, x_align: St.Align.MIDDLE, y_align: St.Align.MIDDLE});
+                this._panelsContainer.add(this._shortcutsPanel.actor,{x_fill: false, y_fill: false, x_align: St.Align.MIDDLE, y_align: St.Align.MIDDLE});
             } else {
-                align = St.Align.END;
+                this._panelsContainer.add_actor(this._thumbnailsBox.actor);
+                this._panelsContainer.add_actor(this._shortcutsPanel.actor);
             }
         }
 
-        this.actor = new St.Bin({ name: 'workspacestodockDockWrapper',reactive: false,
+        // Create the sliding actor whose allocation is to be tracked for input regions
+        let slideoutSize = this._settings.get_boolean('dock-edge-visible') ? this._triggerWidth + DOCK_EDGE_VISIBLE_WIDTH : this._triggerWidth;
+        this._slider = new ThumbnailsSlider({side: this._position, initialSlideoutSize: slideoutSize});
+
+        // Create the dock main actor
+        this.actor = new St.Bin({ name: 'workspacestodockMainActor',
+            reactive: false,
             x_align: align,
             y_align: align
         });
         this.actor._delegate = this;
         this._realizeId = this.actor.connect("realize", Lang.bind(this, this._initialize));
 
-        // Put dock on the primary monitor
-        this._monitor = Main.layoutManager.primaryMonitor;
+        // Add the dock to slider and then to the main container actor
+        this._dock.add_actor(this._dockContainer);
+        this._slider.add_child(this._dock);
+        this.actor.set_child(this._slider.actor);
 
         // Connect global signals
         this._signalHandler.push(
@@ -480,57 +547,14 @@ const DockedWorkspaces = new Lang.Class({
             }
         }
 
-        // Create trigger spacer
-        this._triggerSpacer = new St.Label({
-                            name: 'workspacestodockTriggerSpacer',
-                            text: ''
-                        });
-
+        // Intialize trigger spacing
+        // We use this space to trigger the dock (show/hide) if the pressure barrier is not present (or disabled)
+        // We also use this space for scrolling when the dock is hidden
         this._triggerWidth = 1;
         this._updateTriggerWidth();
 
-        // This is the sliding actor whose allocation is to be tracked for input regions
-        let slideoutSize = this._triggerWidth;
-        if (this._settings.get_boolean('dock-edge-visible')) {
-            slideoutSize = this._triggerWidth + DOCK_EDGE_VISIBLE_WIDTH;
-        }
-        this._slider = new ThumbnailsSlider({side: this._position, initialSlideoutSize: slideoutSize});
-
-        // Add spacer, workspaces, and shortcuts panel to dock container based on dock position
-        // and shortcuts panel orientation
-        if (this._position == St.Side.RIGHT || this._position == St.Side.BOTTOM) {
-            this._container.add_actor(this._triggerSpacer);
-        }
-        if (this._isHorizontal) {
-            if ((this._position == St.Side.TOP && shortcutsPanelOrientation == 0) ||
-                (this._position == St.Side.BOTTOM && shortcutsPanelOrientation == 1)) {
-                this._container.add_actor(this._shortcutsPanel.actor);
-                this._container.add_actor(this._thumbnailsBox.actor);
-            } else {
-                this._container.add_actor(this._thumbnailsBox.actor);
-                this._container.add_actor(this._shortcutsPanel.actor);
-            }
-        } else {
-            if ((this._position == St.Side.LEFT && shortcutsPanelOrientation == 0) ||
-                (this._position == St.Side.RIGHT && shortcutsPanelOrientation == 1)) {
-                this._container.add_actor(this._shortcutsPanel.actor);
-                this._container.add_actor(this._thumbnailsBox.actor);
-            } else {
-                this._container.add_actor(this._thumbnailsBox.actor);
-                this._container.add_actor(this._shortcutsPanel.actor);
-            }
-        }
-        if (this._position == St.Side.LEFT || this._position == St.Side.TOP) {
-            this._container.add_actor(this._triggerSpacer);
-        }
-
-        // Add dock to slider and main container actor and then to the Chrome.
-        this._dock.add_actor(this._containerWrapper);
-        this._slider.add_child(this._dock);
-        this.actor.set_child(this._slider.actor);
-
-        //Hide the dock whilst setting positions
-        //this.actor.hide(); but I need to access its width, so I use opacity
+        // Hide the dock while initializing and setting position
+        // But since we need to access its width, we use opacity
         this.actor.set_opacity(0);
 
         // Since the actor is not a topLevel child and its parent is now not added to the Chrome,
@@ -1036,8 +1060,10 @@ const DockedWorkspaces = new Lang.Class({
         this._redisplay();
     },
 
-    _updateTriggerWidth: function() {
+    _updateTriggerWidth: function(force) {
+        if (_DEBUG_) global.log("dockedWorkspaces: _updateTriggerWidth");
         // Calculate and set triggerWidth
+        let previousTriggerWidth = this._triggerWidth;
         if (this._settings.get_boolean('dock-fixed')) {
             this._triggerWidth = 0;
         } else if (this._settings.get_boolean('intellihide') && this._settings.get_enum('intellihide-action') == IntellihideAction.SHOW_PARTIAL_FIXED) {
@@ -1058,12 +1084,8 @@ const DockedWorkspaces = new Lang.Class({
             }
         }
 
-        // Set actual triggerSpacer based on triggerWidth
-        if (this._isHorizontal) {
-            this._triggerSpacer.height = this._triggerWidth;
-        } else {
-            this._triggerSpacer.width = this._triggerWidth;
-        }
+        if (previousTriggerWidth == this._triggerWidth && !force)
+            return;
 
         if (!this._disableRedisplay)
             this._updateSize();
@@ -1147,12 +1169,12 @@ const DockedWorkspaces = new Lang.Class({
         }));
 
         this._settings.connect('changed::dock-edge-visible', Lang.bind(this, function() {
-            this._updateTriggerWidth();
+            this._updateTriggerWidth(true);
             this._redisplay();
         }));
 
         this._settings.connect('changed::require-pressure-to-show', Lang.bind(this, function() {
-            this._updateTriggerWidth();
+            this._updateTriggerWidth(true);
             this._redisplay();
         }));
         this._settings.connect('changed::pressure-threshold', Lang.bind(this, function() {
@@ -1170,7 +1192,7 @@ const DockedWorkspaces = new Lang.Class({
         }));
 
         this._settings.connect('changed::disable-scroll', Lang.bind(this, function() {
-            this._updateTriggerWidth();
+            this._updateTriggerWidth(true);
             this._redisplay();
         }));
 
@@ -1196,11 +1218,11 @@ const DockedWorkspaces = new Lang.Class({
             this._refreshThumbnails();
         }));
         this._settings.connect('changed::customize-thumbnail-visible-width', Lang.bind(this, function() {
-            this._updateTriggerWidth();
+            this._updateTriggerWidth(true);
             this._redisplay();
         }));
         this._settings.connect('changed::thumbnail-visible-width', Lang.bind(this, function() {
-            this._updateTriggerWidth();
+            this._updateTriggerWidth(true);
             this._redisplay();
         }));
         this._settings.connect('changed::workspace-captions', Lang.bind(this, function() {
@@ -1226,33 +1248,6 @@ const DockedWorkspaces = new Lang.Class({
         this._settings.connect('changed::workspace-caption-taskbar-icon-size', Lang.bind(this, function() {
             // hide and show thumbnailsBox to reset workspace apps in caption
             this._refreshThumbnails();
-        }));
-
-        this._settings.connect('changed::customize-height', Lang.bind(this, function() {
-            // Add or remove addtional style class when workspace is fixed and set to full height
-            if (this._settings.get_boolean('customize-height') && this._settings.get_int('customize-height-option') == 1) {
-                if (this._settings.get_double('top-margin') == 0 || this._settings.get_double('bottom-margin') == 0) {
-                    this._dock.add_style_class_name('fullheight');
-                } else {
-                    this._dock.remove_style_class_name('fullheight');
-                }
-            } else {
-                this._dock.remove_style_class_name('fullheight');
-            }
-            this._updateSize();
-        }));
-        this._settings.connect('changed::customize-height-option', Lang.bind(this, function() {
-            // Add or remove addtional style class when workspace is fixed and set to full height
-            if (this._settings.get_boolean('customize-height') && this._settings.get_int('customize-height-option') == 1) {
-                if (this._settings.get_double('top-margin') == 0 || this._settings.get_double('bottom-margin') == 0) {
-                    this._dock.add_style_class_name('fullheight');
-                } else {
-                    this._dock.remove_style_class_name('fullheight');
-                }
-            } else {
-                this._dock.remove_style_class_name('fullheight');
-            }
-            this._updateSize();
         }));
         this._settings.connect('changed::top-margin', Lang.bind(this, function() {
             // Add or remove addtional style class when workspace is fixed and set to full height
@@ -1347,9 +1342,20 @@ const DockedWorkspaces = new Lang.Class({
         Main.wm.removeKeybinding('dock-keyboard-shortcut');
     },
 
+    // Determine if mouse is hovering dock container
+    _isHovering: function() {
+        if (this._dock.hover) {
+            if (_DEBUG_) global.log("dockedWorkspaces: _isHovering DOCK true");
+            return true;
+        } else {
+            if (_DEBUG_) global.log("dockedWorkspaces: _isHovering DOCK false");
+            return false;
+        }
+    },
+
     // handler for mouse hover events
     _hoverChanged: function() {
-        if (_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - dock.hover = "+this._container.hover+" autohideStatus-dodging = "+this._autohideStatus+" dockState = "+getDockStateDesc(this._dockState)+" pSensed="+this._pressureSensed+" barrier="+this._barrier);
+        if (_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - isHovering = "+this._isHovering()+" autohideStatus-dodging = "+this._autohideStatus+" dockState = "+getDockStateDesc(this._dockState)+" pSensed="+this._pressureSensed+" barrier="+this._barrier);
         if (this._settings.get_boolean('dock-fixed')) {
             return;
         }
@@ -1357,8 +1363,8 @@ const DockedWorkspaces = new Lang.Class({
 
         if (this._canUsePressure && this._settings.get_boolean('require-pressure-to-show') && this._barrier) {
             if (this._pressureSensed == false && this._dockState != DockState.SHOWN) {
-                if(_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - presureSensed = "+this._pressureSensed+" RETURN");
-                if (this._container.hover) {
+                if (_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - presureSensed = "+this._pressureSensed+" RETURN");
+                if (this._isHovering()) {
                     return;
                 }
             }
@@ -1384,7 +1390,7 @@ const DockedWorkspaces = new Lang.Class({
             // set hovering flag if maximized
             // used by the _onDockClicked function (hover+click)
             if (maximized) {
-                if (this._container.hover) {
+                if (this._isHovering()) {
                     this._hovering = true;
                     if (this._dockState != DockState.SHOWN) {
                         return;
@@ -1398,13 +1404,13 @@ const DockedWorkspaces = new Lang.Class({
         }
 
         //Skip if dock is not in autohide mode for instance because it is shown by intellihide
-        if(_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - show or hide?");
+        if (_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - show or hide?");
         if (this._settings.get_boolean('autohide')) {
-            if (this._container.hover) {
-                if(_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - show");
+            if (this._isHovering()) {
+                if (_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - show");
                 this._show();
             } else {
-                if(_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - hide");
+                if (_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - hide");
                 this._hide();
             }
         } else {
@@ -1422,13 +1428,28 @@ const DockedWorkspaces = new Lang.Class({
     },
 
     // handler for mouse click events - works in conjuction with hover event to show dock for maxmized windows
-    _onDockClicked: function() {
+    _onDockClicked: function(actor, event) {
         if (_DEBUG_) global.log("dockedWorkspaces: _onDockClicked");
+
+        // Show overview if button is right click
+        if (this._settings.get_boolean('toggle-overview')) {
+            let button = event.get_button();
+            if (button == 3) { //right click
+                if (Main.overview.visible) {
+                    Main.overview.hide(); // force normal mode
+                } else {
+                    Main.overview.show(); // force overview mode
+                }
+                // pass right-click event on allowing it to bubble up
+                return Clutter.EVENT_PROPAGATE;
+            }
+        }
+
         if (this._settings.get_boolean('require-click-to-show')) {
             if (this._hovering) {
                 //Skip if dock is not in autohide mode for instance because it is shown by intellihide
                 if (this._settings.get_boolean('autohide') && this._autohideStatus) {
-                    if (this._container.hover) {
+                    if (this._isHovering()) {
                         this._show();
                     } else {
                         this._hide();
@@ -1437,6 +1458,7 @@ const DockedWorkspaces = new Lang.Class({
                 this._hovering = false;
             }
         }
+        return Clutter.EVENT_STOP;
     },
 
     _onSpeedExceeded: function() {
@@ -1645,7 +1667,6 @@ const DockedWorkspaces = new Lang.Class({
     // This comes from desktop-scroller@obsidien.github.com
     _onScrollEvent: function (actor, event) {
         if (_DEBUG_) global.log("dockedWorkspaces: _onScrollEvent autohideStatus = "+this._autohideStatus+" dockState = "+this._dockState + " slidex = "+this._slider.slidex);
-        let intellihideAction = this._settings.get_enum('intellihide-action');
         if (this._settings.get_boolean('disable-scroll') &&
             this._autohideStatus &&
             this._slider.slidex == 0 && // Need to check the slidex for partially showing dock
@@ -1748,11 +1769,12 @@ const DockedWorkspaces = new Lang.Class({
     // autohide function to hide dock
     _hide: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _hide autohideStatus-dodging = "+this._autohideStatus+" dockState = "+getDockStateDesc(this._dockState));
+        this._updateTriggerWidth();
         if (this._settings.get_boolean('dock-fixed')) {
             return;
         }
 
-        if (this._container.hover || (this._hoveringDash && !Main.overview._shown)) {
+        if (this._isHovering() || (this._hoveringDash && !Main.overview._shown)) {
             return;
         }
 
@@ -1788,8 +1810,8 @@ const DockedWorkspaces = new Lang.Class({
         if (_DEBUG_) global.log("dockedWorkspaces: setPopupMenuFlag - showing="+showing);
         this._popupMenuShowing = showing;
         if (!showing) {
-            if (this._container.hover == true) {
-                this._container.sync_hover();
+            if (this._isHovering()) {
+                this._dock.sync_hover();
             } else {
                 this._hide();
             }
@@ -1941,10 +1963,15 @@ const DockedWorkspaces = new Lang.Class({
         // CSS time is in ms
         this._thumbnailsBox.actor.set_style('transition-duration:' + time*1000 + ';' +
             'transition-delay:' + delay*1000 + ';' +
-            'background-color:' + this._defaultBackground + ';' +
+            'background-color: rgba(0,0,0,0);' +
             'border-color:' + this._defaultBorder);
 
         this._shortcutsPanel.actor.set_style('transition-duration:' + time*1000 + ';' +
+            'transition-delay:' + delay*1000 + ';' +
+            'background-color: rgba(0,0,0,0);' +
+            'border-color:' + this._defaultBorder);
+
+        this._dockContainer.set_style('transition-duration:' + time*1000 + ';' +
             'transition-delay:' + delay*1000 + ';' +
             'background-color:' + this._defaultBackground + ';' +
             'border-color:' + this._defaultBorder);
@@ -1956,10 +1983,15 @@ const DockedWorkspaces = new Lang.Class({
         // CSS time is in ms
         this._thumbnailsBox.actor.set_style('transition-duration:' + time*1000 + ';' +
             'transition-delay:' + delay*1000 + ';' +
-            'background-color:' + this._customBackground + ';' +
+            'background-color: rgba(0,0,0,0);' +
             'border-color:' + this._customBorder);
 
         this._shortcutsPanel.actor.set_style('transition-duration:' + time*1000 + ';' +
+            'transition-delay:' + delay*1000 + ';' +
+            'background-color: rgba(0,0,0,0);' +
+            'border-color:' + this._customBorder);
+
+        this._dockContainer.set_style('transition-duration:' + time*1000 + ';' +
             'transition-delay:' + delay*1000 + ';' +
             'background-color:' + this._customBackground + ';' +
             'border-color:' + this._customBorder);
@@ -1977,8 +2009,7 @@ const DockedWorkspaces = new Lang.Class({
         // Make thumbnail windowclones non-reactive
         // NOTE: Need this for when in overviewmode applications view and dock is in fixed mode.
         // Fixed dock has opacity set to 0 but is still reactive.
-        this.actor.reactive = false;
-        this._container.reactive = false;
+        this._dock.reactive = false;
         this._shortcutsPanel.setReactiveState(false);
         this._thumbnailsBox.actor.reactive = false;
         for (let i = 0; i < this._thumbnailsBox._thumbnails.length; i++) {
@@ -1995,8 +2026,7 @@ const DockedWorkspaces = new Lang.Class({
         this.actor.opacity = 255;
 
         // Return thumbnail windowclones to reactive state
-        this.actor.reactive = true;
-        this._container.reactive = true;
+        this._dock.reactive = true;
         this._shortcutsPanel.setReactiveState(true);
         this._thumbnailsBox.actor.reactive = true;
         for (let i = 0; i < this._thumbnailsBox._thumbnails.length; i++) {
@@ -2184,13 +2214,13 @@ const DockedWorkspaces = new Lang.Class({
             // Redisplay dock by animating back in .. necessary if thumbnailsBox size changed
             // even if dock is fixed
             if (this._autohideStatus) {
-                if (!this._container.hover && !(this._hoveringDash && !Main.overview._shown)) {
+                if (!this._isHovering() && !(this._hoveringDash && !Main.overview._shown)) {
                     this._removeAnimations();
                     this._animateOut(0, 0, true);
                 }
                 this._autohideStatus = true;
             } else {
-                if (!this._container.hover && !(this._hoveringDash && !Main.overview._shown)) {
+                if (!this._isHovering() && !(this._hoveringDash && !Main.overview._shown)) {
                     // had to comment out because GS3.4 fixed-dock isn't fully faded in yet when redisplay occurs again
                     //this._removeAnimations();
                     this._animateIn(this._settings.get_double('animation-time'), 0);
@@ -2276,19 +2306,19 @@ const DockedWorkspaces = new Lang.Class({
             //return;
         //}
 
-        // Update position of wrapper actor (used to detect window overlaps)
+        // Update position of main actor (used to detect window overlaps)
         this.actor.set_position(x, y);
         this._struts.set_position(x, y);
         if (_DEBUG_) global.log("dockedWorkspaces: _updateSize new x = "+x+" y = "+y);
 
-        // Update size of wrapper actor and _dock inside the slider
+        // Update size of the main actor as well as the _dock & _panels inside
+        // NOTE: Rather than rely on the builtin box layout mechanics, we control
+        // both width and height based on the thumbnail & shortcuts panels. This
+        // allows us to control the trigger space for showing/hiding and scrolling
         if (this._isHorizontal) {
-            this.actor.set_size(width, height + this._triggerSpacer.height); // This is the whole dock wrapper
-            this._dock.set_size(width, height + this._triggerSpacer.height); // This is the actual dock inside the slider that we check for mouse hover
-            if (this._settings.get_boolean('customize-height') && this._settings.get_int('customize-height-option') == 0) {
-                this._containerWrapper.set_size(width, height + this._triggerSpacer.height);
+            if (this._settings.get_boolean('customize-height')) {
                 let [minThumbnailsBoxWidth, minThumbnailsBoxHeight, natThumbnailsBoxWidth, natThumbnailsBoxHeight] = this._thumbnailsBox.actor.get_preferred_size();
-                let minShortcutsPanelWidth, minShortcutsPanelHeight, natShortcutsPanelWidth, natShortcutsPanelHeight = 0;
+                let minShortcutsPanelWidth = 0, minShortcutsPanelHeight = 0, natShortcutsPanelWidth = 0, natShortcutsPanelHeight = 0;
                 if (this._settings.get_boolean('show-shortcuts-panel')) {
                     [minShortcutsPanelWidth, minShortcutsPanelHeight, natShortcutsPanelWidth, natShortcutsPanelHeight] = this._shortcutsPanel.actor.get_preferred_size();
                 }
@@ -2296,18 +2326,34 @@ const DockedWorkspaces = new Lang.Class({
                 if (containerWidth > width) {
                     containerWidth = width;
                 }
-                this._container.set_size(containerWidth, height + this._triggerSpacer.height);
+                this._panelsContainer.set_size(containerWidth, height);
+                this._panels.set_size(containerWidth, height);
+                if (this._extendContainer) {
+                    this._dockContainer.set_size(width, height);
+                    this._dock.set_size(width, height + this._triggerWidth);
+                    this.actor.set_size(width, height + this._triggerWidth);
+                } else {
+                    this._dockContainer.set_size(containerWidth, height);
+                    this._dock.set_size(containerWidth, height + this._triggerWidth);
+                    this.actor.set_size(containerWidth, height + this._triggerWidth);
+                    if (this._centerContainer) {
+                        if (width > containerWidth) {
+                            let xMiddle = x + Math.round((width - containerWidth) / 2);
+                            this.actor.set_position(xMiddle, y);
+                        }
+                    }
+                }
             } else {
-                this._containerWrapper.set_size(width, height + this._triggerSpacer.height);
-                this._container.set_size(width, height + this._triggerSpacer.height);
+                this._panelsContainer.set_size(width, height);
+                this._panels.set_size(width, height);
+                this._dockContainer.set_size(width, height);
+                this._dock.set_size(width, height + this._triggerWidth);
+                this.actor.set_size(width, height + this._triggerWidth);
             }
         } else {
-            this.actor.set_size(width + this._triggerSpacer.width, height); // This is the whole dock wrapper
-            this._dock.set_size(width + this._triggerSpacer.width, height); // This is the actual dock inside the slider that we check for mouse hover
-            if (this._settings.get_boolean('customize-height') && this._settings.get_int('customize-height-option') == 0) {
-                this._containerWrapper.set_size(width + this._triggerSpacer.width, height);
+            if (this._settings.get_boolean('customize-height')) {
                 let [minThumbnailsBoxWidth, minThumbnailsBoxHeight, natThumbnailsBoxWidth, natThumbnailsBoxHeight] = this._thumbnailsBox.actor.get_preferred_size();
-                let minShortcutsPanelWidth, minShortcutsPanelHeight, natShortcutsPanelWidth, natShortcutsPanelHeight = 0;
+                let minShortcutsPanelWidth = 0, minShortcutsPanelHeight = 0, natShortcutsPanelWidth = 0, natShortcutsPanelHeight = 0;
                 if (this._settings.get_boolean('show-shortcuts-panel')) {
                     [minShortcutsPanelWidth, minShortcutsPanelHeight, natShortcutsPanelWidth, natShortcutsPanelHeight] = this._shortcutsPanel.actor.get_preferred_size();
                 }
@@ -2315,10 +2361,29 @@ const DockedWorkspaces = new Lang.Class({
                 if (containerHeight > height) {
                     containerHeight = height;
                 }
-                this._container.set_size(width + this._triggerSpacer.width, containerHeight);
+                this._panelsContainer.set_size(width, containerHeight);
+                this._panels.set_size(width, containerHeight);
+                if (this._extendContainer) {
+                    this._dockContainer.set_size(width, height);
+                    this._dock.set_size(width + this._triggerWidth, height);
+                    this.actor.set_size(width + this._triggerWidth, height);
+                } else {
+                    this._dockContainer.set_size(width, containerHeight);
+                    this._dock.set_size(width + this._triggerWidth, containerHeight);
+                    this.actor.set_size(width + this._triggerWidth, containerHeight);
+                    if (this._centerContainer) {
+                        if (height > containerHeight) {
+                            let yMiddle = y + Math.round((height - containerHeight) / 2);
+                            this.actor.set_position(x, yMiddle);
+                        }
+                    }
+                }
             } else {
-                this._containerWrapper.set_size(width + this._triggerSpacer.width, height);
-                this._container.set_size(width + this._triggerSpacer.width, height);
+                this._panelsContainer.set_size(width, height);
+                this._panels.set_size(width, height);
+                this._dockContainer.set_size(width, height);
+                this._dock.set_size(width + this._triggerWidth, height);
+                this.actor.set_size(width + this._triggerWidth, height);
             }
         }
 
@@ -2327,10 +2392,7 @@ const DockedWorkspaces = new Lang.Class({
         this._struts.move_anchor_point_from_gravity(anchorPoint);
 
         // Update slider slideout width
-        let slideoutSize = this._triggerWidth;
-        if (this._settings.get_boolean('dock-edge-visible')) {
-            slideoutSize = this._triggerWidth + DOCK_EDGE_VISIBLE_WIDTH;
-        }
+        let slideoutSize = this._settings.get_boolean('dock-edge-visible') ? this._triggerWidth + DOCK_EDGE_VISIBLE_WIDTH : this._triggerWidth;
         this._slider.slideoutSize = slideoutSize;
 
         // Update slider partial width
@@ -2500,7 +2562,7 @@ const DockedWorkspaces = new Lang.Class({
         }
 
         // Reset pressureSensed flag
-        if (!this._container.hover && this._dockState != DockState.SHOWN) {
+        if (!this._isHovering() && this._dockState != DockState.SHOWN) {
             if (_DEBUG_) global.log("... pressureSensed flag reset");
             this._pressureSensed = false;
             this._updateTriggerWidth();
@@ -2533,15 +2595,15 @@ const DockedWorkspaces = new Lang.Class({
             this._autohideStatus = true;
         }
 
-        if (this._container.hover == true) {
-            this._container.sync_hover();
+        if (this._isHovering()) {
+            this._dock.sync_hover();
         }
 
         let delay = 0; // immediately fadein background if hide is blocked by mouseover, otherwise start fadein when dock is already hidden.
 
         if (this._settings.get_boolean('autohide')) {
             if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - autohide settings true");
-            if (!this._container.hover && !(this._hoveringDash && !Main.overview._shown)) {
+            if (!this._isHovering() && !(this._hoveringDash && !Main.overview._shown)) {
                 if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - mouse not hovering OR dock not using autohide, so animate out");
                 this._removeAnimations();
                 if (dontforce) {

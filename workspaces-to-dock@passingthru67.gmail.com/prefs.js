@@ -200,7 +200,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }));
 
         let customizeHeightAutosize =  new Gtk.RadioButton({
-            label: _("Autosize and center the dock based on workspaces and shortcuts"),
+            label: _("Autosize the dock based on workspaces and shortcuts"),
             margin_top: 0
         });
         customizeHeightAutosize.connect('toggled', Lang.bind(this, function(check){
@@ -208,7 +208,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }));
 
         let customizeHeightExtend =  new Gtk.RadioButton({
-            label: _("Extend the height (width) of the dock to fill the screen"),
+            label: _("Extend the dock to fill the screen"),
             group: customizeHeightAutosize,
             margin_top: 0
         });
@@ -226,6 +226,48 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
                 break;
             default:
                 customizeHeightAutosize.set_active(true); // default
+        }
+
+        let centerThumbnails = new Gtk.CheckButton({
+            label: _("Center thumbnails and shortcuts on the dock"),
+            margin_left: 0,
+            margin_top: 0
+        });
+        centerThumbnails.set_active(this.settings.get_boolean('center-thumbnails-on-dock'));
+        centerThumbnails.connect('toggled', Lang.bind(this, function(check) {
+            this.settings.set_boolean('center-thumbnails-on-dock', check.get_active());
+        }));
+
+
+        let centerThumbnailsIndependently =  new Gtk.RadioButton({
+            label: _("Center thumbnails-shortcuts independently"),
+            margin_top: 0,
+            margin_left: 40
+        });
+        centerThumbnailsIndependently.connect('toggled', Lang.bind(this, function(check){
+            if (check.get_active()) this.settings.set_int('center-thumbnails-option', 0);
+        }));
+
+        let centerThumbnailsJointly =  new Gtk.RadioButton({
+            label: _("Center thumbnails-shortcuts jointly"),
+            group: centerThumbnailsIndependently,
+            margin_top: 0,
+            margin_left: 40
+        });
+        centerThumbnailsJointly.connect('toggled', Lang.bind(this, function(check){
+            if (check.get_active()) this.settings.set_int('center-thumbnails-option', 1);
+        }));
+
+        let centerThumbnailsOption = this.settings.get_boolean('center-thumbnails-option');
+        switch (centerThumbnailsOption) {
+            case 0:
+                centerThumbnailsIndependently.set_active(true); // autosize
+                break;
+            case 1:
+                centerThumbnailsJointly.set_active(true); // extend
+                break;
+            default:
+                centerThumbnailsIndependently.set_active(true); // default
         }
 
         let topMarginLabel = new Gtk.Label({
@@ -291,13 +333,18 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         dockHeightControlGrid.attach(customizeHeightSwitch, 1, 0, 1, 1);
         dockHeightContainerGrid.attach(customizeHeightAutosize, 0, 0, 1, 1);
         dockHeightContainerGrid.attach(customizeHeightExtend, 0, 1, 1, 1);
-        dockHeightContainerGrid.attach(topMarginLabel, 0, 2, 1, 1);
-        dockHeightContainerGrid.attach(topMarginSpinner, 1, 2, 1, 1);
-        dockHeightContainerGrid.attach(bottomMarginLabel, 0, 3, 1, 1);
-        dockHeightContainerGrid.attach(bottomMarginSpinner, 1, 3, 1, 1);
+        dockHeightContainerGrid.attach(centerThumbnails, 0, 2, 1, 1);
+        dockHeightContainerGrid.attach(centerThumbnailsIndependently, 0, 3, 1, 1);
+        dockHeightContainerGrid.attach(centerThumbnailsJointly, 0, 4, 1, 1);
+        dockHeightContainerGrid.attach(topMarginLabel, 0, 5, 1, 1);
+        dockHeightContainerGrid.attach(topMarginSpinner, 1, 5, 1, 1);
+        dockHeightContainerGrid.attach(bottomMarginLabel, 0, 6, 1, 1);
+        dockHeightContainerGrid.attach(bottomMarginSpinner, 1, 6, 1, 1);
 
         // Bind interactions
         this.settings.bind('customize-height', dockHeightContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+        this.settings.bind('center-thumbnails-on-dock', centerThumbnailsIndependently, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+        this.settings.bind('center-thumbnails-on-dock', centerThumbnailsJointly, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
 
 
         /* TITLE: BACKGROUND */

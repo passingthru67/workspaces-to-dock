@@ -528,11 +528,11 @@ const myThumbnailsBox = new Lang.Class({
         // override _init to remove create/destroy thumbnails when showing/hiding overview
         if (this._isHorizontal) {
             this.actor = new Shell.GenericContainer({ reactive: true,
-                                                  style_class: 'workspace-thumbnails',
+                                                  style_class: 'workspace-thumbnails workspacestodock-thumbnails-panel',
                                                   request_mode: Clutter.RequestMode.HEIGHT_FOR_WIDTH });
         } else {
             this.actor = new Shell.GenericContainer({ reactive: true,
-                                                style_class: 'workspace-thumbnails',
+                                                style_class: 'workspace-thumbnails workspacestodock-thumbnails-panel',
                                                 request_mode: Clutter.RequestMode.WIDTH_FOR_HEIGHT });
         }
 
@@ -928,11 +928,6 @@ const myThumbnailsBox = new Lang.Class({
         if (this._mySettings.get_boolean('toggle-overview')) {
             let button = event.get_button();
             if (button == 3) { //right click
-                if (Main.overview.visible) {
-                    Main.overview.hide(); // force normal mode
-                } else {
-                    Main.overview.show(); // force overview mode
-                }
                 // pass right-click event on allowing it to bubble up
                 return Clutter.EVENT_PROPAGATE;
             }

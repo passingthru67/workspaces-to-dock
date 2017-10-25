@@ -1,155 +1,113 @@
-#workspacestodockTriggerSpacer {
-    background-color: none;
-}
-#workspacestodockContainerWrapper {
-    background-color: none;
-}
-#workspacestodockContainer {
-    background-color: none;
-}
+/* NOTE: do not add any margin or padding to the workspacestodockDockContainer
+as they may intefere with the intellihide/autohide triggering */
 
-#workspacestodockDockWrapper {
-}
-#workspacestodockDock {
-    padding: 0px;
-}
-
-#workspacestodockDock.right .workspace-thumbnails {
-    border-radius: 9px 0 0 9px;
-    border-right: none;
-}
-
-#workspacestodockDock.left .workspace-thumbnails {
+#workspacestodockDock.left #workspacestodockDockContainer {
+    border-left: none;
+    border-right: 1px;
+    border-top: 1px;
+    border-bottom: 1px;
     border-radius: 0 9px 9px 0;
-    border-left: none;
 }
 
-#workspacestodockDock.top .workspace-thumbnails {
-    border-radius: 0 0 9px 9px;
-    border-top: none;
-}
-
-#workspacestodockDock.bottom .workspace-thumbnails {
-    border-radius: 9px 9px 0 0;
-    border-bottom: none;
-}
-
-#workspacestodockDock.right.inside .workspace-thumbnails {
-    border-radius: 0px;
-}
-
-#workspacestodockDock.left.inside .workspace-thumbnails {
-    border-radius: 0px;
-}
-
-#workspacestodockDock.top.inside .workspace-thumbnails {
-    border-radius: 0px;
-}
-
-#workspacestodockDock.bottom.inside .workspace-thumbnails {
-    border-radius: 0px;
-}
-
-#workspacestodockDock.right.fullheight .workspace-thumbnails {
-    border-radius: 0px;
-    border-top: none;
-    border-bottom: none;
-}
-
-#workspacestodockDock.left.fullheight .workspace-thumbnails {
-    border-radius: 0px;
-    border-top: none;
-    border-bottom: none;
-}
-
-#workspacestodockDock.top.fullheight .workspace-thumbnails {
-    border-radius: 0px;
-    border-left: none;
-    border-right: none;
-}
-
-#workspacestodockDock.bottom.fullheight .workspace-thumbnails {
-    border-radius: 0px;
-    border-left: none;
-    border-right: none;
-}
-
-#workspacestodockDock.right .workspacestodock-shortcuts-panel {
-    border-radius: 0px;
-    padding: 2px;
-    spacing: 0px;
-    border-right: none;
-}
-
-#workspacestodockDock.left .workspacestodock-shortcuts-panel {
-    border-radius: 0px;
-    padding: 2px;
-    spacing: 0px;
-    border-left: none;
-}
-
-#workspacestodockDock.top .workspacestodock-shortcuts-panel {
-    border-radius: 0px;
-    padding: 2px;
-    spacing: 0px;
-    border-top: none;
-}
-
-#workspacestodockDock.bottom .workspacestodock-shortcuts-panel {
-    border-radius: 0px;
-    padding: 2px;
-    spacing: 0px;
-    border-bottom: none;
-}
-
-#workspacestodockDock.right.inside .workspacestodock-shortcuts-panel {
-    border-radius: 9px 0 0 9px;
-    padding: 2px;
-    spacing: 0px;
+#workspacestodockDock.right #workspacestodockDockContainer {
     border-left: 1px;
+    border-right: none;
+    border-top: 1px;
+    border-bottom: 1px;
+    border-radius: 9px 0 0 9px;
 }
 
-#workspacestodockDock.left.inside .workspacestodock-shortcuts-panel {
-    border-radius: 0 9px 9px 0;
-    padding: 2px;
-    spacing: 0px;
+#workspacestodockDock.top #workspacestodockDockContainer {
+    border-left: 1px;
+    border-right: 1px;
+    border-top: none;
+    border-bottom: 1px;
+    border-radius: 0 0 9px 9px;
+}
+
+#workspacestodockDock.bottom #workspacestodockDockContainer {
+    border-left: 1px;
+    border-right: 1px;
+    border-top: 1px;
+    border-bottom: none;
+    border-radius: 9px 9px 0 0;
+}
+
+#workspacestodockDock.fullheight #workspacestodockDockContainer {
+    border: none;
+    border-radius: 0px;
+}
+
+#workspacestodockDock.left.fullheight #workspacestodockDockContainer {
     border-right: 1px;
 }
 
-#workspacestodockDock.top.inside .workspacestodock-shortcuts-panel {
-    border-radius: 0 0 9px 9px;
-    padding: 2px;
-    spacing: 0px;
+#workspacestodockDock.right.fullheight #workspacestodockDockContainer {
+    border-left: 1px;
+}
+
+#workspacestodockDock.top.fullheight #workspacestodockDockContainer {
     border-bottom: 1px;
 }
 
-#workspacestodockDock.bottom.inside .workspacestodock-shortcuts-panel {
-    border-radius: 9px 9px 0 0;
-    padding: 2px;
-    spacing: 0px;
+#workspacestodockDock.bottom.fullheight #workspacestodockDockContainer {
     border-top: 1px;
 }
 
-#workspacestodockDock.right.fullheight .workspacestodock-shortcuts-panel {
-    border-radius: 0px;
+/* Workspace thumbnails and shortcuts panel */
+/* NOTE: shortcuts panel also uses .workspace-thumbnails class */
+
+#workspacestodockDock .workspace-thumbnails {
+    margin: none; /* remove any margins from parent class in user theme */
+    border: none; /* remove any borders from parent class in user theme */
+    border-radius: 0px; /* remove any radius from parent class in user theme */
 }
 
-#workspacestodockDock.left.fullheight .workspacestodock-shortcuts-panel {
-    border-radius: 0px;
-}
+/* Inside panel borders */
 
-#workspacestodockDock.top.fullheight .workspacestodock-shortcuts-panel {
-    border-radius: 0px;
-}
-
-#workspacestodockDock.bottom.fullheight .workspacestodock-shortcuts-panel {
-    border-radius: 0px;
-}
-
-.workspacestodock-shortcuts-panel-popupmenu {
-    padding: 2px;
+#workspacestodockDock .workspacestodock-shortcuts-panel {
+    border-radius: 0 0 0 0;
+    padding: 0px;
     spacing: 0px;
 }
+
+#workspacestodockDock.left.outside .workspacestodock-thumbnails-panel {
+    border-left: 1px;
+    border-right: none;
+}
+#workspacestodockDock.left.inside .workspacestodock-thumbnails-panel {
+    border-left: none;
+    border-right: 1px;
+}
+
+#workspacestodockDock.right.outside .workspacestodock-thumbnails-panel {
+    border-left: none;
+    border-right: 1px;
+}
+#workspacestodockDock.right.inside .workspacestodock-thumbnails-panel {
+    border-left: 1px;
+    border-right: none;
+}
+
+#workspacestodockDock.top.outside .workspacestodock-thumbnails-panel {
+    border-top: 1px;
+    border-bottom: none;
+}
+#workspacestodockDock.top.inside .workspacestodock-thumbnails-panel {
+    border-top: none;
+    border-bottom: 1px;
+}
+
+#workspacestodockDock.bottom.outside .workspacestodock-thumbnails-panel {
+    border-top: none;
+    border-bottom: 1px;
+}
+#workspacestodockDock.bottom.inside .workspacestodock-thumbnails-panel {
+    border-top: 1px;
+    border-bottom: none;
+}
+
+/* shortcuts panel sub-panels */
 
 .workspacestodock-shortcuts-panel-favorites {
 }
@@ -158,29 +116,8 @@
 .workspacestodock-shortcuts-panel-places {
 }
 
-/* shortcuts panel buttons */
-#workspacestodockDock .app-well-app {
-}
-
-#workspacestodockDock .workspacestodock-shortcuts-panel > StButton {
-    background-size: contain;
-}
-.workspacestodock-shortcut-button {
-}
-.workspacestodock-shortcut-button-symbolic {
-}
-
-/* shortcuts panel button icons */
-#workspacestodockDock .app-well-app > .overview-icon {
-}
-.workspacestodock-shortcut-button-icon {
-    padding: 6px;
-}
-.workspacestodock-shortcut-button-symbolic-icon {
-    padding: 8px;
-}
-
 /* shortcuts panel items */
+
 #workspacestodockDock .popup-separator-menu-item {
     margin: 2px;
 }
@@ -197,7 +134,56 @@
     padding: 0px;
 }
 
+/* shortcuts panel popup menu */
+
+.workspacestodock-shortcuts-panel-popupmenu {
+    padding: 2px;
+    spacing: 0px;
+}
+
+/* shortcuts panel buttons */
+
+#workspacestodockDock .app-well-app {
+}
+
+#workspacestodockDock .workspacestodock-shortcuts-panel > StButton {
+    background-size: contain;
+}
+.workspacestodock-shortcut-button {
+}
+.workspacestodock-shortcut-button-symbolic {
+}
+
+#workspacestodockDock.left .workspacestodock-shortcut-button {
+    padding-left: 4px;
+    padding-right: 4px;
+}
+#workspacestodockDock.right .workspacestodock-shortcut-button {
+    padding-left: 4px;
+    padding-right: 4px;
+}
+#workspacestodockDock.top .workspacestodock-shortcut-button {
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+#workspacestodockDock.bottom .workspacestodock-shortcut-button {
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
+/* shortcuts panel button icons */
+
+#workspacestodockDock .app-well-app > .overview-icon {
+}
+.workspacestodock-shortcut-button-icon {
+    padding: 6px;
+}
+.workspacestodock-shortcut-button-symbolic-icon {
+    padding: 8px;
+}
+
 /* shortcuts panel button window count indicators */
+
 #workspacestodockDock.right .workspacestodock-shortcut-button-windowcount-image-1 {
     background-image: url('one_right.svg');
 }
@@ -264,6 +250,7 @@
 }
 
 /* caption window apps (taskbar) */
+
 .workspacestodock-caption-windowapps {
     padding: 0px;
 }
@@ -317,6 +304,7 @@
 }
 
 /* caption workspace number */
+
 .workspacestodock-caption-number {
     color: rgba(0,0,0,0.7);
     background-gradient-start: rgba(255,255,255,0.2);
@@ -331,6 +319,7 @@
 }
 
 /* caption workspace name */
+
 .workspacestodock-caption-name {
     color: rgba(150,150,150,0.8);
     color: rgba(255,255,255,0.3);
@@ -342,6 +331,7 @@
 }
 
 /* caption workspace windowcount */
+
 .workspacestodock-caption-windowcount {
     min-width: 7px;
     color: rgba(150,150,150,0.8);
@@ -355,6 +345,7 @@
 }
 
 /* caption workspace windowcount image*/
+
 .workspacestodock-caption-windowcount-image {
     width: 20px;
     height: 16px;
@@ -362,6 +353,7 @@
 
 /* The classes below are used in conjunction with the above workspacestodock-caption-windowcount-image
  * They provide background images that corespond with the window count */
+
 .workspacestodock-caption-windowcount-image-1 {
     background-image: url('h-one.svg');
 }
@@ -376,6 +368,7 @@
 }
 
 /* caption spacer-filler */
+
 .workspacestodock-caption-spacer {
     border: 1px solid rgba(0, 0, 0, 0.0);
     width: 1px;
@@ -383,6 +376,7 @@
 
 /* The classes below are used in conjuction with the above classes
  * They provide additional theming for the current workspace caption */
+
 .workspacestodock-workspace-caption-background-current {
     background-gradient-start: rgba(0,0,0,0.5);
     background-gradient-end: rgba(0,0,0,0.5);

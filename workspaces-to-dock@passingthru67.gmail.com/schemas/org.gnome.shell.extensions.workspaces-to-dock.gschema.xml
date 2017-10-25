@@ -150,6 +150,16 @@
       <summary>Customize height options</summary>
       <description>Select type of customization for height of dock (autosize, extend)</description>
     </key>
+    <key type="b" name="center-thumbnails-on-dock">
+      <default>false</default>
+      <summary>Center thumbnails on dock</summary>
+      <description>Center thumbnails on dock.</description>
+    </key>
+    <key type="i" name="center-thumbnails-option">
+      <default>0</default>
+      <summary>Center thumbnails options</summary>
+      <description>Select type of centering for thumbnails and shortcuts (jointly, independently).</description>
+    </key>
     <key type="d" name="top-margin">
       <default>0</default>
       <summary>Top margin of extended dock</summary>

@@ -151,4 +151,28 @@ function bindSettingsChanges() {
         dock = new DockedWorkspaces.DockedWorkspaces();
         intellihide = new Intellihide.Intellihide(dock);
     });
+    settings.connect('changed::customize-height', function(){
+        intellihide.destroy();
+        dock.destroy();
+        dock = new DockedWorkspaces.DockedWorkspaces();
+        intellihide = new Intellihide.Intellihide(dock);
+    });
+    settings.connect('changed::customize-height-option', function(){
+        intellihide.destroy();
+        dock.destroy();
+        dock = new DockedWorkspaces.DockedWorkspaces();
+        intellihide = new Intellihide.Intellihide(dock);
+    });
+    settings.connect('changed::center-thumbnails-on-dock', function(){
+        intellihide.destroy();
+        dock.destroy();
+        dock = new DockedWorkspaces.DockedWorkspaces();
+        intellihide = new Intellihide.Intellihide(dock);
+    });
+    settings.connect('changed::center-thumbnails-option', function(){
+        intellihide.destroy();
+        dock.destroy();
+        dock = new DockedWorkspaces.DockedWorkspaces();
+        intellihide = new Intellihide.Intellihide(dock);
+    });
 }

@@ -665,8 +665,8 @@ const Intellihide = new Lang.Class({
         let [rw, rh] = focusedActor.get_size();
         let [dx, dy] = this._dock.actor.get_position();
         let [dw, dh] = this._dock.actor.get_size();
-        let [dcx, dcy] = this._dock._container.get_transformed_position();
-        let [dcw, dch] = this._dock._container.get_size();
+        let [dcx, dcy] = this._dock.actor.get_transformed_position();
+        let [dcw, dch] = this._dock.actor.get_size();
 
         if (this._dock._isHorizontal) {
             dx = dcx;
@@ -858,8 +858,8 @@ const Intellihide = new Lang.Class({
                             let rect = win.get_frame_rect();
                             let [dx, dy] = this._dock.actor.get_position();
                             let [dw, dh] = this._dock.actor.get_size();
-                            let [dcx, dcy] = this._dock._container.get_transformed_position();
-                            let [dcw, dch] = this._dock._container.get_size();
+                            let [dcx, dcy] = this._dock.actor.get_transformed_position();
+                            let [dcw, dch] = this._dock.actor.get_size();
 
                             // SANITY CHECK
                             // global.log("dx="+dx+" dy="+dy+" || dcx="+Math.round(dcx)+" dcy="+dcy);
