@@ -424,6 +424,7 @@ const DockedWorkspaces = new Lang.Class({
 
         // Connect the _dock hover, scroll and button release events
         this._checkHoverStatusId = 0;
+        this._scrollWorkspaceSwitchDeadTimeId = 0;
         this._dock.connect("notify::hover", Lang.bind(this, this._hoverChanged));
         this._dock.connect("scroll-event", Lang.bind(this, this._onScrollEvent));
         this._dock.connect("button-release-event", Lang.bind(this, this._onDockClicked));
