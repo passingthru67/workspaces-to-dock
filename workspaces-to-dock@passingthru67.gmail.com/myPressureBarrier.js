@@ -53,8 +53,6 @@ const myPressureBarrier = new Lang.Class({
     destroy: function() {
         this._barriers.forEach(Lang.bind(this, this._disconnectBarrier));
         this._barriers = [];
-        if (this._keyPressEventId > 0)
-            global.stage.disconnect(this._keyPressEventId);
     },
 
     setEventFilter: function(filter) {
