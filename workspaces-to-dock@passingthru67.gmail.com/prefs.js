@@ -229,7 +229,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }
 
         let centerThumbnails = new Gtk.CheckButton({
-            label: _("Center the dock (or thumbnails and favorites if dock is extended)"),
+            label: _("Center the dock (thumbnails and favorites if dock is extended)"),
             margin_left: 0,
             margin_top: 0
         });
