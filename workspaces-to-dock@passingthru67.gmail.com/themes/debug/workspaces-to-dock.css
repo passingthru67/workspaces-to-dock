@@ -1,0 +1,137 @@
+#workspacestodockDockWrapper {
+    background-color: none;
+}
+
+#workspacestodockDock {
+    background-color: none;
+    padding: 0px;
+    background-color: yellow;
+}
+
+#workspacestodockDockContainer {
+    padding: none;
+    margin: none;
+    border: none;
+    background-color: red;
+}
+
+#workspacestodockPanels {
+    padding: none;
+    margin: none;
+    border: none;
+    background-color: none;
+}
+
+/* NOTE: do not add any margin or padding to the workspacestodockDockContainer
+as they may intefere with the intellihide/autohide triggering */
+
+#workspacestodockDock.left #workspacestodockDockContainer {
+    border-left: none;
+    border-right: 1px;
+    border-top: 1px;
+    border-bottom: 1px;
+    border-radius: 0 9px 9px 0;
+}
+
+#workspacestodockDock.right #workspacestodockDockContainer {
+    border-left: 1px;
+    border-right: none;
+    border-top: 1px;
+    border-bottom: 1px;
+    border-radius: 9px 0 0 9px;
+}
+
+#workspacestodockDock.top #workspacestodockDockContainer {
+    border-left: 1px;
+    border-right: 1px;
+    border-top: none;
+    border-bottom: 1px;
+    border-radius: 0 0 9px 9px;
+}
+
+#workspacestodockDock.bottom #workspacestodockDockContainer {
+    border-left: 1px;
+    border-right: 1px;
+    border-top: 1px;
+    border-bottom: none;
+    border-radius: 9px 9px 0 0;
+}
+
+#workspacestodockDock.fullheight #workspacestodockDockContainer {
+    border: none;
+    border-radius: 0px;
+}
+
+/* NOTE: do not add any margin or padding to the workspacestodockDockContainer
+as they may intefere with the intellihide/autohide triggering */
+
+#workspacestodockDock.left.fullheight #workspacestodockDockContainer {
+    border-right: 1px;
+}
+
+#workspacestodockDock.right.fullheight #workspacestodockDockContainer {
+    border-left: 1px;
+}
+
+#workspacestodockDock.top.fullheight #workspacestodockDockContainer {
+    border-bottom: 1px;
+}
+
+#workspacestodockDock.bottom.fullheight #workspacestodockDockContainer {
+    border-top: 1px;
+}
+
+/* Workspace thumbnails and shortcuts panel */
+/* NOTE: shortcuts panel also uses .workspace-thumbnails class */
+
+#workspacestodockDock .workspace-thumbnails {
+    margin: none; /* remove any margins from parent class in user theme */
+    border: none; /* remove any borders from parent class in user theme */
+    border-radius: 0px; /* remove any radius from parent class in user theme */
+    /*background-color: green;*/
+    /*padding: 0px;*/
+}
+
+/* Inside panel borders */
+
+#workspacestodockDock .workspacestodock-shortcuts-panel {
+    border-radius: 0 0 0 0;
+    padding: 2px;
+    spacing: 0px;
+}
+
+#workspacestodockDock.left.outside .workspacestodock-thumbnails-panel {
+    border-left: 1px;
+    border-right: none;
+}
+#workspacestodockDock.left.inside .workspacestodock-thumbnails-panel {
+    border-left: none;
+    border-right: 1px;
+}
+
+#workspacestodockDock.right.outside .workspacestodock-thumbnails-panel {
+    border-left: none;
+    border-right: 1px;
+}
+#workspacestodockDock.right.inside .workspacestodock-thumbnails-panel {
+    border-left: 1px;
+    border-right: none;
+}
+
+#workspacestodockDock.top.outside .workspacestodock-thumbnails-panel {
+    border-top: 1px;
+    border-bottom: none;
+}
+#workspacestodockDock.top.inside .workspacestodock-thumbnails-panel {
+    border-top: none;
+    border-bottom: 1px;
+}
+
+#workspacestodockDock.bottom.outside .workspacestodock-thumbnails-panel {
+    border-top: none;
+    border-bottom: 1px;
+}
+#workspacestodockDock.bottom.inside .workspacestodock-thumbnails-panel {
+    border-top: 1px;
+    border-bottom: none;
+}
