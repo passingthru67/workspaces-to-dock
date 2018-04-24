@@ -857,6 +857,9 @@ const myThumbnailsBox = new Lang.Class({
             Main.overview.connect('windows-restacked',
                                   Lang.bind(this, this._syncStacking));
 
+        this._workareasChangedId =
+            global.screen.connect('workareas-changed', Lang.bind(this, this._rebuildThumbnails));
+
         this._targetScale = 0;
         this._scale = 0;
         this._pendingScaleUpdate = false;
@@ -869,6 +872,39 @@ const myThumbnailsBox = new Lang.Class({
         this.addThumbnails(0, global.screen.n_workspaces);
 
         this._updateSwitcherVisibility();
+    },
+
+    _destroyThumbnails: function() {
+        if (this._switchWorkspaceNotifyId > 0) {
+            global.window_manager.disconnect(this._switchWorkspaceNotifyId);
+            this._switchWorkspaceNotifyId = 0;
+        }
+        if (this._nWorkspacesNotifyId > 0) {
+            global.screen.disconnect(this._nWorkspacesNotifyId);
+            this._nWorkspacesNotifyId = 0;
+        }
+
+        if (this._syncStackingId > 0) {
+            Main.overview.disconnect(this._syncStackingId);
+            this._syncStackingId = 0;
+        }
+
+        if (this._workareasChangedId > 0) {
+            global.screen.disconnect(this._workareasChangedId);
+            this._workareasChangedId = 0;
+        }
+
+        for (let w = 0; w < this._thumbnails.length; w++)
+            this._thumbnails[w].destroy();
+        this._thumbnails = [];
+        this._porthole = null;
+    },
+
+    _rebuildThumbnails: function() {
+        this._destroyThumbnails();
+
+        // if (Main.overview.visible)
+            this._createThumbnails();
     },
 
     refreshThumbnails: function() {
@@ -1129,6 +1165,18 @@ const myThumbnailsBox = new Lang.Class({
             }
         }
         return refresh;
+    },
+
+    // The "porthole" is the portion of the screen that we show in the
+    // workspaces
+    _ensurePorthole: function() {
+        if (!Main.layoutManager.primaryMonitor)
+            return false;
+
+        if (!this._porthole)
+            this._porthole = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
+
+        return true;
     },
 
     // override _allocate to provide area for workspaceThumbnail captions
