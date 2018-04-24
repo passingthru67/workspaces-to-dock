@@ -229,7 +229,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }
 
         let centerThumbnails = new Gtk.CheckButton({
-            label: _("Center thumbnails and shortcuts on the dock"),
+            label: _("Center the dock (or thumbnails and favorites if dock is extended)"),
             margin_left: 0,
             margin_top: 0
         });
@@ -240,7 +240,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
 
         let centerThumbnailsIndependently =  new Gtk.RadioButton({
-            label: _("Center thumbnails-shortcuts independently"),
+            label: _("Center thumbnails and favorites individually on dock"),
             margin_top: 0,
             margin_left: 40
         });
@@ -249,7 +249,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }));
 
         let centerThumbnailsJointly =  new Gtk.RadioButton({
-            label: _("Center thumbnails-shortcuts jointly"),
+            label: _("Combine thumbnails and favorites then center on dock"),
             group: centerThumbnailsIndependently,
             margin_top: 0,
             margin_left: 40
