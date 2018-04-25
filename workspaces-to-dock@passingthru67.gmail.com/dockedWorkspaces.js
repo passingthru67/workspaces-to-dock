@@ -1425,7 +1425,9 @@ var DockedWorkspaces = new Lang.Class({
             Mainloop.source_remove(this._checkHoverStatusId);
             this._checkHoverStatusId = 0;
         }
-        this._hoverChanged();
+        if (Extension.intellihide._toggledOverviewOnDrag = false) {
+            this._hoverChanged();
+        }
     },
 
     // handler for mouse click events - works in conjuction with hover event to show dock for maxmized windows
