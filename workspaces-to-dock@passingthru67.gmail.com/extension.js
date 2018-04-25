@@ -19,10 +19,10 @@ const Convenience = Me.imports.convenience;
 const Intellihide = Me.imports.intellihide;
 const DockedWorkspaces = Me.imports.dockedWorkspaces;
 
-let intellihide;
-let dock;
-let settings;
-let workspacesToDockStylesheet = null;
+var intellihide;
+var dock;
+var settings;
+var workspacesToDockStylesheet = null;
 
 function loadStylesheet() {
     if (_DEBUG_) global.log("WorkspacesToDock: _loadStylesheet");

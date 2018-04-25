@@ -34,14 +34,14 @@ const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 
 // The maximum size of a thumbnail is 1/8 the width and height of the screen
-let MAX_THUMBNAIL_SCALE = 1/8.;
+var MAX_THUMBNAIL_SCALE = 1/8.;
 
 // When we create workspaces by dragging, we add a "cut" into the top and
 // bottom of each workspace so that the user doesn't have to hit the
 // placeholder exactly.
-const WORKSPACE_CUT_SIZE = 10;
+var WORKSPACE_CUT_SIZE = 10;
 
-const WORKSPACE_KEEP_ALIVE_TIME = 100;
+var WORKSPACE_KEEP_ALIVE_TIME = 100;
 
 const OVERRIDE_SCHEMA = 'org.gnome.shell.overrides';
 
@@ -68,7 +68,7 @@ function getPosition(settings) {
     return position;
 }
 
-const myWindowClone = new Lang.Class({
+var myWindowClone = new Lang.Class({
     Name: 'workspacesToDock.myWindowClone',
     Extends: WorkspaceThumbnail.WindowClone,
 
@@ -188,7 +188,7 @@ const myWindowClone = new Lang.Class({
     }
 });
 
-const myWorkspaceThumbnail = new Lang.Class({
+var myWorkspaceThumbnail = new Lang.Class({
     Name: 'workspacesToDock.myWorkspaceThumbnail',
     Extends: WorkspaceThumbnail.WorkspaceThumbnail,
 
@@ -511,7 +511,7 @@ const myWorkspaceThumbnail = new Lang.Class({
     }
 });
 
-const myThumbnailsBox = new Lang.Class({
+var myThumbnailsBox = new Lang.Class({
     Name: 'workspacesToDock.myThumbnailsBox',
     Extends: WorkspaceThumbnail.ThumbnailsBox,
 

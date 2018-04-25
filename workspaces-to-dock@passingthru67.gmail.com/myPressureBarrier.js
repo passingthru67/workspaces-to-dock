@@ -18,7 +18,7 @@ const St = imports.gi.St;
 
 const Main = imports.ui.main;
 
-const myPressureBarrier = new Lang.Class({
+var myPressureBarrier = new Lang.Class({
     Name: 'workspacesToDock_myPressureBarrier',
 
     _init: function(threshold, speedLimit, timeout, actionMode) {

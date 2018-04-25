@@ -73,7 +73,7 @@ let GSFunctions = {};
  *
 */
 
-const Intellihide = new Lang.Class({
+var Intellihide = new Lang.Class({
     Name: 'workspacesToDock.intellihide',
 
     _init: function(dock) {

@@ -26,7 +26,7 @@ const Tweener = imports.ui.tweener;
 
 let GSFunctions = {};
 
-const DISPLAY_TIMEOUT = 600;
+var DISPLAY_TIMEOUT = 600;
 let myShowWorkspaceSwitcher, origShowWorkspaceSwitcher;
 let nrows = 1;
 
@@ -38,7 +38,7 @@ function get_ncols() {
     return ncols;
 }
 
-const myWorkspaceSwitcherPopup = new Lang.Class({
+var myWorkspaceSwitcherPopup = new Lang.Class({
     Name: 'workspcestodockWorkspaceSwitcherPopup',
     Extends:  WorkspaceSwitcherPopup.WorkspaceSwitcherPopup,
 
@@ -161,7 +161,7 @@ const myWorkspaceSwitcherPopup = new Lang.Class({
     }
 });
 
-const WorkspaceSwitcher = new Lang.Class({
+var WorkspaceSwitcher = new Lang.Class({
     Name: 'workspcestodockWorkspaceSwitcher',
 
     _init: function(params) {

@@ -80,7 +80,7 @@ function getSettings(schema) {
 }
 
 // try to simplify global signals handling
-const globalSignalHandler = new Lang.Class({
+var globalSignalHandler = new Lang.Class({
     Name: 'workspacesToDock.globalSignalHandler',
 
     _init: function() {

@@ -77,7 +77,7 @@ function getAppFromSource(source) {
     }
 }
 
-const DragPlaceholderItem = new Lang.Class({
+var DragPlaceholderItem = new Lang.Class({
     Name: 'workspacestodock_shortcutsPanel_DragPlaceholderItem',
 
     _init: function(source) {
@@ -93,7 +93,7 @@ const DragPlaceholderItem = new Lang.Class({
     }
 });
 
-const ShortcutButtonMenu = new Lang.Class({
+var ShortcutButtonMenu = new Lang.Class({
     Name: 'workspacestodock_shortcutButtonMenu',
     Extends: PopupMenu.PopupMenu,
 
@@ -253,7 +253,7 @@ let recentlyClickedApp = null;
 let recentlyClickedAppWindows = null;
 let recentlyClickedAppIndex = 0;
 
-const ShortcutButton = new Lang.Class({
+var ShortcutButton = new Lang.Class({
     Name: 'workspacestodock.ShortcutButton',
 
     _init: function (app, appType, panel) {
@@ -646,7 +646,7 @@ const ShortcutButton = new Lang.Class({
 });
 Signals.addSignalMethods(ShortcutButton.prototype);
 
-const ShortcutsPanel = new Lang.Class({
+var ShortcutsPanel = new Lang.Class({
     Name: 'workspacestodock.ShortcutsPanel',
 
     _init: function (dock) {

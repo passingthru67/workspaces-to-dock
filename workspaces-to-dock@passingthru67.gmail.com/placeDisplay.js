@@ -32,7 +32,7 @@ const Hostname1Iface = '<node> \
 </node>';
 const Hostname1 = Gio.DBusProxy.makeProxyWrapper(Hostname1Iface);
 
-const PlaceInfo = new Lang.Class({
+var PlaceInfo = new Lang.Class({
     Name: 'PlaceInfo',
 
     _init: function(kind, file, name, icon) {
@@ -107,7 +107,7 @@ const DEFAULT_DIRECTORIES = [
     GLib.UserDirectory.DIRECTORY_VIDEOS,
 ];
 
-const PlacesManager = new Lang.Class({
+var PlacesManager = new Lang.Class({
     Name: 'PlacesManager',
 
     _init: function() {

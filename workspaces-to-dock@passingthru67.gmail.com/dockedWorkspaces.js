@@ -104,7 +104,7 @@ function getDockStateDesc(state) {
     return desc;
 }
 
-const ThumbnailsSlider = new Lang.Class({
+var ThumbnailsSlider = new Lang.Class({
     Name: 'workspacestodockThumbnailsSlider',
 
     _init: function(params) {
@@ -256,7 +256,7 @@ const ThumbnailsSlider = new Lang.Class({
     }
 });
 
-const DockedWorkspaces = new Lang.Class({
+var DockedWorkspaces = new Lang.Class({
     Name: 'workspacestodockDockedWorkspaces',
 
     _init: function() {

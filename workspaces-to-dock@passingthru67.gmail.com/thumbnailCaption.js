@@ -28,10 +28,10 @@ const MyWorkspaceThumbnail = Me.imports.myWorkspaceThumbnail;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 
-const CAPTION_APP_ICON_ZOOM = 8;
-const TASKBAR_TOOLTIP_SHOW_TIME = 0.15;
-const TASKBAR_TOOLTIP_HIDE_TIME = 0.1;
-const TASKBAR_TOOLTIP_HOVER_TIMEOUT = 10;
+var CAPTION_APP_ICON_ZOOM = 8;
+let TASKBAR_TOOLTIP_SHOW_TIME = 0.15;
+let TASKBAR_TOOLTIP_HIDE_TIME = 0.1;
+let TASKBAR_TOOLTIP_HOVER_TIMEOUT = 10;
 
 const WindowAppsUpdateAction = {
     ADD: 0,
@@ -56,7 +56,7 @@ function getPosition(settings) {
     return position;
 }
 
-const TaskbarIcon = new Lang.Class({
+var TaskbarIcon = new Lang.Class({
     Name: 'workspacesToDock.taskbarIcon',
 
     _init: function(app, metaWin, caption) {
@@ -281,7 +281,7 @@ const MenuTaskListItem = new Lang.Class({
     }
 });
 
-const ThumbnailCaption = new Lang.Class({
+var ThumbnailCaption = new Lang.Class({
     Name: 'workspacesToDock.thumbnailCaption',
 
     _init: function(thumbnail) {
