@@ -84,6 +84,10 @@ as they may intefere with the intellihide/autohide triggering */
 /* Workspace thumbnails and shortcuts panel */
 /* NOTE: shortcuts panel also uses .workspace-thumbnails class */
 
+.workspace-thumbnails {
+    visible-width: 0px; /* prevent clipping of overview window controls */
+}
+
 #workspacestodockDock .workspace-thumbnails {
     margin: none; /* remove any margins from parent class in user theme */
     border: none; /* remove any borders from parent class in user theme */
