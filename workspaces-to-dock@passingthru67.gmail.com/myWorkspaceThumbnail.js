@@ -1045,10 +1045,12 @@ var myThumbnailsBox = new Lang.Class({
 
         let spacing = themeNode.get_length('spacing');
 
+        let scale_factor = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+
         // passingthru67 - make room for thumbnail captions
         let captionBackgroundHeight = 0;
         if (this._mySettings.get_boolean('workspace-captions')) {
-            captionBackgroundHeight = this._mySettings.get_double('workspace-caption-height');
+            captionBackgroundHeight = this._mySettings.get_double('workspace-caption-height') * scale_factor;
         }
 
         let nWorkspaces = global.screen.n_workspaces;
@@ -1060,9 +1062,9 @@ var myThumbnailsBox = new Lang.Class({
 
             let scale = (avail / nWorkspaces) / this._porthole.width;
             if (this._mySettings.get_boolean('customize-thumbnail')) {
-                scale = Math.min(scale, this._mySettings.get_double('thumbnail-size'));
+                scale = Math.min(scale, this._mySettings.get_double('thumbnail-size') * scale_factor);
             } else {
-                scale = Math.min(scale, MAX_THUMBNAIL_SCALE);
+                scale = Math.min(scale, MAX_THUMBNAIL_SCALE * scale_factor);
             }
 
             let height = Math.round(this._porthole.height * scale);
@@ -1074,9 +1076,9 @@ var myThumbnailsBox = new Lang.Class({
 
             let maxScale;
             if (this._mySettings.get_boolean('customize-thumbnail')) {
-                maxScale = this._mySettings.get_double('thumbnail-size');
+                maxScale = this._mySettings.get_double('thumbnail-size') * scale_factor;
             } else {
-                maxScale = MAX_THUMBNAIL_SCALE;
+                maxScale = MAX_THUMBNAIL_SCALE * scale_factor;
             }
 
             alloc.min_size = totalSpacing + this._porthole.height * maxScale;
@@ -1091,10 +1093,12 @@ var myThumbnailsBox = new Lang.Class({
 
         let spacing = themeNode.get_length('spacing');
 
+        let scale_factor = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+
         // passingthru67 - make room for thumbnail captions
         let captionBackgroundHeight = 0;
         if (this._mySettings.get_boolean('workspace-captions')) {
-            captionBackgroundHeight = this._mySettings.get_double('workspace-caption-height');
+            captionBackgroundHeight = this._mySettings.get_double('workspace-caption-height') * scale_factor;
         }
 
         let nWorkspaces = global.screen.n_workspaces;
@@ -1104,9 +1108,9 @@ var myThumbnailsBox = new Lang.Class({
 
             let maxScale;
             if (this._mySettings.get_boolean('customize-thumbnail')) {
-                maxScale = this._mySettings.get_double('thumbnail-size');
+                maxScale = this._mySettings.get_double('thumbnail-size') * scale_factor;
             } else {
-                maxScale = MAX_THUMBNAIL_SCALE;
+                maxScale = MAX_THUMBNAIL_SCALE * scale_factor;
             }
 
             alloc.min_size = totalSpacing + this._porthole.width * maxScale;
@@ -1119,9 +1123,9 @@ var myThumbnailsBox = new Lang.Class({
 
             let scale = (avail / nWorkspaces) / this._porthole.height;
             if (this._mySettings.get_boolean('customize-thumbnail')) {
-                scale = Math.min(scale, this._mySettings.get_double('thumbnail-size'));
+                scale = Math.min(scale, this._mySettings.get_double('thumbnail-size') * scale_factor);
             } else {
-                scale = Math.min(scale, MAX_THUMBNAIL_SCALE);
+                scale = Math.min(scale, MAX_THUMBNAIL_SCALE * scale_factor);
             }
 
             let width = Math.round(this._porthole.width * scale);
@@ -1194,13 +1198,15 @@ var myThumbnailsBox = new Lang.Class({
 
         let spacing = themeNode.get_length('spacing');
 
+        let scale_factor = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+
         // passingthru67 - Caption area below thumbnail used to display thumbnail labels
         let captionHeight = 0;
         let captionBackgroundHeight = 0;
         if (this._mySettings.get_boolean('workspace-captions')) {
-            captionBackgroundHeight = this._mySettings.get_double('workspace-caption-height');
+            captionBackgroundHeight = this._mySettings.get_double('workspace-caption-height') * scale_factor;
             let zoomSize = this._mySettings.get_double('workspace-caption-taskbar-icon-size') + ThumbnailCaption.CAPTION_APP_ICON_ZOOM;
-            captionHeight = Math.max(captionBackgroundHeight+4, zoomSize+4);
+            captionHeight = Math.max(captionBackgroundHeight + 4, zoomSize*scale_factor + 4);
             // NOTE: +4 needed for padding
             // This value should actually be gotten from the theme node get_padding
         }
@@ -1231,9 +1237,9 @@ var myThumbnailsBox = new Lang.Class({
         }
 
         if (this._mySettings.get_boolean('customize-thumbnail')) {
-            newScale = Math.min(newScale, this._mySettings.get_double('thumbnail-size'));
+            newScale = Math.min(newScale, this._mySettings.get_double('thumbnail-size') * scale_factor);
         } else {
-            newScale = Math.min(newScale, MAX_THUMBNAIL_SCALE);
+            newScale = Math.min(newScale, MAX_THUMBNAIL_SCALE * scale_factor);
         }
         if (_DEBUG_) global.log("mythumbnailsBox: _allocate - newScale = "+newScale+" targetScale = "+this._targetScale);
         if (newScale != this._targetScale) {
