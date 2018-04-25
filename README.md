@@ -276,6 +276,11 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
+**Version 45 for Gnome 3.28 (Apr 25, 2018)**
+- Added advanced centering options
+- Updated for MozJs52 compatibility
+- Bug fixes
+
 **Version 44 for Gnome 3.26 (Oct 7, 2017)**
 - Bug fixes
 

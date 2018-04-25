@@ -2,9 +2,9 @@
     "name": "Workspaces to Dock",
     "description": "Transform Gnome Shell's overview workspaces into an intelligent dock.",
     "original-author": "passingthru67@gmail.com",
-    "shell-version": ["3.26"],
+    "shell-version": ["3.28"],
     "url": "https://github.com/passingthru67/workspaces-to-dock",
     "uuid": "workspaces-to-dock@passingthru67.gmail.com",
     "gettext-domain": "workspacestodock",
-    "version": 44
+    "version": 45
 }
