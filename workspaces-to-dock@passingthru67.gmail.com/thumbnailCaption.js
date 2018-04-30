@@ -89,9 +89,15 @@ var TaskbarIcon = new Lang.Class({
         this.actor.connect('button-release-event', Lang.bind(this, this._onButtonRelease));
         this.actor.connect('enter-event', Lang.bind(this, this._onButtonEnter));
         this.actor.connect('leave-event', Lang.bind(this, this._onButtonLeave));
+        this.actor.connect('destroy', Lang.bind(this, this._onDestroy));
 
         // Make actor draggable
         this._draggable = DND.makeDraggable(this.actor);
+    },
+
+    _onDestroy: function() {
+        this.tooltip.hide();
+        this.tooltip.destroy();
     },
 
     _onButtonEnter: function(actor, event) {
@@ -128,6 +134,8 @@ var TaskbarIcon = new Lang.Class({
         if (mouseButton == 2) {
             this._caption.closeMetaWindow(this._metaWin);
         }
+
+        this.hideTooltip();
         return Clutter.EVENT_PROPAGATE;
     },
 
