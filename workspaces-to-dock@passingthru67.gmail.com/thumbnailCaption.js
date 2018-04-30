@@ -125,6 +125,9 @@ var TaskbarIcon = new Lang.Class({
             }
             this._caption.activateMetaWindow(this._metaWin);
         }
+        if (mouseButton == 2) {
+            this._caption.closeMetaWindow(this._metaWin);
+        }
         return Clutter.EVENT_PROPAGATE;
     },
 
