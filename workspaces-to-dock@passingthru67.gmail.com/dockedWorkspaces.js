@@ -825,6 +825,7 @@ var DockedWorkspaces = new Lang.Class({
                 let monitorHasThumbnailsDock = false;
                 if (i == thumbnailsMonitorIndex) {
                     monitorHasThumbnailsDock = true;
+                    let fixedPosition = self._settings.get_boolean('dock-fixed');
                     let overviewAction = self._settings.get_enum('overview-action');
                     let visibleEdge = self._triggerWidth;
                     if (self._settings.get_boolean('dock-edge-visible')) {
@@ -832,22 +833,30 @@ var DockedWorkspaces = new Lang.Class({
                     }
                     if (self._position == St.Side.LEFT ||
                         self._position == St.Side.RIGHT) {
-                            if (overviewAction == OverviewAction.HIDE) {
-                                thumbnailsWidth = visibleEdge;
-                            } else if (overviewAction == OverviewAction.SHOW_PARTIAL) {
-                                thumbnailsWidth = self._slider.partialSlideoutSize;
-                            } else {
+                            if (fixedPosition) {
                                 thumbnailsWidth = self.actor.get_width() + spacing;
+                            } else {
+                                if (overviewAction == OverviewAction.HIDE) {
+                                    thumbnailsWidth = visibleEdge;
+                                } else if (overviewAction == OverviewAction.SHOW_PARTIAL) {
+                                    thumbnailsWidth = self._slider.partialSlideoutSize;
+                                } else {
+                                    thumbnailsWidth = self.actor.get_width() + spacing;
+                                }
                             }
                     }
                     if (self._position == St.Side.TOP ||
                         self._position == St.Side.BOTTOM) {
-                            if (overviewAction == OverviewAction.HIDE) {
-                                thumbnailsHeight = visibleEdge;
-                            } else if (overviewAction == OverviewAction.SHOW_PARTIAL) {
-                                thumbnailsHeight = self._slider.partialSlideoutSize;
-                            } else {
+                            if (fixedPosition) {
                                 thumbnailsHeight = self.actor.get_height() + spacing;
+                            } else {
+                                if (overviewAction == OverviewAction.HIDE) {
+                                    thumbnailsHeight = visibleEdge;
+                                } else if (overviewAction == OverviewAction.SHOW_PARTIAL) {
+                                    thumbnailsHeight = self._slider.partialSlideoutSize;
+                                } else {
+                                    thumbnailsHeight = self.actor.get_height() + spacing;
+                                }
                             }
                     }
                 }
