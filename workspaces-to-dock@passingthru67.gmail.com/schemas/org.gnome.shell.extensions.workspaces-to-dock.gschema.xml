@@ -120,6 +120,11 @@
       <summary>Opacity of the workspaces background</summary>
       <description>Sets the opacity of the workspaces background  when in autohide mode.</description>
     </key>
+    <key type="b" name="straight-corners">
+      <default>false</default>
+      <summary>Force use of straight corners in theme</summary>
+      <description>Forces the theme's appearance to use straight corners.</description>
+    </key>
     <key type="i" name="preferred-monitor">
       <default>0</default>
       <summary>Monitor on which to put the dock</summary>

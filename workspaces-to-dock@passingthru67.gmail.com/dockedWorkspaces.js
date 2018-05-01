@@ -614,7 +614,7 @@ var DockedWorkspaces = new Lang.Class({
 
         // Now that the dock is on the stage and custom themes are loaded
         // retrieve background color and set background opacity
-        this._updateBackgroundOpacity();
+        this._updateAppearancePreferences();
 
         // Setup pressure barrier (GS38+ only)
         this._updatePressureBarrier();
@@ -1107,6 +1107,10 @@ var DockedWorkspaces = new Lang.Class({
 
         this._settings.connect('changed::background-opacity', Lang.bind(this, function() {
             this._updateBackgroundOpacity();
+        }));
+
+        this._settings.connect('changed::straight-corners', Lang.bind(this, function() {
+            this._updateStraightCorners();
         }));
 
         this._settings.connect('changed::autohide', Lang.bind(this, function() {
@@ -2073,6 +2077,21 @@ var DockedWorkspaces = new Lang.Class({
         return [backgroundColor, borderColor];
     },
 
+    _updateAppearancePreferences: function() {
+        if (_DEBUG_) global.log("dockedWorkspaces: _updateAppearancePreferences");
+        this._updateStraightCorners();
+        this._updateBackgroundOpacity();
+    },
+
+    _updateStraightCorners: function() {
+        if (_DEBUG_) global.log("dockedWorkspaces: _updateStraightCorners");
+        if (this._settings.get_boolean('straight-corners')) {
+            this._dock.add_style_class_name('straight-corners');
+        } else {
+            this._dock.remove_style_class_name('straight-corners');
+        }
+    },
+
     // update background opacity based on preferences
     _updateBackgroundOpacity: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _updateBackgroundOpacity");
@@ -2107,7 +2126,7 @@ var DockedWorkspaces = new Lang.Class({
         if (_DEBUG_) global.log("dockedWorkspaces: _onThemeChanged");
         this._changeStylesheet();
         if (!this._disableRedisplay)
-            this._updateBackgroundOpacity();
+            this._updateAppearancePreferences();
     },
 
     // function to change stylesheets
@@ -2232,7 +2251,7 @@ var DockedWorkspaces = new Lang.Class({
             }
         }
 
-        this._updateBackgroundOpacity();
+        this._updateAppearancePreferences();
         this._updateBarrier();
     },
 
@@ -2441,7 +2460,7 @@ var DockedWorkspaces = new Lang.Class({
 
         this._updateSize();
 
-        this._updateBackgroundOpacity();
+        this._updateAppearancePreferences();
         this._updateBarrier();
     },
 

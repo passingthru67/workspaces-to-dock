@@ -19,6 +19,8 @@
 
 #workspacestodockDock.right.fullheight #workspacestodockDockContainer { border-radius: 0; box-shadow: inset 1px 0 0 rgba(207, 216, 220, 0.2); }
 
+#workspacestodockDock.straight-corners #workspacestodockDockContainer { border-radius: 0px; }
+
 .workspace-thumbnails { visible-width: 0; }
 
 #workspacestodockDock .workspace-thumbnails { margin: 0; border: 0; border-radius: 0; background-color: rgba(19, 25, 28, 0); box-shadow: none; }

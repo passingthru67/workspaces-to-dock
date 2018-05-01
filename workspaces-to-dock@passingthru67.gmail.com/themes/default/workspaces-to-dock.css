@@ -54,6 +54,10 @@ as they may intefere with the intellihide/autohide triggering */
     border-top: 1px;
 }
 
+#workspacestodockDock.straight-corners #workspacestodockDockContainer {
+    border-radius: 0px;
+}
+
 /* Workspace thumbnails and shortcuts panel */
 /* NOTE: shortcuts panel also uses .workspace-thumbnails class */
 

@@ -347,10 +347,10 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         this.settings.bind('center-thumbnails-on-dock', centerThumbnailsJointly, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
 
 
-        /* TITLE: BACKGROUND */
+        /* TITLE: APPEARANCE */
 
         let backgroundTitle = new Gtk.Label({
-            label: _("<b>Background</b>"),
+            label: _("<b>Appearance</b>"),
             use_markup: true,
             xalign: 0,
             margin_top: 15,
@@ -416,6 +416,18 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         this.settings.bind('opaque-background', backgroundContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
 
 
+        /* FORCE STRAIGHT CORNERS */
+        let forceStraightCornersButton = new Gtk.CheckButton({
+            label: _("Force straight corners"),
+            margin_left: 0,
+            margin_top: 10
+        });
+        forceStraightCornersButton.set_active(this.settings.get_boolean('straight-corners'));
+        forceStraightCornersButton.connect('toggled', Lang.bind(this, function(check) {
+            this.settings.set_boolean('straight-corners', check.get_active());
+        }));
+
+
         /* TOGGLE OVERVIEW WIDGETS */
         let toggleOverviewButton = new Gtk.CheckButton({
             label: _("Toggle Gnome Shell's overview mode with right click"),
@@ -451,6 +463,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         notebookAppearanceSettings.add(backgroundTitle);
         notebookAppearanceSettings.add(backgroundControlGrid);
         notebookAppearanceSettings.add(backgroundContainerGrid);
+        notebookAppearanceSettings.add(forceStraightCornersButton);
         notebookAppearanceSettings.add(toggleOverviewButton);
         notebookAppearanceSettings.add(scrollWithTouchpadButton);
         notebook.append_page(notebookAppearanceSettings, notebookAppearanceSettingsTitle);
