@@ -1312,6 +1312,9 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         customizeThumbnailContainerGrid.attach(thumbnailSizeLabel, 0, 0, 1, 1);
         customizeThumbnailContainerGrid.attach(thumbnailSizeSpinner, 1, 0, 1, 1);
 
+        // Bind interactions
+        this.settings.bind('customize-thumbnail', customizeThumbnailContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+
 
         /* THUMBNAIL VISIBLE WIDTH */
 
