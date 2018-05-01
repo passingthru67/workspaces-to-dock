@@ -857,9 +857,6 @@ var myThumbnailsBox = new Lang.Class({
             Main.overview.connect('windows-restacked',
                                   Lang.bind(this, this._syncStacking));
 
-        this._workareasChangedId =
-            global.screen.connect('workareas-changed', Lang.bind(this, this._rebuildThumbnails));
-
         this._targetScale = 0;
         this._scale = 0;
         this._pendingScaleUpdate = false;
@@ -889,22 +886,10 @@ var myThumbnailsBox = new Lang.Class({
             this._syncStackingId = 0;
         }
 
-        if (this._workareasChangedId > 0) {
-            global.screen.disconnect(this._workareasChangedId);
-            this._workareasChangedId = 0;
-        }
-
         for (let w = 0; w < this._thumbnails.length; w++)
             this._thumbnails[w].destroy();
         this._thumbnails = [];
         this._porthole = null;
-    },
-
-    _rebuildThumbnails: function() {
-        this._destroyThumbnails();
-
-        // if (Main.overview.visible)
-            this._createThumbnails();
     },
 
     refreshThumbnails: function() {
