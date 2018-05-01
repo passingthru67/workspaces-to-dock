@@ -349,7 +349,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
         /* TITLE: APPEARANCE */
 
-        let backgroundTitle = new Gtk.Label({
+        let appearanceTitle = new Gtk.Label({
             label: _("<b>Appearance</b>"),
             use_markup: true,
             xalign: 0,
@@ -420,35 +420,11 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         let forceStraightCornersButton = new Gtk.CheckButton({
             label: _("Force straight corners"),
             margin_left: 0,
-            margin_top: 10
+            margin_top: 15
         });
         forceStraightCornersButton.set_active(this.settings.get_boolean('straight-corners'));
         forceStraightCornersButton.connect('toggled', Lang.bind(this, function(check) {
             this.settings.set_boolean('straight-corners', check.get_active());
-        }));
-
-
-        /* TOGGLE OVERVIEW WIDGETS */
-        let toggleOverviewButton = new Gtk.CheckButton({
-            label: _("Toggle Gnome Shell's overview mode with right click"),
-            margin_left: 0,
-            margin_top: 10
-        });
-        toggleOverviewButton.set_active(this.settings.get_boolean('toggle-overview'));
-        toggleOverviewButton.connect('toggled', Lang.bind(this, function(check) {
-            this.settings.set_boolean('toggle-overview', check.get_active());
-        }));
-
-
-        /* SCROLL WITH TOUCHPAD */
-        let scrollWithTouchpadButton = new Gtk.CheckButton({
-            label: _("Prevent multiple workspace switching when using touchpad to scroll"),
-            margin_left: 0,
-            margin_top: 10
-        });
-        scrollWithTouchpadButton.set_active(this.settings.get_boolean('scroll-with-touchpad'));
-        scrollWithTouchpadButton.connect('toggled', Lang.bind(this, function(check) {
-            this.settings.set_boolean('scroll-with-touchpad', check.get_active());
         }));
 
 
@@ -460,12 +436,10 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         notebookAppearanceSettings.add(dockHeightTitle);
         notebookAppearanceSettings.add(dockHeightControlGrid);
         notebookAppearanceSettings.add(dockHeightContainerGrid);
-        notebookAppearanceSettings.add(backgroundTitle);
+        notebookAppearanceSettings.add(appearanceTitle);
         notebookAppearanceSettings.add(backgroundControlGrid);
         notebookAppearanceSettings.add(backgroundContainerGrid);
         notebookAppearanceSettings.add(forceStraightCornersButton);
-        notebookAppearanceSettings.add(toggleOverviewButton);
-        notebookAppearanceSettings.add(scrollWithTouchpadButton);
         notebook.append_page(notebookAppearanceSettings, notebookAppearanceSettingsTitle);
 
 
@@ -486,6 +460,30 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
 
 
+        /* TOGGLE OVERVIEW WIDGETS */
+        let toggleOverviewButton = new Gtk.CheckButton({
+            label: _("Toggle Gnome Shell's overview mode with right click"),
+            margin_left: 0,
+            margin_top: 15
+        });
+        toggleOverviewButton.set_active(this.settings.get_boolean('toggle-overview'));
+        toggleOverviewButton.connect('toggled', Lang.bind(this, function(check) {
+            this.settings.set_boolean('toggle-overview', check.get_active());
+        }));
+
+
+        /* SCROLL WITH TOUCHPAD */
+        let scrollWithTouchpadButton = new Gtk.CheckButton({
+            label: _("Prevent multiple workspace switching when using touchpad to scroll"),
+            margin_left: 0,
+            margin_top: 10
+        });
+        scrollWithTouchpadButton.set_active(this.settings.get_boolean('scroll-with-touchpad'));
+        scrollWithTouchpadButton.connect('toggled', Lang.bind(this, function(check) {
+            this.settings.set_boolean('scroll-with-touchpad', check.get_active());
+        }));
+
+
         /* TITLE: INTELLIGENT HIDING */
 
         let visibilityTitle = new Gtk.Label({
@@ -500,7 +498,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         /* ALWAYS VISIBLE WIDGETS */
 
         let alwaysVisibleLabel = new Gtk.Label({
-            label: _("Dock is fixed and always visible. Turn off intelligent hiding"),
+            label: _("Turn on intelligent hiding otherwise dock is fixed and always visible"),
             use_markup: true,
             xalign: 0,
             margin_top: 0,
@@ -509,11 +507,11 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
         let alwaysVisibleSwitch = new Gtk.Switch ({
             halign: Gtk.Align.END,
-            margin_top: 0
+            margin_top: 15
         });
-        alwaysVisibleSwitch.set_active(this.settings.get_boolean('dock-fixed'));
+        alwaysVisibleSwitch.set_active(!this.settings.get_boolean('dock-fixed'));
         alwaysVisibleSwitch.connect("notify::active", Lang.bind(this, function(check) {
-            this.settings.set_boolean('dock-fixed', check.get_active());
+            this.settings.set_boolean('dock-fixed', !check.get_active());
         }));
 
         // Add to layout
@@ -954,37 +952,6 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             dialog.show_all();
         }));
 
-
-        /* INTELLHIDE ACTION */
-
-        let intellhideActionLabel = new Gtk.Label({label: _("What should we do with the dock when not dodging windows?"),
-            hexpand:true,
-            xalign:0
-        });
-        let intellhideActionCombo = new Gtk.ComboBoxText({
-            halign:Gtk.Align.END
-        });
-        intellhideActionCombo.append_text(_('Show Full'));
-        intellhideActionCombo.append_text(_('Show Partial'));
-        intellhideActionCombo.append_text(_('Show Partial Fixed'));
-
-        let intellhideAction = this.settings.get_enum('intellihide-action');
-        intellhideActionCombo.set_active(intellhideAction);
-        intellhideActionCombo.connect('changed', Lang.bind (this, function(widget) {
-            this.settings.set_enum('intellihide-action', widget.get_active());
-        }));
-
-        // Add to layout
-        let intellhideActionGrid = new Gtk.Grid({
-            row_homogeneous: false,
-            column_homogeneous: false,
-            margin_top: 10,
-            margin_left: 0
-        });
-        intellhideActionGrid.attach(intellhideActionLabel, 0, 0, 1, 1);
-        intellhideActionGrid.attach(intellhideActionCombo, 1, 0, 1, 1);
-
-
         // Add to layout
         let intellihideControlGrid = new Gtk.Grid({
             row_homogeneous: false,
@@ -998,7 +965,6 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         intellihideControlGrid.attach(intellihideLabel, 0, 0, 1, 1);
         intellihideControlGrid.attach(intellihideSwitch, 1, 0, 1, 1);
         intellihideContainerGrid.attach(intellihideOptionsButton, 0, 0, 1, 1);
-        intellihideContainerGrid.attach(intellhideActionGrid, 0, 1, 1, 1);
 
         visibilityContainerBox.add(intellihideControlGrid);
         visibilityContainerBox.add(intellihideContainerGrid);
@@ -1008,52 +974,10 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         this.settings.bind('intellihide', intellihideContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
 
 
-        /* OVERVIEW ACTION */
-
-        let overviewActionLabel = new Gtk.Label({label: _("What should we do with the dock in overview mode?"),
-            hexpand:true,
-            xalign:0
-        });
-        let overviewActionCombo = new Gtk.ComboBoxText({
-            halign:Gtk.Align.END
-        });
-        overviewActionCombo.append_text(_('Show Full'));
-        overviewActionCombo.append_text(_('Hide'));
-        overviewActionCombo.append_text(_('Show Partial'));
-
-        let overviewAction = this.settings.get_enum('overview-action');
-        overviewActionCombo.set_active(overviewAction);
-        overviewActionCombo.connect('changed', Lang.bind (this, function(widget) {
-            this.settings.set_enum('overview-action', widget.get_active());
-        }));
-
-        // Add to layout
-        let overviewActionGrid = new Gtk.Grid({
-            row_homogeneous: false,
-            column_homogeneous: false,
-            margin_top: 0,
-            margin_left: 0
-        });
-        overviewActionGrid.attach(overviewActionLabel, 0, 0, 1, 1);
-        overviewActionGrid.attach(overviewActionCombo, 1, 0, 1, 1);
-
-        let partialDescription = new Gtk.Label({
-            label: _("NOTE: Please see documentation for an explanation of the 'Show Partial' option."),
-            use_markup: true,
-            xalign: 0,
-            margin_left: 0,
-            margin_top: 0,
-            hexpand: false
-        })
-
-        visibilityContainerBox.add(overviewActionGrid);
-        visibilityContainerBox.add(partialDescription);
-
-
-        /* TITLE: MISC OPTIONS */
+        /* TITLE: ADDITIONAL HIDE-SHOW OPTIONS */
 
         let miscOptionsTitle = new Gtk.Label({
-            label: _("<b>Miscellaneous</b> : Uncategorized options that affect behavior"),
+            label: _("<b>Additional Options</b>"),
             use_markup: true,
             xalign: 0,
             hexpand: true,
@@ -1062,22 +986,21 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
 
 
-        /* MISC OPTIONS WIDGETS */
-
+        /* ADDITIONAL HIDE-SHOW OPTIONS WIDGETS */
 
         let miscOptionsButton = new Gtk.Button({
-            label: _("Miscellaneous Options .."),
+            label: _("Additional Hiding & Showing Options .."),
             margin_top: 10,
             halign: Gtk.Align.START
         });
         miscOptionsButton.connect("clicked", Lang.bind(this, function() {
-            let dialog = new Gtk.Dialog({ title: _("Miscellaneous Options"),
+            let dialog = new Gtk.Dialog({ title: _("Additional Options"),
                                           transient_for: notebook.get_toplevel(),
                                           use_header_bar: true,
                                           modal: true });
 
 
-            /* MISCELLANEOUS OPTIONS DIALOG */
+            /* ADDITIONAL HIDE-SHOW OPTIONS DIALOG */
 
             let leaveVisibleButton = new Gtk.CheckButton({
                 label: _("Leave a visible edge when dock is hidden"),
@@ -1182,20 +1105,20 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             }));
 
             // Add to layout
-            let miscOptionsDialogGrid = new Gtk.Grid({
+            let additionalHideShowOptionsDialogGrid = new Gtk.Grid({
                 row_homogeneous: false,
                 column_homogeneous: false
             });
-            miscOptionsDialogGrid.attach(miscOptionsTitle, 0, 0, 2, 1);
-            miscOptionsDialogGrid.attach(leaveVisibleButton, 0, 1, 2, 1);
-            miscOptionsDialogGrid.attach(disableScrollButton, 0, 2, 2, 1);
-            miscOptionsDialogGrid.attach(dashToDockHoverButton, 0, 3, 2, 1);
-            miscOptionsDialogGrid.attach(quickShowButton, 0, 4, 2, 1);
-            miscOptionsDialogGrid.attach(quickShowLabel, 0, 5, 1, 1);
-            miscOptionsDialogGrid.attach(quickShowSpinner, 1, 5, 1, 1);
-            miscOptionsDialogGrid.attach(toggleDockShortcutButton, 0, 6, 2, 1);
-            miscOptionsDialogGrid.attach(toggleDockShortcutLabel, 0, 7, 1, 1);
-            miscOptionsDialogGrid.attach(toggleDockShortcutEntry, 1, 7, 1, 1);
+            additionalHideShowOptionsDialogGrid.attach(miscOptionsTitle, 0, 0, 2, 1);
+            additionalHideShowOptionsDialogGrid.attach(leaveVisibleButton, 0, 1, 2, 1);
+            additionalHideShowOptionsDialogGrid.attach(disableScrollButton, 0, 2, 2, 1);
+            additionalHideShowOptionsDialogGrid.attach(dashToDockHoverButton, 0, 3, 2, 1);
+            additionalHideShowOptionsDialogGrid.attach(quickShowButton, 0, 4, 2, 1);
+            additionalHideShowOptionsDialogGrid.attach(quickShowLabel, 0, 5, 1, 1);
+            additionalHideShowOptionsDialogGrid.attach(quickShowSpinner, 1, 5, 1, 1);
+            additionalHideShowOptionsDialogGrid.attach(toggleDockShortcutButton, 0, 6, 2, 1);
+            additionalHideShowOptionsDialogGrid.attach(toggleDockShortcutLabel, 0, 7, 1, 1);
+            additionalHideShowOptionsDialogGrid.attach(toggleDockShortcutEntry, 1, 7, 1, 1);
 
             /* Bind interactions */
             this.settings.bind('toggle-dock-with-keyboard-shortcut', toggleDockShortcutEntry, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
@@ -1203,7 +1126,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             this.settings.bind('quick-show-on-workspace-change', quickShowSpinner, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
 
             // Add to dialog
-            let miscOptionsDialogContainerBox = new Gtk.Box({
+            let additionalHideShowOptionsDialogContainerBox = new Gtk.Box({
                 orientation: Gtk.Orientation.VERTICAL,
                 spacing: 0,
                 homogeneous: false,
@@ -1212,8 +1135,8 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
                 margin_bottom: 20,
                 margin_right: 10
             });
-            miscOptionsDialogContainerBox.add(miscOptionsDialogGrid);
-            dialog.get_content_area().add(miscOptionsDialogContainerBox);
+            additionalHideShowOptionsDialogContainerBox.add(additionalHideShowOptionsDialogGrid);
+            dialog.get_content_area().add(additionalHideShowOptionsDialogContainerBox);
             dialog.show_all();
         }));
 
@@ -1221,7 +1144,83 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         visibilityContainerBox.add(miscOptionsButton);
 
 
+        /* PARTIAL DOCK OPTIONS */
+
+        let partialActionTitle = new Gtk.Label({
+            label: _("<b>Partial Dock</b>"),
+            use_markup: true,
+            xalign: 0,
+            margin_top: 15,
+            margin_bottom: 5
+        });
+
+        let intellhideActionLabel = new Gtk.Label({label: _("What should we do with the dock when not dodging windows?"),
+            hexpand:true,
+            xalign:0
+        });
+        let intellhideActionCombo = new Gtk.ComboBoxText({
+            margin_left: 10,
+            halign:Gtk.Align.END
+        });
+        intellhideActionCombo.append_text(_('Show Full'));
+        intellhideActionCombo.append_text(_('Show Partial'));
+        intellhideActionCombo.append_text(_('Show Partial Fixed'));
+
+        let intellhideAction = this.settings.get_enum('intellihide-action');
+        intellhideActionCombo.set_active(intellhideAction);
+        intellhideActionCombo.connect('changed', Lang.bind (this, function(widget) {
+            this.settings.set_enum('intellihide-action', widget.get_active());
+        }));
+
+        // Add to layout
+        let intellhideActionGrid = new Gtk.Grid({
+            row_homogeneous: false,
+            column_homogeneous: false,
+            margin_top: 0,
+            margin_left: 0
+        });
+        intellhideActionGrid.attach(intellhideActionLabel, 0, 0, 1, 1);
+        intellhideActionGrid.attach(intellhideActionCombo, 1, 0, 1, 1);
+        this.settings.bind('intellihide', intellhideActionGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+
+        let overviewActionLabel = new Gtk.Label({label: _("What should we do with the dock in overview mode?"),
+            hexpand:true,
+            xalign:0
+        });
+        let overviewActionCombo = new Gtk.ComboBoxText({
+            margin_left: 10,
+            halign:Gtk.Align.END
+        });
+        overviewActionCombo.append_text(_('Show Full'));
+        overviewActionCombo.append_text(_('Hide'));
+        overviewActionCombo.append_text(_('Show Partial'));
+
+        let overviewAction = this.settings.get_enum('overview-action');
+        overviewActionCombo.set_active(overviewAction);
+        overviewActionCombo.connect('changed', Lang.bind (this, function(widget) {
+            this.settings.set_enum('overview-action', widget.get_active());
+        }));
+
+        // Add to layout
+        let overviewActionGrid = new Gtk.Grid({
+            row_homogeneous: false,
+            column_homogeneous: false,
+            margin_top: 0,
+            margin_left: 0,
+            margin_bottom: 15
+        });
+
+        overviewActionGrid.attach(overviewActionLabel, 0, 0, 1, 1);
+        overviewActionGrid.attach(overviewActionCombo, 1, 0, 1, 1);
+
+        visibilityContainerBox.add(partialActionTitle);
+        visibilityContainerBox.add(intellhideActionGrid);
+        visibilityContainerBox.add(overviewActionGrid);
+
+
         /* ADD TO NOTEBOOK PAGE */
+        notebookBehaviorSettings.add(toggleOverviewButton);
+        notebookBehaviorSettings.add(scrollWithTouchpadButton);
         notebookBehaviorSettings.add(visibilityTitle);
         notebookBehaviorSettings.add(visibilityControlGrid);
         notebookBehaviorSettings.add(visibilityContainerBox);
