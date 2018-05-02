@@ -1438,7 +1438,7 @@ var DockedWorkspaces = new Lang.Class({
             Mainloop.source_remove(this._checkHoverStatusId);
             this._checkHoverStatusId = 0;
         }
-        if (Extension.intellihide._toggledOverviewOnDrag = false) {
+        if (Extension.intellihide._toggledOverviewOnDrag == false) {
             this._hoverChanged();
         }
     },
