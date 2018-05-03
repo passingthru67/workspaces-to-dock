@@ -690,6 +690,17 @@ var DockedWorkspaces = new Lang.Class({
         // Hide normal workspaces thumbnailsBox
         Main.overview._controls._thumbnailsSlider.actor.opacity = 0;
 
+        // Override WorkspaceSwitcherPopup _show function to prevent popup from showing when disabled
+        GSFunctions['WorkspaceSwitcherPopup_show'] = WorkspaceSwitcherPopup.WorkspaceSwitcherPopup.prototype._show;
+        WorkspaceSwitcherPopup.WorkspaceSwitcherPopup.prototype._show = function() {
+            if (self._settings.get_boolean('hide-workspace-switcher-popup')) {
+                return false;
+            } else {
+                let ret = GSFunctions['WorkspaceSwitcherPopup_show'].call(this);
+                return ret;
+            }
+        };
+
         // Extend LayoutManager _updateRegions function to destroy/create workspace thumbnails when completed.
         // NOTE1: needed because 'monitors-changed' signal doesn't wait for queued regions to update.
         // We need to wait so that the screen workspace workarea is adjusted before creating workspace thumbnails.
@@ -1014,6 +1025,9 @@ var DockedWorkspaces = new Lang.Class({
 
         // Show normal workspaces thumbnailsBox
         Main.overview._controls._thumbnailsSlider.actor.opacity = 255;
+
+        // Restore normal WorkspaceSwitcherPopup_show function
+        WorkspaceSwitcherPopup.WorkspaceSwitcherPopup.prototype._show = GSFunctions['WorkspaceSwitcherPopup_show'];
 
         // Restore normal LayoutManager _updateRegions function
         // Layout.LayoutManager.prototype._queueUpdateRegions = GSFunctions['LayoutManager_queueUpdateRegions'];

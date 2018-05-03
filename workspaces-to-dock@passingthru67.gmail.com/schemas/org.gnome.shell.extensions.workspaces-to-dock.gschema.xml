@@ -140,6 +140,11 @@
       <summary>Hide the Gnome Shell dash</summary>
       <description>Hide the Gnome Shell dash.</description>
     </key>
+    <key type="b" name="hide-workspace-switcher-popup">
+      <default>false</default>
+      <summary>Hide the Gnome Shell workspace switcher popup</summary>
+      <description>Hide the Gnome Shell workspace switcher popup.</description>
+    </key>
     <key type="b" name="horizontal-workspace-switching">
       <default>true</default>
       <summary>Use horizontal workspaces switching</summary>
