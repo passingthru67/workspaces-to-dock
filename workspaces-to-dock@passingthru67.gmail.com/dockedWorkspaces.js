@@ -690,12 +690,6 @@ var DockedWorkspaces = new Lang.Class({
         // Hide normal workspaces thumbnailsBox
         Main.overview._controls._thumbnailsSlider.actor.opacity = 0;
 
-        // Set MAX_THUMBNAIL_SCALE to custom value
-        GSFunctions['WorkspaceThumbnail_MAX_THUMBNAIL_SCALE'] = WorkspaceThumbnail.MAX_THUMBNAIL_SCALE;
-        if (this._settings.get_boolean('customize-thumbnail')) {
-            WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = this._settings.get_double('thumbnail-size');
-        };
-
         // Extend LayoutManager _updateRegions function to destroy/create workspace thumbnails when completed.
         // NOTE1: needed because 'monitors-changed' signal doesn't wait for queued regions to update.
         // We need to wait so that the screen workspace workarea is adjusted before creating workspace thumbnails.
@@ -1021,9 +1015,6 @@ var DockedWorkspaces = new Lang.Class({
         // Show normal workspaces thumbnailsBox
         Main.overview._controls._thumbnailsSlider.actor.opacity = 255;
 
-        // Restore MAX_THUMBNAIL_SCALE to default value
-        WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = GSFunctions['WorkspaceThumbnail_MAX_THUMBNAIL_SCALE'];
-
         // Restore normal LayoutManager _updateRegions function
         // Layout.LayoutManager.prototype._queueUpdateRegions = GSFunctions['LayoutManager_queueUpdateRegions'];
         Layout.LayoutManager.prototype._updateRegions = GSFunctions['LayoutManager_updateRegions'];
@@ -1211,23 +1202,11 @@ var DockedWorkspaces = new Lang.Class({
         }));
 
         this._settings.connect('changed::customize-thumbnail', Lang.bind(this, function() {
-            // Set Gnome Shell's workspace thumbnail size so that overview mode layout doesn't overlap dock
-            if (this._settings.get_boolean('customize-thumbnail')) {
-                WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = this._settings.get_double('thumbnail-size');
-            } else {
-                WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = GSFunctions['WorkspaceThumbnail_MAX_THUMBNAIL_SCALE'];
-            }
             // hide and show thumbnailsBox to resize thumbnails
             this._refreshThumbnails();
         }));
 
         this._settings.connect('changed::thumbnail-size', Lang.bind(this, function() {
-            // Set Gnome Shell's workspace thumbnail size so that overview mode layout doesn't overlap dock
-            if (this._settings.get_boolean('customize-thumbnail')) {
-                WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = this._settings.get_double('thumbnail-size');
-            } else {
-                WorkspaceThumbnail.MAX_THUMBNAIL_SCALE = GSFunctions['WorkspaceThumbnail_MAX_THUMBNAIL_SCALE'];
-            }
             // hide and show thumbnailsBox to resize thumbnails
             this._refreshThumbnails();
         }));
