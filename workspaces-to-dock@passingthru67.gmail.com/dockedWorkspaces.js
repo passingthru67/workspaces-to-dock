@@ -1215,6 +1215,11 @@ var DockedWorkspaces = new Lang.Class({
             this._redisplay();
         }));
 
+        this._settings.connect('changed::screen-edge-padding', Lang.bind(this, function() {
+            this._updateSize();
+            this._redisplay();
+        }));
+
         this._settings.connect('changed::customize-thumbnail', Lang.bind(this, function() {
             // hide and show thumbnailsBox to resize thumbnails
             this._refreshThumbnails();
@@ -2276,6 +2281,9 @@ var DockedWorkspaces = new Lang.Class({
         // that may affect width and height calculations
         let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitor.index);
 
+        // Get screen edge padding from preferences
+        let screenEdgePadding = this._settings.get_double('screen-edge-padding');
+
         let x, y, width, height, anchorPoint;
         if (this._isHorizontal) {
             // Get x position and width
@@ -2291,7 +2299,7 @@ var DockedWorkspaces = new Lang.Class({
             }
 
             // Get y position, height, and anchorpoint
-            height = this._thumbnailsBox._thumbnailsBoxHeight + shortcutsPanelThickness;
+            height = this._thumbnailsBox._thumbnailsBoxHeight + shortcutsPanelThickness + screenEdgePadding;
             if (this._position == St.Side.TOP) {
                 y =  this._monitor.y;
                 anchorPoint = Clutter.Gravity.NORTH_WEST;
@@ -2302,7 +2310,7 @@ var DockedWorkspaces = new Lang.Class({
 
         } else {
             // Get x position, width, and anchorpoint
-            width = this._thumbnailsBox._thumbnailsBoxWidth + shortcutsPanelThickness;
+            width = this._thumbnailsBox._thumbnailsBoxWidth + shortcutsPanelThickness + screenEdgePadding;
             if (this._position == St.Side.LEFT) {
                 x = this._monitor.x;
                 anchorPoint = Clutter.Gravity.NORTH_WEST;

@@ -327,6 +327,24 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             return true;
         });
 
+        let screenEdgePaddingLabel = new Gtk.Label({
+            label: _("Padding between dock (when fully shown) and edge of screen"),
+            use_markup: true,
+            xalign: 0,
+            hexpand: true
+        });
+
+        let screenEdgePaddingSpinner = new Gtk.SpinButton();
+        screenEdgePaddingSpinner.set_range(0, 200);
+        screenEdgePaddingSpinner.set_value(this.settings.get_double('screen-edge-padding') * 1);
+        screenEdgePaddingSpinner.set_digits(0);
+        screenEdgePaddingSpinner.set_increments(1, 10);
+        screenEdgePaddingSpinner.set_size_request(120, -1);
+        screenEdgePaddingSpinner.connect('value-changed', Lang.bind(this, function(button) {
+            let s = button.get_value() / 1;
+            this.settings.set_double('screen-edge-padding', s);
+        }));
+
         // Add to layout
         let dockHeightControlGrid = new Gtk.Grid({
             row_homogeneous: false,
@@ -351,6 +369,8 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         dockHeightContainerGrid.attach(topMarginSpinner, 1, 5, 1, 1);
         dockHeightContainerGrid.attach(bottomMarginLabel, 0, 6, 1, 1);
         dockHeightContainerGrid.attach(bottomMarginSpinner, 1, 6, 1, 1);
+        dockHeightContainerGrid.attach(screenEdgePaddingLabel, 0, 7, 1, 1);
+        dockHeightContainerGrid.attach(screenEdgePaddingSpinner, 1, 7, 1, 1);
 
         // Bind interactions
         this.settings.bind('customize-height', dockHeightContainerGrid, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
