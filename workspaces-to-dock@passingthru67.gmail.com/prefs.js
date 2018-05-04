@@ -211,7 +211,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         }));
 
         let customizeHeightAutosize =  new Gtk.RadioButton({
-            label: _("Autosize the dock based on workspaces and shortcuts"),
+            label: _("Autosize the dock based on thumbnails and favorites"),
             margin_top: 0
         });
         customizeHeightAutosize.connect('toggled', Lang.bind(this, function(check){
