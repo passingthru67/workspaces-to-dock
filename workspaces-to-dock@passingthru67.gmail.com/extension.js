@@ -133,6 +133,12 @@ function bindSettingsChanges() {
         dock = new DockedWorkspaces.DockedWorkspaces();
         intellihide = new Intellihide.Intellihide(dock);
     });
+    settings.connect('changed::autohide-in-fullscreen', function(){
+        intellihide.destroy();
+        dock.destroy();
+        dock = new DockedWorkspaces.DockedWorkspaces();
+        intellihide = new Intellihide.Intellihide(dock);
+    });
     settings.connect('changed::intellihide', function(){
         intellihide.destroy();
         dock.destroy();
