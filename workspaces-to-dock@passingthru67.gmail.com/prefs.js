@@ -1147,6 +1147,27 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
                 }
             }));
 
+            let toggleDockShortcutTimeoutLabel = new Gtk.Label({
+                label: _("Timeout before dock is hidden again [s]"),
+                use_markup: true,
+                xalign: 0,
+                margin_left: 25,
+                margin_top: 0,
+                hexpand: true
+            });
+
+            let toggleDockShortcutTimeoutSpinner = new Gtk.SpinButton({
+                halign: Gtk.Align.END,
+                margin_top: 0
+            });
+            toggleDockShortcutTimeoutSpinner.set_range(1, 10);
+            toggleDockShortcutTimeoutSpinner.set_value(this.settings.get_double('keyboard-toggle-timeout') * 1);
+            toggleDockShortcutTimeoutSpinner.set_increments(1, 10);
+            toggleDockShortcutTimeoutSpinner.connect('value-changed', Lang.bind(this, function(button) {
+                let s = button.get_value() / 1;
+                this.settings.set_double('keyboard-toggle-timeout', s);
+            }));
+
             // Add to layout
             let additionalHideShowOptionsDialogGrid = new Gtk.Grid({
                 row_homogeneous: false,
@@ -1162,9 +1183,14 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             additionalHideShowOptionsDialogGrid.attach(toggleDockShortcutButton, 0, 6, 2, 1);
             additionalHideShowOptionsDialogGrid.attach(toggleDockShortcutLabel, 0, 7, 1, 1);
             additionalHideShowOptionsDialogGrid.attach(toggleDockShortcutEntry, 1, 7, 1, 1);
+            additionalHideShowOptionsDialogGrid.attach(toggleDockShortcutTimeoutLabel, 0, 8, 1, 1);
+            additionalHideShowOptionsDialogGrid.attach(toggleDockShortcutTimeoutSpinner, 1, 8, 1, 1);
 
             /* Bind interactions */
+            this.settings.bind('toggle-dock-with-keyboard-shortcut', toggleDockShortcutLabel, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
             this.settings.bind('toggle-dock-with-keyboard-shortcut', toggleDockShortcutEntry, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+            this.settings.bind('toggle-dock-with-keyboard-shortcut', toggleDockShortcutTimeoutLabel, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
+            this.settings.bind('toggle-dock-with-keyboard-shortcut', toggleDockShortcutTimeoutSpinner, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
             this.settings.bind('quick-show-on-workspace-change', quickShowLabel, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
             this.settings.bind('quick-show-on-workspace-change', quickShowSpinner, 'sensitive', Gio.SettingsBindFlags.DEFAULT);
 

@@ -422,6 +422,9 @@ var DockedWorkspaces = new Lang.Class({
         this._panels.add_actor(this._panelsContainer);
         this._dockContainer.add(this._panels,{x_fill: false, y_fill: false, x_align: St.Align.MIDDLE, y_align: St.Align.MIDDLE, expand: expandContainer});
 
+        // Initialize keyboard toggle timeout
+        this._toggleWithKeyboardTimeoutId = 0;
+
         // Connect the _dock hover, scroll and button release events
         this._checkHoverStatusId = 0;
         this._scrollWorkspaceSwitchDeadTimeId = 0;
@@ -1338,19 +1341,39 @@ var DockedWorkspaces = new Lang.Class({
                 if (_DEBUG_) global.log("KEYBOARD SHORTCUT PRESSED autohideStatus = "+this._autohideStatus);
                 if (this._autohideStatus) {
                     if (this._dockState == DockState.HIDDEN || this._dockState == DockState.HIDING) {
-                        this._show();
+                        this._toggleWithKeyboard(true);
                     } else {
-                        this._hide();
+                        this._toggleWithKeyboard(false);
                     }
                 } else {
                     if (this._dockState == DockState.SHOWN || this._dockState == DockState.SHOWING) {
-                        this._hide();
+                        this._toggleWithKeyboard(false);
                     } else {
-                        this._show();
+                        this._toggleWithKeyboard(true);
                     }
                 }
             })
         );
+    },
+
+    _toggleWithKeyboard: function(show) {
+        if (_DEBUG_) global.log("dockedWorkspaces: _toggleWithKeyboard");
+        // Clear keyboard toggle timeout
+        if (this._toggleWithKeyboardTimeoutId > 0) {
+            Mainloop.source_remove(this._toggleWithKeyboardTimeoutId);
+            this._toggleWithKeyboardTimeoutId = 0;
+        }
+
+        // Hide dock after timeout
+        if (show) {
+            this._show();
+            let timeout = this._settings.get_double('keyboard-toggle-timeout') * 1000;
+            this._toggleWithKeyboardTimeoutId = Mainloop.timeout_add(timeout, Lang.bind(this, function(){
+                this._toggleWithKeyboard(false);
+            }));
+        } else {
+            this._hide();
+        }
     },
 
     _unbindDockKeyboardShortcut: function() {
@@ -1441,7 +1464,9 @@ var DockedWorkspaces = new Lang.Class({
             this._checkHoverStatusId = 0;
         }
         if (Extension.intellihide._toggledOverviewOnDrag == false) {
-            this._hoverChanged();
+            if (this._toggleWithKeyboardTimeoutId == 0) {
+                this._hoverChanged();
+            }
         }
     },
 
