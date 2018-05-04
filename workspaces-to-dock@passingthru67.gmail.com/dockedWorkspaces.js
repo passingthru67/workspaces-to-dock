@@ -584,7 +584,11 @@ var DockedWorkspaces = new Lang.Class({
             || (this._settings.get_boolean('intellihide') && this._settings.get_enum('intellihide-action') == IntellihideAction.SHOW_PARTIAL_FIXED)) {
                 Main.layoutManager._trackActor(this._slider.actor, {trackFullscreen: true});
         } else {
-            Main.layoutManager._trackActor(this._slider.actor);
+            if (this._settings.get_boolean('autohide-in-fullscreen')) {
+                Main.layoutManager._trackActor(this._slider.actor);
+            } else {
+                Main.layoutManager._trackActor(this._slider.actor, {trackFullscreen: true});
+            }
         }
     },
 

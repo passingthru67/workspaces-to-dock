@@ -723,6 +723,16 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
 
             /* AUTOHIDE OPTIONS DIALOG */
 
+            let enableInFullscreenButton = new Gtk.CheckButton({
+                label: _("Enable autohide in fullscreen"),
+                margin_left: 0,
+                margin_top: 0
+            });
+            enableInFullscreenButton.set_active(this.settings.get_boolean('autohide-in-fullscreen'));
+            enableInFullscreenButton.connect('toggled', Lang.bind(this, function(check) {
+                this.settings.set_boolean('autohide-in-fullscreen', check.get_active());
+            }));
+
             let requireClickButton = new Gtk.CheckButton({
                 label: _("Require click to show the dock when window maximized"),
                 margin_left: 0,
@@ -811,14 +821,16 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
                 row_homogeneous: false,
                 column_homogeneous: false
             });
-            autohideOptionsDialogGrid.attach(requireClickButton, 0, 0, 2, 1);
-            autohideOptionsDialogGrid.attach(requirePressureButton, 0, 1, 2, 1);
-            autohideOptionsDialogGrid.attach(pressureThresholdLabel, 0, 2, 1, 1);
-            autohideOptionsDialogGrid.attach(pressureThresholdSpinner, 1, 2, 1, 1);
-            autohideOptionsDialogGrid.attach(speedLimitButton, 0, 3, 2, 1);
-            autohideOptionsDialogGrid.attach(speedLimitLabel, 0, 4, 1, 1);
-            autohideOptionsDialogGrid.attach(speedLimitSpinner, 1, 4, 1, 1);
-            autohideOptionsDialogGrid.attach(speedLimitDescription, 0, 5, 2, 1);
+
+            autohideOptionsDialogGrid.attach(enableInFullscreenButton, 0, 0, 2, 1);
+            autohideOptionsDialogGrid.attach(requireClickButton, 0, 1, 2, 1);
+            autohideOptionsDialogGrid.attach(requirePressureButton, 0, 2, 2, 1);
+            autohideOptionsDialogGrid.attach(pressureThresholdLabel, 0, 3, 1, 1);
+            autohideOptionsDialogGrid.attach(pressureThresholdSpinner, 1, 3, 1, 1);
+            autohideOptionsDialogGrid.attach(speedLimitButton, 0, 4, 2, 1);
+            autohideOptionsDialogGrid.attach(speedLimitLabel, 0, 5, 1, 1);
+            autohideOptionsDialogGrid.attach(speedLimitSpinner, 1, 5, 1, 1);
+            autohideOptionsDialogGrid.attach(speedLimitDescription, 0, 6, 2, 1);
 
             // Bind interactions
             this.settings.bind('require-pressure-to-show', pressureThresholdLabel, 'sensitive', Gio.SettingsBindFlags.DEFAULT);

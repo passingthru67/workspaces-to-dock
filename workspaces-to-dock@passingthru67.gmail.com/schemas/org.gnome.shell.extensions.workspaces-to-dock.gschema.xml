@@ -50,6 +50,11 @@
       <summary>Dock shown on mouse over</summary>
       <description>Enable or disable autohide mode</description>
     </key>
+    <key type="b" name="autohide-in-fullscreen">
+      <default>false</default>
+      <summary>Enable autohide in fullscreen mode.</summary>
+      <description>Enable autohide in fullscreen mode.</description>
+    </key>
     <key type="b" name="intellihide">
       <default>true</default>
       <summary>Dock dodges windows</summary>
