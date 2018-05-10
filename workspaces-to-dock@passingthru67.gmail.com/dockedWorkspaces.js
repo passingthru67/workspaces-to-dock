@@ -782,7 +782,7 @@ var DockedWorkspaces = new Lang.Class({
                 // Adjust index to point to correct dock
                 // Only needed when using DashToDock.dockManager
                 let idx;
-                if (i == dashMonitorIndex) {
+                if (i == dashMonitorIndex || dashMultiMonitor) {
                     idx = 0;
                 } else if (i < dashMonitorIndex) {
                     idx = i + 1;
