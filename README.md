@@ -276,6 +276,14 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
+**Version 46 for Gnome 3.28 (Aug 22, 2018)**
+- Add opton to enable/disable autohide in fullscreen
+- Add option for screen edge padding
+- Add option to hide workspace switcher popup
+- Add option to set timeout when dock is toggled with shortcut key
+- Add support for HiDPI screens
+- Bug fixes
+
 **Version 45 for Gnome 3.28 (Apr 25, 2018)**
 - Added advanced centering options
 - Updated for MozJs52 compatibility
