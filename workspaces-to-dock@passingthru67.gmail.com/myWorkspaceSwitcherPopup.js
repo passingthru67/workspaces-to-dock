@@ -31,8 +31,9 @@ let myShowWorkspaceSwitcher, origShowWorkspaceSwitcher;
 let nrows = 1;
 
 function get_ncols() {
-    let ncols = Math.floor(global.screen.n_workspaces/nrows);
-    if ( global.screen.n_workspaces%nrows != 0 )
+    let workspaceManager = global.workspace_manager;
+    let ncols = Math.floor(workspaceManager.n_workspaces/nrows);
+    if ( workspaceManager.n_workspaces%nrows != 0 )
        ++ncols
 
     return ncols;
@@ -122,9 +123,10 @@ var myWorkspaceSwitcherPopup = new Lang.Class({
     },
 
     _redisplay : function() {
-        this._list.destroy_all_children();
+        let workspaceManager = global.workspace_manager;
 
-        for (let i = 0; i < global.screen.n_workspaces; i++) {
+        this._list.destroy_all_children();
+        for (let i = 0; i < workspaceManager.n_workspaces; i++) {
             let indicator = null;
 
            if (i == this._activeWorkspaceIndex && this._direction == Meta.MotionDirection.LEFT)
@@ -169,7 +171,7 @@ var WorkspaceSwitcher = new Lang.Class({
         this._overrideGnomeShellFunctions();
         this._resetBindings();
 
-        global.screen.override_workspace_layout(Meta.ScreenCorner.TOPLEFT, false, nrows, -1);
+        global.workspace_manager.override_workspace_layout(Meta.ScreenCorner.TOPLEFT, false, nrows, -1);
     },
 
     destroy: function() {
@@ -177,7 +179,7 @@ var WorkspaceSwitcher = new Lang.Class({
         this._restoreGnomeShellFunctions();
         this._resetBindings();
 
-        global.screen.override_workspace_layout(Meta.ScreenCorner.TOPLEFT, false, -1, 1);
+        global.workspace_manager.override_workspace_layout(Meta.ScreenCorner.TOPLEFT, false, -1, 1);
     },
 
     _overrideGnomeShellFunctions: function() {
@@ -251,7 +253,8 @@ var WorkspaceSwitcher = new Lang.Class({
         // Override updateWorkspaceActors for horizontal animation of overview windows
         GSFunctions['WorkspacesView_updateWorkspaceActors'] = WorkspacesView.WorkspacesView.prototype._updateWorkspaceActors;
         WorkspacesView.WorkspacesView.prototype._updateWorkspaceActors = function(showAnimation) {
-            let active = global.screen.get_active_workspace_index();
+            let workspaceManager = global.workspace_manager;
+            let active = workspaceManager.get_active_workspace_index();
 
             this._animating = showAnimation;
 
@@ -292,7 +295,8 @@ var WorkspaceSwitcher = new Lang.Class({
         WorkspacesView.WorkspacesDisplay.prototype._onScrollEvent = function(actor, event) {
             if (!this.actor.mapped)
                 return Clutter.EVENT_PROPAGATE;
-            let activeWs = global.screen.get_active_workspace();
+            let workspaceManager = global.workspace_manager;
+            let activeWs = workspaceManager.get_active_workspace();
             let ws;
             switch (event.get_scroll_direction()) {
             case Clutter.ScrollDirection.UP:

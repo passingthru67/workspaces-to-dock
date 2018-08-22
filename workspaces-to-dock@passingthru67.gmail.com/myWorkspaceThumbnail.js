@@ -43,9 +43,9 @@ var WORKSPACE_CUT_SIZE = 10;
 
 var WORKSPACE_KEEP_ALIVE_TIME = 100;
 
-const OVERRIDE_SCHEMA = 'org.gnome.shell.overrides';
+var OVERRIDE_SCHEMA = 'org.gnome.shell.overrides';
 
-const ThumbnailState = {
+var ThumbnailState = {
     NEW: 0,
     ANIMATING_IN: 1,
     NORMAL: 2,
@@ -91,7 +91,7 @@ var myWindowClone = new Lang.Class({
         this.realWindow = realWindow;
         this.metaWindow = realWindow.meta_window;
 
-        this.clone._updateId = this.metaWindow.connect('position-changed',
+        this.clone._updateId = this.realWindow.connect('notify::position',
                                                        Lang.bind(this, this._onPositionChanged));
         this.clone._destroyId = this.realWindow.connect('destroy', Lang.bind(this, function() {
             // First destroy the clone and then destroy everything
@@ -170,7 +170,7 @@ var myWindowClone = new Lang.Class({
                 realWindow = child.source;
             }
 
-            realWindow.meta_window.disconnect(child._updateId);
+            realWindow.disconnect(child._updateId);
             realWindow.disconnect(child._destroyId);
         });
     },
@@ -235,29 +235,9 @@ var myWorkspaceThumbnail = new Lang.Class({
 
     _doRemoveWindow : function(metaWin) {
         if (_DEBUG_ && !this._removed) global.log("myWorkspaceThumbnail: _doRemoveWindow for metaWorkspace "+this.metaWorkspace.index());
-        let win = metaWin.get_compositor_private();
-
-        // find the position of the window in our list
-        let index = this._lookupIndex (metaWin);
-
-        if (index == -1)
-            return;
-
-        let clone = this._windows[index];
-        this._windows.splice(index, 1);
-
-        // passingthru67 - refresh thumbnails if metaWin being removed is on all workspaces
-        //if (win && this._isMyWindow(win) && metaWin.is_on_all_workspaces()) {
-        if (win && metaWin.is_on_all_workspaces()) {
-            for (let j = 0; j < this._windowsOnAllWorkspaces.length; j++) {
-                if (metaWin == this._windowsOnAllWorkspaces[j]) {
-                    this._windowsOnAllWorkspaces.splice(j, 1);
-                }
-            }
-            this._thumbnailsBox.refreshThumbnails();
-        }
-
-        clone.destroy();
+        let clone = this._removeWindowClone(metaWin);
+        if (clone)
+            clone.destroy();
     },
 
     _doAddWindow : function(metaWin) {
@@ -388,6 +368,10 @@ var myWorkspaceThumbnail = new Lang.Class({
                       Lang.bind(this, function() {
                           Main.overview.endWindowDrag(clone.metaWindow);
                       }));
+        clone.actor.connect('destroy',
+                      Lang.bind(this, function() {
+                         this._removeWindowClone(clone.metaWindow);
+                      }));
         this._contents.add_actor(clone.actor);
 
         if (this._windows.length == 0)
@@ -415,6 +399,28 @@ var myWorkspaceThumbnail = new Lang.Class({
         }
 
         return clone;
+    },
+
+    _removeWindowClone: function(metaWin) {
+        // find the position of the window in our list
+        let index = this._lookupIndex (metaWin);
+
+        if (index == -1)
+            return null;
+
+        // passingthru67 - refresh thumbnails if metaWin being removed is on all workspaces
+        let win = metaWin.get_compositor_private();
+        // if (win && this._isMyWindow(win) && metaWin.is_on_all_workspaces()) {
+        if (win && metaWin.is_on_all_workspaces()) {
+            for (let j = 0; j < this._windowsOnAllWorkspaces.length; j++) {
+                if (metaWin == this._windowsOnAllWorkspaces[j]) {
+                    this._windowsOnAllWorkspaces.splice(j, 1);
+                }
+            }
+            this._thumbnailsBox.refreshThumbnails();
+        }
+
+        return this._windows.splice(index, 1).pop();
     },
 
     setCaptionReactiveState: function (state) {
@@ -582,6 +588,7 @@ var myThumbnailsBox = new Lang.Class({
         this.actor.connect('destroy', Lang.bind(this, this._onDestroy));
 
         // Connect global signals
+        let workspaceManager = global.workspace_manager;
         this._signalHandler = new Convenience.globalSignalHandler();
         this._signalHandler.push(
             [
@@ -615,17 +622,17 @@ var myThumbnailsBox = new Lang.Class({
                 Lang.bind(this,this._onDragEnd)
             ],
             [
-                global.screen,
+                global.display,
                 'in-fullscreen-changed',
                 Lang.bind(this, this.refreshThumbnails)
             ],
             [
-                global.screen,
+                workspaceManager,
                 'workspace-added',
                 Lang.bind(this, this._onWorkspaceAdded)
             ],
             [
-                global.screen,
+                workspaceManager,
                 'workspace-removed',
                 Lang.bind(this, this._onWorkspaceRemoved)
             ]
@@ -652,9 +659,10 @@ var myThumbnailsBox = new Lang.Class({
         // });
         // let NumMyWorkspaces = validThumbnails.length;
         // -------------------------------------------------------------------
+        let workspaceManager = global.workspace_manager;
         let NumMyWorkspaces = this._thumbnails.length;
-        let NumGlobalWorkspaces = global.screen.n_workspaces;
-        let active = global.screen.get_active_workspace_index();
+        let NumGlobalWorkspaces = workspaceManager.n_workspaces;
+        let active = workspaceManager.get_active_workspace_index();
 
         // NumMyWorkspaces == NumGlobalWorkspaces shouldn't happen, but does when Firefox started.
         // Assume that a workspace thumbnail is still in process of being removed from _thumbnailsBox
@@ -677,9 +685,10 @@ var myThumbnailsBox = new Lang.Class({
         // });
         // let NumMyWorkspaces = validThumbnails.length;
         // -------------------------------------------------------------------
+        let workspaceManager = global.workspace_manager;
         let NumMyWorkspaces = this._thumbnails.length;
-        let NumGlobalWorkspaces = global.screen.n_workspaces;
-        let active = global.screen.get_active_workspace_index();
+        let NumGlobalWorkspaces = workspaceManager.n_workspaces;
+        let active = workspaceManager.get_active_workspace_index();
 
         // TODO: Not sure if this is an issue?
         if (_DEBUG_) global.log("dockedWorkspaces: _workspacesRemoved - thumbnails being removed .. ws="+NumGlobalWorkspaces+" th="+NumMyWorkspaces);
@@ -690,7 +699,7 @@ var myThumbnailsBox = new Lang.Class({
         //let removedNum = NumMyWorkspaces - NumGlobalWorkspaces;
         let removedNum = 1;
         for (let w = 0; w < NumMyWorkspaces; w++) {
-            let metaWorkspace = global.screen.get_workspace_by_index(w);
+            let metaWorkspace = workspaceManager.get_workspace_by_index(w);
             if (this._thumbnails[w].metaWorkspace != metaWorkspace) {
                 removedIndex = w;
                 break;
@@ -826,7 +835,8 @@ var myThumbnailsBox = new Lang.Class({
                 // to open its first window within some time, as tracked by Shell.WindowTracker.
                 // Here, we only add a very brief timeout to avoid the _immediate_ removal of the
                 // workspace while we wait for the startup sequence to load.
-                Main.wm.keepWorkspaceAlive(global.screen.get_workspace_by_index(newWorkspaceIndex),
+                let workspaceManager = global.workspace_manager;
+                Main.wm.keepWorkspaceAlive(workspaceManager.get_workspace_by_index(newWorkspaceIndex),
                                            WORKSPACE_KEEP_ALIVE_TIME);
             }
 
@@ -847,6 +857,8 @@ var myThumbnailsBox = new Lang.Class({
     // override _createThumbnails to remove global n-workspaces notification
     _createThumbnails: function() {
         if (_DEBUG_) global.log("mythumbnailsBox: _createThumbnails");
+        let workspaceManager = global.workspace_manager;
+
         this._switchWorkspaceNotifyId =
             global.window_manager.connect('switch-workspace',
                                           Lang.bind(this, this._activeWorkspaceChanged));
@@ -866,7 +878,7 @@ var myThumbnailsBox = new Lang.Class({
         for (let key in ThumbnailState)
             this._stateCounts[ThumbnailState[key]] = 0;
 
-        this.addThumbnails(0, global.screen.n_workspaces);
+        this.addThumbnails(0, workspaceManager.n_workspaces);
 
         this._updateSwitcherVisibility();
     },
@@ -877,7 +889,8 @@ var myThumbnailsBox = new Lang.Class({
             this._switchWorkspaceNotifyId = 0;
         }
         if (this._nWorkspacesNotifyId > 0) {
-            global.screen.disconnect(this._nWorkspacesNotifyId);
+            let workspaceManager = global.workspace_manager;
+            workspaceManager.disconnect(this._nWorkspacesNotifyId);
             this._nWorkspacesNotifyId = 0;
         }
 
@@ -962,9 +975,11 @@ var myThumbnailsBox = new Lang.Class({
     // override addThumbnails to provide workspace thumbnail labels
     addThumbnails: function(start, count) {
         if (_DEBUG_) global.log("mythumbnailsBox: addThumbnails");
+        let workspaceManager = global.workspace_manager;
+
         this._ensurePorthole();
         for (let k = start; k < start + count; k++) {
-            let metaWorkspace = global.screen.get_workspace_by_index(k);
+            let metaWorkspace = workspaceManager.get_workspace_by_index(k);
             let thumbnail = new myWorkspaceThumbnail(metaWorkspace, this);
             thumbnail.setPorthole(this._porthole.x, this._porthole.y,
                                   this._porthole.width, this._porthole.height);
@@ -1038,7 +1053,8 @@ var myThumbnailsBox = new Lang.Class({
             captionBackgroundHeight = this._mySettings.get_double('workspace-caption-height') * scale_factor;
         }
 
-        let nWorkspaces = global.screen.n_workspaces;
+        let workspaceManager = global.workspace_manager;
+        let nWorkspaces = workspaceManager.n_workspaces;
 
         if (this._isHorizontal) {
             let totalSpacing = (nWorkspaces - 1) * spacing;
@@ -1086,7 +1102,8 @@ var myThumbnailsBox = new Lang.Class({
             captionBackgroundHeight = this._mySettings.get_double('workspace-caption-height') * scale_factor;
         }
 
-        let nWorkspaces = global.screen.n_workspaces;
+        let workspaceManager = global.workspace_manager;
+        let nWorkspaces = workspaceManager.n_workspaces;
 
         if (this._isHorizontal) {
             let totalSpacing = (nWorkspaces - 1) * spacing;
@@ -1176,6 +1193,7 @@ var myThumbnailsBox = new Lang.Class({
         if (this._thumbnails.length == 0) // not visible
             return;
 
+        let workspaceManager = global.workspace_manager;
         let themeNode = this.actor.get_theme_node();
 
         let portholeWidth = this._porthole.width;
@@ -1197,7 +1215,7 @@ var myThumbnailsBox = new Lang.Class({
         }
 
         // Compute the scale we'll need once everything is updated
-        let nWorkspaces = global.screen.n_workspaces;
+        let nWorkspaces = workspaceManager.n_workspaces;
 
         // passingthru67 - total spacing depends on on caption showing
         let totalSpacing;
@@ -1270,7 +1288,8 @@ var myThumbnailsBox = new Lang.Class({
         // passingthru67 - indicatorX used instead of indicatorY when position isHorizontal
 
         // when not animating, the workspace position overrides this._indicatorY
-        let indicatorWorkspace = !this._animatingIndicator ? global.screen.get_active_workspace() : null;
+        let activeWorkspace = workspaceManager.get_active_workspace();
+        let indicatorWorkspace = !this._animatingIndicator ? activeWorkspace : null;
         let indicatorThemeNode = this._indicator.get_theme_node();
 
         let indicatorTopFullBorder = indicatorThemeNode.get_padding(St.Side.TOP) + indicatorThemeNode.get_border_width(St.Side.TOP);
@@ -1463,7 +1482,8 @@ var myThumbnailsBox = new Lang.Class({
     _activeWorkspaceChanged: function(wm, from, to, direction) {
         if (_DEBUG_) global.log("mythumbnailsBox: _activeWorkspaceChanged - thumbnail count = "+this._thumbnails.length);
         let thumbnail;
-        let activeWorkspace = global.screen.get_active_workspace();
+        let workspaceManager = global.workspace_manager;
+        let activeWorkspace = workspaceManager.get_active_workspace();
         for (let i = 0; i < this._thumbnails.length; i++) {
             if (this._thumbnails[i].metaWorkspace == activeWorkspace) {
                 thumbnail = this._thumbnails[i];

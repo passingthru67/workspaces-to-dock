@@ -471,6 +471,7 @@ var DockedWorkspaces = new Lang.Class({
         this.actor.set_child(this._slider.actor);
 
         // Connect global signals
+        let workspaceManager = global.workspace_manager;
         this._signalHandler.push(
             [
                 this._thumbnailsBox.actor,
@@ -508,17 +509,17 @@ var DockedWorkspaces = new Lang.Class({
                 Lang.bind(this, this._updateYPosition)
             ],
             [
-                global.screen,
+                global.display,
                 'in-fullscreen-changed',
                 Lang.bind(this, this._updateBarrier)
             ],
             [
-                global.screen,
+                workspaceManager,
                 'workspace-added',
                 Lang.bind(this, this._onWorkspaceAdded)
             ],
             [
-                global.screen,
+                workspaceManager,
                 'workspace-removed',
                 Lang.bind(this, this._onWorkspaceRemoved)
             ]
@@ -1411,7 +1412,8 @@ var DockedWorkspaces = new Lang.Class({
 
         if (this._settings.get_boolean('require-click-to-show')) {
             // check if metaWin is maximized
-            let activeWorkspace = global.screen.get_active_workspace();
+            let workspaceManager = global.workspace_manager;
+            let activeWorkspace = workspaceManager.get_active_workspace();
             let maximized = false;
             let windows = global.get_window_actors();
             for (let i = windows.length-1; i >= 0; i--) {
@@ -1716,7 +1718,8 @@ var DockedWorkspaces = new Lang.Class({
             (this._dockState == DockState.HIDDEN || this._dockState == DockState.HIDING))
                 return Clutter.EVENT_STOP;
 
-        let activeWs = global.screen.get_active_workspace();
+        let workspaceManager = global.workspace_manager;
+        let activeWs = workspaceManager.get_active_workspace();
         let direction;
         switch (event.get_scroll_direction()) {
         case Clutter.ScrollDirection.UP:

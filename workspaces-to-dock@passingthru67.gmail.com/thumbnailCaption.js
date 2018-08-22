@@ -425,7 +425,8 @@ var ThumbnailCaption = new Lang.Class({
         } else {
             win = actor.meta_window;
         }
-        let activeWorkspace = global.screen.get_active_workspace();
+        let workspaceManager = global.workspace_manager;
+        let activeWorkspace = workspaceManager.get_active_workspace();
         if (this._settings.get_boolean('workspaces-only-on-primary')) {
             return (this._thumbnail.metaWorkspace == activeWorkspace && !win.skip_taskbar && win.is_on_all_workspaces());
         } else {
@@ -629,7 +630,8 @@ var ThumbnailCaption = new Lang.Class({
     activeWorkspaceChanged: function() {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: activeWorkspaceChanged");
         let windows = global.get_window_actors();
-        let activeWorkspace = global.screen.get_active_workspace();
+        let workspaceManager = global.workspace_manager;
+        let activeWorkspace = workspaceManager.get_active_workspace();
         if (_DEBUG_) global.log("myWorkspaceThumbnail: activeWorkspaceChanged - window count = "+windows.length);
         for (let i = 0; i < windows.length; i++) {
             let metaWin = windows[i].get_meta_window();
@@ -783,7 +785,8 @@ var ThumbnailCaption = new Lang.Class({
 
     activateMetaWindow: function(metaWin) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: activateMetaWindow");
-        let activeWorkspace = global.screen.get_active_workspace();
+        let workspaceManager = global.workspace_manager;
+        let activeWorkspace = workspaceManager.get_active_workspace();
         if (_DEBUG_) global.log("_myWorkspaceThumbnail: activateMetaWindow - activeWorkspace = "+activeWorkspace);
         if (_DEBUG_) global.log("_myWorkspaceThumbnail: activateMetaWindow - metaWorkspace = "+this._thumbnail.metaWorkspace);
         if (activeWorkspace != this._thumbnail.metaWorkspace) {
@@ -1036,7 +1039,8 @@ var ThumbnailCaption = new Lang.Class({
             this._taskBarBox.height = captionHeight;
 
 
-        if (i == global.screen.get_active_workspace_index()) {
+        let workspaceManager = global.workspace_manager;
+        if (i == workspaceManager.get_active_workspace_index()) {
             if (this._wsCaptionBackground) {
                 this._wsCaptionBackground.add_style_class_name('workspacestodock-workspace-caption-background-current');
                 if (this._mySettings.get_enum('workspace-caption-position') == CaptionPosition.TOP)

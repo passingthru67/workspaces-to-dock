@@ -163,13 +163,13 @@ var Intellihide = new Lang.Class({
                 Lang.bind(this, this._switchWorkspace)
             ],
             [
-                global.screen,
+                global.display,
                 'in-fullscreen-changed',
                 Lang.bind(this, this._onFullscreenChanged)
             ],
             // trigggered for instance when a window is closed.
             [
-                global.screen,
+                global.display,
                 'restacked',
                 Lang.bind(this, this._onScreenRestacked)
             ],
@@ -947,7 +947,8 @@ var Intellihide = new Lang.Class({
     // Filter interesting windows to be considered for intellihide.
     // Consider all windows visible on the current workspace.
     _intellihideFilterInteresting: function(wa, edge) {
-        let currentWorkspace = global.screen.get_active_workspace_index();
+        let workspaceManager = global.workspace_manager;
+        let currentWorkspace = workspaceManager.get_active_workspace_index();
         let meta_win = wa.get_meta_window();
         if (!meta_win) { //TODO michele: why? What does it mean?
             return false;
