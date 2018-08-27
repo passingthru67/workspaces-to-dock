@@ -276,6 +276,9 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
+**Version 47 for Gnome 3.30 (Aug 27, 2018)**
+- Support for Gnome 3.30
+
 **Version 46 for Gnome 3.28 (Aug 22, 2018)**
 - Add opton to enable/disable autohide in fullscreen
 - Add option for screen edge padding
