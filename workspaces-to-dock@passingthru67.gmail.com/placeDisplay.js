@@ -56,34 +56,38 @@ var PlaceInfo = new Lang.Class({
         try {
             Gio.AppInfo.launch_default_for_uri(this.file.get_uri(),
                                                launchContext);
-        } catch(e if e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.NOT_MOUNTED)) {
-            this.file.mount_enclosing_volume(0, null, null, function(file, result) {
-                file.mount_enclosing_volume_finish(result);
-                Gio.AppInfo.launch_default_for_uri(file.get_uri(), launchContext);
-            });
         } catch(e) {
-            Main.notifyError(_("Failed to launch \"%s\"").format(this.name), e.message);
+            if (e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.NOT_MOUNTED)) {
+                this.file.mount_enclosing_volume(0, null, null, function(file, result) {
+                    file.mount_enclosing_volume_finish(result);
+                    Gio.AppInfo.launch_default_for_uri(file.get_uri(), launchContext);
+                });
+            } else {
+                Main.notifyError(_("Failed to launch \"%s\"").format(this.name), e.message);
+            }
         }
     },
 
     getIcon: function() {
         try {
             let info = this.file.query_info('standard::symbolic-icon', 0, null);
-	    return info.get_symbolic_icon();
-        } catch(e if e instanceof Gio.IOErrorEnum) {
-            // return a generic icon for this kind
-            switch (this.kind) {
-            case 'network':
-                return new Gio.ThemedIcon({ name: 'folder-remote-symbolic' });
-            case 'devices':
-                return new Gio.ThemedIcon({ name: 'drive-harddisk-symbolic' });
-            case 'special':
-            case 'bookmarks':
-            default:
-                if (!this.file.is_native())
+        return info.get_symbolic_icon();
+        } catch(e) {
+            if (e instanceof Gio.IOErrorEnum) {
+                // return a generic icon for this kind
+                switch (this.kind) {
+                case 'network':
                     return new Gio.ThemedIcon({ name: 'folder-remote-symbolic' });
-                else
-                    return new Gio.ThemedIcon({ name: 'folder-symbolic' });
+                case 'devices':
+                    return new Gio.ThemedIcon({ name: 'drive-harddisk-symbolic' });
+                case 'special':
+                case 'bookmarks':
+                default:
+                    if (!this.file.is_native())
+                        return new Gio.ThemedIcon({ name: 'folder-remote-symbolic' });
+                    else
+                        return new Gio.ThemedIcon({ name: 'folder-symbolic' });
+                }
             }
         }
     },
@@ -92,8 +96,10 @@ var PlaceInfo = new Lang.Class({
         try {
             let info = this.file.query_info('standard::display-name', 0, null);
             return info.get_display_name();
-        } catch(e if e instanceof Gio.IOErrorEnum) {
-            return this.file.get_basename();
+        } catch(e) {
+            if (e instanceof Gio.IOErrorEnum) {
+                return this.file.get_basename();
+            }
         }
     },
 });
@@ -133,8 +139,10 @@ var PlacesManager = new Lang.Class({
             let file = Gio.File.new_for_path(specialPath), info;
             try {
                 info = new PlaceInfo('special', file);
-            } catch(e if e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.NOT_FOUND)) {
-                continue;
+            } catch(e) {
+                if (e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.NOT_FOUND)) {
+                    continue;
+                }
             }
 
             specials.push(info);
