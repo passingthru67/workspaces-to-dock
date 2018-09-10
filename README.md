@@ -276,6 +276,9 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
+**Version 48 (Sep 10, 2018)**
+- Support for MozJs60
+
 **Version 47 for Gnome 3.30 (Aug 27, 2018)**
 - Support for Gnome 3.30
 
