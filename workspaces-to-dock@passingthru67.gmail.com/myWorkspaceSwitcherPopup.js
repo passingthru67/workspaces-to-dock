@@ -171,7 +171,7 @@ var WorkspaceSwitcher = new Lang.Class({
         this._overrideGnomeShellFunctions();
         this._resetBindings();
 
-        global.workspace_manager.override_workspace_layout(Meta.ScreenCorner.TOPLEFT, false, nrows, -1);
+        global.workspace_manager.override_workspace_layout(Meta.DisplayCorner.TOPLEFT, false, nrows, -1);
     },
 
     destroy: function() {
@@ -179,17 +179,19 @@ var WorkspaceSwitcher = new Lang.Class({
         this._restoreGnomeShellFunctions();
         this._resetBindings();
 
-        global.workspace_manager.override_workspace_layout(Meta.ScreenCorner.TOPLEFT, false, -1, 1);
+        global.workspace_manager.override_workspace_layout(Meta.DisplayCorner.TOPLEFT, false, -1, 1);
     },
 
     _overrideGnomeShellFunctions: function() {
         // Override showWorkspacesSwitcher to show custom horizontal workspace switcher popup
         GSFunctions['WindowManager_showWorkspaceSwitcher'] = WindowManager.WindowManager.prototype._showWorkspaceSwitcher;
-        WindowManager.WindowManager.prototype._showWorkspaceSwitcher = function(display, screen, window, binding) {
+        WindowManager.WindowManager.prototype._showWorkspaceSwitcher = function(display, window, binding) {
+            let workspaceManager = display.get_workspace_manager();
+
             if (!Main.sessionMode.hasWorkspaces)
                 return;
 
-            if (screen.n_workspaces == 1)
+            if (workspaceManager.n_workspaces == 1)
                 return;
 
             let [action,,,target] = binding.get_name().split('-');
@@ -208,22 +210,22 @@ var WorkspaceSwitcher = new Lang.Class({
 
             if (target == 'last') {
                 direction = Meta.MotionDirection.RIGHT;
-                newWs = screen.get_workspace_by_index(screen.n_workspaces - 1);
+                newWs = workspaceManager.get_workspace_by_index(workspaceManager.n_workspaces - 1);
             } else if (isNaN(target)) {
                 // Prepend a new workspace dynamically
-                if (screen.get_active_workspace_index() == 0 &&
+                if (workspaceManager.get_active_workspace_index() == 0 &&
                     action == 'move' && target == 'left' && this._isWorkspacePrepended == false) {
                     this.insertWorkspace(0);
                     this._isWorkspacePrepended = true;
                 }
 
                 direction = Meta.MotionDirection[target.toUpperCase()];
-                newWs = screen.get_active_workspace().get_neighbor(direction);
+                newWs = workspaceManager.get_active_workspace().get_neighbor(direction);
             } else if (target > 0) {
                 target--;
-                newWs = screen.get_workspace_by_index(target);
+                newWs = workspaceManager.get_workspace_by_index(target);
 
-                if (screen.get_active_workspace().index() > target)
+                if (workspaceManager.get_active_workspace().index() > target)
                     direction = Meta.MotionDirection.LEFT;
                 else
                     direction = Meta.MotionDirection.RIGHT;
