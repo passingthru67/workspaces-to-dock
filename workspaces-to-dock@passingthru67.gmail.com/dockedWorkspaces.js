@@ -1021,13 +1021,14 @@ var DockedWorkspaces = new Lang.Class({
     _restoreGnomeShellFunctions: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: _restoreGnomeShellFunctions");
         // Restore normal Dash
-        if (this._settings.get_boolean('hide-dash') &&
-            (!DashToDock || !DashToDock.dock)) {
+        if (this._settings.get_boolean('hide-dash')) {
+            if (!DashToDock) {
                 // Show normal dash (if no dash-to-dock)
                 Main.overview._controls.dash.actor.show();
                 Main.overview._controls.dash.actor.set_width(-1);
                 // This forces the recalculation of the icon size
                 Main.overview._controls.dash._maxHeight = -1;
+            }
         }
 
         // Restore source of swarm animation to normal apps button
