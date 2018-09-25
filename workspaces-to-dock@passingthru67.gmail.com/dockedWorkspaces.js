@@ -1614,19 +1614,36 @@ var DockedWorkspaces = new Lang.Class({
     },
 
     _onDashToDockToggled: function() {
-        if (_DEBUG_) global.log("Dash TOGGLED");
-        this._signalHandler.disconnectWithLabel('DashToDockHoverSignal');
+        if (_DEBUG_) global.log("dockedWorkspaces: _onDashToDockToggled DASHTODOCK MULTIMONITOR TOGGLED");
         this._hoveringDash = false;
+        this._disconnectDashToDockSignals();
         this._connectDashToDockSignals();
     },
 
+    _onDashToDockBoxDestroy: function() {
+        if (_DEBUG_) global.log("dockedWorkspaces: _onDashToDockBoxDestroy for DASHTODOCK");
+        this._signalHandler.disconnectWithLabel('DashToDockBoxHoverSignal');
+    },
+
+    _disconnectDashToDockSignals: function() {
+        if (_DEBUG_) global.log("dockedWorkspaces: _disconnectDashToDockSignals for DASHTODOCK");
+        this._signalHandler.disconnectWithLabel('DashToDockBoxHoverSignal');
+        this._signalHandler.disconnectWithLabel('DashToDockManagerSignal');
+    },
+
     _connectDashToDockSignals: function() {
+        if (_DEBUG_) global.log("dockedWorkspaces: _connectDashToDockSignals for DASHTODOCK");
         if (DashToDock) {
             // Connect DashToDock hover signal
             if (DashToDock.dockManager) {
                 if (DashToDock.dockManager._allDocks[0]) {
                     this._signalHandler.pushWithLabel(
-                        'DashToDockHoverSignal',
+                        'DashToDockBoxHoverSignal',
+                        [
+                            DashToDock.dockManager._allDocks[0]._box,
+                            'destroy',
+                            Lang.bind(this, this._onDashToDockBoxDestroy)
+                        ],
                         [
                             DashToDock.dockManager._allDocks[0]._box,
                             'notify::hover',
@@ -1636,7 +1653,10 @@ var DockedWorkspaces = new Lang.Class({
                             DashToDock.dockManager._allDocks[0]._box,
                             'leave-event',
                             Lang.bind(this, this._onDashToDockLeave)
-                        ],
+                        ]
+                    );
+                    this._signalHandler.pushWithLabel(
+                        'DashToDockManagerSignal',
                         [
                             DashToDock.dockManager._allDocks[0],
                             'showing',
@@ -1704,8 +1724,8 @@ var DockedWorkspaces = new Lang.Class({
                 }
             } else if (extension.state == ExtensionSystem.ExtensionState.DISABLED || extension.state == ExtensionSystem.ExtensionState.UNINSTALLED) {
                 DashToDock = null;
-                this._signalHandler.disconnectWithLabel('DashToDockHoverSignal');
                 this._hoveringDash = false;
+                this._disconnectDashToDockSignals();
             }
         }
     },
