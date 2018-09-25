@@ -645,9 +645,6 @@ var DockedWorkspaces = new Lang.Class({
         // Disconnect global signals
         this._signalHandler.disconnect();
 
-        // Disconnect GSettings signals
-        this._settings.run_dispose();
-
         // Unbind keyboard shortcuts
         this._unbindDockKeyboardShortcut();
 
@@ -671,6 +668,11 @@ var DockedWorkspaces = new Lang.Class({
 
         // Restore normal Gnome Shell functions
         this._restoreGnomeShellFunctions();
+
+        // Disconnect GSettings signals
+        // We wait until after _restoreGnomeShellFunctions because we needed
+        // settings to determine how to restore the dash
+        this._settings.run_dispose();
     },
 
     // function called during init to override gnome shell 3.4/3.6/3.8
