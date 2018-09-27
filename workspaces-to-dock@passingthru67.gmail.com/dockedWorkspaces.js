@@ -2335,9 +2335,12 @@ var DockedWorkspaces = new Lang.Class({
         // This takes into account primary monitor and any additional extensions
         // that may affect width and height calculations
         let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitor.index);
+        
+        // get the scale factor
+        let scale_factor = St.ThemeContext.get_for_stage(global.stage).scale_factor;
 
-        // Get screen edge padding from preferences
-        let screenEdgePadding = this._settings.get_double('screen-edge-padding');
+        // Get screen edge padding from preferences and multiply it by scale_factor for HiDPI monitors
+        let screenEdgePadding = this._settings.get_double('screen-edge-padding') * scale_factor;
 
         let x, y, width, height, anchorPoint;
         if (this._isHorizontal) {
