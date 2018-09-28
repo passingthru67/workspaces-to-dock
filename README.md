@@ -276,6 +276,9 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
+**Version 49 (Sep 28, 2018)**
+- Bug fixes
+
 **Version 48 (Sep 10, 2018)**
 - Support for MozJs60
 
