@@ -43,6 +43,7 @@ const MyWorkspaceThumbnail = Me.imports.myWorkspaceThumbnail;
 const ShortcutsPanel = Me.imports.shortcutsPanel;
 const MyWorkspaceSwitcherPopup = Me.imports.myWorkspaceSwitcherPopup;
 const MyPressureBarrier = Me.imports.myPressureBarrier;
+const Utils = Me.imports.utils;
 
 const DashToDock_UUID = "dash-to-dock@micxgx.gmail.com";
 let DashToDockExtension = null;
@@ -1791,7 +1792,14 @@ var DockedWorkspaces = new Lang.Class({
                 }
             }
 
-            let ws = activeWs.get_neighbor(direction);
+            let ws = null;
+            if (this._isHorizontal && this._settings.get_boolean('horizontal-workspace-switching')) {
+                ws = Utils.get_neighbor(direction);
+                if (_DEBUG_) global.log("dockedWorkspaces: _onScrollEvent HORZdir="+direction+" ws="+ws);
+            } else {
+                ws = activeWs.get_neighbor(direction);
+                if (_DEBUG_) global.log("dockedWorkspaces: _onScrollEvent VERTdir="+direction+" ws="+ws);
+            }
 
             if (Main.wm._workspaceSwitcherPopup == null) {
                 if (this._isHorizontal && this._settings.get_boolean('horizontal-workspace-switching')) {
@@ -1807,6 +1815,11 @@ var DockedWorkspaces = new Lang.Class({
             Main.wm._workspaceSwitcherPopup.connect('destroy', function() {
                 Main.wm._workspaceSwitcherPopup = null;
             });
+
+            if (_DEBUG_) global.log("dockedWorkspaces: _onScrollEvent MOVETO ws="+ws);
+
+            if (!ws)
+                return Clutter.EVENT_STOP;
 
             // Do not show wokspaceSwitcher in overview
             if (!Main.overview.visible)
@@ -2335,7 +2348,7 @@ var DockedWorkspaces = new Lang.Class({
         // This takes into account primary monitor and any additional extensions
         // that may affect width and height calculations
         let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitor.index);
-        
+
         // get the scale factor
         let scale_factor = St.ThemeContext.get_for_stage(global.stage).scale_factor;
 

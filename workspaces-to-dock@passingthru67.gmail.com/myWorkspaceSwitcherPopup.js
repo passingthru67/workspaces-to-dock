@@ -24,6 +24,9 @@ const WindowManager = imports.ui.windowManager;
 const WorkspaceSwitcherPopup = imports.ui.workspaceSwitcherPopup;
 const Tweener = imports.ui.tweener;
 
+const Me = imports.misc.extensionUtils.getCurrentExtension();
+const Utils = Me.imports.utils;
+
 let GSFunctions = {};
 
 var DISPLAY_TIMEOUT = 600;
@@ -167,6 +170,7 @@ var WorkspaceSwitcher = new Lang.Class({
     Name: 'workspcestodockWorkspaceSwitcher',
 
     _init: function(params) {
+        if (_DEBUG_) global.log("myWorkspaceSwitcherPopup: initializing * * * * *");
         // Override Gnome Shell functions
         this._overrideGnomeShellFunctions();
         this._resetBindings();
@@ -175,6 +179,7 @@ var WorkspaceSwitcher = new Lang.Class({
     },
 
     destroy: function() {
+        if (_DEBUG_) global.log("myWorkspaceSwitcherPopup: destroying * * * * *");
         // Restor Gnome Shell functions
         this._restoreGnomeShellFunctions();
         this._resetBindings();
@@ -183,6 +188,7 @@ var WorkspaceSwitcher = new Lang.Class({
     },
 
     _overrideGnomeShellFunctions: function() {
+        if (_DEBUG_) global.log("myWorkspaceSwitcherPopup: _overrideGnomeShellFunctions");
         // Override showWorkspacesSwitcher to show custom horizontal workspace switcher popup
         GSFunctions['WindowManager_showWorkspaceSwitcher'] = WindowManager.WindowManager.prototype._showWorkspaceSwitcher;
         WindowManager.WindowManager.prototype._showWorkspaceSwitcher = function(display, window, binding) {
@@ -220,7 +226,8 @@ var WorkspaceSwitcher = new Lang.Class({
                 }
 
                 direction = Meta.MotionDirection[target.toUpperCase()];
-                newWs = workspaceManager.get_active_workspace().get_neighbor(direction);
+                // newWs = workspaceManager.get_active_workspace().get_neighbor(direction);
+                newWs = Utils.get_neighbor(direction);
             } else if (target > 0) {
                 target--;
                 newWs = workspaceManager.get_workspace_by_index(target);
@@ -302,16 +309,20 @@ var WorkspaceSwitcher = new Lang.Class({
             let ws;
             switch (event.get_scroll_direction()) {
             case Clutter.ScrollDirection.UP:
-                ws = activeWs.get_neighbor(Meta.MotionDirection.LEFT);
+                // ws = activeWs.get_neighbor(Meta.MotionDirection.LEFT);
+                ws = Utils.get_neighbor(Meta.MotionDirection.LEFT);
                 break;
             case Clutter.ScrollDirection.DOWN:
-                ws = activeWs.get_neighbor(Meta.MotionDirection.RIGHT);
+                // ws = activeWs.get_neighbor(Meta.MotionDirection.RIGHT);
+                ws = Utils.get_neighbor(Meta.MotionDirection.RIGHT);
                 break;
             case Clutter.ScrollDirection.LEFT:
-                ws = activeWs.get_neighbor(Meta.MotionDirection.LEFT);
+                // ws = activeWs.get_neighbor(Meta.MotionDirection.LEFT);
+                ws = Utils.get_neighbor(Meta.MotionDirection.LEFT);
                 break;
             case Clutter.ScrollDirection.RIGHT:
-                ws = activeWs.get_neighbor(Meta.MotionDirection.RIGHT);
+                // ws = activeWs.get_neighbor(Meta.MotionDirection.RIGHT);
+                ws = Utils.get_neighbor(Meta.MotionDirection.RIGHT);
                 break;
             default:
                 return Clutter.EVENT_PROPAGATE;
@@ -323,6 +334,7 @@ var WorkspaceSwitcher = new Lang.Class({
     },
 
     _restoreGnomeShellFunctions: function() {
+        if (_DEBUG_) global.log("myWorkspaceSwitcherPopup: _restoreGnomeShellFunctions");
         // Restore showWorkspacesSwitcher to show normal workspace switcher popup
         WindowManager.WindowManager.prototype._showWorkspaceSwitcher = GSFunctions['WindowManager_showWorkspaceSwitcher'];
 
@@ -334,6 +346,7 @@ var WorkspaceSwitcher = new Lang.Class({
     },
 
     _resetBindings: function() {
+        if (_DEBUG_) global.log("myWorkspaceSwitcherPopup: _resetBindings");
         // Reset bindings to active showWorkspaceSwitcher function
         let wm = Main.wm;
         Meta.keybindings_set_custom_handler('switch-to-workspace-left',
