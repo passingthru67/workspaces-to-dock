@@ -1,6 +1,12 @@
 workspaces-to-dock
 ==================
 
+DEVELOPMENT HELP NEEDED
+-----------------------
+
+**Work and home responsibilities have limited the amount of personal time I can devote to maintaining and enhancing this Gnome Shell extension. I'm looking for someone to take over the development/maintenance of this project or fork it to a new replacement project. Anyone interested, please contact me at passingthru67@gmail.com.**
+
+
 Workspaces-To-Dock is a Gnome Shell extension that transforms the workspaces of the overview mode into an intelligent dock.  The dock is positioned and sized to maintain tight integration with the Gnome Shell.
 
 While originally intended as a workspaces dock to operate alongside Dash-To-Dock, Workspaces-To-Dock has slowly evolved into an All-In-One dock. It merges the favorites dash and the workspaces thumbnails into one dock for convenient application and workspace navigation/management. Take a look at these [screencasts](#dockscreencasts) and you'll see what we're talking about.
