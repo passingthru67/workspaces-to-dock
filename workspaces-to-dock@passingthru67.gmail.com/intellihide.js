@@ -73,10 +73,8 @@ let GSFunctions = {};
  *
 */
 
-var Intellihide = new Lang.Class({
-    Name: 'workspacesToDock.intellihide',
-
-    _init: function(dock) {
+var Intellihide = class WorkspacesToDock_Intellihide {
+    constructor(dock) {
         this._gsCurrentVersion = Config.PACKAGE_VERSION.split('.');
         this._settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
         this._signalHandler = new Convenience.globalSignalHandler();
@@ -107,7 +105,7 @@ var Intellihide = new Lang.Class({
         // Flag set when overview mode is toggled by window drag event
         this._toggledOverviewOnDrag = false;
 
-        // Main id of the timeout controlling timeout for updateDockVisibility function
+        // Main id of    _init: function(dock) { the timeout controlling timeout for updateDockVisibility function
         // when windows are dragged around (move and resize)
         this._windowChangedTimeout = 0;
 
@@ -121,133 +119,133 @@ var Intellihide = new Lang.Class({
             [
                 this._dock,
                 'box-changed',
-                Lang.bind(this, this._onDockSettingsChanged)
+                this._onDockSettingsChanged.bind(this)
             ],
             // Add timeout when window grab-operation begins and remove it when it ends.
             // These signals only exist starting from Gnome-Shell 3.4
             [
                 global.display,
                 'grab-op-begin',
-                Lang.bind(this, this._grabOpBegin)
+                this._grabOpBegin.bind(this)
             ],
             [
                 global.display,
                 'grab-op-end',
-                Lang.bind(this, this._grabOpEnd)
+                this._grabOpEnd.bind(this)
             ],
             // direct maximize/unmazimize are not included in grab-operations
             [
                 global.window_manager,
                 'unminimize',
-                Lang.bind(this, this._onWindowUnminimized)
+                this._onWindowUnminimized.bind(this)
             ],
             [
                 global.window_manager,
                 'minimize',
-                Lang.bind(this, this._onWindowMinimized)
+                this._onWindowMinimized.bind(this)
             ],
             [
                 global.window_manager,
                 'size-change',
-                Lang.bind(this, this._onWindowSizeChange)
+                this._onWindowSizeChange.bind(this)
             ],
             [
                 global.window_manager,
                 'size-changed',
-                Lang.bind(this, this._onWindowSizeChanged)
+                this._onWindowSizeChanged.bind(this)
             ],
             // Probably this is also included in restacked?
             [
                 global.window_manager,
                 'switch-workspace',
-                Lang.bind(this, this._switchWorkspace)
+                this._switchWorkspace.bind(this)
             ],
             [
                 global.display,
                 'in-fullscreen-changed',
-                Lang.bind(this, this._onFullscreenChanged)
+                this._onFullscreenChanged.bind(this)
             ],
             // trigggered for instance when a window is closed.
             [
                 global.display,
                 'restacked',
-                Lang.bind(this, this._onScreenRestacked)
+                this._onScreenRestacked.bind(this)
             ],
             // when windows are alwasy on top, the focus window can change
             // without the windows being restacked. Thus monitor window focus change.
             [
                 this._tracker,
                 'notify::focus-app',
-                Lang.bind(this, this._onFocusAppChanged)
+                this._onFocusAppChanged.bind(this)
             ],
             // Set visibility in overview mode
             [
                 Main.overview,
                 'showing',
-                Lang.bind(this, this._overviewEntered)
+                this._overviewEntered.bind(this)
             ],
             [
                 Main.overview,
                 'hiding',
-                Lang.bind(this,this._overviewExiting)
+                this._overviewExiting.bind(this)
             ],
             [
                 Main.overview,
                 'hidden',
-                Lang.bind(this,this._overviewExited)
+                this._overviewExited.bind(this)
             ],
             // window-drag-events emitted from workspaces thumbnail window dragging action
             [
                 Main.overview,
                 'window-drag-begin',
-                Lang.bind(this,this._onWindowDragBegin)
+                this._onWindowDragBegin.bind(this)
             ],
             [
                 Main.overview,
                 'window-drag-cancelled',
-                Lang.bind(this,this._onWindowDragCancelled)
+                this._onWindowDragCancelled.bind(this)
             ],
             [
                 Main.overview,
                 'window-drag-end',
-                Lang.bind(this,this._onWindowDragEnd)
+                this._onWindowDragEnd.bind(this)
             ],
             // item-drag-events emitted from app display icon dragging action
             [
                 Main.overview,
                 'item-drag-begin',
-                Lang.bind(this,this._onItemDragBegin)
+                this._onItemDragBegin.bind(this)
             ],
             [
                 Main.overview,
                 'item-drag-cancelled',
-                Lang.bind(this,this._onItemDragCancelled)
+                this._onItemDragCancelled.bind(this)
             ],
             [
                 Main.overview,
                 'item-drag-end',
-                Lang.bind(this,this._onItemDragEnd)
+                this._onItemDragEnd.bind(this)
             ],
             // update when monitor changes, for instance in multimonitor when monitors are attached
             [
                 Main.layoutManager,
                 'monitors-changed',
-                Lang.bind(this, this._onMonitorsChanged)
+                this._onMonitorsChanged.bind(this)
             ],
             [
                 Main.panel.menuManager._grabHelper,
                 'focus-grabbed',
-                Lang.bind(this, this._onPanelFocusGrabbed)
+                this._onPanelFocusGrabbed.bind(this)
             ],
             [
                 Main.panel.menuManager._grabHelper,
                 'focus-ungrabbed',
-                Lang.bind(this, this._onPanelFocusUngrabbed)
+                this._onPanelFocusUngrabbed.bind(this)
             ],
             [
                 Main.overview.viewSelector,
                 'page-changed',
-                Lang.bind(this, this._overviewPageChanged)
+                this._overviewPageChanged.bind(this)
             ]
         );
 
@@ -259,22 +257,22 @@ var Intellihide = new Lang.Class({
                 [
                     Main.layoutManager._bgManagers[primaryIndex].backgroundActor._backgroundManager._grabHelper,
                     'focus-grabbed',
-                    Lang.bind(this, this._onPanelFocusGrabbed)
+                    this._onPanelFocusGrabbed.bind(this)
                 ],
                 [
                     Main.layoutManager._bgManagers[primaryIndex].backgroundActor._backgroundManager._grabHelper,
                     'focus-ungrabbed',
-                    Lang.bind(this, this._onPanelFocusUngrabbed)
+                    this._onPanelFocusUngrabbed.bind(this)
                 ]
             );
         }
         if (_DEBUG_) global.log("intellihide: init - signals being captured");
 
         // Start main loop and bind initialize function
-        Mainloop.idle_add(Lang.bind(this, this._initialize));
-    },
+        Mainloop.idle_add(this._initialize.bind(this));
+    }
 
-    _initialize: function() {
+    _initialize() {
         if (_DEBUG_) global.log("intellihide: initializing");
         // enable intellihide now
         this._disableIntellihide = false;
@@ -282,9 +280,9 @@ var Intellihide = new Lang.Class({
 
         // updte dock visibility
         this._updateDockVisibility();
-    },
+    }
 
-    destroy: function() {
+    destroy() {
         if (_DEBUG_) global.log("intellihide: destroying");
         // Disconnect global signals
         this._signalHandler.disconnect();
@@ -296,10 +294,10 @@ var Intellihide = new Lang.Class({
             Mainloop.source_remove(this._windowChangedTimeout); // Just to be sure
 
         this._restoreGnomeShellFunctions();
-    },
+    }
 
     // Called during init to override/extend gnome shell functions
-    _overrideGnomeShellFunctions: function() {
+    _overrideGnomeShellFunctions() {
         if (_DEBUG_) global.log("intellihide: _overrideGnomeShellFunctions");
         // Extend the GrabHelper grab function to emit a signal when focus is grabbed
         GSFunctions['GrabHelper_grab'] = GrabHelper.GrabHelper.prototype.grab;
@@ -317,100 +315,100 @@ var Intellihide = new Lang.Class({
             return ret;
         };
         Signals.addSignalMethods(GrabHelper.GrabHelper.prototype);
-    },
+    }
 
     // main function called during destroy to restore gnome shell functions
-    _restoreGnomeShellFunctions: function() {
+    _restoreGnomeShellFunctions() {
         if (_DEBUG_) global.log("intellihide: _restoreGnomeShellFunctions");
         // Restore normal GrabHelper grab function
         GrabHelper.GrabHelper.prototype.grab = GSFunctions['GrabHelper_grab'];
         // Restore normal GrabHelper ungrab function
         GrabHelper.GrabHelper.prototype.ungrab = GSFunctions['GrabHelper_ungrab'];
-    },
+    }
 
     // handler to bind settings when preferences changed
-    _bindSettingsChanges: function() {
-        this._settings.connect('changed::intellihide', Lang.bind(this, function() {
+    _bindSettingsChanges() {
+        this._settings.connect('changed::intellihide', () => {
             if (_DEBUG_) global.log("intellihide: _bindSettingsChanges for intellihide");
             this._updateDockVisibility();
-        }));
+        });
 
-        this._settings.connect('changed::intellihide-option', Lang.bind(this, function(){
+        this._settings.connect('changed::intellihide-option', () => {
             if (_DEBUG_) global.log("intellihide: _bindSettingsChanges for intellihide-option");
             this._updateDockVisibility();
-        }));
+        });
 
-        this._settings.connect('changed::dock-fixed', Lang.bind(this, function() {
+        this._settings.connect('changed::dock-fixed', () =>  {
             if (_DEBUG_) global.log("intellihide: _bindSettingsChanges for dock-fixed");
             if (this._settings.get_boolean('dock-fixed')) {
                 this.status = true; // Since the dock is now shown
             } else {
                 // Wait that windows rearrange after struts change
-                Mainloop.idle_add(Lang.bind(this, function() {
+                Mainloop.idle_add(() =>  {
                     this._updateDockVisibility();
                     return false;
-                }));
+                });
             }
-        }));
+        });
 
-        this._settings.connect('changed::quick-show-on-workspace-change', Lang.bind(this, function(){
+        this._settings.connect('changed::quick-show-on-workspace-change', () => {
             if (_DEBUG_) global.log("intellihide: _bindSettingsChanges for quick-show-on-workspace-change");
             this._switchWorkspaceQuickShow = this._settings.get_boolean('quick-show-on-workspace-change');
             this._updateDockVisibility();
-        }));
+        });
 
-    },
+    }
 
     // handler for when dock size-position is changed
-    _onDockSettingsChanged: function() {
+    _onDockSettingsChanged() {
         if (_DEBUG_) global.log("intellihide: _onDockSettingsChanged");
         this._updateDockVisibility();
-    },
+    }
 
     // handler for when window is unminimized
-    _onWindowUnminimized: function() {
+    _onWindowUnminimized() {
         if (_DEBUG_) global.log("intellihide: _onWindowUnminimized");
         this._updateDockVisibility();
-    },
+    }
 
     // handler for when window is minimized
-    _onWindowMinimized: function() {
+    _onWindowMinimized() {
         if (_DEBUG_) global.log("intellihide: _onWindowMinimized");
         this._updateDockVisibility();
-    },
+    }
 
     // handler for when window is resized
-    _onWindowSizeChange: function() {
+    _onWindowSizeChange() {
         if (_DEBUG_) global.log("intellihide: _onWindowSizeChange");
         this._updateDockVisibility();
-    },
+    }
 
     // handler for when window is resized
-    _onWindowSizeChanged: function() {
+    _onWindowSizeChanged() {
         if (_DEBUG_) global.log("intellihide: _onWindowSizeChanged");
         this._updateDockVisibility();
-    },
+    }
 
     // handler for when monitor in fullscreen
-    _onFullscreenChanged: function() {
+    _onFullscreenChanged() {
         if (_DEBUG_) global.log("intellihide: _onFullscreenChanged");
         this._updateDockVisibility();
-    },
+    }
 
     // handler for when screen is restacked
-    _onScreenRestacked: function() {
+    _onScreenRestacked() {
         if (_DEBUG_) global.log("intellihide: _onScreenRestacked");
         this._updateDockVisibility();
-    },
+    }
 
     // handler for when app focus changed
-    _onFocusAppChanged: function() {
+    _onFocusAppChanged() {
         if (_DEBUG_) global.log("intellihide: _onFocusAppChanged");
         this._updateDockVisibility();
-    },
+    }
 
     // handler for when monitor changes
-    _onMonitorsChanged: function() {
+    _onMonitorsChanged() {
         if (_DEBUG_) global.log("intellihide: _onMonitorsChanged");
         // disconnect bgManager signals
         this._signalHandler.disconnectWithLabel('bgManagerSignals');
@@ -427,28 +425,28 @@ var Intellihide = new Lang.Class({
             [
                 Main.layoutManager._bgManagers[primaryIndex].backgroundActor._backgroundManager._grabHelper,
                 'focus-grabbed',
-                Lang.bind(this, this._onPanelFocusGrabbed)
+                this._onPanelFocusGrabbed.bind(this)
             ],
             [
                 Main.layoutManager._bgManagers[primaryIndex].backgroundActor._backgroundManager._grabHelper,
                 'focus-ungrabbed',
-                Lang.bind(this, this._onPanelFocusUngrabbed)
+                this._onPanelFocusUngrabbed.bind(this)
             ]
         );
 
         this._updateDockVisibility();
-    },
+    }
 
     // handler for when thumbnail windows dragging started
-    _onWindowDragBegin: function() {
+    _onWindowDragBegin() {
         if (_DEBUG_) global.log("intellihide: _onWindowDragBegin");
         Main.overview.show();
         this._toggledOverviewOnDrag = true;
         this._show(true);
-    },
+    }
 
     // handler for when thumbnail windows dragging cancelled
-    _onWindowDragCancelled: function() {
+    _onWindowDragCancelled() {
         if (_DEBUG_) global.log("intellihide: _onWindowDragCancelled");
         if (this._toggledOverviewOnDrag) {
             this._toggledOverviewOnDrag = false;
@@ -476,10 +474,10 @@ var Intellihide = new Lang.Class({
                 }
             }
         }
-    },
+    }
 
     // handler for when thumbnail windows dragging ended
-    _onWindowDragEnd: function() {
+    _onWindowDragEnd() {
         if (_DEBUG_) global.log("intellihide: _onWindowDragEnd");
         if (this._toggledOverviewOnDrag) {
             this._toggledOverviewOnDrag = false;
@@ -507,18 +505,18 @@ var Intellihide = new Lang.Class({
                 }
             }
         }
-    },
+    }
 
     // handler for when app icon dragging started
-    _onItemDragBegin: function() {
+    _onItemDragBegin() {
         if (_DEBUG_) global.log("intellihide: _onItemDragBegin");
         Main.overview.show();
         this._toggledOverviewOnDrag = true;
         this._show(true);
-    },
+    }
 
     // handler for when app icon dragging cancelled
-    _onItemDragCancelled: function() {
+    _onItemDragCancelled() {
         if (_DEBUG_) global.log("intellihide: _onItemDragCancelled");
         if (this._toggledOverviewOnDrag) {
             this._toggledOverviewOnDrag = false;
@@ -548,10 +546,10 @@ var Intellihide = new Lang.Class({
                 }
             }
         }
-    },
+    }
 
     // handler for when app icon dragging ended
-    _onItemDragEnd: function() {
+    _onItemDragEnd() {
         if (_DEBUG_) global.log("intellihide: _onWindowDragEnd");
         if (this._toggledOverviewOnDrag) {
             this._toggledOverviewOnDrag = false;
@@ -581,22 +579,22 @@ var Intellihide = new Lang.Class({
                 }
             }
         }
-    },
+    }
 
     // handler for when overview mode exiting
-    _overviewExiting: function() {
+    _overviewExiting() {
         if (_DEBUG_) global.log("intellihide: _overviewExiting");
         this._inOverview = false;
         this._updateDockVisibility();
-    },
+    }
 
     // handler for when overview mode exited
-    _overviewExited: function() {
+    _overviewExited() {
         if (_DEBUG_) global.log("intellihide: _overviewExited");
-    },
+    }
 
     // handler for when overview mode entered
-    _overviewEntered: function() {
+    _overviewEntered() {
         if (_DEBUG_) global.log("intellihide: _overviewEnter");
         this._inOverview = true;
         if (Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage) {
@@ -619,12 +617,12 @@ var Intellihide = new Lang.Class({
         } else {
             this._hide();
         }
-    },
+    }
 
     // handler for when Gnome Shell 3.6+ overview page is changed (GS36+)
     // for example, when Applications button is clicked the workspaces dock is hidden
     // or when search is started the workspaces dock is hidden
-    _overviewPageChanged: function(source, page) {
+    _overviewPageChanged(source, page) {
         if (_DEBUG_) global.log("intellihide: _overviewPageChanged");
         let newPage;
         if (page)
@@ -654,10 +652,10 @@ var Intellihide = new Lang.Class({
                 this._hide();
             }
         }
-    },
+    }
 
     // handler for when panel focus is grabbed (GS 38+)
-    _onPanelFocusGrabbed: function(source, event) {
+    _onPanelFocusGrabbed(source, event) {
         if (this._settings.get_boolean('ignore-top-panel')) return;
         let idx = source._grabStack.length - 1;
         let focusedActor = source._grabStack[idx].actor;
@@ -700,10 +698,10 @@ var Intellihide = new Lang.Class({
             this._disableIntellihide = true;
             this._hide();
         }
-    },
+    }
 
     // handler for when panel focus is ungrabbed (GS 38+)
-    _onPanelFocusUngrabbed: function(source, event) {
+    _onPanelFocusUngrabbed(source, event) {
         if (this._settings.get_boolean('ignore-top-panel')) return;
         if (_DEBUG_) global.log("intellihide: onPanelFocusUnGrabbed");
         this._disableIntellihide = false;
@@ -713,10 +711,10 @@ var Intellihide = new Lang.Class({
         } else {
             this._updateDockVisibility();
         }
-    },
+    }
 
     // handler for when window move begins
-    _grabOpBegin: function() {
+    _grabOpBegin() {
         if (_DEBUG_) global.log("intellihide: _grabOpBegin");
         if (this._settings.get_boolean('intellihide')) {
             let INTERVAL = 100; // A good compromise between reactivity and efficiency; to be tuned.
@@ -724,17 +722,15 @@ var Intellihide = new Lang.Class({
             if (this._windowChangedTimeout > 0)
                 Mainloop.source_remove(this._windowChangedTimeout); // Just to be sure
 
-            this._windowChangedTimeout = Mainloop.timeout_add(INTERVAL,
-                Lang.bind(this, function() {
-                    this._updateDockVisibility();
-                    return true; // to make the loop continue
-                })
-            );
+            this._windowChangedTimeout = Mainloop.timeout_add(INTERVAL, () => {
+                this._updateDockVisibility();
+                return true; // to make the loop continue
+            });
         }
-    },
+    }
 
     // handler for when window move ends
-    _grabOpEnd: function() {
+    _grabOpEnd() {
         if (_DEBUG_) global.log("intellihide: _grabOpEnd");
         if (this._settings.get_boolean('intellihide')) {
             if (this._windowChangedTimeout > 0)
@@ -743,10 +739,10 @@ var Intellihide = new Lang.Class({
             this._windowChangedTimeout = 0
             this._updateDockVisibility();
         }
-    },
+    }
 
     // handler for when workspace is switched
-    _switchWorkspace: function(shellwm, from, to, direction) {
+    _switchWorkspace(shellwm, from, to, direction) {
         if (_DEBUG_) global.log("intellihide: _switchWorkspace");
 
         // Reset quick show timeout
@@ -757,10 +753,10 @@ var Intellihide = new Lang.Class({
         this._quickShowTimeoutId = 0;
 
         this._updateDockVisibility();
-    },
+    }
 
     // intellihide function to show dock
-    _show: function(force) {
+    _show(force) {
         if (this._settings.get_boolean('dock-fixed')) {
             if (_DEBUG_) global.log("intellihide: _show - fadeInDock");
             this._dock.fadeInDock(0, 0);
@@ -774,10 +770,10 @@ var Intellihide = new Lang.Class({
             }
         }
         this.status = true;
-    },
+    }
 
     // intellihide function to hide dock
-    _hide: function(dontforce) {
+    _hide(dontforce) {
         this.status = false;
         if (this._settings.get_boolean('dock-fixed')) {
             if (_DEBUG_) global.log("intellihide: _hide - fadeOutDock");
@@ -791,20 +787,20 @@ var Intellihide = new Lang.Class({
                 this._dock.enableAutoHide();
             }
         }
-    },
+    }
 
     // Reset quick show timeout
-    _quickShowExit: function() {
+    _quickShowExit() {
         this._switchedWorkspace = false;
         if (this._quickShowTimeoutId > 0)
             Mainloop.source_remove(this._quickShowTimeoutId);
 
         this._quickShowTimeoutId = 0;
         this._updateDockVisibility();
-    },
+    }
 
     // intellihide function to determine if dock overlaps a window
-    _updateDockVisibility: function() {
+    _updateDockVisibility() {
         if (this._disableIntellihide)
             return;
 
@@ -904,7 +900,7 @@ var Intellihide = new Lang.Class({
                     if (_DEBUG_) global.log("intellihide: updateDockVisiblity - quick show");
                     this._show(true);
                     let timeout = this._settings.get_double('quick-show-timeout');
-                    this._quickShowTimeoutId = Mainloop.timeout_add(timeout, Lang.bind(this, this._quickShowExit));
+                    this._quickShowTimeoutId = Mainloop.timeout_add(timeout, this._quickShowExit.bind(this));
                 } else {
                     if (_DEBUG_) global.log("intellihide: updateDockVisiblity - overlaps = "+overlaps);
                     if (this._quickShowTimeoutId == 0) {
@@ -934,7 +930,7 @@ var Intellihide = new Lang.Class({
                     if (_DEBUG_) global.log("intellihide: updateDockVisibility - quick show");
                     this._show(true);
                     let timeout = this._settings.get_double('quick-show-timeout');
-                    this._quickShowTimeoutId = Mainloop.timeout_add(timeout, Lang.bind(this, this._quickShowExit));
+                    this._quickShowTimeoutId = Mainloop.timeout_add(timeout, this._quickShowExit.bind(this));
                 } else {
                     if (this._quickShowTimeoutId == 0)
                         this._hide();
@@ -942,11 +938,11 @@ var Intellihide = new Lang.Class({
             }
         }
 
-    },
+    }
 
     // Filter interesting windows to be considered for intellihide.
     // Consider all windows visible on the current workspace.
-    _intellihideFilterInteresting: function(wa, edge) {
+    _intellihideFilterInteresting(wa, edge) {
         let workspaceManager = global.workspace_manager;
         let currentWorkspace = workspaceManager.get_active_workspace_index();
         let meta_win = wa.get_meta_window();
@@ -1010,11 +1006,11 @@ var Intellihide = new Lang.Class({
         } else {
             return false;
         }
-    },
+    }
 
     // Filter windows by type
     // inspired by Opacify@gnome-shell.localdomain.pl
-    _handledWindowType: function(metaWindow, grptype) {
+    _handledWindowType(metaWindow, grptype) {
         var wtype = metaWindow.get_window_type();
 
         if (grptype == null || grptype == 1) {
@@ -1047,4 +1043,4 @@ var Intellihide = new Lang.Class({
 
         return false;
     }
-});
+};

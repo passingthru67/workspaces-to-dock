@@ -37,12 +37,12 @@ const WindowAppsUpdateAction = {
     ADD: 0,
     REMOVE: 1,
     CLEARALL: 2
-}
+};
 
 const CaptionPosition = {
     BOTTOM: 0,
     TOP: 1
-}
+};
 
 /* Return the actual position reverseing left and right in rtl */
 function getPosition(settings) {
@@ -56,17 +56,15 @@ function getPosition(settings) {
     return position;
 }
 
-var TaskbarIcon = new Lang.Class({
-    Name: 'workspacesToDock.taskbarIcon',
-
-    _init: function(app, metaWin, caption) {
+var TaskbarIcon = class WorkspacesToDock_TaskbarIcon {
+    constructor(app, metaWin, caption) {
         this._caption = caption;
         this._mySettings = caption._mySettings;
         this._app = app;
         this._metaWin = metaWin;
 
         let iconParams = {setSizeManually: true, showLabel: false};
-        iconParams['createIcon'] = Lang.bind(this, function(iconSize){ return app.create_icon_texture(iconSize);});
+        iconParams['createIcon'] = (iconSize) => { return app.create_icon_texture(iconSize);};
 
         this._icon = new IconGrid.BaseIcon(app.get_name(), iconParams);
         this._icon.actor.add_style_class_name('workspacestodock-caption-windowapps-button-icon');
@@ -86,21 +84,21 @@ var TaskbarIcon = new Lang.Class({
         this.tooltip_actor = this.tooltip;
 
         // Connect signals
-        this.actor.connect('button-release-event', Lang.bind(this, this._onButtonRelease));
-        this.actor.connect('enter-event', Lang.bind(this, this._onButtonEnter));
-        this.actor.connect('leave-event', Lang.bind(this, this._onButtonLeave));
-        this.actor.connect('destroy', Lang.bind(this, this._onDestroy));
+        this.actor.connect('button-release-event', this._onButtonRelease.bind(this));
+        this.actor.connect('enter-event', this._onButtonEnter.bind(this));
+        this.actor.connect('leave-event', this._onButtonLeave.bind(this));
+        this.actor.connect('destroy', this._onDestroy.bind(this));
 
         // Make actor draggable
         this._draggable = DND.makeDraggable(this.actor);
-    },
+    }
 
-    _onDestroy: function() {
+    _onDestroy() {
         this.tooltip.hide();
         this.tooltip.destroy();
-    },
+    }
 
-    _onButtonEnter: function(actor, event) {
+    _onButtonEnter(actor, event) {
         if (_DEBUG_) global.log("TaskbarIcon: _onButtonEnter");
         let icon = actor._delegate._icon;
         let zoomSize = this._mySettings.get_double('workspace-caption-taskbar-icon-size') + CAPTION_APP_ICON_ZOOM;
@@ -111,19 +109,19 @@ var TaskbarIcon = new Lang.Class({
                 Mainloop.source_remove(this._tooltipHoverTimeoutId);
                 this._tooltipHoverTimeoutId = 0;
             }
-            this._tooltipHoverTimeoutId = Mainloop.timeout_add(TASKBAR_TOOLTIP_HOVER_TIMEOUT, Lang.bind(this, this.showTooltip));
+            this._tooltipHoverTimeoutId = Mainloop.timeout_add(TASKBAR_TOOLTIP_HOVER_TIMEOUT, this.showTooltip.bind(this));
         }
-    },
+    }
 
-    _onButtonLeave: function(actor, event) {
+    _onButtonLeave(actor, event) {
         if (_DEBUG_) global.log("TaskbarIcon: _onButtonLeave");
         let icon = actor._delegate._icon;
         icon.setIconSize(this._mySettings.get_double('workspace-caption-taskbar-icon-size'));
 
         this.hideTooltip();
-    },
+    }
 
-    _onButtonRelease: function(actor, event) {
+    _onButtonRelease(actor, event) {
         let mouseButton = event.get_button();
         if (mouseButton == 1) {
             if (this._caption._menu.isOpen) {
@@ -137,21 +135,21 @@ var TaskbarIcon = new Lang.Class({
 
         this.hideTooltip();
         return Clutter.EVENT_PROPAGATE;
-    },
+    }
 
-    getDragActor: function() {
+    getDragActor() {
         this.hideTooltip();
         return this._app.create_icon_texture(this._iconSize);
-    },
+    }
 
     // Returns the original actor that should align with the actor
     // we show as the item is being dragged.
-    getDragActorSource: function() {
+    getDragActorSource() {
         this.hideTooltip();
         return this._icon.actor;
-    },
+    }
 
-    showTooltip: function() {
+    showTooltip() {
         if (this._tooltipHoverTimeoutId > 0) {
             Mainloop.source_remove(this._tooltipHoverTimeoutId);
             this._tooltipHoverTimeoutId = 0;
@@ -203,9 +201,9 @@ var TaskbarIcon = new Lang.Class({
                            transition: 'easeOutQuad',
                          });
 
-    },
+    }
 
-    hideTooltip: function () {
+    hideTooltip() {
         if (this._tooltipHoverTimeoutId > 0) {
             Mainloop.source_remove(this._tooltipHoverTimeoutId);
             this._tooltipHoverTimeoutId = 0;
@@ -215,23 +213,21 @@ var TaskbarIcon = new Lang.Class({
                          { opacity: 0,
                            time: TASKBAR_TOOLTIP_HIDE_TIME,
                            transition: 'easeOutQuad',
-                           onComplete: Lang.bind(this, function() {
+                           onComplete: () => {
                                this.tooltip.hide();
-                           })
+                           }
                          });
     }
-});
+};
 
-const MenuTaskListItem = new Lang.Class({
-    Name: 'workspacesToDock.menuTaskListItem',
-
-    _init: function(app, metaWin, caption) {
+var MenuTaskListItem = class WorkspacesToDock_MenuTaskListItem {
+    constructor(app, metaWin, caption) {
         this._metaWin = metaWin;
         this._caption = caption;
         this._mySettings = caption._mySettings;
 
         let iconParams = {setSizeManually: true, showLabel: false};
-        iconParams['createIcon'] = Lang.bind(this, function(iconSize){ return app.create_icon_texture(iconSize);});
+        iconParams['createIcon'] = (iconSize) => { return app.create_icon_texture(iconSize);};
 
         this._icon = new IconGrid.BaseIcon(app.get_name(), iconParams);
         this._icon.actor.add_style_class_name('workspacestodock-caption-windowapps-menu-icon');
@@ -259,45 +255,43 @@ const MenuTaskListItem = new Lang.Class({
         this.actor.add(this._closeButton, {x_fill: true, y_fill: true, x_align: St.Align.END, y_align: St.Align.MIDDLE});
 
         // Connect signals
-        this._closeButton.connect('button-release-event', Lang.bind(this, this._onCloseButtonRelease));
-        this.actor.connect('button-release-event', Lang.bind(this, this._onButtonRelease));
-        this.actor.connect('enter-event', Lang.bind(this, this._onItemEnter));
-        this.actor.connect('leave-event', Lang.bind(this, this._onItemLeave));
-    },
+        this._closeButton.connect('button-release-event', this._onCloseButtonRelease.bind(this));
+        this.actor.connect('button-release-event', this._onButtonRelease.bind(this));
+        this.actor.connect('enter-event', this._onItemEnter.bind(this));
+        this.actor.connect('leave-event', this._onItemLeave.bind(this));
+    }
 
-    _onItemEnter: function(actor, event) {
+    _onItemEnter(actor, event) {
         if (_DEBUG_) global.log("MenuTaskListItem: _onButtonEnter");
         this.actor.add_style_pseudo_class('active');
-    },
+    }
 
-    _onItemLeave: function(actor, event) {
+    _onItemLeave(actor, event) {
         if (_DEBUG_) global.log("MenuTaskListItem: _onButtonLeave");
         this.actor.remove_style_pseudo_class('active');
-    },
+    }
 
-    _onButtonRelease: function(actor, event) {
+    _onButtonRelease(actor, event) {
         let mouseButton = event.get_button();
         if (mouseButton == 1) {
             this._caption.activateMetaWindow(this._metaWin);
         }
         return Clutter.EVENT_PROPAGATE;
-    },
+    }
 
-    _onCloseButtonRelease: function(actor, event) {
+    _onCloseButtonRelease(actor, event) {
         let mouseButton = event.get_button();
         if (mouseButton == 1) {
             this._caption.closeMetaWindow(this._metaWin);
         }
         return Clutter.EVENT_PROPAGATE;
     }
-});
+};
 
-var ThumbnailCaption = new Lang.Class({
-    Name: 'workspacesToDock.thumbnailCaption',
-
-    _init: function(thumbnail) {
+var ThumbnailCaption = class WorkspacesToDock_ThumbnailCaption {
+    constructor(thumbnail) {
         this._thumbnail = thumbnail;
-        this._settings = new Gio.Settings({ schema: MyWorkspaceThumbnail.OVERRIDE_SCHEMA });
+        this._settings = new Gio.Settings({ schema: MyWorkspaceThumbnail.MUTTER_SCHEMA });
         this._mySettings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
         this._position = getPosition(this._mySettings);
         this._isHorizontal = (this._position == St.Side.TOP ||
@@ -333,21 +327,21 @@ var ThumbnailCaption = new Lang.Class({
         this._thumbnailRealizeId = 0;
 
         this._afterWindowAddedId = this._thumbnail.metaWorkspace.connect_after('window-added',
-                                                          Lang.bind(this, this._onAfterWindowAdded));
+                                                          this._onAfterWindowAdded.bind(this));
         this._afterWindowRemovedId = this._thumbnail.metaWorkspace.connect_after('window-removed',
-                                                           Lang.bind(this, this._onAfterWindowRemoved));
+                                                            this._onAfterWindowRemoved.bind(this));
 
         this._switchWorkspaceNotifyId =
             global.window_manager.connect('switch-workspace',
-                                          Lang.bind(this, this.activeWorkspaceChanged));
+                                          this.activeWorkspaceChanged.bind(this));
 
         this._menuManager = new PopupMenu.PopupMenuManager(this);
 
         this._initCaption();
-        this._thumbnailRealizeId = this._thumbnail.actor.connect("realize", Lang.bind(this, this._initTaskbar));
-    },
+        this._thumbnailRealizeId = this._thumbnail.actor.connect("realize", this._initTaskbar.bind(this));
+    }
 
-    destroy: function() {
+    destroy() {
         this.workspaceRemoved();
         if (this._taskBarBox) {
             this._taskBarBox.destroy_all_children();
@@ -357,9 +351,9 @@ var ThumbnailCaption = new Lang.Class({
             this._menu.close();
             this._menu.destroy();
         }
-    },
+    }
 
-    workspaceRemoved: function() {
+    workspaceRemoved() {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: workspaceRemoved");
         if (this._afterWindowAddedId > 0) {
             this._thumbnail.metaWorkspace.disconnect(this._afterWindowAddedId);
@@ -380,10 +374,10 @@ var ThumbnailCaption = new Lang.Class({
             this._taskBar[i].metaWin.disconnect(this._taskBar[i].signalFocusedId);
         }
         this._taskBar = [];
-    },
+    }
 
     // Tests if @actor belongs to this workspace and monitor
-    _isMyWindow : function (actor, isMetaWin) {
+    _isMyWindow(actor, isMetaWin) {
         let win;
         if (isMetaWin) {
             win = actor;
@@ -392,10 +386,10 @@ var ThumbnailCaption = new Lang.Class({
         }
         return win.located_on_workspace(this._thumbnail.metaWorkspace) &&
             (win.get_monitor() == this._thumbnail.monitorIndex);
-    },
+    }
 
     // Tests if @win should be shown in the Overview
-    _isOverviewWindow : function (window, isMetaWin) {
+    _isOverviewWindow(window, isMetaWin) {
         let win;
         if (isMetaWin) {
             win = window;
@@ -404,10 +398,10 @@ var ThumbnailCaption = new Lang.Class({
         }
         return !win.skip_taskbar &&
                win.showing_on_its_workspace();
-    },
+    }
 
     // Tests if window app should be shown on this workspace
-    _isMinimizedWindow : function (actor, isMetaWin) {
+    _isMinimizedWindow(actor, isMetaWin) {
         let win;
         if (isMetaWin) {
             win = actor;
@@ -415,10 +409,10 @@ var ThumbnailCaption = new Lang.Class({
             win = actor.meta_window;
         }
         return (!win.skip_taskbar && win.minimized);
-    },
+    }
 
     // Tests if window app should be shown on this workspace
-    _showWindowAppOnThisWorkspace : function (actor, isMetaWin) {
+    _showWindowAppOnThisWorkspace(actor, isMetaWin) {
         let win;
         if (isMetaWin) {
             win = actor;
@@ -432,9 +426,9 @@ var ThumbnailCaption = new Lang.Class({
         } else {
             return (win.located_on_workspace(this._thumbnail.metaWorkspace) && !win.skip_taskbar && win.showing_on_its_workspace());
         }
-    },
+    }
 
-    _initCaption: function() {
+    _initCaption() {
         if (_DEBUG_ && !this._thumbnail._removed) global.log("myWorkspaceThumbnail: _initCaption for metaWorkspace "+this._thumbnail.metaWorkspace.index());
         if (this._mySettings.get_boolean('workspace-captions')) {
 
@@ -537,7 +531,7 @@ var ThumbnailCaption = new Lang.Class({
                 this._menu.setSourceAlignment(.8);
 
             this._menu.actor.add_style_class_name('workspacestodock-caption-windowapps-menu');
-            this._menu.connect('open-state-changed', Lang.bind(this, function(menu, open) {
+            this._menu.connect('open-state-changed', (menu, open) => {
                 if (_DEBUG_) global.log("myWorkspaceThumbnail: _onWindowAppsButtonClick - menu open-state-changed - open = "+open);
                 if (open) {
                     // Set popup menu flag so that dock knows not to hide
@@ -554,10 +548,10 @@ var ThumbnailCaption = new Lang.Class({
                     // Unset popup menu flag
                     this._thumbnail._thumbnailsBox.setPopupMenuFlag(false);
                 }
-            }));
+            });
 
             let item = new PopupMenu.PopupMenuItem(_("Extension Preferences"));
-            item.connect('activate', Lang.bind(this, this._showExtensionPreferences));
+            item.connect('activate', this._showExtensionPreferences.bind(this));
             this._menu.addMenuItem(item);
 
             // Add to chrome and hide
@@ -569,13 +563,13 @@ var ThumbnailCaption = new Lang.Class({
             this._menuManager.addMenu(this._menu);
 
             // Connect signals
-            this._wsCaption.connect('button-release-event', Lang.bind(this, this._onWorkspaceCaptionClick));
+            this._wsCaption.connect('button-release-event', this._onWorkspaceCaptionClick.bind(this));
         }
 
-    },
+    }
 
     // function initializes the taskbar icons
-    _initTaskbar: function() {
+    _initTaskbar() {
         if (_DEBUG_ && !this._thumbnail._removed) global.log("myWorkspaceThumbnail: _initTaskbar for metaWorkspace "+this._thumbnail.metaWorkspace.index());
         if(this._thumbnailRealizeId > 0){
             this._thumbnail.actor.disconnect(this._thumbnailRealizeId);
@@ -616,18 +610,18 @@ var ThumbnailCaption = new Lang.Class({
                 let winInfo = {};
                 winInfo.app = app;
                 winInfo.metaWin = metaWin;
-                winInfo.signalFocusedId = metaWin.connect('notify::appears-focused', Lang.bind(this, this._onWindowChanged, metaWin));
+                winInfo.signalFocusedId = metaWin.connect('notify::appears-focused', this._onWindowChanged.bind(this, metaWin));
                 this._taskBar.push(winInfo);
             }
         }
 
         // Update window count
         this._updateWindowCount();
-    },
+    }
 
     // function called when the active workspace is changed
     // windows visible on all workspaces are moved to active workspace
-    activeWorkspaceChanged: function() {
+    activeWorkspaceChanged() {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: activeWorkspaceChanged");
         let windows = global.get_window_actors();
         let workspaceManager = global.workspace_manager;
@@ -675,39 +669,38 @@ var ThumbnailCaption = new Lang.Class({
 
         // Update window count
         this._updateWindowCount();
-    },
+    }
 
-    _onAfterWindowAdded: function(metaWorkspace, metaWin) {
+    _onAfterWindowAdded(metaWorkspace, metaWin) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _onAfterWindowAdded");
         this._doAfterWindowAdded(metaWin);
-    },
+    }
 
-    _doAfterWindowAdded: function(metaWin) {
+    _doAfterWindowAdded(metaWin) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _doAfterWindowAdded");
         let win = metaWin.get_compositor_private();
         if (!win) {
             // Newly-created windows are added to a workspace before
             // the compositor finds out about them...
-            let id = Mainloop.idle_add(Lang.bind(this,
-                                            function () {
+            let id = Mainloop.idle_add(() => {
                                                 if (this.actor &&
                                                     metaWin.get_compositor_private())
                                                     this._doAfterWindowAdded(metaWin);
                                                 return GLib.SOURCE_REMOVE;
-                                            }));
+                                            });
             GLib.Source.set_name_by_id(id, '[gnome-shell] this._doAfterWindowAdded');
             return;
         }
 
         this._thumbnail._thumbnailsBox.updateTaskbars(metaWin, WindowAppsUpdateAction.ADD);
-    },
+    }
 
-    _onAfterWindowRemoved: function(metaWorkspace, metaWin) {
+    _onAfterWindowRemoved(metaWorkspace, metaWin) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _onAfterWindowRemoved - metaWin = "+metaWin.get_wm_class()+" metaWorkspace = "+metaWorkspace.index());
         this._thumbnail._thumbnailsBox.updateTaskbars(metaWin, WindowAppsUpdateAction.REMOVE);
-    },
+    }
 
-    _onWindowChanged: function(metaWin) {
+    _onWindowChanged(metaWin) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _onWindowChanged - metaWin = "+metaWin.get_wm_class());
         if (!this._taskBarBox)
             return;
@@ -729,9 +722,9 @@ var ThumbnailCaption = new Lang.Class({
                 buttonActor.remove_style_class_name('workspacestodock-caption-windowapps-button-active');
             }
         }
-    },
+    }
 
-    _onWorkspaceCaptionClick: function(actor, event) {
+    _onWorkspaceCaptionClick(actor, event) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _onWorkspaceCaptionClick");
         if (this._menu.isOpen) {
             this._menu.close();
@@ -767,23 +760,23 @@ var ThumbnailCaption = new Lang.Class({
                 this._menu.addMenuItem(windowAppsListsection);
                 if (menuTaskListItemCount > 1) {
                     let item1 = new PopupMenu.PopupMenuItem(_('Close All Applications'));
-                    item1.connect('activate', Lang.bind(this, this._closeAllMetaWindows));
+                    item1.connect('activate', this._closeAllMetaWindows.bind(this));
                     this._menu.addMenuItem(item1);
                 }
                 this._menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
             }
 
             let item2 = new PopupMenu.PopupMenuItem(_("Extension Preferences"));
-            item2.connect('activate', Lang.bind(this, this._showExtensionPreferences));
+            item2.connect('activate', this._showExtensionPreferences.bind(this));
             this._menu.addMenuItem(item2);
 
             this._menu.open();
             return Clutter.EVENT_STOP;
         }
         return Clutter.EVENT_PROPAGATE;
-    },
+    }
 
-    activateMetaWindow: function(metaWin) {
+    activateMetaWindow(metaWin) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: activateMetaWindow");
         let workspaceManager = global.workspace_manager;
         let activeWorkspace = workspaceManager.get_active_workspace();
@@ -800,15 +793,15 @@ var ThumbnailCaption = new Lang.Class({
                 metaWin.minimize(global.get_current_time());
             }
         }
-    },
+    }
 
-    _showExtensionPreferences: function(menuItem, event) {
+    _showExtensionPreferences(menuItem, event) {
         // passingthru67: Should we use commandline or argv?
         // Util.trySpawnCommandLine("gnome-shell-extension-prefs " + Me.metadata.uuid);
         Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
-    },
+    }
 
-    closeMetaWindow: function(metaWin) {
+    closeMetaWindow(metaWin) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: closeMetaWindow");
         let metaWindow = metaWin;
         for (let i = 0; i < this._taskBar.length; i++) {
@@ -817,9 +810,9 @@ var ThumbnailCaption = new Lang.Class({
                 metaWindow.delete(global.get_current_time());
             }
         }
-    },
+    }
 
-    _closeAllMetaWindows: function(menuItem, event) {
+    _closeAllMetaWindows(menuItem, event) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _closeAllMetaWindows");
         if (this._taskBarBox) {
             for (let i = 0; i < this._taskBar.length; i++) {
@@ -835,9 +828,9 @@ var ThumbnailCaption = new Lang.Class({
                 // Unity has same issue .. https://bugs.launchpad.net/ubuntu/+source/unity/+bug/1123593
             }
         }
-    },
+    }
 
-    updateTaskbar: function(metaWin, action) {
+    updateTaskbar(metaWin, action) {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: updateTaskbar");
         if (action == WindowAppsUpdateAction.ADD) {
             let index = -1;
@@ -886,7 +879,7 @@ var ThumbnailCaption = new Lang.Class({
                         let winInfo = {};
                         winInfo.app = app;
                         winInfo.metaWin = metaWin;
-                        winInfo.signalFocusedId = metaWin.connect('notify::appears-focused', Lang.bind(this, this._onWindowChanged, metaWin));
+                        winInfo.signalFocusedId = metaWin.connect('notify::appears-focused', this._onWindowChanged.bind(this, metaWin));
                         this._taskBar.push(winInfo);
                     }
                 }
@@ -931,9 +924,9 @@ var ThumbnailCaption = new Lang.Class({
 
         // Update window count
         this._updateWindowCount();
-    },
+    }
 
-    _updateWindowCount: function() {
+    _updateWindowCount() {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: _updateWindowCount");
         if (!this._wsWindowCountBox)
             return;
@@ -982,9 +975,9 @@ var ThumbnailCaption = new Lang.Class({
                 }
             }
         }
-    },
+    }
 
-    updateCaption: function(i, captionHeight, captionBackgroundHeight) {
+    updateCaption(i, captionHeight, captionBackgroundHeight) {
         let unscale = 1/this._thumbnail._thumbnailsBox._scale;
         let containerWidth = this._thumbnail._thumbnailsBox._porthole.width * this._thumbnail._thumbnailsBox._scale;
         let containerHeight = this._thumbnail._thumbnailsBox._porthole.height * this._thumbnail._thumbnailsBox._scale;
@@ -1072,4 +1065,4 @@ var ThumbnailCaption = new Lang.Class({
             if (this._wsSpacerBox) this._wsSpacerBox.remove_style_class_name('workspacestodock-caption-spacer-current');
         }
     }
-});
+};

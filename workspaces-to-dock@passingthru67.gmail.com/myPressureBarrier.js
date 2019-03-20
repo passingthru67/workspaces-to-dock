@@ -18,10 +18,8 @@ const St = imports.gi.St;
 
 const Main = imports.ui.main;
 
-var myPressureBarrier = new Lang.Class({
-    Name: 'workspacesToDock_myPressureBarrier',
-
-    _init: function(threshold, speedLimit, timeout, actionMode) {
+var MyPressureBarrier = class WorkspacesToDock_MyPressureBarrier {
+    constructor(threshold, speedLimit, timeout, actionMode) {
         this._threshold = threshold;
         this._speedLimit = speedLimit;
         this._timeout = timeout;
@@ -31,60 +29,60 @@ var myPressureBarrier = new Lang.Class({
 
         this._isTriggered = false;
         this._reset();
-    },
+    }
 
-    addBarrier: function(barrier) {
-        barrier._pressureHitId = barrier.connect('hit', Lang.bind(this, this._onBarrierHit));
-        barrier._pressureLeftId = barrier.connect('left', Lang.bind(this, this._onBarrierLeft));
+    addBarrier(barrier) {
+        barrier._pressureHitId = barrier.connect('hit', this._onBarrierHit.bind(this));
+        barrier._pressureLeftId = barrier.connect('left', this._onBarrierLeft.bind(this));
 
         this._barriers.push(barrier);
-    },
+    }
 
-    _disconnectBarrier: function(barrier) {
+    _disconnectBarrier(barrier) {
         barrier.disconnect(barrier._pressureHitId);
         barrier.disconnect(barrier._pressureLeftId);
-    },
+    }
 
-    removeBarrier: function(barrier) {
+    removeBarrier(barrier) {
         this._disconnectBarrier(barrier);
         this._barriers.splice(this._barriers.indexOf(barrier), 1);
-    },
+    }
 
-    destroy: function() {
-        this._barriers.forEach(Lang.bind(this, this._disconnectBarrier));
+    destroy() {
+        this._barriers.forEach(this._disconnectBarrier.bind(this));
         this._barriers = [];
-    },
+    }
 
-    setEventFilter: function(filter) {
+    setEventFilter(filter) {
         this._eventFilter = filter;
-    },
+    }
 
-    _reset: function() {
+    _reset() {
         if (_DEBUG_) global.log("myPressureBarrier: _reset");
         this._barrierEvents = [];
         this._currentPressure = 0;
         this._lastTime = 0;
-    },
+    }
 
-    _isHorizontal: function(barrier) {
+    _isHorizontal(barrier) {
         return barrier.y1 == barrier.y2;
-    },
+    }
 
-    _getDistanceAcrossBarrier: function(barrier, event) {
+    _getDistanceAcrossBarrier(barrier, event) {
         if (this._isHorizontal(barrier))
             return Math.abs(event.dy);
         else
             return Math.abs(event.dx);
-    },
+    }
 
-    _getDistanceAlongBarrier: function(barrier, event) {
+    _getDistanceAlongBarrier(barrier, event) {
         if (this._isHorizontal(barrier))
             return Math.abs(event.dx);
         else
             return Math.abs(event.dy);
-    },
+    }
 
-    _trimBarrierEvents: function() {
+    _trimBarrierEvents() {
         // Events are guaranteed to be sorted in time order from
         // oldest to newest, so just look for the first old event,
         // and then chop events after that off.
@@ -106,23 +104,23 @@ var myPressureBarrier = new Lang.Class({
         }
 
         this._barrierEvents = this._barrierEvents.slice(firstNewEvent);
-    },
+    }
 
-    _onBarrierLeft: function(barrier, event) {
+    _onBarrierLeft(barrier, event) {
         barrier._isHit = false;
         if (this._barriers.every(function(b) { return !b._isHit; })) {
             this._reset();
             this._isTriggered = false;
         }
-    },
+    }
 
-    _trigger: function() {
+    _trigger() {
         this._isTriggered = true;
         this.emit('trigger');
         this._reset();
-    },
+    }
 
-    _onBarrierHit: function(barrier, event) {
+    _onBarrierHit(barrier, event) {
         barrier._isHit = true;
 
         // If we've triggered the barrier, wait until the pointer has the
@@ -170,5 +168,5 @@ var myPressureBarrier = new Lang.Class({
         if (this._currentPressure >= this._threshold)
             this._trigger();
     }
-});
-Signals.addSignalMethods(myPressureBarrier.prototype);
+};
+Signals.addSignalMethods(MyPressureBarrier.prototype);

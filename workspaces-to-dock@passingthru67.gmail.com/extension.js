@@ -6,12 +6,12 @@
  * ========================================================================================================
  */
 
-const _DEBUG_ = false;
+const _DEBUG_ = true;
 
-const Main = imports.ui.main;
 const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 const St = imports.gi.St;
+const Main = imports.ui.main;
 
 const Config = imports.misc.config;
 const Me = imports.misc.extensionUtils.getCurrentExtension();

@@ -32,24 +32,22 @@ const Hostname1Iface = '<node> \
 </node>';
 const Hostname1 = Gio.DBusProxy.makeProxyWrapper(Hostname1Iface);
 
-var PlaceInfo = new Lang.Class({
-    Name: 'PlaceInfo',
-
-    _init: function(kind, file, name, icon) {
+var PlaceInfo = class WorkspacesToDock_PlaceInfo {
+    constructor(kind, file, name, icon) {
         this.kind = kind;
         this.file = file;
         this.name = name || this._getFileName();
         this.icon = icon ? new Gio.ThemedIcon({ name: icon }) : this.getIcon();
-    },
+    }
 
-    destroy: function() {
-    },
+    destroy() {
+    }
 
-    isRemovable: function() {
+    isRemovable() {
         return false;
-    },
+    }
 
-    launch: function(timestamp, workspace) {
+    launch(timestamp, workspace) {
         let targetWorkspace = workspace ? workspace : -1;
         let launchContext = global.create_app_launch_context(timestamp, targetWorkspace);
 
@@ -66,9 +64,9 @@ var PlaceInfo = new Lang.Class({
                 Main.notifyError(_("Failed to launch \"%s\"").format(this.name), e.message);
             }
         }
-    },
+    }
 
-    getIcon: function() {
+    getIcon() {
         try {
             let info = this.file.query_info('standard::symbolic-icon', 0, null);
         return info.get_symbolic_icon();
@@ -90,9 +88,9 @@ var PlaceInfo = new Lang.Class({
                 }
             }
         }
-    },
+    }
 
-    _getFileName: function() {
+    _getFileName() {
         try {
             let info = this.file.query_info('standard::display-name', 0, null);
             return info.get_display_name();
@@ -101,8 +99,8 @@ var PlaceInfo = new Lang.Class({
                 return this.file.get_basename();
             }
         }
-    },
-});
+    }
+};
 Signals.addSignalMethods(PlaceInfo.prototype);
 
 const DEFAULT_DIRECTORIES = [
@@ -113,10 +111,8 @@ const DEFAULT_DIRECTORIES = [
     GLib.UserDirectory.DIRECTORY_VIDEOS,
 ];
 
-var PlacesManager = new Lang.Class({
-    Name: 'PlacesManager',
-
-    _init: function() {
+var PlacesManager = class WorkspacesToDock_PlacesManager {
+    constructor() {
         this._places = {
             special: [],
             devices: [],
@@ -152,13 +148,13 @@ var PlacesManager = new Lang.Class({
             return GLib.utf8_collate(a.name, b.name);
         });
         this._places.special = this._places.special.concat(specials);
-    },
+    }
 
-    destroy: function() {
-    },
+    destroy() {
+    }
 
-    get: function (kind) {
+    get(kind) {
         return this._places[kind];
     }
-});
+};
 Signals.addSignalMethods(PlacesManager.prototype);
