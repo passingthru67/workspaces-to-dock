@@ -674,6 +674,7 @@ var DockedWorkspaces = new Lang.Class({
         // We wait until after _restoreGnomeShellFunctions because we needed
         // settings to determine how to restore the dash
         this._settings.run_dispose();
+        this._settings = null;
     },
 
     // function called during init to override gnome shell 3.4/3.6/3.8
@@ -725,7 +726,8 @@ var DockedWorkspaces = new Lang.Class({
             if (_DEBUG_) global.log("dockedWorkspaces: UPDATEREGIONS - workArea W= "+workArea.width + "  H= "+workArea.height+ "  X= "+workArea.x+ "  Y= "+workArea.y+"  CURRENT W="+self._workAreaWidth+"  H="+self._workAreaHeight+"  FORCED?="+self._refreshThumbnailsOnRegionUpdate);
             if (self._refreshThumbnailsOnRegionUpdate) {
                 self._refreshThumbnailsOnRegionUpdate = false;
-                self._refreshThumbnails();
+                if (this._settings)
+                    self._refreshThumbnails();
             } else {
                 if (self._workAreaWidth) {
                     let widthTolerance = workArea.width * .01;
