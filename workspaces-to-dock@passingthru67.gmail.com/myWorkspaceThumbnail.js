@@ -76,6 +76,8 @@ class WorkspacesToDock_MyPrimaryActorLayout extends Clutter.FixedLayout {
 
 var MyWindowClone = class WorkspacesToDock_MyWindowClone {
     constructor(realWindow) {
+        this._mySettings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
+
         this.clone = new Clutter.Clone({ source: realWindow });
 
         /* Can't use a Shell.GenericContainer because of DND and reparenting... */
@@ -215,6 +217,14 @@ var MyWindowClone = class WorkspacesToDock_MyWindowClone {
     }
 
     _onButtonRelease(actor, event) {
+        if (this._mySettings.get_boolean('toggle-overview')) {
+            let button = event.get_button();
+            if (button == 3) {
+                // pass right-click event on allowing it to bubble up to thumbnailsBox
+                return Clutter.EVENT_PROPAGATE;
+            }
+        }
+
         this.emit('selected', event.get_time());
 
         return Clutter.EVENT_STOP;
@@ -521,10 +531,10 @@ var MyWorkspaceThumbnail = class WorkspacesToDock_MyWorkspaceThumbnail {
     }
 
     workspaceRemoved() {
-        this.caption.workspaceRemoved();
         if (this._removed)
             return;
 
+        this.caption.workspaceRemoved();
         this._removed = true;
 
         this.metaWorkspace.disconnect(this._windowAddedId);
@@ -704,6 +714,10 @@ var MyWorkspaceThumbnail = class WorkspacesToDock_MyWorkspaceThumbnail {
 
         if (source.realWindow && !this._isMyWindow(source.realWindow))
             return DND.DragMotionResult.MOVE_DROP;
+
+        if (source._caption && !this._isMyWindow(source._metaWin, true))
+            return DND.DragMotionResult.MOVE_DROP;
+
         if (source.shellWorkspaceLaunch)
             return DND.DragMotionResult.COPY_DROP;
 
@@ -821,6 +835,7 @@ class WorkspacesToDock_MyThumbnailsBox extends St.Widget {
         this.connect('button-press-event', () => Clutter.EVENT_STOP);
         this.connect('button-release-event', this._onButtonRelease.bind(this));
         this.connect('touch-event', this._onTouchEvent.bind(this));
+        this.connect('destroy', this._onDestroy.bind(this));
 
         //Main.overview.connect('showing',
         //                      this._createThumbnails.bind(this));
@@ -913,6 +928,39 @@ class WorkspacesToDock_MyThumbnailsBox extends St.Widget {
         this._nWorkspacesNotifyId = 0;
         this._syncStackingId = 0;
         this._workareasChangedId = 0;
+    }
+
+    _onDestroy() {
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: destroying * * * * *");
+
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: destroying thumbnails");
+        // Destroy thumbnails
+        this._destroyThumbnails();
+
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: disconnecting signals");
+        // Disconnect global signals
+        this._signalHandler.disconnect();
+
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: dispose settings");
+        // Disconnect GSettings signals
+        this._settings.run_dispose();
+        this._mySettings.run_dispose();
+
+        if (this._switchWorkspaceNotifyId > 0) {
+            global.window_manager.disconnect(this._switchWorkspaceNotifyId);
+            this._switchWorkspaceNotifyId = 0;
+        }
+        if (this._nWorkspacesNotifyId > 0) {
+            let workspaceManager = global.workspace_manager;
+            workspaceManager.disconnect(this._nWorkspacesNotifyId);
+            this._nWorkspacesNotifyId = 0;
+        }
+
+        if (this._syncStackingId > 0) {
+            Main.overview.disconnect(this._syncStackingId);
+            this._syncStackingId = 0;
+        }
+
     }
 
     _updateSwitcherVisibility() {
@@ -1356,6 +1404,7 @@ class WorkspacesToDock_MyThumbnailsBox extends St.Widget {
     addThumbnails(start, count) {
         let workspaceManager = global.workspace_manager;
 
+        this._updatePorthole();
         for (let k = start; k < start + count; k++) {
             let metaWorkspace = workspaceManager.get_workspace_by_index(k);
             let thumbnail = new MyWorkspaceThumbnail(metaWorkspace, this);

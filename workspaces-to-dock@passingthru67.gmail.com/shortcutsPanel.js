@@ -695,15 +695,21 @@ var ShortcutsPanel = class WorkspacesToDock_ShortcutsPanel {
     }
 
     destroy() {
+        if (_DEBUG_) global.log("shortcutsPanel: destroying * * * * *");
+
+        if (_DEBUG_) global.log("shortcutsPanel: disconnect signals");
         // Disconnect global signals
         if (this._installedChangedId > 0) this._appSystem.disconnect(this._installedChangedId);
         if (this._appStateChangedId > 0) this._appSystem.disconnect(this._appStateChangedId);
         if (this._favoritesChangedId > 0) this._appFavorites.disconnect(this._favoritesChangedId);
 
+        if (_DEBUG_) global.log("shortcutsPanel: dispose settings");
         // Disconnect GSettings signals
         this._settings.run_dispose();
 
+        if (_DEBUG_) global.log("shortcutsPanel: destroy main actor");
         // Destroy main clutter actor
+        this.actor.destroy_all_children();
         this.actor.destroy();
     }
 

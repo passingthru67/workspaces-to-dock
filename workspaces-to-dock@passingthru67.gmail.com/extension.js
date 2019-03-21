@@ -6,12 +6,14 @@
  * ========================================================================================================
  */
 
-const _DEBUG_ = true;
+const _DEBUG_ = false;
 
 const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 const St = imports.gi.St;
 const Main = imports.ui.main;
+const Meta = imports.gi.Meta;
+const Mainloop = imports.mainloop;
 
 const Config = imports.misc.config;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
@@ -19,10 +21,13 @@ const Convenience = Me.imports.convenience;
 const Intellihide = Me.imports.intellihide;
 const DockedWorkspaces = Me.imports.dockedWorkspaces;
 
-var intellihide;
-var dock;
-var settings;
+var intellihide = null;
+var dock = null;
+var settings = null;
 var workspacesToDockStylesheet = null;
+let monitorsChangedId = 0;
+let monitorChangeTimeoutId = 0;
+let monitorChangeDetected = false;
 
 function loadStylesheet() {
     if (_DEBUG_) global.log("WorkspacesToDock: _loadStylesheet");
@@ -85,31 +90,6 @@ function unloadStylesheet() {
 
     workspacesToDockStylesheet = null;
     return true;
-}
-
-function init() {
-    Convenience.initTranslations();
-}
-
-function enable() {
-    if (_DEBUG_) global.log("WorkspacesToDock: ENABLE");
-    loadStylesheet();
-    dock = new DockedWorkspaces.DockedWorkspaces();
-    intellihide = new Intellihide.Intellihide(dock);
-    settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
-    bindSettingsChanges();
-}
-
-function disable() {
-    if (_DEBUG_) global.log("WorkspacesToDock: DISABLE");
-    unloadStylesheet();
-    intellihide.destroy();
-    dock.destroy();
-    settings.run_dispose();
-
-    dock = null;
-    intellihide = null;
-    settings = null;
 }
 
 function bindSettingsChanges() {
@@ -181,4 +161,69 @@ function bindSettingsChanges() {
         dock = new DockedWorkspaces.DockedWorkspaces();
         intellihide = new Intellihide.Intellihide(dock);
     });
+}
+
+function createDockObjects() {
+    if (_DEBUG_) global.log("WorkspacesToDock: createDockObjects");
+    loadStylesheet();
+    dock = new DockedWorkspaces.DockedWorkspaces();
+    intellihide = new Intellihide.Intellihide(dock);
+    settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
+    bindSettingsChanges();
+}
+
+function destroyDockObjects() {
+    if (_DEBUG_) global.log("WorkspacesToDock: destroyDockObjects");
+    if (workspacesToDockStylesheet) {
+        unloadStylesheet();
+    }
+    if (intellihide) {
+        intellihide.destroy();
+        intellihide = null;
+    }
+    if (dock) {
+        dock.destroy();
+        dock = null;
+    }
+    if (settings) {
+        settings.run_dispose();
+        settings = null;
+    }
+}
+
+function init() {
+    Convenience.initTranslations();
+}
+
+function enable() {
+    if (_DEBUG_) global.log("WorkspacesToDock: ENABLE");
+    createDockObjects();
+
+    // It's easier to just reload the extension when the monitor changes
+    let monitorManager = Meta.MonitorManager.get();
+    monitorsChangedId = monitorManager.connect('monitors-changed', function(){
+        if (!monitorChangeDetected) {
+            if (_DEBUG_) global.log("WorkspacesToDock: MONITOR CHANGE DETECTED");
+            monitorChangeDetected = true;
+            destroyDockObjects();
+
+            // Restore dock and monitor change detection after short timeout
+            if (this.monitorChangeTimeoutId > 0) {
+                Mainloop.source_remove(this.monitorChangeTimeoutId);
+                monitorChangeTimeoutId = 0;
+            }
+            monitorChangeTimeoutId = Mainloop.timeout_add(1000, function() {
+                monitorChangeDetected = false;
+                createDockObjects();
+            });
+
+        } else {
+            if (_DEBUG_) global.log("WorkspacesToDock: MONITOR CHANGE DETECTED AGAIN");
+        }
+    });
+}
+
+function disable() {
+    if (_DEBUG_) global.log("WorkspacesToDock: DISABLE");
+    destroyDockObjects();
 }
