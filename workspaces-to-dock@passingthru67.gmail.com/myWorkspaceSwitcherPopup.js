@@ -20,6 +20,9 @@ const WorkspacesView = imports.ui.workspacesView;
 const WindowManager = imports.ui.windowManager;
 const Tweener = imports.ui.tweener;
 
+const Me = imports.misc.extensionUtils.getCurrentExtension();
+const Convenience = Me.imports.convenience;
+
 var ANIMATION_TIME = 0.1;
 var DISPLAY_TIMEOUT = 600;
 
@@ -177,6 +180,8 @@ class WorkspacesToDock_MyWorkspaceSwitcherPopup extends St.Widget {
                                                                     this._redisplay.bind(this)));
 
         this.connect('destroy', this._onDestroy.bind(this));
+
+        this._settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
     }
 
     _redisplay() {
@@ -210,6 +215,9 @@ class WorkspacesToDock_MyWorkspaceSwitcherPopup extends St.Widget {
     }
 
     _show() {
+        if (this._settings.get_boolean('hide-workspace-switcher-popup'))
+            return;
+
         Tweener.addTween(this._container, { opacity: 255,
                                             time: ANIMATION_TIME,
                                             transition: 'easeOutQuad'
@@ -242,6 +250,9 @@ class WorkspacesToDock_MyWorkspaceSwitcherPopup extends St.Widget {
     }
 
     _onDestroy() {
+        // Disconnect GSettings signals
+        this._settings.run_dispose();
+
         if (this._timeoutId)
             Mainloop.source_remove(this._timeoutId);
         this._timeoutId = 0;
