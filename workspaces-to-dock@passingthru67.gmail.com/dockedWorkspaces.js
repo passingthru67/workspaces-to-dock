@@ -619,16 +619,18 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
 
     destroy() {
         if (_DEBUG_) global.log("dockedWorkspaces: destroying * * * * *");
+        // Disconnect global signals first to prevent calls to functions during
+        // the destroy process
+        this._signalHandler.disconnect();
+
         this._shortcutsPanel.destroy();
 
         if (this._workspaceSwitcher)
             this._workspaceSwitcher.destroy();
 
-        // Disconnect global signals
-        this._signalHandler.disconnect();
-
         // Unbind keyboard shortcuts
-        this._unbindDockKeyboardShortcut();
+        if (this._settings.get_boolean('toggle-dock-with-keyboard-shortcut'))
+            this._unbindDockKeyboardShortcut();
 
         if (_DEBUG_) global.log("dockedWorkspaces: destroying pressure barrier");
         // Remove existing barrier
@@ -639,13 +641,13 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
             this._pressureBarrier = null;
         }
 
+        // Destroy thumbnailsBox
+        this._thumbnailsBox.destroy();
+
         if (_DEBUG_) global.log("dockedWorkspaces: destroying slider and struts");
         this._slider.destroy();
 
         this._struts.destroy();
-
-        // Destroy thumbnailsBox & global signals
-        this._thumbnailsBox.destroy();
 
         if (_DEBUG_) global.log("dockedWorkspaces: destroying main actor");
         // Destroy main clutter actor: this should be sufficient
