@@ -208,8 +208,8 @@ function enable() {
             destroyDockObjects();
 
             // Restore dock and monitor change detection after short timeout
-            if (this.monitorChangeTimeoutId > 0) {
-                Mainloop.source_remove(this.monitorChangeTimeoutId);
+            if (monitorChangeTimeoutId > 0) {
+                Mainloop.source_remove(monitorChangeTimeoutId);
                 monitorChangeTimeoutId = 0;
             }
             monitorChangeTimeoutId = Mainloop.timeout_add(1000, function() {
