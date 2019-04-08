@@ -933,36 +933,21 @@ class WorkspacesToDock_MyThumbnailsBox extends St.Widget {
     _onDestroy() {
         if (_DEBUG_) global.log("myWorkspaceThumbnail: destroying * * * * *");
 
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: disconnecting signals");
+        // Disconnect global signals
+        this._signalHandler.disconnect();
+
         if (_DEBUG_) global.log("myWorkspaceThumbnail: destroying thumbnails");
         // Destroy thumbnails
         this._destroyThumbnails();
 
-        if (_DEBUG_) global.log("myWorkspaceThumbnail: disconnecting signals");
-        // Disconnect global signals
-        this._signalHandler.disconnect();
+        this.actor = null;
+        this._indicator = null;
 
         if (_DEBUG_) global.log("myWorkspaceThumbnail: dispose settings");
         // Disconnect GSettings signals
         this._settings.run_dispose();
         this._mySettings.run_dispose();
-
-        if (this._switchWorkspaceNotifyId > 0) {
-            global.window_manager.disconnect(this._switchWorkspaceNotifyId);
-            this._switchWorkspaceNotifyId = 0;
-        }
-        if (this._nWorkspacesNotifyId > 0) {
-            let workspaceManager = global.workspace_manager;
-            workspaceManager.disconnect(this._nWorkspacesNotifyId);
-            this._nWorkspacesNotifyId = 0;
-        }
-
-        if (this._syncStackingId > 0) {
-            Main.overview.disconnect(this._syncStackingId);
-            this._syncStackingId = 0;
-        }
-
-        this.actor = null;
-        this._indicator = null;
     }
 
     _updateSwitcherVisibility() {

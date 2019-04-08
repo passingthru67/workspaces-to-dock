@@ -628,6 +628,10 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         // the destroy process
         this._signalHandler.disconnect();
 
+        if (_DEBUG_) global.log("dockedWorkspaces: restoring gnome shell functions");
+        // Restore normal Gnome Shell functions
+        this._restoreGnomeShellFunctions();
+
         this._shortcutsPanel.destroy();
 
         if (this._workspaceSwitcher)
@@ -660,10 +664,6 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         // If the actor is inside a container, the actor will be removed.
         // When you destroy a container, its children will be destroyed as well.
         this.actor.destroy();
-
-        if (_DEBUG_) global.log("dockedWorkspaces: restoring gnome shell functions");
-        // Restore normal Gnome Shell functions
-        this._restoreGnomeShellFunctions();
 
         if (_DEBUG_) global.log("dockedWorkspaces: disposing of settings");
         // Disconnect GSettings signals

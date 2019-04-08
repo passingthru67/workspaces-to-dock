@@ -703,14 +703,14 @@ var ShortcutsPanel = class WorkspacesToDock_ShortcutsPanel {
         if (this._appStateChangedId > 0) this._appSystem.disconnect(this._appStateChangedId);
         if (this._favoritesChangedId > 0) this._appFavorites.disconnect(this._favoritesChangedId);
 
-        if (_DEBUG_) global.log("shortcutsPanel: dispose settings");
-        // Disconnect GSettings signals
-        this._settings.run_dispose();
-
         if (_DEBUG_) global.log("shortcutsPanel: destroy main actor");
         // Destroy main clutter actor
         this.actor.destroy_all_children();
         this.actor.destroy();
+
+        if (_DEBUG_) global.log("shortcutsPanel: dispose settings");
+        // Disconnect GSettings signals
+        this._settings.run_dispose();
     }
 
     _bindSettingsChanges() {

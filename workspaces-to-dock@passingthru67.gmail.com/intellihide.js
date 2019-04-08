@@ -287,13 +287,13 @@ var Intellihide = class WorkspacesToDock_Intellihide {
         // Disconnect global signals
         this._signalHandler.disconnect();
 
+        this._restoreGnomeShellFunctions();
+
         // Disconnect GSettings signals
         this._settings.run_dispose();
 
         if (this._windowChangedTimeout > 0)
             Mainloop.source_remove(this._windowChangedTimeout); // Just to be sure
-
-        this._restoreGnomeShellFunctions();
     }
 
     // Called during init to override/extend gnome shell functions
