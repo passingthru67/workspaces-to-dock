@@ -961,6 +961,8 @@ class WorkspacesToDock_MyThumbnailsBox extends St.Widget {
             this._syncStackingId = 0;
         }
 
+        this.actor = null;
+        this._indicator = null;
     }
 
     _updateSwitcherVisibility() {
@@ -1246,7 +1248,8 @@ class WorkspacesToDock_MyThumbnailsBox extends St.Widget {
 
         this.addThumbnails(0, workspaceManager.n_workspaces);
 
-        this._updateSwitcherVisibility();
+        if (this.actor)
+            this._updateSwitcherVisibility();
     }
 
     _destroyThumbnails() {
@@ -1411,7 +1414,8 @@ class WorkspacesToDock_MyThumbnailsBox extends St.Widget {
             thumbnail.setPorthole(this._porthole.x, this._porthole.y,
                                   this._porthole.width, this._porthole.height);
             this._thumbnails.push(thumbnail);
-            this.add_actor(thumbnail.actor);
+            if (this.actor)
+                this.add_actor(thumbnail.actor);
 
             if (start > 0 && this._spliceIndex == -1) {
                 // not the initial fill, and not splicing via DND
@@ -1428,7 +1432,8 @@ class WorkspacesToDock_MyThumbnailsBox extends St.Widget {
         this._queueUpdateStates();
 
         // The thumbnails indicator actually needs to be on top of the thumbnails
-        this._indicator.raise_top();
+        if (this._indicator)
+            this._indicator.raise_top();
 
         // Clear the splice index, we got the message
         this._spliceIndex = -1;
