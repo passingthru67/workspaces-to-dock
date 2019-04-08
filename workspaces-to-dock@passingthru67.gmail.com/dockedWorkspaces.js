@@ -474,6 +474,11 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
                 this._thumbnailsBoxResized.bind(this)
             ],
             [
+                Main.layoutManager,
+                'monitors-changed',
+                this._onMonitorsChanged.bind(this)
+            ],
+            [
                 St.ThemeContext.get_for_stage(global.stage),
                 'changed',
                 this._onThemeChanged.bind(this)
@@ -2484,6 +2489,16 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
 
         this._updateAppearancePreferences();
         this._updateBarrier();
+    }
+
+    _onMonitorsChanged() {
+        if (_DEBUG_) global.log("dockedWorkspaces: _onMonitorsChanged");
+
+        // Reset the dock position and redisplay
+        this._resetPosition();
+        this._redisplay();
+        // this._refreshThumbnailsOnRegionUpdate = true;
+        // Main.layoutManager._queueUpdateRegions();
     }
 
     _refreshThumbnails() {

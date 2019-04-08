@@ -226,6 +226,12 @@ var Intellihide = class WorkspacesToDock_Intellihide {
                 'item-drag-end',
                 this._onItemDragEnd.bind(this)
             ],
+            // update when monitor changes, for instance in multimonitor when monitors are attached
+            [
+                Main.layoutManager,
+                'monitors-changed',
+                this._onMonitorsChanged.bind(this)
+            ],
             [
                 Main.panel.menuManager._grabHelper,
                 'focus-grabbed',
@@ -398,6 +404,36 @@ var Intellihide = class WorkspacesToDock_Intellihide {
     // handler for when app focus changed
     _onFocusAppChanged() {
         if (_DEBUG_) global.log("intellihide: _onFocusAppChanged");
+        this._updateDockVisibility();
+    }
+
+    // handler for when monitor changes
+    _onMonitorsChanged() {
+        if (_DEBUG_) global.log("intellihide: _onMonitorsChanged");
+        // disconnect bgManager signals
+        this._signalHandler.disconnectWithLabel('bgManagerSignals');
+
+        // if background manager valid, Connect grabHelper signals
+        let primaryIndex = Main.layoutManager.primaryIndex;
+
+        if (!Main.layoutManager._bgManagers[primaryIndex] ||
+            !Main.layoutManager._bgManagers[primaryIndex].backgroundActor)
+                return;
+
+        this._signalHandler.pushWithLabel(
+            'bgManagerSignals',
+            [
+                Main.layoutManager._bgManagers[primaryIndex].backgroundActor._backgroundManager._grabHelper,
+                'focus-grabbed',
+                this._onPanelFocusGrabbed.bind(this)
+            ],
+            [
+                Main.layoutManager._bgManagers[primaryIndex].backgroundActor._backgroundManager._grabHelper,
+                'focus-ungrabbed',
+                this._onPanelFocusUngrabbed.bind(this)
+            ]
+        );
+
         this._updateDockVisibility();
     }
 
