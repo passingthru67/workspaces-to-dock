@@ -1668,7 +1668,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
     _onExtensionSystemStateChanged(source, extension) {
         // Only looking for DashToDock state changes
         if (extension.uuid == DashToDock_UUID) {
-            if (_DEBUG_) global.log("dockedWorkspaces: _onExtensionSystemStateChanged for "+extension.uuid+" state= "+extension.state);
+            global.log("dockedWorkspaces: _onExtensionSystemStateChanged for "+extension.uuid+" state= "+extension.state);
             DashToDockExtension = extension;
             if (DashToDockExtension.state == ExtensionSystem.ExtensionState.ENABLED) {
                 DashToDock = DashToDockExtension.imports.extension;

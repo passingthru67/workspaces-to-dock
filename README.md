@@ -282,6 +282,9 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
+**Version 50 (Apr 8, 2019)**
+- Support for Gnome 3.32
+
 **Version 49 (Sep 28, 2018)**
 - Bug fixes
 
