@@ -637,8 +637,23 @@ var myThumbnailsBox = new Lang.Class({
     },
 
     _onDestroy: function() {
+       if (_DEBUG_) global.log("myWorkspaceThumbnail: destroying * * * * *");
+
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: disconnecting signals");
         // Disconnect global signals
         this._signalHandler.disconnect();
+
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: destroying thumbnails");
+        // Destroy thumbnails
+        this._destroyThumbnails();
+
+        this.actor = null;
+        this._indicator = null;
+
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: dispose settings");
+        // Disconnect GSettings signals
+        this._settings.run_dispose();
+        this._mySettings.run_dispose();
     },
 
     // handler for when workspace is added
@@ -868,7 +883,8 @@ var myThumbnailsBox = new Lang.Class({
 
         this.addThumbnails(0, global.screen.n_workspaces);
 
-        this._updateSwitcherVisibility();
+        if (this.actor)
+            this._updateSwitcherVisibility();
     },
 
     _destroyThumbnails: function() {
@@ -970,7 +986,8 @@ var myThumbnailsBox = new Lang.Class({
                                   this._porthole.width, this._porthole.height);
 
             this._thumbnails.push(thumbnail);
-            this.actor.add_actor(thumbnail.actor);
+            if (this.actor)
+                this.actor.add_actor(thumbnail.actor);
 
             if (start > 0 && this._spliceIndex == -1) {
                 // not the initial fill, and not splicing via DND
@@ -987,7 +1004,8 @@ var myThumbnailsBox = new Lang.Class({
         this._queueUpdateStates();
 
         // The thumbnails indicator actually needs to be on top of the thumbnails
-        this._indicator.raise_top();
+        if (this._indicator)
+            this._indicator.raise_top();
 
         // Clear the splice index, we got the message
         this._spliceIndex = -1;

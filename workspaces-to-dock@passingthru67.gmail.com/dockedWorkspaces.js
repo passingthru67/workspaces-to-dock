@@ -633,23 +633,24 @@ var DockedWorkspaces = new Lang.Class({
 
     destroy: function() {
         if (_DEBUG_) global.log("dockedWorkspaces: destroying * * * * *");
-        // Destroy thumbnailsBox & global signals
-        this._thumbnailsBox._destroyThumbnails();
+        // Disconnect global signals first to prevent calls to functions during
+        // the destroy process
+        this._signalHandler.disconnect();
+
+        if (_DEBUG_) global.log("dockedWorkspaces: restoring gnome shell functions");
+        // Restore normal Gnome Shell functions
+        this._restoreGnomeShellFunctions();
 
         this._shortcutsPanel.destroy();
 
         if (this._workspaceSwitcher)
             this._workspaceSwitcher.destroy();
 
-        // Disconnect global signals
-        this._signalHandler.disconnect();
-
-        // Disconnect GSettings signals
-        this._settings.run_dispose();
-
         // Unbind keyboard shortcuts
-        this._unbindDockKeyboardShortcut();
+        if (this._settings.get_boolean('toggle-dock-with-keyboard-shortcut'))
+            this._unbindDockKeyboardShortcut();
 
+        if (_DEBUG_) global.log("dockedWorkspaces: destroying pressure barrier");
         // Remove existing barrier
         this._removeBarrier();
         if (this._pressureBarrier) {
@@ -658,18 +659,29 @@ var DockedWorkspaces = new Lang.Class({
             this._pressureBarrier = null;
         }
 
+        // Destroy thumbnailsBox
+        this._thumbnailsBox.actor.destroy();
+
+        if (_DEBUG_) global.log("dockedWorkspaces: destroying slider and struts");
         this._slider.destroy();
 
         this._struts.destroy();
 
+
+        if (_DEBUG_) global.log("dockedWorkspaces: destroying main actor");
         // Destroy main clutter actor: this should be sufficient
         // From clutter documentation:
         // If the actor is inside a container, the actor will be removed.
         // When you destroy a container, its children will be destroyed as well.
         this.actor.destroy();
 
-        // Restore normal Gnome Shell functions
-        this._restoreGnomeShellFunctions();
+        if (_DEBUG_) global.log("dockedWorkspaces: disposing of settings");
+        // Disconnect GSettings signals
+        // We wait until after _restoreGnomeShellFunctions because we needed
+        // settings to determine how to restore the dash
+        this._settings.run_dispose();
+        this._settings = null;
+        if (_DEBUG_) global.log("dockedWorkspaces: destroyed!");
     },
 
     // function called during init to override gnome shell 3.4/3.6/3.8
@@ -721,7 +733,8 @@ var DockedWorkspaces = new Lang.Class({
             if (_DEBUG_) global.log("dockedWorkspaces: UPDATEREGIONS - workArea W= "+workArea.width + "  H= "+workArea.height+ "  X= "+workArea.x+ "  Y= "+workArea.y+"  CURRENT W="+self._workAreaWidth+"  H="+self._workAreaHeight+"  FORCED?="+self._refreshThumbnailsOnRegionUpdate);
             if (self._refreshThumbnailsOnRegionUpdate) {
                 self._refreshThumbnailsOnRegionUpdate = false;
-                self._refreshThumbnails();
+                if (this._settings)
+                    self._refreshThumbnails();
             } else {
                 if (self._workAreaWidth) {
                     let widthTolerance = workArea.width * .01;
