@@ -628,6 +628,11 @@ var myThumbnailsBox = new Lang.Class({
                 global.screen,
                 'workspace-removed',
                 Lang.bind(this, this._onWorkspaceRemoved)
+            ],
+            [
+                Main.layoutManager,
+                'monitors-changed',
+                Lang.bind(this, this._rebuildThumbnails)
             ]
         );
 
@@ -914,6 +919,11 @@ var myThumbnailsBox = new Lang.Class({
             this._thumbnails[i].refreshWindowClones();
             this._thumbnails[i].caption.activeWorkspaceChanged();
         }
+    },
+
+    _rebuildThumbnails: function() {
+        this._destroyThumbnails();
+        this._createThumbnails();
     },
 
     // override _activateThumbnailAtPoint
