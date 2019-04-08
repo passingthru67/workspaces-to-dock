@@ -917,6 +917,11 @@ class WorkspacesToDock_MyThumbnailsBox extends St.Widget {
                 global.display,
                 'workareas-changed',
                 this._updatePorthole.bind(this)
+            ],
+            [
+                Main.layoutManager,
+                'monitors-changed',
+                this._rebuildThumbnails.bind(this)
             ]
         );
 
@@ -1387,6 +1392,11 @@ class WorkspacesToDock_MyThumbnailsBox extends St.Widget {
             this._thumbnails[i].refreshWindowClones();
             this._thumbnails[i].caption.activeWorkspaceChanged();
         }
+    }
+
+    _rebuildThumbnails() {
+        this._destroyThumbnails();
+        this._createThumbnails();
     }
 
     addThumbnails(start, count) {
