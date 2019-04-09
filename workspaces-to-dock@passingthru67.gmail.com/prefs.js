@@ -214,21 +214,15 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             label: _("Autosize the dock based on thumbnails and favorites"),
             margin_top: 0
         });
-        customizeHeightAutosize.connect('toggled', Lang.bind(this, function(check){
-            if (check.get_active()) this.settings.set_int('customize-height-option', 0);
-        }));
 
         let customizeHeightExtend =  new Gtk.RadioButton({
             label: _("Extend the dock to fill the screen"),
             group: customizeHeightAutosize,
             margin_top: 0
         });
-        customizeHeightExtend.connect('toggled', Lang.bind(this, function(check){
-            if (check.get_active()) this.settings.set_int('customize-height-option', 1);
-        }));
 
-        let intellihideOption = this.settings.get_int('customize-height-option');
-        switch (intellihideOption) {
+        let customizeHeightOption = this.settings.get_int('customize-height-option');
+        switch (customizeHeightOption) {
             case 0:
                 customizeHeightAutosize.set_active(true); // autosize
                 break;
@@ -236,8 +230,15 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
                 customizeHeightExtend.set_active(true); // extend
                 break;
             default:
-                customizeHeightAutosize.set_active(true); // default
+                customizeHeightAutosize.set_active(true); // default - autosize
         }
+
+        customizeHeightAutosize.connect('toggled', Lang.bind(this, function(check){
+            if (check.get_active()) this.settings.set_int('customize-height-option', 0);
+        }));
+        customizeHeightExtend.connect('toggled', Lang.bind(this, function(check){
+            if (check.get_active()) this.settings.set_int('customize-height-option', 1);
+        }));
 
         let centerThumbnails = new Gtk.CheckButton({
             label: _("Center the dock (thumbnails and favorites if dock is extended)"),
@@ -255,9 +256,6 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             margin_top: 0,
             margin_left: 40
         });
-        centerThumbnailsIndependently.connect('toggled', Lang.bind(this, function(check){
-            if (check.get_active()) this.settings.set_int('center-thumbnails-option', 0);
-        }));
 
         let centerThumbnailsJointly =  new Gtk.RadioButton({
             label: _("Combine thumbnails and favorites then center on dock"),
@@ -265,21 +263,25 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
             margin_top: 0,
             margin_left: 40
         });
+
+        let centerThumbnailsOption = this.settings.get_int('center-thumbnails-option');
+        switch (centerThumbnailsOption) {
+            case 0:
+                centerThumbnailsIndependently.set_active(true); // independently
+                break;
+            case 1:
+                centerThumbnailsJointly.set_active(true); // jointly
+                break;
+            default:
+                centerThumbnailsIndependently.set_active(true); // default - independently
+        }
+
+        centerThumbnailsIndependently.connect('toggled', Lang.bind(this, function(check){
+            if (check.get_active()) this.settings.set_int('center-thumbnails-option', 0);
+        }));
         centerThumbnailsJointly.connect('toggled', Lang.bind(this, function(check){
             if (check.get_active()) this.settings.set_int('center-thumbnails-option', 1);
         }));
-
-        let centerThumbnailsOption = this.settings.get_boolean('center-thumbnails-option');
-        switch (centerThumbnailsOption) {
-            case 0:
-                centerThumbnailsIndependently.set_active(true); // autosize
-                break;
-            case 1:
-                centerThumbnailsJointly.set_active(true); // extend
-                break;
-            default:
-                centerThumbnailsIndependently.set_active(true); // default
-        }
 
         let topMarginLabel = new Gtk.Label({
             label: _("Top margin (Left when positioned horizontally)"),
@@ -912,27 +914,18 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
                 label: _("Dodge all windows"),
                 margin_top: 0
             });
-            intellihideNormal.connect('toggled', Lang.bind(this, function(check){
-                if (check.get_active()) this.settings.set_int('intellihide-option', 0);
-            }));
 
             let intellihideFocusApp =  new Gtk.RadioButton({
                 label: _("Dodge all instances of focused app"),
                 group: intellihideNormal,
                 margin_top: 0
             });
-            intellihideFocusApp.connect('toggled', Lang.bind(this, function(check){
-                if (check.get_active()) this.settings.set_int('intellihide-option', 1);
-            }));
 
             let intellihideTopWindow =  new Gtk.RadioButton({
                 label: _("Dodge only top instance of focused app"),
                 group: intellihideNormal,
                 margin_top: 0
             });
-            intellihideTopWindow.connect('toggled', Lang.bind(this, function(check){
-                if (check.get_active()) this.settings.set_int('intellihide-option', 2);
-            }));
 
             let intellihideOption = this.settings.get_int('intellihide-option');
             switch (intellihideOption) {
@@ -948,6 +941,18 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
                 default:
                     intellihideNormal.set_active(true); // default .. any window
             }
+
+            intellihideNormal.connect('toggled', Lang.bind(this, function(check){
+                if (check.get_active()) this.settings.set_int('intellihide-option', 0);
+            }));
+
+            intellihideFocusApp.connect('toggled', Lang.bind(this, function(check){
+                if (check.get_active()) this.settings.set_int('intellihide-option', 1);
+            }));
+
+            intellihideTopWindow.connect('toggled', Lang.bind(this, function(check){
+                if (check.get_active()) this.settings.set_int('intellihide-option', 2);
+            }));
 
             let ignoreTopPanelButton = new Gtk.CheckButton({
                 label: _("Ignore top panel menus"),
