@@ -832,6 +832,9 @@ var ShortcutsPanel = class WorkspacesToDock_ShortcutsPanel {
             // If the placeholder already exists, we just move
             // it, but if we are adding it, expand its size in
             // an animation
+            // Passingthru67 TODO:
+            // Need to convert the dragPlaceholder to an St.Widget so that
+            // we can use the fadein animation
             let fadeIn;
             if (this._dragPlaceholder) {
                 this._dragPlaceholder.destroy();
@@ -843,7 +846,8 @@ var ShortcutsPanel = class WorkspacesToDock_ShortcutsPanel {
             this._dragPlaceholder = new DragPlaceholderItem();
             this._favoriteAppsBox.insert_child_at_index(this._dragPlaceholder.actor,
                                             this._dragPlaceholderPos);
-            this._dragPlaceholder.actor.show(fadeIn);
+            // this._dragPlaceholder.actor.show(fadeIn);
+            this._dragPlaceholder.actor.show();
         }
 
         // Remove the drag placeholder if we are not in the
