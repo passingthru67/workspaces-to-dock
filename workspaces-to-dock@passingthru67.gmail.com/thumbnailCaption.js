@@ -790,7 +790,7 @@ var ThumbnailCaption = class WorkspacesToDock_ThumbnailCaption {
             if (!metaWin.has_focus()) {
                 metaWin.activate(global.get_current_time());
             } else {
-                metaWin.minimize(global.get_current_time());
+                metaWin.minimize();
             }
         }
     }
