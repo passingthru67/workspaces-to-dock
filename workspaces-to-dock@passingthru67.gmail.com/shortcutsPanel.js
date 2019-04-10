@@ -1037,9 +1037,11 @@ var ShortcutsPanel = class WorkspacesToDock_ShortcutsPanel {
     }
 
     _updateFavoriteApps() {
+        if (_DEBUG_) global.log("shortcutsPanel: _updateFavoriteApps");
         if (!this._favoriteAppsBox)
             return;
 
+        if (_DEBUG_) global.log("shortcutsPanel: ... favoriteAppsBox exists so continue");
         // Clear favorite apps box
         this._favoriteAppsBox.destroy_all_children();
 
@@ -1064,9 +1066,11 @@ var ShortcutsPanel = class WorkspacesToDock_ShortcutsPanel {
     }
 
     _updateRunningApps() {
+        if (_DEBUG_) global.log("shortcutsPanel: _updateRunningApps");
         if (!this._runningAppsBox)
             return;
 
+        if (_DEBUG_) global.log("shortcutsPanel: ... runningAppsBox exists so continue");
         let children = this._runningAppsBox.get_children().filter((actor) => {
                 return actor &&
                       actor._delegate &&

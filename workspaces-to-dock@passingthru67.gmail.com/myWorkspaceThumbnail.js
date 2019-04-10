@@ -288,7 +288,6 @@ var MyWorkspaceThumbnail = class WorkspacesToDock_MyWorkspaceThumbnail {
         this.monitorIndex = Main.layoutManager.primaryIndex;
 
         this._getWinTextureIdleId = 0;
-        this._windowsOnAllWorkspaces = [];
         this._thumbnailsBox = thumbnailsBox;
 
         this._removed = false;
@@ -619,23 +618,6 @@ var MyWorkspaceThumbnail = class WorkspacesToDock_MyWorkspaceThumbnail {
 
         this._windows.push(clone);
 
-        // passingthru67 - need to refresh thumbnails if new added window is on all workspaces
-        // NOTE: refresh is only forced when a new window is added and not during myWorkspaceThumbnail initialization
-        if (clone.metaWindow.is_on_all_workspaces()) {
-            let alreadyPushed = false;
-            for (let j = 0; j < this._windowsOnAllWorkspaces.length; j++) {
-                if (clone.metaWindow == this._windowsOnAllWorkspaces[j]) {
-                    alreadyPushed = true;
-                }
-            }
-            if (!alreadyPushed) {
-                this._windowsOnAllWorkspaces.push(clone.metaWindow);
-            }
-            if (refresh) {
-                this._thumbnailsBox.refreshThumbnails();
-            }
-        }
-
         return clone;
     }
 
@@ -645,18 +627,6 @@ var MyWorkspaceThumbnail = class WorkspacesToDock_MyWorkspaceThumbnail {
 
         if (index == -1)
             return null;
-
-        // passingthru67 - refresh thumbnails if metaWin being removed is on all workspaces
-        let win = metaWin.get_compositor_private();
-        // if (win && this._isMyWindow(win) && metaWin.is_on_all_workspaces()) {
-        if (win && metaWin.is_on_all_workspaces()) {
-            for (let j = 0; j < this._windowsOnAllWorkspaces.length; j++) {
-                if (metaWin == this._windowsOnAllWorkspaces[j]) {
-                    this._windowsOnAllWorkspaces.splice(j, 1);
-                }
-            }
-            this._thumbnailsBox.refreshThumbnails();
-        }
 
         return this._windows.splice(index, 1).pop();
     }
@@ -1355,39 +1325,8 @@ class WorkspacesToDock_MyThumbnailsBox extends St.Widget {
         }
     }
 
-    _checkWindowsOnAllWorkspaces(thumbnail) {
-        // passingthru67: This is a hackish way of tracking windows visible on all workspaces
-        // TODO: Is there a signal emitted or property set by mutter metawindows that we can connect
-        // to determine when a window is set to visible-on-all-workspaces?
-        let refresh = false;
-        if (_DEBUG_ && thumbnail._windows.length > 0) global.log("myWorkspaceThumbnail: _checkWindowsOnAllWorkspaces - windowsOnAllWorkspaces.length = "+thumbnail._windowsOnAllWorkspaces.length);
-        for (let i = 0; i < thumbnail._windows.length; i++) {
-            let clone = thumbnail._windows[i];
-            let realWindow = clone.realWindow;
-            let metaWindow = clone.metaWindow;
-            let alreadyPushed = false;
-            for (let j = 0; j < thumbnail._windowsOnAllWorkspaces.length; j++) {
-                if (metaWindow == thumbnail._windowsOnAllWorkspaces[j]) {
-                    alreadyPushed = true;
-                    if (!metaWindow.is_on_all_workspaces()) {
-                        if (_DEBUG_) global.log("myWorkspaceThumbnail: _checkWindowsOnAllWorkspaces - REFRESH THUMBNAILS - window removed from windowsOnAllWorkspaces");
-                        thumbnail._windowsOnAllWorkspaces.splice(j, 1);
-                        refresh = true;
-                    }
-                }
-            }
-            if (_DEBUG_ && alreadyPushed) global.log("myWorkspaceThumbnail: _checkWindowsOnAllWorkspaces - "+metaWindow.get_wm_class()+" in windowsOnAllWorkspaces. isMyWindow = "+ thumbnail._isMyWindow(realWindow)+", is_on_all_workspaces = "+metaWindow.is_on_all_workspaces());
-            if (_DEBUG_ && !alreadyPushed) global.log("myWorkspaceThumbnail: _checkWindowsOnAllWorkspaces - "+metaWindow.get_wm_class()+" not in windowsOnAllWorkspaces. isMyWindow = "+ thumbnail._isMyWindow(realWindow)+", is_on_all_workspaces = "+metaWindow.is_on_all_workspaces());
-            if (!alreadyPushed && metaWindow.is_on_all_workspaces()) {
-                if (_DEBUG_) global.log("myWorkspaceThumbnail: _checkWindowsOnAllWorkspaces - REFRESH THUMBNAILS - window added to windowsOnAllWorkspaces");
-                thumbnail._windowsOnAllWorkspaces.push(metaWindow);
-                refresh = true;
-            }
-        }
-        return refresh;
-    }
-
     refreshThumbnails() {
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: refreshThumbnails");
         for (let i = 0; i < this._thumbnails.length; i++) {
             this._thumbnails[i].refreshWindowClones();
             this._thumbnails[i].caption.activeWorkspaceChanged();
@@ -1395,6 +1334,7 @@ class WorkspacesToDock_MyThumbnailsBox extends St.Widget {
     }
 
     _rebuildThumbnails() {
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: _rebuildThumbnails");
         this._destroyThumbnails();
         this._createThumbnails();
     }
@@ -1881,11 +1821,6 @@ class WorkspacesToDock_MyThumbnailsBox extends St.Widget {
                 if (thumbnail.metaWorkspace == indicatorWorkspace) {
                     indicatorX1 = x1;
                     indicatorX2 = x2;
-
-                    // passingthru67 - check if window-visible_on_all_workspaces state changed
-                    // if so, then we need to refresh thumbnails
-                    let refresh = this._checkWindowsOnAllWorkspaces(thumbnail);
-                    if (refresh) this.refreshThumbnails();
                 }
 
                 // Allocating a scaled actor is funny - x1/y1 correspond to the origin
@@ -1964,11 +1899,6 @@ class WorkspacesToDock_MyThumbnailsBox extends St.Widget {
                 if (thumbnail.metaWorkspace == indicatorWorkspace) {
                     indicatorY1 = y1;
                     indicatorY2 = y2;
-
-                    // passingthru67 - check if window-visible_on_all_workspaces state changed
-                    // if so, then we need to refresh thumbnails
-                    let refresh = this._checkWindowsOnAllWorkspaces(thumbnail);
-                    if (refresh) this.refreshThumbnails();
                 }
 
                 // Allocating a scaled actor is funny - x1/y1 correspond to the origin
