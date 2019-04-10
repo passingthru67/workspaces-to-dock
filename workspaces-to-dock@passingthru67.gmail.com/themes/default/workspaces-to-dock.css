@@ -279,15 +279,17 @@ as they may intefere with the intellihide/autohide triggering */
 .workspacestodock-caption-windowapps-menu .window-close {
     /* GS36+ can override gnome shell class 'window-close' */
     /*background-image: url("close-window.svg");*/
-    background-size: 24px;
-    height: 20px;
-    width: 20px;
+    /* background-size: 24px; */
+    /* height: 20px; */
+    /* width: 20px; */
 }
 .workspacestodock-caption-windowapps-menu-close {
     /*fallback class for GS34 since it can't override gnome shell class 'window-close' */
 }
 .workspacestodock-caption-windowapps-menu-close:hover {
     /*fallback class for GS34 since it can't override gnome shell class 'window-close' */
+    border: 1px solid rgba(180,180,180,0.5);
+    border-radius: 3px;
 }
 .workspacestodock-caption-windowapps-button {
     padding: 0px 1px;

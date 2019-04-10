@@ -240,10 +240,10 @@ var MenuTaskListItem = class WorkspacesToDock_MenuTaskListItem {
         this._buttonBox.add(this._label, {x_fill: true, y_fill: false, x_align: St.Align.START, y_align: St.Align.MIDDLE, expand: true});
 
         this._closeButton = new St.Button({style_class:'workspacestodock-caption-windowapps-menu-close'});
-        this._closeButton.add_style_class_name('window-close');
-        //this._closeIcon = new St.Icon({ icon_name: 'window-close-symbolic', style_class: 'popup-menu-icon' });
-        //this._closeButton.set_size(this._mySettings.get_double('workspace-caption-menu-icon-size'), this._mySettings.get_double('workspace-caption-menu-icon-size'));
-        //this._closeButton.set_child(this._closeIcon);
+        // this._closeButton.add_style_class_name('window-close');
+        this._closeIcon = new St.Icon({ icon_name: 'window-close-symbolic', style_class: 'popup-menu-icon' });
+        this._closeButton.set_size(this._mySettings.get_double('workspace-caption-menu-icon-size'), this._mySettings.get_double('workspace-caption-menu-icon-size'));
+        this._closeButton.set_child(this._closeIcon);
 
         this.actor = new St.BoxLayout({reactive: true, style_class: 'popup-menu-item workspacestodock-caption-windowapps-menu-item'});
         this.actor._delegate = this;
