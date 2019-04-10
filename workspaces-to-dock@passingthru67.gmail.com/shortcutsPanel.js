@@ -291,7 +291,7 @@ var ShortcutButton = class WorkspacesToDock_ShortcutButton {
             let gicon = Gio.content_type_get_icon(app.mime);
             iconParams['createIcon'] = (iconSize) => { return new St.Icon({gicon: gicon, icon_size: iconSize});};
         } else if (appType == ApplicationType.APPSBUTTON) {
-            iconParams['createIcon'] = (iconSize) => { return new St.Icon({icon_name: 'view-grid-symbolic', icon_size: iconSize});};
+            iconParams['createIcon'] = (iconSize) => { return new St.Icon({icon_name: 'view-app-grid-symbolic', icon_size: iconSize});};
         }
 
         this._dot = new St.Widget({ style_class: 'app-well-app-running-dot',
@@ -613,7 +613,7 @@ var ShortcutButton = class WorkspacesToDock_ShortcutButton {
             let gicon = Gio.content_type_get_icon(this._app.mime);
             appIcon = new St.Icon({gicon: gicon, icon_size: this._iconSize});
         } else if (this._type == ApplicationType.APPSBUTTON) {
-            appIcon = new St.Icon({icon_name: 'view-grid-symbolic', icon_size: iconSize});
+            appIcon = new St.Icon({icon_name: 'view-app-grid-symbolic', icon_size: iconSize});
         }
         return appIcon;
     }
