@@ -258,7 +258,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         // Temporarily disable redisplay until initialized
         // NOTE: This prevents connected signals from trying to update dock visibility
         this._disableRedisplay = true;
-        // this._refreshThumbnailsOnRegionUpdate = true;
+        this._refreshThumbnailsOnRegionUpdate = true;
         if (_DEBUG_) global.log("dockedWorkspaces: init - disableRediplay");
 
         // set RTL value
@@ -710,6 +710,37 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
             }
         };
 
+        // Extend LayoutManager _updateRegions function to destroy/create workspace thumbnails when completed.
+        // NOTE1: needed because 'monitors-changed' signal doesn't wait for queued regions to update.
+        // We need to wait so that the screen workspace workarea is adjusted before creating workspace thumbnails.
+        // Otherwise when we move the primary workspace to another monitor, the workspace thumbnails won't adjust for the top panel.
+        // NOTE2: also needed when dock-fixed is enabled/disabled to adjust for workspace area change
+        GSFunctions['LayoutManager_updateRegions'] = Layout.LayoutManager.prototype._updateRegions;
+        Layout.LayoutManager.prototype._updateRegions = function() {
+            let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
+            let ret = GSFunctions['LayoutManager_updateRegions'].call(this);
+            // SANITY CHECK:
+            if (_DEBUG_) global.log("dockedWorkspaces: UPDATEREGIONS - workArea W= "+workArea.width + "  H= "+workArea.height+ "  X= "+workArea.x+ "  Y= "+workArea.y+"  CURRENT W="+self._workAreaWidth+"  H="+self._workAreaHeight+"  FORCED?="+self._refreshThumbnailsOnRegionUpdate);
+            if (self._refreshThumbnailsOnRegionUpdate) {
+                self._refreshThumbnailsOnRegionUpdate = false;
+                if (this._settings)
+                    self._refreshThumbnails();
+            } else {
+                if (self._workAreaWidth) {
+                    let widthTolerance = workArea.width * .01;
+                    let heightTolerance = workArea.height * .01;
+                    if (self._workAreaWidth < workArea.width-widthTolerance || self._workAreaWidth > workArea.width+widthTolerance) {
+                        self._refreshThumbnails();
+                    } else if (self._workAreaHeight < workArea.height-heightTolerance || self._workAreaHeight > workArea.height+heightTolerance) {
+                        self._refreshThumbnails();
+                    }
+                } else {
+                    self._refreshThumbnails();
+                }
+            }
+            return ret;
+        };
+
         // Override geometry calculations of activities overview to use workspaces-to-dock instead of the default thumbnailsbox.
         // NOTE: This is needed for when the dock is positioned on a secondary monitor and also for when the shortcuts panel is visible
         // causing the dock to be wider than normal.
@@ -1007,6 +1038,9 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
 
         // Restore normal WorkspaceSwitcherPopup_show function
         WorkspaceSwitcherPopup.WorkspaceSwitcherPopup.prototype._show = GSFunctions['WorkspaceSwitcherPopup_show'];
+
+        // Restore normal LayoutManager _updateRegions function
+        Layout.LayoutManager.prototype._updateRegions = GSFunctions['LayoutManager_updateRegions'];
 
         // Restore normal WorkspacesDisplay _updateworksapgesActualGeometray function
         WorkspacesView.WorkspacesDisplay.prototype._updateWorkspacesActualGeometry = GSFunctions['WorkspacesDisplay_updateWorkspacesActualGeometry'];
