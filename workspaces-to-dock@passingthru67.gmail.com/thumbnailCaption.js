@@ -335,7 +335,7 @@ var ThumbnailCaption = class WorkspacesToDock_ThumbnailCaption {
             global.window_manager.connect('switch-workspace',
                                           this.activeWorkspaceChanged.bind(this));
 
-        this._menuManager = new PopupMenu.PopupMenuManager(this);
+        this._menuManager = new PopupMenu.PopupMenuManager(this.actor);
 
         this._initCaption();
         this._thumbnailRealizeId = this._thumbnail.actor.connect("realize", this._initTaskbar.bind(this));

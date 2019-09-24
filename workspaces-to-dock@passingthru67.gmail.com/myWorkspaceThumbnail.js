@@ -760,9 +760,6 @@ class WorkspacesToDock_MyThumbnailsBox extends St.Widget {
                           request_mode: Clutter.RequestMode.WIDTH_FOR_HEIGHT });
         }
 
-        this.actor = this;
-        this.actor._delegate = this;
-
         // Add addtional style class when workspace is fixed and set to full height
         if (this._mySettings.get_boolean('customize-height') && this._mySettings.get_int('customize-height-option') == 1) {
             if (this._mySettings.get_double('top-margin') == 0 || this._mySettings.get_double('bottom-margin') == 0) {
@@ -916,7 +913,6 @@ class WorkspacesToDock_MyThumbnailsBox extends St.Widget {
         // Destroy thumbnails
         this._destroyThumbnails();
 
-        this.actor = null;
         this._indicator = null;
 
         if (_DEBUG_) global.log("myWorkspaceThumbnail: dispose settings");

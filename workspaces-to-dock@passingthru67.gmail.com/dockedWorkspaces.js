@@ -489,7 +489,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
                 this._onIconsChanged.bind(this)
             ],
             [
-                ExtensionSystem._signals,
+                Main.extensionManager,
                 'extension-state-changed',
                 this._onExtensionSystemStateChanged.bind(this)
             ],
@@ -522,7 +522,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
 
         // Connect DashToDock hover signal if the extension is already loaded and enabled
         this._hoveringDash = false;
-        DashToDockExtension = ExtensionUtils.extensions[DashToDock_UUID];
+        DashToDockExtension = Main.extensionManager.lookup(DashToDock_UUID);
         if (DashToDockExtension) {
             if (DashToDockExtension.state == ExtensionSystem.ExtensionState.ENABLED) {
                 if (_DEBUG_) global.log("dockeWorkspaces: init - DashToDock extension is installed and enabled");

@@ -318,7 +318,7 @@ var ShortcutButton = class WorkspacesToDock_ShortcutButton {
         this._iconContainer.add_child(this._icon.actor);
 
         this._menu = null;
-        this._menuManager = new PopupMenu.PopupMenuManager(this);
+        this._menuManager = new PopupMenu.PopupMenuManager(this.actor);
         this._menuTimeoutId = 0;
 
         // Connect button signals
