@@ -210,7 +210,7 @@ var TaskbarIcon = class WorkspacesToDock_TaskbarIcon {
         this.tooltip.ease({
             opacity: 0,
             duration: TASKBAR_TOOLTIP_HIDE_TIME,
-            mode: Clutter.AnimationMode.EASE_OUT_QUAD
+            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
             onComplete: () => {
                 this.tooltip.hide();
             }
