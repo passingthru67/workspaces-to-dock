@@ -739,6 +739,10 @@ var MyWorkspaceThumbnail = GObject.registerClass({
 
 var MyThumbnailsBox = GObject.registerClass({
     Properties: {
+        'indicator-x': GObject.ParamSpec.double(
+            'indicator-x', 'indicator-x', 'indicator-x',
+            GObject.ParamFlags.READWRITE,
+            0, Infinity, 0),
         'indicator-y': GObject.ParamSpec.double(
             'indicator-y', 'indicator-y', 'indicator-y',
             GObject.ParamFlags.READWRITE,
@@ -774,7 +778,7 @@ var MyThumbnailsBox = GObject.registerClass({
         // Add addtional style class when workspace is fixed and set to full height
         if (this._mySettings.get_boolean('customize-height') && this._mySettings.get_int('customize-height-option') == 1) {
             if (this._mySettings.get_double('top-margin') == 0 || this._mySettings.get_double('bottom-margin') == 0) {
-                this.actor.add_style_class_name('workspace-thumbnails-fullheight');
+                this.add_style_class_name('workspace-thumbnails-fullheight');
             }
         }
 
@@ -1831,7 +1835,7 @@ var MyThumbnailsBox = GObject.registerClass({
                     Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
                         this._dropPlaceholder.show();
                     });
-                    x += placeholderHeight + spacing;
+                    x += placeholderWidth + spacing;
                 }
 
                 // We might end up with thumbnailHeight being something like 99.33
@@ -1866,7 +1870,7 @@ var MyThumbnailsBox = GObject.registerClass({
                 // We round the collapsing portion so that we don't get thumbnails resizing
                 // during an animation due to differences in rounded, but leave the uncollapsed
                 // portion unrounded so that non-animating we end up with the right total
-                y += thumbnailHeight - Math.round(thumbnailHeight * thumbnail.collapse_fraction);
+                x += thumbnailWidth - Math.round(thumbnailWidth * thumbnail.collapse_fraction);
             }
 
             if (this._position == St.Side.TOP) {
