@@ -336,7 +336,7 @@ var ThumbnailCaption = class WorkspacesToDock_ThumbnailCaption {
         this._menuManager = new PopupMenu.PopupMenuManager(this.actor);
 
         this._initCaption();
-        this._thumbnailRealizeId = this._thumbnail.actor.connect("realize", this._initTaskbar.bind(this));
+        this._thumbnailRealizeId = this._thumbnail.connect("realize", this._initTaskbar.bind(this));
     }
 
     destroy() {
@@ -511,12 +511,12 @@ var ThumbnailCaption = class WorkspacesToDock_ThumbnailCaption {
 
             // Add caption to thumbnail actor
             this.actor.add_actor(this._wsCaption);
-            this._thumbnail.actor.add_actor(this._wsCaptionBackground);
-            this._thumbnail.actor.add_actor(this.actor);
+            this._thumbnail.add_actor(this._wsCaptionBackground);
+            this._thumbnail.add_actor(this.actor);
 
             // Make thumbnail background transparent so that it doesn't show through
             // on edges where border-radius is set on caption
-            this._thumbnail.actor.set_style("background-color: rgba(0,0,0,0.0)");
+            this._thumbnail.set_style("background-color: rgba(0,0,0,0.0)");
 
             // Create menu and menuitems
             let side = this._position;
@@ -570,7 +570,7 @@ var ThumbnailCaption = class WorkspacesToDock_ThumbnailCaption {
     _initTaskbar() {
         if (_DEBUG_ && !this._thumbnail._removed) global.log("myWorkspaceThumbnail: _initTaskbar for metaWorkspace "+this._thumbnail.metaWorkspace.index());
         if(this._thumbnailRealizeId > 0){
-            this._thumbnail.actor.disconnect(this._thumbnailRealizeId);
+            this._thumbnail.disconnect(this._thumbnailRealizeId);
             this._thumbnailRealizeId = 0;
         } else {
             return;
