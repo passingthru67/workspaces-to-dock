@@ -2384,7 +2384,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
 
             } else {
                 let controlsTop = 45;
-                y = this._monitor.y + Main.panel.actor.height + controlsTop + Main.overview._searchEntryBin.height;
+                y = this._monitor.y + Main.panel.height + controlsTop + Main.overview._searchEntryBin.height;
                 height = this._monitor.height - (y + Main.overview._searchEntryBin.height);
             }
         }
