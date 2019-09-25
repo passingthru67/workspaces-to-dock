@@ -66,12 +66,12 @@ var TaskbarIcon = class WorkspacesToDock_TaskbarIcon {
         iconParams['createIcon'] = (iconSize) => { return app.create_icon_texture(iconSize);};
 
         this._icon = new IconGrid.BaseIcon(app.get_name(), iconParams);
-        this._icon.actor.add_style_class_name('workspacestodock-caption-windowapps-button-icon');
+        this._icon.add_style_class_name('workspacestodock-caption-windowapps-button-icon');
         this._iconSize = this._mySettings.get_double('workspace-caption-taskbar-icon-size');
         this._icon.setIconSize(this._mySettings.get_double('workspace-caption-taskbar-icon-size'));
 
         this.actor = new St.Button({style_class:'workspacestodock-caption-windowapps-button'});
-        this.actor.set_child(this._icon.actor);
+        this.actor.set_child(this._icon);
         this.actor._delegate = this;
 
         // this._tooltipText = this._app.get_name();
@@ -145,7 +145,7 @@ var TaskbarIcon = class WorkspacesToDock_TaskbarIcon {
     // we show as the item is being dragged.
     getDragActorSource() {
         this.hideTooltip();
-        return this._icon.actor;
+        return this._icon;
     }
 
     showTooltip() {
@@ -228,13 +228,13 @@ var MenuTaskListItem = class WorkspacesToDock_MenuTaskListItem {
         iconParams['createIcon'] = (iconSize) => { return app.create_icon_texture(iconSize);};
 
         this._icon = new IconGrid.BaseIcon(app.get_name(), iconParams);
-        this._icon.actor.add_style_class_name('workspacestodock-caption-windowapps-menu-icon');
+        this._icon.add_style_class_name('workspacestodock-caption-windowapps-menu-icon');
         this._icon.setIconSize(this._mySettings.get_double('workspace-caption-menu-icon-size'));
         // this._label = new St.Label({ text: app.get_name(), style_class: 'workspacestodock-caption-windowapps-menu-label' });
         this._label = new St.Label({ text: this._metaWin.title, style_class: 'workspacestodock-caption-windowapps-menu-label' });
 
         this._buttonBox = new St.BoxLayout({style_class:'workspacestodock-caption-windowapps-menu-button'});
-        this._buttonBox.add(this._icon.actor, {x_fill: false, y_fill: false, x_align: St.Align.START, y_align: St.Align.MIDDLE});
+        this._buttonBox.add(this._icon, {x_fill: false, y_fill: false, x_align: St.Align.START, y_align: St.Align.MIDDLE});
         this._buttonBox.add(this._label, {x_fill: true, y_fill: false, x_align: St.Align.START, y_align: St.Align.MIDDLE, expand: true});
 
         this._closeButton = new St.Button({style_class:'workspacestodock-caption-windowapps-menu-close'});
