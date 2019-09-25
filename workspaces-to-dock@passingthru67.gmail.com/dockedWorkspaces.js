@@ -104,39 +104,35 @@ function getDockStateDesc(state) {
     return desc;
 }
 
-var MyThumbnailsSlider = GObject.registerClass(
-class WorkspacesToDock_MyThumbnailsSlider extends St.Widget {
-    _init(params) {
-        this._settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
-        let initialTriggerWidth = 1;
-
-        // Default local params
-        let localDefaults = {
-            side: St.Side.LEFT,
-            initialSlideValue: 1,
-            initialSlideoutSize: initialTriggerWidth
-        }
-
-        let localParams = Params.parse(params, localDefaults, true);
-
-        if (params){
-            // Remove local params before passing the params to the parent
-            // constructor to avoid errors.
-            let prop;
-            for (prop in localDefaults) {
-                if ((prop in params))
-                    delete params[prop];
-            }
-        }
-
+var MyThumbnailsSlider = GObject.registerClass({
+    Properties: {
+        'side': GObject.ParamSpec.enum(
+            'side', 'side', 'side',
+            GObject.ParamFlags.READWRITE | GObject.ParamFlags.CONSTRUCT_ONLY,
+            St.Side, St.Side.RIGHT),
+        'slidex': GObject.ParamSpec.double(
+            'slidex', 'slidex', 'slidex',
+            GObject.ParamFlags.READWRITE | GObject.ParamFlags.CONSTRUCT,
+            0, 1, 1),
+        'slideout-size': GObject.ParamSpec.double(
+            'slideout-size', 'slideout-size', 'slideout-size',
+            GObject.ParamFlags.READWRITE | GObject.ParamFlags.CONSTRUCT,
+            0, Infinity, 1),
+        'partial-slideout-size': GObject.ParamSpec.double(
+            'partial-slideout-size', 'partial-slideout-size', 'partial-slideout-size',
+            GObject.ParamFlags.READWRITE | GObject.ParamFlags.CONSTRUCT,
+            0, Infinity, (DOCK_EDGE_VISIBLE_OVERVIEW_WIDTH + 1)),
+    }
+}, class WorkspacesToDock_MyThumbnailsSlider extends St.Widget {
+    _init(params = {}) {
         super._init(params);
         this._child = null;
 
         // slide parameter: 1 = visible, 0 = hidden.
-        this._slidex = localParams.initialSlideValue;
-        this._side = localParams.side;
-        this._slideoutSize = localParams.initialSlideoutSize; // minimum size when slid out
-        this._partialSlideoutSize = initialTriggerWidth + DOCK_EDGE_VISIBLE_OVERVIEW_WIDTH;
+        this._side = params.side || St.Side.RIGHT;
+        this._slidex = params.slidex || 1;
+        this._slideoutSize = params.slideout-size || 1;
+        this._partialSlideoutSize = params.partial-slideout-size || (DOCK_EDGE_VISIBLE_OVERVIEW_WIDTH + 1);
     }
 
     vfunc_allocate(box, flags) {
@@ -222,8 +218,13 @@ class WorkspacesToDock_MyThumbnailsSlider extends St.Widget {
     }
 
     set slidex(value) {
+        if (this._slidex == value)
+            return;
+
         this._slidex = value;
-        this._child.queue_relayout();
+        this.notify('slidex');
+        if (this._child)
+            this._child.queue_relayout();
     }
 
     get slidex() {
@@ -231,7 +232,11 @@ class WorkspacesToDock_MyThumbnailsSlider extends St.Widget {
     }
 
     set slideoutSize(value) {
+        if (this._slideoutSize == value)
+            return;
+
         this._slideoutSize = value;
+        this.notify('slideout-size');
     }
 
     get slideoutSize() {
@@ -239,7 +244,11 @@ class WorkspacesToDock_MyThumbnailsSlider extends St.Widget {
     }
 
     set partialSlideoutSize(value) {
+        if (this._partialSlideoutSize == value)
+            return;
+
         this._partialSlideoutSize = value;
+        this.notify('partial-slideout-size');
     }
 
     get partialSlideoutSize() {
@@ -443,7 +452,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
 
         // Create the sliding actor whose allocation is to be tracked for input regions
         let slideoutSize = this._settings.get_boolean('dock-edge-visible') ? this._triggerWidth + DOCK_EDGE_VISIBLE_WIDTH : this._triggerWidth;
-        this._slider = new MyThumbnailsSlider({side: this._position, initialSlideoutSize: slideoutSize});
+        this._slider = new MyThumbnailsSlider({'side': this._position, 'slideout-size': slideoutSize});
 
         // Create the dock main actor
         this.actor = new St.Bin({ name: 'workspacestodockMainActor',
