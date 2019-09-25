@@ -434,17 +434,17 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         if (shortcutsPanelOrientation == 1) {
             if (this._centerContainer && this._centerPanelsIndependently) {
                 this._panelsContainer.add(this._shortcutsPanel.actor,{x_fill: false, y_fill: false, x_align: St.Align.MIDDLE, y_align: St.Align.MIDDLE});
-                this._panelsContainer.add(this._thumbnailsBox.actor,{x_fill: false, y_fill: false, x_align: St.Align.MIDDLE, y_align: St.Align.MIDDLE});
+                this._panelsContainer.add(this._thumbnailsBox,{x_fill: false, y_fill: false, x_align: St.Align.MIDDLE, y_align: St.Align.MIDDLE});
             } else {
                 this._panelsContainer.add_actor(this._shortcutsPanel.actor);
-                this._panelsContainer.add_actor(this._thumbnailsBox.actor);
+                this._panelsContainer.add_actor(this._thumbnailsBox);
             }
         } else {
             if (this._centerContainer && this._centerPanelsIndependently) {
-                this._panelsContainer.add(this._thumbnailsBox.actor,{x_fill: false, y_fill: false, x_align: St.Align.MIDDLE, y_align: St.Align.MIDDLE});
+                this._panelsContainer.add(this._thumbnailsBox,{x_fill: false, y_fill: false, x_align: St.Align.MIDDLE, y_align: St.Align.MIDDLE});
                 this._panelsContainer.add(this._shortcutsPanel.actor,{x_fill: false, y_fill: false, x_align: St.Align.MIDDLE, y_align: St.Align.MIDDLE});
             } else {
-                this._panelsContainer.add_actor(this._thumbnailsBox.actor);
+                this._panelsContainer.add_actor(this._thumbnailsBox);
                 this._panelsContainer.add_actor(this._shortcutsPanel.actor);
             }
         }
@@ -471,12 +471,12 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         let workspaceManager = global.workspace_manager;
         this._signalHandler.push(
             [
-                this._thumbnailsBox.actor,
+                this._thumbnailsBox,
                 'notify::width',
                 this._thumbnailsBoxResized.bind(this)
             ],
             [
-                this._thumbnailsBox.actor,
+                this._thumbnailsBox,
                 'notify::height',
                 this._thumbnailsBoxResized.bind(this)
             ],
@@ -2028,7 +2028,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
     _fadeOutBackground(time, delay) {
         if (_DEBUG_) global.log("dockedWorkspaces: _fadeOutBackground");
         // CSS time is in ms
-        this._thumbnailsBox.actor.set_style('transition-duration:' + time*1000 + ';' +
+        this._thumbnailsBox.set_style('transition-duration:' + time*1000 + ';' +
             'transition-delay:' + delay*1000 + ';' +
             'background-color: rgba(0,0,0,0);' +
             'border-color:' + this._defaultBorder);
@@ -2048,7 +2048,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
     _fadeInBackground(time, delay) {
         if (_DEBUG_) global.log("dockedWorkspaces: _fadeInBackground");
         // CSS time is in ms
-        this._thumbnailsBox.actor.set_style('transition-duration:' + time*1000 + ';' +
+        this._thumbnailsBox.set_style('transition-duration:' + time*1000 + ';' +
             'transition-delay:' + delay*1000 + ';' +
             'background-color: rgba(0,0,0,0);' +
             'border-color:' + this._customBorder);
@@ -2078,7 +2078,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         // Fixed dock has opacity set to 0 but is still reactive.
         this._dock.reactive = false;
         this._shortcutsPanel.setReactiveState(false);
-        this._thumbnailsBox.actor.reactive = false;
+        this._thumbnailsBox.reactive = false;
         for (let i = 0; i < this._thumbnailsBox._thumbnails.length; i++) {
             let thumbnail = this._thumbnailsBox._thumbnails[i];
             thumbnail.setCaptionReactiveState(false);
@@ -2095,7 +2095,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         // Return thumbnail windowclones to reactive state
         this._dock.reactive = true;
         this._shortcutsPanel.setReactiveState(true);
-        this._thumbnailsBox.actor.reactive = true;
+        this._thumbnailsBox.reactive = true;
         for (let i = 0; i < this._thumbnailsBox._thumbnails.length; i++) {
             let thumbnail = this._thumbnailsBox._thumbnails[i];
             thumbnail.setCaptionReactiveState(true);
@@ -2112,16 +2112,16 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
     _getBackgroundColor() {
         if (_DEBUG_) global.log("dockedWorkspaces: _getBackgroundColor");
         // Remove custom style
-        let oldStyle = this._thumbnailsBox.actor.get_style();
-        this._thumbnailsBox.actor.set_style(null);
+        let oldStyle = this._thumbnailsBox.get_style();
+        this._thumbnailsBox.set_style(null);
 
         // Prevent shell crash if the actor is not on the stage
         // It happens enabling/disabling repeatedly the extension
-        if (!this._thumbnailsBox.actor.get_stage())
+        if (!this._thumbnailsBox.get_stage())
             return null;
 
-        let themeNode = this._thumbnailsBox.actor.get_theme_node();
-        this._thumbnailsBox.actor.set_style(oldStyle);
+        let themeNode = this._thumbnailsBox.get_theme_node();
+        this._thumbnailsBox.set_style(oldStyle);
 
         // Just in case the theme has different border colors ..
         // We want to find the inside border-color of the dock because it is
@@ -2405,7 +2405,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         // allows us to control the trigger space for showing/hiding and scrolling
         if (this._isHorizontal) {
             if (this._settings.get_boolean('customize-height')) {
-                let [minThumbnailsBoxWidth, minThumbnailsBoxHeight, natThumbnailsBoxWidth, natThumbnailsBoxHeight] = this._thumbnailsBox.actor.get_preferred_size();
+                let [minThumbnailsBoxWidth, minThumbnailsBoxHeight, natThumbnailsBoxWidth, natThumbnailsBoxHeight] = this._thumbnailsBox.get_preferred_size();
                 let minShortcutsPanelWidth = 0, minShortcutsPanelHeight = 0, natShortcutsPanelWidth = 0, natShortcutsPanelHeight = 0;
                 if (this._settings.get_boolean('show-shortcuts-panel')) {
                     [minShortcutsPanelWidth, minShortcutsPanelHeight, natShortcutsPanelWidth, natShortcutsPanelHeight] = this._shortcutsPanel.actor.get_preferred_size();
@@ -2440,7 +2440,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
             }
         } else {
             if (this._settings.get_boolean('customize-height')) {
-                let [minThumbnailsBoxWidth, minThumbnailsBoxHeight, natThumbnailsBoxWidth, natThumbnailsBoxHeight] = this._thumbnailsBox.actor.get_preferred_size();
+                let [minThumbnailsBoxWidth, minThumbnailsBoxHeight, natThumbnailsBoxWidth, natThumbnailsBoxHeight] = this._thumbnailsBox.get_preferred_size();
                 let minShortcutsPanelWidth = 0, minShortcutsPanelHeight = 0, natShortcutsPanelWidth = 0, natShortcutsPanelHeight = 0;
                 if (this._settings.get_boolean('show-shortcuts-panel')) {
                     [minShortcutsPanelWidth, minShortcutsPanelHeight, natShortcutsPanelWidth, natShortcutsPanelHeight] = this._shortcutsPanel.actor.get_preferred_size();
@@ -2498,7 +2498,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
             if (this._settings.get_boolean('customize-thumbnail-visible-width')) {
                 slidePartialVisibleWidth = this._settings.get_double('thumbnail-visible-width');
             } else {
-                let themeVisibleWidth = this._thumbnailsBox.actor.get_theme_node().get_length('visible-width');
+                let themeVisibleWidth = this._thumbnailsBox.get_theme_node().get_length('visible-width');
                 if (themeVisibleWidth > 0)
                     slidePartialVisibleWidth = themeVisibleWidth;
             }
