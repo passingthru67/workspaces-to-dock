@@ -15,7 +15,6 @@ const WorkspacesView = imports.ui.workspacesView;
 const Workspace = imports.ui.workspace;
 const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
 const Overview = imports.ui.overview;
-const Tweener = imports.ui.tweener;
 const IconGrid = imports.ui.iconGrid;
 const PopupMenu = imports.ui.popupMenu;
 const DND = imports.ui.dnd;
@@ -29,8 +28,8 @@ const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 
 var CAPTION_APP_ICON_ZOOM = 8;
-let TASKBAR_TOOLTIP_SHOW_TIME = 0.15;
-let TASKBAR_TOOLTIP_HIDE_TIME = 0.1;
+let TASKBAR_TOOLTIP_SHOW_TIME = 150;
+let TASKBAR_TOOLTIP_HIDE_TIME = 100;
 let TASKBAR_TOOLTIP_HOVER_TIMEOUT = 10;
 
 const WindowAppsUpdateAction = {
@@ -195,12 +194,11 @@ var TaskbarIcon = class WorkspacesToDock_TaskbarIcon {
         }
 
         this.tooltip.set_position(x, y);
-        Tweener.addTween(this.tooltip,
-                         { opacity: 255,
-                           time: TASKBAR_TOOLTIP_SHOW_TIME,
-                           transition: 'easeOutQuad',
-                         });
-
+        this.tooltip.ease({
+            opacity: 255,
+            duration: TASKBAR_TOOLTIP_SHOW_TIME,
+            mode: Clutter.AnimationMode.EASE_OUT_QUAD
+        });
     }
 
     hideTooltip() {
@@ -209,14 +207,14 @@ var TaskbarIcon = class WorkspacesToDock_TaskbarIcon {
             this._tooltipHoverTimeoutId = 0;
         }
 
-        Tweener.addTween(this.tooltip,
-                         { opacity: 0,
-                           time: TASKBAR_TOOLTIP_HIDE_TIME,
-                           transition: 'easeOutQuad',
-                           onComplete: () => {
-                               this.tooltip.hide();
-                           }
-                         });
+        this.tooltip.ease({
+            opacity: 0,
+            duration: TASKBAR_TOOLTIP_HIDE_TIME,
+            mode: Clutter.AnimationMode.EASE_OUT_QUAD
+            onComplete: () => {
+                this.tooltip.hide();
+            }
+        });
     }
 };
 

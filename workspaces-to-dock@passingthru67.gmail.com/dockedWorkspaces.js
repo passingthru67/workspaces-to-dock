@@ -27,7 +27,6 @@ const Params = imports.misc.params;
 const Main = imports.ui.main;
 const WorkspacesView = imports.ui.workspacesView;
 const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
-const Tweener = imports.ui.tweener;
 const WorkspaceSwitcherPopup = imports.ui.workspaceSwitcherPopup;
 const Overview = imports.ui.overview;
 const OverviewControls = imports.ui.overviewControls;
@@ -1916,11 +1915,10 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
             this._dockState = DockState.SHOWING;
         }
 
-        Tweener.addTween(this._slider, {
-            slidex: sliderVariable,
-            time: time,
-            delay: delay,
-            transition: 'easeOutQuad',
+        this._slider.ease_property('slidex', sliderVariable, {
+            duration: time * 1000,
+            delay: delay * 1000,
+            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
             onComplete: () => {
                 if (_DEBUG_) global.log("dockedWorkspaces: _animateIN onComplete");
                 if (!force && !fixedPosition) {
@@ -2000,11 +1998,10 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
             }
         }
 
-        Tweener.addTween(this._slider, {
-            slidex: sliderVariable,
-            time: time,
-            delay: delay,
-            transition: 'easeOutQuad',
+        this._slider.ease_property('slidex', sliderVariable, {
+            duration: time * 1000,
+            delay: delay * 1000,
+            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
             onComplete: () => {
                 if (_DEBUG_) global.log("dockedWorkspaces: _animateOUT onComplete");
                 this._dockState = DockState.HIDDEN;
@@ -2016,7 +2013,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
     // autohide function to remove show-hide animations
     _removeAnimations() {
         if (_DEBUG_) global.log("dockedWorkspaces: _removeAnimations");
-        Tweener.removeTweens(this._slider);
+        this._slider.remove_all_transitions();
     }
 
     // autohide function to fade out opaque background
