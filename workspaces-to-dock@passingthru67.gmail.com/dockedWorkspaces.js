@@ -40,7 +40,7 @@ const Extension = Me.imports.extension;
 const Convenience = Me.imports.convenience;
 const MyWorkspaceThumbnail = Me.imports.myWorkspaceThumbnail;
 const ShortcutsPanel = Me.imports.shortcutsPanel;
-const MyWorkspaceSwitcherPopup = Me.imports.myWorkspaceSwitcherPopup;
+const MyWorkspaceSwitcher = Me.imports.myWorkspaceSwitcher;
 const MyPressureBarrier = Me.imports.myPressureBarrier;
 
 const DashToDock_UUID = "dash-to-dock@micxgx.gmail.com";
@@ -318,10 +318,10 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         this._shortcutsPanel.connect("update-favorite-apps", this._onShortcutsPanelUpdated.bind(this));
         this._shortcutsPanel.connect("update-running-apps", this._onShortcutsPanelUpdated.bind(this));
 
-        // Create custom workspace switcher popup
+        // Create custom workspace switcher
         this._workspaceSwitcher = null;
         if (this._isHorizontal && this._settings.get_boolean('horizontal-workspace-switching'))
-            this._workspaceSwitcher = new MyWorkspaceSwitcherPopup.WorkspaceSwitcher();
+            this._workspaceSwitcher = new MyWorkspaceSwitcher.WorkspaceSwitcher();
 
         // Create position styles for dock container
         let positionStyleClass = ['top', 'right', 'bottom', 'left'];
@@ -1796,16 +1796,12 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
             let ws = activeWs.get_neighbor(direction);
 
             if (Main.wm._workspaceSwitcherPopup == null) {
-                if (this._isHorizontal && this._settings.get_boolean('horizontal-workspace-switching')) {
-                    Main.wm._workspaceSwitcherPopup = new MyWorkspaceSwitcherPopup.MyWorkspaceSwitcherPopup();
-                } else {
-                    Main.wm._workspaceSwitcherPopup = new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup();
-                }
+                Main.wm._workspaceSwitcherPopup = new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup();
             }
 
             // Set the workspaceSwitcherPopup actor to non reactive,
             // to prevent it from grabbing focus away from the dock
-            Main.wm._workspaceSwitcherPopup.actor.reactive = false;
+            Main.wm._workspaceSwitcherPopup.reactive = false;
             Main.wm._workspaceSwitcherPopup.connect('destroy', function() {
                 Main.wm._workspaceSwitcherPopup = null;
             });
