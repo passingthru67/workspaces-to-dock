@@ -24,7 +24,6 @@ const DND = imports.ui.dnd;
 const IconGrid = imports.ui.iconGrid;
 
 const Util = imports.misc.util;
-const ExtensionSystem = imports.ui.extensionSystem;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 
