@@ -308,13 +308,13 @@ var ShortcutButton = class WorkspacesToDock_ShortcutButton {
         this._iconContainer.add_child(this._dot);
 
         this._icon = new IconGrid.BaseIcon(null, iconParams);
-        this._icon.actor.add_style_class_name('workspacestodock-shortcut-button-icon');
+        this._icon.add_style_class_name('workspacestodock-shortcut-button-icon');
         if (appType == ApplicationType.PLACE) {
-            this._icon.actor.add_style_class_name('workspacestodock-shortcut-button-symbolic-icon');
+            this._icon.add_style_class_name('workspacestodock-shortcut-button-symbolic-icon');
         }
         this._icon.setIconSize(this._iconSize);
 
-        this._iconContainer.add_child(this._icon.actor);
+        this._iconContainer.add_child(this._icon);
 
         this._menu = null;
         this._menuManager = new PopupMenu.PopupMenuManager(this.actor);
