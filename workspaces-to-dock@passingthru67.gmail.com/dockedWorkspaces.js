@@ -33,7 +33,6 @@ const OverviewControls = imports.ui.overviewControls;
 const Layout = imports.ui.layout;
 const MessageTray = imports.ui.messageTray;
 
-const ExtensionSystem = imports.ui.extensionSystem;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Config = imports.misc.config;
 const Me = ExtensionUtils.getCurrentExtension();
@@ -497,7 +496,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
                 this._onIconsChanged.bind(this)
             ],
             [
-                ExtensionSystem._signals,
+                Main.extensionManager,
                 'extension-state-changed',
                 this._onExtensionSystemStateChanged.bind(this)
             ],
@@ -530,9 +529,9 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
 
         // Connect DashToDock hover signal if the extension is already loaded and enabled
         this._hoveringDash = false;
-        DashToDockExtension = ExtensionUtils.extensions[DashToDock_UUID];
+        DashToDockExtension = Main.extensionManager.lookup(DashToDock_UUID);
         if (DashToDockExtension) {
-            if (DashToDockExtension.state == ExtensionSystem.ExtensionState.ENABLED) {
+            if (DashToDockExtension.state == ExtensionUtils.ExtensionState.ENABLED) {
                 if (_DEBUG_) global.log("dockeWorkspaces: init - DashToDock extension is installed and enabled");
                 DashToDock = DashToDockExtension.imports.extension;
                 if (DashToDock) {
@@ -1712,7 +1711,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         if (extension.uuid == DashToDock_UUID) {
             if (_DEBUG_) global.log("dockedWorkspaces: _onExtensionSystemStateChanged for "+extension.uuid+" state= "+extension.state);
             DashToDockExtension = extension;
-            if (DashToDockExtension.state == ExtensionSystem.ExtensionState.ENABLED) {
+            if (DashToDockExtension.state == ExtensionUtils.ExtensionState.ENABLED) {
                 DashToDock = DashToDockExtension.imports.extension;
                 if (DashToDock) {
                     DashToDockExtension.hasDockPositionKey = false;
@@ -1726,7 +1725,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
                     }
                     this._connectDashToDockSignals();
                 }
-            } else if (extension.state == ExtensionSystem.ExtensionState.DISABLED || extension.state == ExtensionSystem.ExtensionState.UNINSTALLED) {
+            } else if (extension.state == ExtensionUtils.ExtensionState.DISABLED || extension.state == ExtensionUtils.ExtensionState.UNINSTALLED) {
                 DashToDock = null;
                 this._hoveringDash = false;
                 this._disconnectDashToDockSignals();
