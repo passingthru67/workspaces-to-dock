@@ -111,7 +111,7 @@ var MyThumbnailsSlider = GObject.registerClass({
             St.Side, St.Side.RIGHT),
         'slidex': GObject.ParamSpec.double(
             'slidex', 'slidex', 'slidex',
-            GObject.ParamFlags.READWRITE,
+            GObject.ParamFlags.READWRITE | GObject.ParamFlags.CONSTRUCT,
             0, 1, 1),
         'slideout-size': GObject.ParamSpec.double(
             'slideout-size', 'slideout-size', 'slideout-size',
@@ -120,15 +120,15 @@ var MyThumbnailsSlider = GObject.registerClass({
         'partial-slideout-size': GObject.ParamSpec.double(
             'partial-slideout-size', 'partial-slideout-size', 'partial-slideout-size',
             GObject.ParamFlags.READWRITE,
-            0, Infinity, 1)
+            0, Infinity, DOCK_EDGE_VISIBLE_OVERVIEW_WIDTH + 1)
     }
 }, class WorkspacesToDock_MyThumbnailsSlider extends St.Widget {
-    _init(params) {
+    _init(params = {}) {
         // slide parameter: 1 = visible, 0 = hidden.
-        this._side = params.side || St.Side.RIGHT;
-        this._slidex = params.slidex || 1;
-        this._slideoutSize = params.slideoutsize || 1;
-        this._partialSlideoutSize = params.partialslideoutsize || (DOCK_EDGE_VISIBLE_OVERVIEW_WIDTH + 1);
+        this._side = params.side;
+        this._slidex = params.slidex;
+        this._slideoutSize = 1;
+        this._partialSlideoutSize = DOCK_EDGE_VISIBLE_OVERVIEW_WIDTH + 1;
 
         super._init(params);
         this._child = null;
