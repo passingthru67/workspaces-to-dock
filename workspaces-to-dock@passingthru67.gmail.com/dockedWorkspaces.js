@@ -1637,7 +1637,22 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
 
     _onDashToDockBoxDestroy() {
         if (_DEBUG_) global.log("dockedWorkspaces: _onDashToDockBoxDestroy for DASHTODOCK");
-        this._signalHandler.disconnectWithLabel('DashToDockBoxHoverSignal');
+        this._hoveringDash = false;
+        this._disconnectDashToDockSignals();
+
+        // Restore dock if still enabled
+        if (this._checkDashToDockStatusId > 0) {
+            Mainloop.source_remove(this._checkDashToDockStatusId);
+            this._checkDashToDockStatusId = 0;
+        }
+        this._checkDashToDockStatusId = Mainloop.timeout_add(500, this._checkDashToDockStatus.bind(this));
+    }
+
+    _checkDashToDockStatus() {
+        if (DashToDock)
+            this._connectDashToDockSignals();
+
+        this._checkDashToDockStatusId = 0;
     }
 
     _disconnectDashToDockSignals() {
@@ -1689,30 +1704,6 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
                         ]
                     );
                 }
-            } else {
-                this._signalHandler.pushWithLabel(
-                    'DashToDockHoverSignal',
-                    [
-                        DashToDock.dock._box,
-                        'notify::hover',
-                        this._onDashToDockHoverChanged.bind(this)
-                    ],
-                    [
-                        DashToDock.dock._box,
-                        'leave-event',
-                        this._onDashToDockLeave.bind(this)
-                    ],
-                    [
-                        DashToDock.dock,
-                        'showing',
-                        this._onDashToDockShowing.bind(this)
-                    ],
-                    [
-                        DashToDock.dock,
-                        'hiding',
-                        this._onDashToDockHiding.bind(this)
-                    ]
-                );
             }
         }
     }
