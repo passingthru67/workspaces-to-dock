@@ -80,6 +80,7 @@ var TaskbarIcon = class WorkspacesToDock_TaskbarIcon {
         this.tooltip = new St.Label({ style_class: 'dash-label workspacestodock-caption-windowapps-button-tooltip'});
         this.tooltip.hide();
         Main.layoutManager.addChrome(this.tooltip);
+        Main.layoutManager.uiGroup.set_child_below_sibling(this.tooltip, Main.layoutManager.modalDialogGroup);
         this.tooltip_actor = this.tooltip;
 
         // Connect signals
