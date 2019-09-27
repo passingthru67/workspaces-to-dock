@@ -277,6 +277,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
 
         // Set position of dock
         this._position = getPosition(this._settings);
+        if (_DEBUG_) global.log("dockedWorkspaces: init POSITION is " + this._position);
         this._isHorizontal = (this._position == St.Side.TOP ||
                               this._position == St.Side.BOTTOM);
 
@@ -1417,6 +1418,16 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
             }
         }
 
+        if (this._dockState == DockState.SHOWING) {
+            // Prevent dock from getting stuck animated in when mouse is no longer hovering
+            if (this._checkHoverStatusId > 0) {
+                Mainloop.source_remove(this._checkHoverStatusId);
+                this._checkHoverStatusId = 0;
+            }
+            this._checkHoverStatusId = Mainloop.timeout_add(100, this._checkHoverStatus.bind(this));
+            return;
+        }
+
         if (this._settings.get_boolean('require-click-to-show')) {
             // check if metaWin is maximized
             let workspaceManager = global.workspace_manager;
@@ -1920,6 +1931,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
             this._dockState = DockState.SHOWING;
         }
 
+        if (_DEBUG_) global.log("... animateIN: BEGIN SLIDING. Set dockstate = "+getDockStateDesc(this._dockState));
         this._slider.ease_property('slidex', sliderVariable, {
             duration: time * 1000,
             delay: delay * 1000,
