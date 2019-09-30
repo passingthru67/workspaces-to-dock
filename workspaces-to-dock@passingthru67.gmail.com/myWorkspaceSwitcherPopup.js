@@ -193,9 +193,9 @@ class WorkspacesToDock_MyWorkspaceSwitcherPopup extends St.Widget {
             let indicator = null;
 
            if (i == this._activeWorkspaceIndex && this._direction == Meta.MotionDirection.LEFT)
-               indicator = new St.Bin({ style_class: 'ws-switcher-active-up' });
+               indicator = new St.Bin({ style_class: 'ws-switcher-active-up ws-switcher-active-left' });
            else if(i == this._activeWorkspaceIndex && this._direction == Meta.MotionDirection.RIGHT)
-               indicator = new St.Bin({ style_class: 'ws-switcher-active-down' });
+               indicator = new St.Bin({ style_class: 'ws-switcher-active-down ws-switcher-active-right' });
            else if (i == this._activeWorkspaceIndex && this._direction == Meta.MotionDirection.UP)
                indicator = new St.Bin({ style_class: 'ws-switcher-active-up' });
            else if(i == this._activeWorkspaceIndex && this._direction == Meta.MotionDirection.DOWN)
