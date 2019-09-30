@@ -1353,7 +1353,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         });
 
         let thumbnailSizeSpinner = new Gtk.SpinButton();
-        thumbnailSizeSpinner.set_range(10, 25);
+        thumbnailSizeSpinner.set_range(5, 25);
         thumbnailSizeSpinner.set_value(this.settings.get_double('thumbnail-size') * 100);
         thumbnailSizeSpinner.set_digits(1);
         thumbnailSizeSpinner.set_increments(.5, 1);
