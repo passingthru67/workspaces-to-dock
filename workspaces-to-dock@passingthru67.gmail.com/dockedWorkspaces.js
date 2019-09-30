@@ -763,6 +763,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
             let allocation = this.actor.allocation;
             let width = allocation.x2 - allocation.x1;
             let height = allocation.y2 - allocation.y1;
+            if (_DEBUG_) global.log("WORKSPACESDISPLAY - ALLOCATION X = "+x+" Y = "+y+" W = "+width+" H = "+height);
 
             let spacing = Main.overview._controls.actor.get_theme_node().get_length('spacing');
             let monitors = Main.layoutManager.monitors;
@@ -788,7 +789,10 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
 
             // Iterate through monitors
             for (let i = 0; i < monitors.length; i++) {
+                if (_DEBUG_) global.log("WORKSPACESDISPLAY - MONITOR = "+i);
+
                 let geometry = { x: monitors[i].x, y: monitors[i].y, width: monitors[i].width, height: monitors[i].height };
+                if (_DEBUG_) global.log("WORKSPACESDISPLAY - INIT GEOMETRY.X = "+geometry.x+" Y = "+geometry.y+" W = "+geometry.width+" H = "+geometry.height);
 
                 // Adjust index to point to correct dock
                 // Only needed when using DashToDock.dockManager
@@ -947,8 +951,11 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
                 // Adjust y and height for workspacesView geometry for primary monitor (top panel, etc.)
                 if (i == this._primaryIndex) {
                     geometry.y = y;
-                    geometry.height = height;
+                    if (height > 0)
+                        geometry.height = height;
                 }
+
+                if (_DEBUG_) global.log("WORKSPACESDISPLAY - INTERMEDIATE GEOMETRY.X = "+geometry.x+" Y = "+geometry.y+" W = "+geometry.width+" H = "+geometry.height);
 
                 // What if dash and thumbnailsBox are not on the primary monitor?
                 let controlsHeight = dashHeight + thumbnailsHeight;
@@ -996,9 +1003,8 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
                     }
                 }
                 geometry.height -= controlsHeight;
+                if (_DEBUG_) global.log("WORKSPACESDISPLAY - FINAL GEOMETRY.X = "+geometry.x+" Y = "+geometry.y+" W = "+geometry.width+" H = "+geometry.height);
 
-
-                if (_DEBUG_) global.log("MONITOR = "+i);
                 this._workspacesViews[i].setMyActualGeometry(geometry);
             }
         };
