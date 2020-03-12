@@ -8,9 +8,9 @@
 
 const _DEBUG_ = false;
 
+const GLib = imports.gi.GLib;
 const Lang = imports.lang;
 const Meta = imports.gi.Meta;
-const Mainloop = imports.mainloop;
 const Signals = imports.signals;
 const Shell = imports.gi.Shell;
 const Gdk = imports.gi.Gdk;
@@ -269,7 +269,7 @@ var Intellihide = class WorkspacesToDock_Intellihide {
         if (_DEBUG_) global.log("intellihide: init - signals being captured");
 
         // Start main loop and bind initialize function
-        Mainloop.idle_add(this._initialize.bind(this));
+        GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, this._initialize.bind(this));
     }
 
     _initialize() {
@@ -293,7 +293,7 @@ var Intellihide = class WorkspacesToDock_Intellihide {
         this._settings.run_dispose();
 
         if (this._windowChangedTimeout > 0)
-            Mainloop.source_remove(this._windowChangedTimeout); // Just to be sure
+            GLib.source_remove(this._windowChangedTimeout); // Just to be sure
     }
 
     // Called during init to override/extend gnome shell functions
@@ -344,7 +344,7 @@ var Intellihide = class WorkspacesToDock_Intellihide {
                 this.status = true; // Since the dock is now shown
             } else {
                 // Wait that windows rearrange after struts change
-                Mainloop.idle_add(() =>  {
+                GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () =>  {
                     this._updateDockVisibility();
                     return false;
                 });
@@ -720,9 +720,9 @@ var Intellihide = class WorkspacesToDock_Intellihide {
             let INTERVAL = 100; // A good compromise between reactivity and efficiency; to be tuned.
 
             if (this._windowChangedTimeout > 0)
-                Mainloop.source_remove(this._windowChangedTimeout); // Just to be sure
+                GLib.source_remove(this._windowChangedTimeout); // Just to be sure
 
-            this._windowChangedTimeout = Mainloop.timeout_add(INTERVAL, () => {
+            this._windowChangedTimeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, INTERVAL, () => {
                 this._updateDockVisibility();
                 return true; // to make the loop continue
             });
@@ -734,7 +734,7 @@ var Intellihide = class WorkspacesToDock_Intellihide {
         if (_DEBUG_) global.log("intellihide: _grabOpEnd");
         if (this._settings.get_boolean('intellihide')) {
             if (this._windowChangedTimeout > 0)
-                Mainloop.source_remove(this._windowChangedTimeout);
+                GLib.source_remove(this._windowChangedTimeout);
 
             this._windowChangedTimeout = 0
             this._updateDockVisibility();
@@ -748,7 +748,7 @@ var Intellihide = class WorkspacesToDock_Intellihide {
         // Reset quick show timeout
         this._switchedWorkspace = true;
         if (this._quickShowTimeoutId > 0)
-            Mainloop.source_remove(this._quickShowTimeoutId);
+            GLib.source_remove(this._quickShowTimeoutId);
 
         this._quickShowTimeoutId = 0;
 
@@ -793,7 +793,7 @@ var Intellihide = class WorkspacesToDock_Intellihide {
     _quickShowExit() {
         this._switchedWorkspace = false;
         if (this._quickShowTimeoutId > 0)
-            Mainloop.source_remove(this._quickShowTimeoutId);
+            GLib.source_remove(this._quickShowTimeoutId);
 
         this._quickShowTimeoutId = 0;
         this._updateDockVisibility();
@@ -900,7 +900,7 @@ var Intellihide = class WorkspacesToDock_Intellihide {
                     if (_DEBUG_) global.log("intellihide: updateDockVisiblity - quick show");
                     this._show(true);
                     let timeout = this._settings.get_double('quick-show-timeout');
-                    this._quickShowTimeoutId = Mainloop.timeout_add(timeout, this._quickShowExit.bind(this));
+                    this._quickShowTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, timeout, this._quickShowExit.bind(this));
                 } else {
                     if (_DEBUG_) global.log("intellihide: updateDockVisiblity - overlaps = "+overlaps);
                     if (this._quickShowTimeoutId == 0) {
@@ -930,7 +930,7 @@ var Intellihide = class WorkspacesToDock_Intellihide {
                     if (_DEBUG_) global.log("intellihide: updateDockVisibility - quick show");
                     this._show(true);
                     let timeout = this._settings.get_double('quick-show-timeout');
-                    this._quickShowTimeoutId = Mainloop.timeout_add(timeout, this._quickShowExit.bind(this));
+                    this._quickShowTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, timeout, this._quickShowExit.bind(this));
                 } else {
                     if (this._quickShowTimeoutId == 0)
                         this._hide();

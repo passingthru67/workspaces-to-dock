@@ -11,7 +11,6 @@ const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 const Shell = imports.gi.Shell;
 const Lang = imports.lang;
-const Mainloop = imports.mainloop;
 const Signals = imports.signals;
 const St = imports.gi.St;
 

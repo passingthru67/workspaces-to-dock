@@ -8,7 +8,6 @@ const Meta = imports.gi.Meta;
 const Shell = imports.gi.Shell;
 const Signals = imports.signals;
 const St = imports.gi.St;
-const Mainloop = imports.mainloop;
 
 const Main = imports.ui.main;
 const WorkspacesView = imports.ui.workspacesView;
@@ -106,10 +105,10 @@ var TaskbarIcon = class WorkspacesToDock_TaskbarIcon {
 
         if (this._mySettings.get_boolean('workspace-caption-taskbar-tooltips')) {
             if (this._tooltipHoverTimeoutId > 0) {
-                Mainloop.source_remove(this._tooltipHoverTimeoutId);
+                GLib.source_remove(this._tooltipHoverTimeoutId);
                 this._tooltipHoverTimeoutId = 0;
             }
-            this._tooltipHoverTimeoutId = Mainloop.timeout_add(TASKBAR_TOOLTIP_HOVER_TIMEOUT, this.showTooltip.bind(this));
+            this._tooltipHoverTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, TASKBAR_TOOLTIP_HOVER_TIMEOUT, this.showTooltip.bind(this));
         }
     }
 
@@ -151,7 +150,7 @@ var TaskbarIcon = class WorkspacesToDock_TaskbarIcon {
 
     showTooltip() {
         if (this._tooltipHoverTimeoutId > 0) {
-            Mainloop.source_remove(this._tooltipHoverTimeoutId);
+            GLib.source_remove(this._tooltipHoverTimeoutId);
             this._tooltipHoverTimeoutId = 0;
         }
 
@@ -204,7 +203,7 @@ var TaskbarIcon = class WorkspacesToDock_TaskbarIcon {
 
     hideTooltip() {
         if (this._tooltipHoverTimeoutId > 0) {
-            Mainloop.source_remove(this._tooltipHoverTimeoutId);
+            GLib.source_remove(this._tooltipHoverTimeoutId);
             this._tooltipHoverTimeoutId = 0;
         }
 
@@ -681,7 +680,7 @@ var ThumbnailCaption = class WorkspacesToDock_ThumbnailCaption {
         if (!win) {
             // Newly-created windows are added to a workspace before
             // the compositor finds out about them...
-            let id = Mainloop.idle_add(() => {
+            let id = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
                                                 if (this.actor &&
                                                     metaWin.get_compositor_private())
                                                     this._doAfterWindowAdded(metaWin);

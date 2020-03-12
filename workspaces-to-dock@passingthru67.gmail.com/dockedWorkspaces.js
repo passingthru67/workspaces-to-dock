@@ -19,7 +19,6 @@ const Lang = imports.lang;
 const Shell = imports.gi.Shell;
 const Signals = imports.signals;
 const St = imports.gi.St;
-const Mainloop = imports.mainloop;
 const Meta = imports.gi.Meta;
 const IconTheme = imports.gi.Gtk.IconTheme;
 const Params = imports.misc.params;
@@ -1375,7 +1374,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         if (_DEBUG_) global.log("dockedWorkspaces: _toggleWithKeyboard");
         // Clear keyboard toggle timeout
         if (this._toggleWithKeyboardTimeoutId > 0) {
-            Mainloop.source_remove(this._toggleWithKeyboardTimeoutId);
+            GLib.source_remove(this._toggleWithKeyboardTimeoutId);
             this._toggleWithKeyboardTimeoutId = 0;
         }
 
@@ -1383,7 +1382,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         if (show) {
             this._show();
             let timeout = this._settings.get_double('keyboard-toggle-timeout') * 1000;
-            this._toggleWithKeyboardTimeoutId = Mainloop.timeout_add(timeout, () => {
+            this._toggleWithKeyboardTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, timeout, () => {
                 this._toggleWithKeyboard(false);
             });
         } else {
@@ -1427,10 +1426,10 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         if (this._dockState == DockState.SHOWING) {
             // Prevent dock from getting stuck animated in when mouse is no longer hovering
             if (this._checkHoverStatusId > 0) {
-                Mainloop.source_remove(this._checkHoverStatusId);
+                GLib.source_remove(this._checkHoverStatusId);
                 this._checkHoverStatusId = 0;
             }
-            this._checkHoverStatusId = Mainloop.timeout_add(100, this._checkHoverStatus.bind(this));
+            this._checkHoverStatusId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, this._checkHoverStatus.bind(this));
             return;
         }
 
@@ -1486,7 +1485,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
     _checkHoverStatus() {
         if (_DEBUG_) global.log("dockedWorkspaces: _checkHoverStatus");
         if (this._checkHoverStatusId > 0) {
-            Mainloop.source_remove(this._checkHoverStatusId);
+            GLib.source_remove(this._checkHoverStatusId);
             this._checkHoverStatusId = 0;
         }
         if (Extension.intellihide._toggledOverviewOnDrag == false) {
@@ -1549,10 +1548,10 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
 
                 // Restore barrier after short timeout
                 if (this._restoreBarrierTimeoutId > 0) {
-                    Mainloop.source_remove(this._restoreBarrierTimeoutId);
+                    GLib.source_remove(this._restoreBarrierTimeoutId);
                     this._restoreBarrierTimeoutId = 0;
                 }
-                this._restoreBarrierTimeoutId = Mainloop.timeout_add(500, this._updateBarrier.bind(this));
+                this._restoreBarrierTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, this._updateBarrier.bind(this));
             }
         }
     }
@@ -1648,10 +1647,10 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
 
         // Restore dock if still enabled
         if (this._checkDashToDockStatusId > 0) {
-            Mainloop.source_remove(this._checkDashToDockStatusId);
+            GLib.source_remove(this._checkDashToDockStatusId);
             this._checkDashToDockStatusId = 0;
         }
-        this._checkDashToDockStatusId = Mainloop.timeout_add(500, this._checkDashToDockStatus.bind(this));
+        this._checkDashToDockStatusId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, this._checkDashToDockStatus.bind(this));
     }
 
     _checkDashToDockStatus() {
@@ -1795,7 +1794,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
                     return false;
                 else {
                     this._scrollWorkspaceSwitchDeadTimeId =
-                        Mainloop.timeout_add(250, () => {
+                        GLib.timeout_add(GLib.PRIORITY_DEFAULT, 250, () => {
                                 this._scrollWorkspaceSwitchDeadTimeId = 0;
                         });
                 }
@@ -1946,10 +1945,10 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
                         // NOTE: Delay needed to keep mouse from moving past dock and re-hiding dock immediately. This
                         // gives users an opportunity to hover over the dock
                         if (this._removeBarrierTimeoutId > 0) {
-                            Mainloop.source_remove(this._removeBarrierTimeoutId);
+                            GLib.source_remove(this._removeBarrierTimeoutId);
                             this._removeBarrierTimeoutId = 0;
                         }
-                        this._removeBarrierTimeoutId = Mainloop.timeout_add(100, this._removeBarrier.bind(this));
+                        this._removeBarrierTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, this._removeBarrier.bind(this));
                         this._updateTriggerWidth();
                     }
                 } else {
@@ -1959,19 +1958,19 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
                     // NOTE: Delay needed to keep mouse from moving past dock and re-hiding dock immediately. This
                     // gives users an opportunity to hover over the dock
                     if (this._removeBarrierTimeoutId > 0) {
-                        Mainloop.source_remove(this._removeBarrierTimeoutId);
+                        GLib.source_remove(this._removeBarrierTimeoutId);
                         this._removeBarrierTimeoutId = 0;
                     }
-                    this._removeBarrierTimeoutId = Mainloop.timeout_add(100, this._removeBarrier.bind(this));
+                    this._removeBarrierTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, this._removeBarrier.bind(this));
                     this._updateTriggerWidth();
                 }
 
                 // Prevent dock from getting stuck animated in when mouse is no longer hovering
                 if (this._checkHoverStatusId > 0) {
-                    Mainloop.source_remove(this._checkHoverStatusId);
+                    GLib.source_remove(this._checkHoverStatusId);
                     this._checkHoverStatusId = 0;
                 }
-                this._checkHoverStatusId = Mainloop.timeout_add(100, this._checkHoverStatus.bind(this));
+                this._checkHoverStatusId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, this._checkHoverStatus.bind(this));
             }
         });
     }
@@ -2590,7 +2589,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
 
         // Remove barrier timeout
         if (this._removeBarrierTimeoutId > 0) {
-            Mainloop.source_remove(this._removeBarrierTimeoutId);
+            GLib.source_remove(this._removeBarrierTimeoutId);
             this._removeBarrierTimeoutId = 0;
         }
         return false;

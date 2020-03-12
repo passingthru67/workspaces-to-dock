@@ -13,7 +13,6 @@ const _DEBUG_ = false;
 
 const { Clutter, GLib, GObject, Meta, St, Shell } = imports.gi;
 const Lang = imports.lang;
-const Mainloop = imports.mainloop;
 
 const Main = imports.ui.main;
 const WorkspacesView = imports.ui.workspacesView;

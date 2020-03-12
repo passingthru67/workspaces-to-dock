@@ -8,7 +8,6 @@ const Clutter = imports.gi.Clutter;
 const St = imports.gi.St;
 const Shell = imports.gi.Shell;
 const Meta = imports.gi.Meta;
-const Mainloop = imports.mainloop;
 const Lang = imports.lang;
 const Signals = imports.signals;
 const Params = imports.misc.params;
@@ -386,7 +385,7 @@ var ShortcutButton = class WorkspacesToDock_ShortcutButton {
             let button = event.get_button();
             if (button == 1) {
                 this._removeMenuTimeout();
-                this._menuTimeoutId = Mainloop.timeout_add(MENU_POPUP_TIMEOUT, () => {
+                this._menuTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, MENU_POPUP_TIMEOUT, () => {
                         this._menuTimeoutId = 0;
                         return GLib.SOURCE_REMOVE;
                     });
@@ -469,9 +468,9 @@ var ShortcutButton = class WorkspacesToDock_ShortcutButton {
         let appWindows = getInterestingWindows(this._app);
 
         if(recentlyClickedAppLoopId>0)
-            Mainloop.source_remove(recentlyClickedAppLoopId);
+            GLib.source_remove(recentlyClickedAppLoopId);
 
-        recentlyClickedAppLoopId = Mainloop.timeout_add(MEMORY_TIME, this._resetClickedApp);
+        recentlyClickedAppLoopId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, MEMORY_TIME, this._resetClickedApp);
 
         // If there isn't already a list of windows for the current app,
         // or the stored list is outdated, use the current windows list.
@@ -493,7 +492,7 @@ var ShortcutButton = class WorkspacesToDock_ShortcutButton {
 
     _resetClickedApp() {
         if(recentlyClickedAppLoopId>0)
-            Mainloop.source_remove(recentlyClickedAppLoopId);
+            GLib.source_remove(recentlyClickedAppLoopId);
 
         recentlyClickedAppLoopId=0;
         recentlyClickedApp =null;
@@ -505,7 +504,7 @@ var ShortcutButton = class WorkspacesToDock_ShortcutButton {
 
     _removeMenuTimeout() {
         if (this._menuTimeoutId > 0) {
-            Mainloop.source_remove(this._menuTimeoutId);
+            GLib.source_remove(this._menuTimeoutId);
             this._menuTimeoutId = 0;
         }
     }
