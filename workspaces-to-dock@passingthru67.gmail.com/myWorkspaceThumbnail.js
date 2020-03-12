@@ -10,7 +10,6 @@ const _DEBUG_ = false;
 
 
 const { Clutter, Gio, GLib, GObject, Meta, Shell, St } = imports.gi;
-const Mainloop = imports.mainloop;
 const Signals = imports.signals;
 
 const Background = imports.ui.background;
@@ -72,38 +71,41 @@ class WorkspacesToDock_MyPrimaryActorLayout extends Clutter.FixedLayout {
     }
 });
 
-var MyWindowClone = class WorkspacesToDock_MyWindowClone {
-    constructor(realWindow) {
+var MyWindowClone = GObject.registerClass({
+    Signals: {
+        'drag-begin': {},
+        'drag-cancelled': {},
+        'drag-end': {},
+        'selected': { param_types: [GObject.TYPE_UINT] },
+    },
+}, class WorkspacesToDock_MyWindowClone extends Clutter.Actor {
+    _init(realWindow) {
         this._mySettings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
 
-        this.clone = new Clutter.Clone({ source: realWindow });
+        let clone = new Clutter.Clone({ source: realWindow });
+        super._init({
+            layout_manager: new MyPrimaryActorLayout(clone),
+            reactive: true,
+        });
+        this._delegate = this;
 
-        /* Can't use a Shell.GenericContainer because of DND and reparenting... */
-        this.actor = new Clutter.Actor({ layout_manager: new MyPrimaryActorLayout(this.clone),
-                                         reactive: true });
-        this.actor._delegate = this;
-        this.actor.add_child(this.clone);
+        this.add_child(clone);
         this.realWindow = realWindow;
         this.metaWindow = realWindow.meta_window;
 
-        this.clone._updateId = this.realWindow.connect('notify::position',
-                                                       this._onPositionChanged.bind(this));
-        this.clone._destroyId = this.realWindow.connect('destroy', () => {
+        clone._updateId = this.realWindow.connect('notify::position',
+                                                  this._onPositionChanged.bind(this));
+        clone._destroyId = this.realWindow.connect('destroy', () => {
             // First destroy the clone and then destroy everything
             // This will ensure that we never see it in the _disconnectSignals loop
-            this.clone.destroy();
+            clone.destroy();
             this.destroy();
         });
         this._onPositionChanged();
 
-        this.actor.connect('button-release-event',
-                           this._onButtonRelease.bind(this));
-        this.actor.connect('touch-event',
-                           this._onTouchEvent.bind(this));
+        this.connect('destroy', this._onDestroy.bind(this));
 
-        this.actor.connect('destroy', this._onDestroy.bind(this));
-
-        this._draggable = DND.makeDraggable(this.actor,
+        this._draggable = DND.makeDraggable(this,
                                             { restoreOnSuccess: true,
                                               dragActorMaxSize: Workspace.WINDOW_DND_SIZE,
                                               dragActorOpacity: Workspace.DRAGGING_WINDOW_OPACITY });
@@ -152,15 +154,12 @@ var MyWindowClone = class WorkspacesToDock_MyWindowClone {
         if (actor.inDrag)
             return;
 
+        let parent = this.get_parent();
         let actualAbove = this.getActualStackAbove();
         if (actualAbove == null)
-            this.actor.lower_bottom();
+            parent.set_child_below_sibling(this, null);
         else
-            this.actor.raise(actualAbove);
-    }
-
-    destroy() {
-        this.actor.destroy();
+            parent.set_child_above_sibling(this, actualAbove);
     }
 
     addAttachedDialog(win) {
@@ -177,7 +176,7 @@ var MyWindowClone = class WorkspacesToDock_MyWindowClone {
         clone._destroyId = realDialog.connect('destroy', () => {
             clone.destroy();
         });
-        this.actor.add_child(clone);
+        this.add_child(clone);
     }
 
     _updateDialogPosition(realDialog, cloneDialog) {
@@ -189,11 +188,11 @@ var MyWindowClone = class WorkspacesToDock_MyWindowClone {
     }
 
     _onPositionChanged() {
-        this.actor.set_position(this.realWindow.x, this.realWindow.y);
+        this.set_position(this.realWindow.x, this.realWindow.y);
     }
 
     _disconnectSignals() {
-        this.actor.get_children().forEach(child => {
+        this.get_children().forEach(child => {
             let realWindow = child.source;
 
             realWindow.disconnect(child._updateId);
@@ -204,36 +203,37 @@ var MyWindowClone = class WorkspacesToDock_MyWindowClone {
     _onDestroy() {
         this._disconnectSignals();
 
-        this.actor._delegate = null;
+        this._delegate = null;
 
         if (this.inDrag) {
             this.emit('drag-end');
             this.inDrag = false;
         }
-
-        this.disconnectAll();
     }
 
-    _onButtonRelease(actor, event) {
+    vfunc_button_press_event() {
+        return Clutter.EVENT_STOP;
+    }
+
+    vfunc_button_release_event(buttonEvent) {
         if (this._mySettings.get_boolean('toggle-overview')) {
-            let button = event.get_button();
-            if (button == 3) {
+            if (buttonEvent.button == 3) {
                 // pass right-click event on allowing it to bubble up to thumbnailsBox
                 return Clutter.EVENT_PROPAGATE;
             }
         }
 
-        this.emit('selected', event.get_time());
+        this.emit('selected', buttonEvent.time);
 
         return Clutter.EVENT_STOP;
     }
 
-    _onTouchEvent(actor, event) {
-        if (event.type() != Clutter.EventType.TOUCH_END ||
-            !global.display.is_pointer_emulating_sequence(event.get_event_sequence()))
+    vfunc_touch_event(touchEvent) {
+        if (touchEvent.type != Clutter.EventType.TOUCH_END ||
+            !global.display.is_pointer_emulating_sequence(touchEvent.sequence))
             return Clutter.EVENT_PROPAGATE;
 
-        this.emit('selected', event.get_time());
+        this.emit('selected', touchEvent.time);
         return Clutter.EVENT_STOP;
     }
 
@@ -252,18 +252,18 @@ var MyWindowClone = class WorkspacesToDock_MyWindowClone {
         // We may not have a parent if DnD completed successfully, in
         // which case our clone will shortly be destroyed and replaced
         // with a new one on the target workspace.
-        if (this.actor.get_parent() != null) {
+        let parent = this.get_parent();
+        if (parent !== null) {
             if (this._stackAbove == null)
-                this.actor.lower_bottom();
+                parent.set_child_below_sibling(this, null);
             else
-                this.actor.raise(this._stackAbove);
+                parent.set_child_above_sibling(this, this._stackAbove);
         }
 
 
         this.emit('drag-end');
     }
-};
-Signals.addSignalMethods(MyWindowClone.prototype);
+});
 
 
 var ThumbnailState = {
@@ -274,7 +274,7 @@ var ThumbnailState = {
     ANIMATING_OUT:  4,
     ANIMATED_OUT:   5,
     COLLAPSING:     6,
-    DESTROYED:      7
+    DESTROYED:      7,
 };
 
 /**
@@ -290,12 +290,12 @@ var MyWorkspaceThumbnail = GObject.registerClass({
             'slide-position', 'slide-position', 'slide-position',
             GObject.ParamFlags.READWRITE,
             0, 1, 0),
-    }
+    },
 }, class WorkspacesToDock_MyWorkspaceThumbnail extends St.Widget {
     _init(metaWorkspace, thumbnailsBox) {
         super._init({
             clip_to_allocation: true,
-            style_class: 'workspace-thumbnail'
+            style_class: 'workspace-thumbnail',
         });
         this._delegate = this;
 
@@ -334,9 +334,8 @@ var MyWorkspaceThumbnail = GObject.registerClass({
             this._allWindows.push(windows[i].meta_window);
             this._minimizedChangedIds.push(minimizedChangedId);
 
-            if (this._isMyWindow(windows[i]) && this._isOverviewWindow(windows[i])) {
+            if (this._isMyWindow(windows[i]) && this._isOverviewWindow(windows[i]))
                 this._addWindowClone(windows[i]);
-            }
         }
 
         // Track window changes
@@ -382,7 +381,7 @@ var MyWorkspaceThumbnail = GObject.registerClass({
                 clone.setStackAbove(this._bgManager.backgroundActor);
             } else {
                 let previousClone = this._windows[i - 1];
-                clone.setStackAbove(previousClone.actor);
+                clone.setStackAbove(previousClone);
             }
         }
     }
@@ -462,7 +461,7 @@ var MyWorkspaceThumbnail = GObject.registerClass({
         if (!win) {
             // Newly-created windows are added to a workspace before
             // the compositor finds out about them...
-            let id = Mainloop.idle_add(() => {
+            let id = GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
                 if (!this._removed &&
                     metaWin.get_compositor_private() &&
                     metaWin.get_workspace() == this.metaWorkspace)
@@ -525,15 +524,13 @@ var MyWorkspaceThumbnail = GObject.registerClass({
     }
 
     _windowEnteredMonitor(metaDisplay, monitorIndex, metaWin) {
-        if (monitorIndex == this.monitorIndex) {
+        if (monitorIndex == this.monitorIndex)
             this._doAddWindow(metaWin);
-        }
     }
 
     _windowLeftMonitor(metaDisplay, monitorIndex, metaWin) {
-        if (monitorIndex == this.monitorIndex) {
+        if (monitorIndex == this.monitorIndex)
             this._doRemoveWindow(metaWin);
-        }
     }
 
     _updateMinimized(metaWin) {
@@ -605,15 +602,15 @@ var MyWorkspaceThumbnail = GObject.registerClass({
         clone.connect('drag-end', () => {
             Main.overview.endWindowDrag(clone.metaWindow);
         });
-        clone.actor.connect('destroy', () => {
+        clone.connect('destroy', () => {
             this._removeWindowClone(clone.metaWindow);
         });
-        this._contents.add_actor(clone.actor);
+        this._contents.add_actor(clone);
 
         if (this._windows.length == 0)
             clone.setStackAbove(this._bgManager.backgroundActor);
         else
-            clone.setStackAbove(this._windows[this._windows.length - 1].actor);
+            clone.setStackAbove(this._windows[this._windows.length - 1]);
 
         this._windows.push(clone);
 
@@ -654,7 +651,7 @@ var MyWorkspaceThumbnail = GObject.registerClass({
         // Deactivate window clones
         for (let i = 0; i < this._windows.length; i++) {
             let clone = this._windows[i];
-            clone.actor.reactive = state;
+            clone.reactive = state;
         }
     }
 
@@ -672,7 +669,7 @@ var MyWorkspaceThumbnail = GObject.registerClass({
     }
 
     // Draggable target interface used only by ThumbnailsBox
-    handleDragOverInternal(source, time) {
+    handleDragOverInternal(source, actor, time) {
         if (source == Main.xdndHandler) {
             this.metaWorkspace.activate(time);
             return DND.DragMotionResult.CONTINUE;
@@ -687,13 +684,15 @@ var MyWorkspaceThumbnail = GObject.registerClass({
         if (source._caption && !this._isMyWindow(source._metaWin, true))
             return DND.DragMotionResult.MOVE_DROP;
 
-        if (source.shellWorkspaceLaunch)
+        if (source.app && source.app.can_open_new_window())
+            return DND.DragMotionResult.COPY_DROP;
+        if (!source.app && source.shellWorkspaceLaunch)
             return DND.DragMotionResult.COPY_DROP;
 
         return DND.DragMotionResult.CONTINUE;
     }
 
-    acceptDropInternal(source, time) {
+    acceptDropInternal(source, actor, time) {
         if (this.state > ThumbnailState.NORMAL)
             return false;
 
@@ -726,8 +725,16 @@ var MyWorkspaceThumbnail = GObject.registerClass({
             metaWindow.change_workspace_by_index(this.metaWorkspace.index(), false);
             return true;
 
-        } else if (source.shellWorkspaceLaunch) {
-            source.shellWorkspaceLaunch({ workspace: this.metaWorkspace ? this.metaWorkspace.index() : -1,
+        } else if (source.app && source.app.can_open_new_window()) {
+            if (source.animateLaunchAtPos)
+                source.animateLaunchAtPos(actor.x, actor.y);
+
+            source.app.open_new_window(this.metaWorkspace.index());
+            return true;
+        } else if (!source.app && source.shellWorkspaceLaunch) {
+            // While unused in our own drag sources, shellWorkspaceLaunch allows
+            // extensions to define custom actions for their drag sources.
+            source.shellWorkspaceLaunch({ workspace: this.metaWorkspace.index(),
                                           timestamp: time });
             return true;
         }
@@ -750,10 +757,10 @@ var MyThumbnailsBox = GObject.registerClass({
         'scale': GObject.ParamSpec.double(
             'scale', 'scale', 'scale',
             GObject.ParamFlags.READWRITE,
-            0, Infinity, 0)
-    }
+            0, Infinity, 0),
+    },
 }, class WorkspacesToDock_MyThumbnailsBox extends St.Widget {
-    _init(dock) {
+    _init(scrollAdjustment, dock) {
         this._dock = dock;
         this._gsCurrentVersion = Config.PACKAGE_VERSION.split('.');
         this._thumbnailsBoxWidth = 0;
@@ -805,8 +812,6 @@ var MyThumbnailsBox = GObject.registerClass({
         this._pendingScaleUpdate = false;
         this._stateUpdateQueued = false;
         this._animatingIndicator = false;
-        this._indicatorY = 0; // only used when _animatingIndicator is true
-        this._indicatorX = 0; // passingthru67 - added for dock position isHorizontal
 
         this._stateCounts = {};
         for (let key in ThumbnailState)
@@ -814,9 +819,6 @@ var MyThumbnailsBox = GObject.registerClass({
 
         this._thumbnails = [];
 
-        this.connect('button-press-event', () => Clutter.EVENT_STOP);
-        this.connect('button-release-event', this._onButtonRelease.bind(this));
-        this.connect('touch-event', this._onTouchEvent.bind(this));
         this.connect('destroy', this._onDestroy.bind(this));
 
         //Main.overview.connect('showing',
@@ -915,6 +917,20 @@ var MyThumbnailsBox = GObject.registerClass({
         this._nWorkspacesNotifyId = 0;
         this._syncStackingId = 0;
         this._workareasChangedId = 0;
+
+        this._scrollAdjustment = scrollAdjustment;
+
+        this._scrollAdjustment.connect('notify::value', adj => {
+            let workspaceManager = global.workspace_manager;
+            let activeIndex = workspaceManager.get_active_workspace_index();
+
+            this._animatingIndicator = adj.value !== activeIndex;
+
+            if (!this._animatingIndicator)
+                this._queueUpdateStates();
+
+            this.queue_relayout();
+        });
     }
 
     _onDestroy() {
@@ -947,24 +963,20 @@ var MyThumbnailsBox = GObject.registerClass({
     _activateThumbnailAtPoint(stageX, stageY, time) {
         let [r_, x, y] = this.transform_stage_point(stageX, stageY);
 
-        for (let i = 0; i < this._thumbnails.length; i++) {
-            let thumbnail = this._thumbnails[i];
-            let [w, h] = thumbnail.get_transformed_size();
+        let thumbnail = this._thumbnails.find(t => {
+            let [w, h] = t.get_transformed_size();
+
             if (this._isHorizontal) {
-                if (x >= thumbnail.x && x <= thumbnail.x + w) {
-                    thumbnail.activate(time);
-                    break;
-                }
+                return x >= t.x && x <= t.x + w;
             } else {
-                if (y >= thumbnail.y && y <= thumbnail.y + h) {
-                    thumbnail.activate(time);
-                    break;
-                }
+                return y >= t.y && y <= t.y + h;
             }
-        }
+        });
+        if (thumbnail)
+            thumbnail.activate(time);
     }
 
-    _onButtonRelease(actor, event) {
+    vfunc_button_release_event(buttonEvent) {
         // ThumbnailsBox click events are passed on to dock handler if conditions are met
         // Helpful in cases where the 'dock-edge-visible' option is enabled. It provides more
         // area to click on to show the dock when the window is maximized.
@@ -988,24 +1000,23 @@ var MyThumbnailsBox = GObject.registerClass({
         }
 
         if (this._mySettings.get_boolean('toggle-overview')) {
-            let button = event.get_button();
-            if (button == 3) { //right click
+            if (buttonEvent.button == 3) { //right click
                 // pass right-click event on allowing it to bubble up
                 return Clutter.EVENT_PROPAGATE;
             }
         }
 
 
-        let [stageX, stageY] = event.get_coords();
-        this._activateThumbnailAtPoint(stageX, stageY, event.get_time());
+        let { x, y } = buttonEvent;
+        this._activateThumbnailAtPoint(x, y, buttonEvent.time);
         return Clutter.EVENT_STOP;
     }
 
-    _onTouchEvent(actor, event) {
-        if (event.type() == Clutter.EventType.TOUCH_END &&
-            global.display.is_pointer_emulating_sequence(event.get_event_sequence())) {
-            let [stageX, stageY] = event.get_coords();
-            this._activateThumbnailAtPoint(stageX, stageY, event.get_time());
+    vfunc_touch_event(touchEvent) {
+        if (touchEvent.type == Clutter.EventType.TOUCH_END &&
+            global.display.is_pointer_emulating_sequence(touchEvent.sequence)) {
+            let { x, y } = touchEvent;
+            this._activateThumbnailAtPoint(x, y, touchEvent.time);
         }
 
         return Clutter.EVENT_STOP;
@@ -1014,7 +1025,7 @@ var MyThumbnailsBox = GObject.registerClass({
     _onDragBegin() {
         this._dragCancelled = false;
         this._dragMonitor = {
-            dragMotion: this._onDragMotion.bind(this)
+            dragMotion: this._onDragMotion.bind(this),
         };
         DND.addDragMonitor(this._dragMonitor);
     }
@@ -1056,7 +1067,10 @@ var MyThumbnailsBox = GObject.registerClass({
 
     // Draggable target interface
     handleDragOver(source, actor, x, y, time) {
-        if (!source._caption && !source.realWindow && !source.shellWorkspaceLaunch && source != Main.xdndHandler)
+        if (!source._caption && !source.realWindow &&
+            (!source.app || !source.app.can_open_new_window()) &&
+            (source.app || !source.shellWorkspaceLaunch) &&
+            source != Main.xdndHandler)
             return DND.DragMotionResult.CONTINUE;
 
         let canCreateWorkspaces = Meta.prefs_get_dynamic_workspaces();
@@ -1079,7 +1093,7 @@ var MyThumbnailsBox = GObject.registerClass({
         }
         let targetTop = targetBase - spacing - WORKSPACE_CUT_SIZE;
         let length = this._thumbnails.length;
-        for (let i = 0; i < length; i ++) {
+        for (let i = 0; i < length; i++) {
             // Allow the reorder target to have a 10px "cut" into
             // each side of the thumbnail, to make dragging onto the
             // placeholder easier
@@ -1089,7 +1103,7 @@ var MyThumbnailsBox = GObject.registerClass({
             if (this._isHorizontal) {
                 targetBottom = targetBase + WORKSPACE_CUT_SIZE;
                 nextTargetBase = targetBase + w + spacing;
-                nextTargetTop =  nextTargetBase - spacing - ((i == length - 1) ? 0: WORKSPACE_CUT_SIZE);
+                nextTargetTop =  nextTargetBase - spacing - (i == length - 1 ? 0: WORKSPACE_CUT_SIZE);
 
                 // Expand the target to include the placeholder, if it exists.
                 if (i == this._dropPlaceholderPos)
@@ -1107,7 +1121,7 @@ var MyThumbnailsBox = GObject.registerClass({
             } else {
                 targetBottom = targetBase + WORKSPACE_CUT_SIZE;
                 nextTargetBase = targetBase + h + spacing;
-                nextTargetTop =  nextTargetBase - spacing - ((i == length - 1) ? 0: WORKSPACE_CUT_SIZE);
+                nextTargetTop =  nextTargetBase - spacing - (i == length - 1 ? 0 : WORKSPACE_CUT_SIZE);
 
                 // Expand the target to include the placeholder, if it exists.
                 if (i == this._dropPlaceholderPos)
@@ -1134,7 +1148,7 @@ var MyThumbnailsBox = GObject.registerClass({
         }
 
         if (this._dropWorkspace != -1)
-            return this._thumbnails[this._dropWorkspace].handleDragOverInternal(source, time);
+            return this._thumbnails[this._dropWorkspace].handleDragOverInternal(source, actor, time);
         else if (this._dropPlaceholderPos != -1)
             return source.realWindow ? DND.DragMotionResult.MOVE_DROP : DND.DragMotionResult.COPY_DROP;
         else
@@ -1143,9 +1157,11 @@ var MyThumbnailsBox = GObject.registerClass({
 
     acceptDrop(source, actor, x, y, time) {
         if (this._dropWorkspace != -1) {
-            return this._thumbnails[this._dropWorkspace].acceptDropInternal(source, time);
+            return this._thumbnails[this._dropWorkspace].acceptDropInternal(source, actor, time);
         } else if (this._dropPlaceholderPos != -1) {
-            if (!source.realWindow && !source.shellWorkspaceLaunch && !source._caption)
+            if (!source._caption && !source.realWindow &&
+                (!source.app || !source.app.can_open_new_window()) &&
+                (source.app || !source.shellWorkspaceLaunch))
                 return false;
 
             let isWindow = !!source.realWindow;
@@ -1168,9 +1184,19 @@ var MyThumbnailsBox = GObject.registerClass({
                 if (source._metaWin.get_monitor() != thumbMonitor)
                     source._metaWin.move_to_monitor(thumbMonitor);
                 source._metaWin.change_workspace_by_index(newWorkspaceIndex, true);
-            } else if (source.shellWorkspaceLaunch) {
+            } else if (source.app && source.app.can_open_new_window()) {
+                if (source.animateLaunchAtPos)
+                    source.animateLaunchAtPos(actor.x, actor.y);
+
+                source.app.open_new_window(newWorkspaceIndex);
+            } else if (!source.app && source.shellWorkspaceLaunch) {
+                // While unused in our own drag sources, shellWorkspaceLaunch allows
+                // extensions to define custom actions for their drag sources.
                 source.shellWorkspaceLaunch({ workspace: newWorkspaceIndex,
                                               timestamp: time });
+            }
+
+            if (source.app || (!source.app && source.shellWorkspaceLaunch)) {
                 // This new workspace will be automatically removed if the application fails
                 // to open its first window within some time, as tracked by Shell.WindowTracker.
                 // Here, we only add a very brief timeout to avoid the _immediate_ removal of the
@@ -1197,9 +1223,6 @@ var MyThumbnailsBox = GObject.registerClass({
     _createThumbnails() {
         let workspaceManager = global.workspace_manager;
 
-        this._switchWorkspaceNotifyId =
-            global.window_manager.connect('switch-workspace',
-                                          this._activeWorkspaceChanged.bind(this));
         // passingthru67: not using n-workspaces notification (workspacesChanged) but workspaceAdded and workspaceRemoved
         // Please see myThumbnailsBox._init function signal handlers above
         //this._nWorkspacesNotifyId =
@@ -1236,10 +1259,6 @@ var MyThumbnailsBox = GObject.registerClass({
         if (this._thumbnails.length == 0)
             return;
 
-        if (this._switchWorkspaceNotifyId > 0) {
-            global.window_manager.disconnect(this._switchWorkspaceNotifyId);
-            this._switchWorkspaceNotifyId = 0;
-        }
         if (this._nWorkspacesNotifyId > 0) {
             let workspaceManager = global.workspace_manager;
             workspaceManager.disconnect(this._nWorkspacesNotifyId);
@@ -1390,7 +1409,7 @@ var MyThumbnailsBox = GObject.registerClass({
         this._queueUpdateStates();
 
         // The thumbnails indicator actually needs to be on top of the thumbnails
-        this._indicator.raise_top();
+        this.set_child_above_sibling(this._indicator, null);
 
         // Clear the splice index, we got the message
         this._spliceIndex = -1;
@@ -1447,36 +1466,6 @@ var MyThumbnailsBox = GObject.registerClass({
         return this._scale;
     }
 
-    // eslint-disable-next-line camelcase
-    set indicator_y(indicatorY) {
-        if (this._indicatorY == indicatorY)
-            return;
-
-        this._indicatorY = indicatorY;
-        this.notify('indicator-y');
-        this.queue_relayout();
-    }
-
-    // eslint-disable-next-line camelcase
-    get indicator_y() {
-        return this._indicatorY;
-    }
-
-    // passingthru67 - added set indicatorX for when position isHorizontal
-    set indicator_x(indicatorX) {
-        if (this._indicatorX == indicatorX)
-            return;
-
-        this._indicatorX = indicatorX;
-        this.notify('indicator-x');
-        this.queue_relayout();
-    }
-
-    // passingthru67 - added get indicatorX for when position isHorizontal
-    get indicator_x() {
-        return this._indicatorX;
-    }
-
     _setThumbnailState(thumbnail, state) {
         this._stateCounts[thumbnail.state]--;
         thumbnail.state = state;
@@ -1510,7 +1499,7 @@ var MyThumbnailsBox = GObject.registerClass({
                 onComplete: () => {
                     this._setThumbnailState(thumbnail, ThumbnailState.ANIMATED_OUT);
                     this._queueUpdateStates();
-                }
+                },
             });
         });
 
@@ -1533,7 +1522,7 @@ var MyThumbnailsBox = GObject.registerClass({
                     thumbnail.destroy();
 
                     this._queueUpdateStates();
-                }
+                },
             });
         });
 
@@ -1541,7 +1530,7 @@ var MyThumbnailsBox = GObject.registerClass({
             this.ease_property('scale', this._targetScale, {
                 mode: Clutter.AnimationMode.EASE_OUT_QUAD,
                 duration: RESCALE_ANIMATION_TIME,
-                onComplete: () => this._queueUpdateStates()
+                onComplete: () => this._queueUpdateStates(),
             });
             this._pendingScaleUpdate = false;
         }
@@ -1558,7 +1547,7 @@ var MyThumbnailsBox = GObject.registerClass({
                 mode: Clutter.AnimationMode.EASE_OUT_QUAD,
                 onComplete: () => {
                     this._setThumbnailState(thumbnail, ThumbnailState.NORMAL);
-                }
+                },
             });
         });
     }
@@ -1670,11 +1659,12 @@ var MyThumbnailsBox = GObject.registerClass({
     }
 
     _updatePorthole() {
-        if (!Main.layoutManager.primaryMonitor)
+        if (!Main.layoutManager.primaryMonitor) {
             this._porthole = { width: global.stage.width, height: global.stage.height,
                                x: global.stage.x, y: global.stage.y };
-        else
+        } else {
             this._porthole = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
+        }
 
         this.queue_relayout();
     }
@@ -1779,17 +1769,22 @@ var MyThumbnailsBox = GObject.registerClass({
         else if (this._position == St.Side.BOTTOM)
             slideOffset = thumbnailHeight + themeNode.get_padding(St.Side.RIGHT);
 
-        // passingthru67 - indicatorX used instead of indicatorY when position isHorizontal
-        let indicatorY1 = this._indicatorY;
-        let indicatorY2;
-        let indicatorX1 = this._indicatorX;
-        let indicatorX2;
 
-        // when not animating, the workspace position overrides this._indicatorY
-        let activeWorkspace = workspaceManager.get_active_workspace();
-        let indicatorWorkspace = !this._animatingIndicator ? activeWorkspace : null;
+        let indicatorValue = this._scrollAdjustment.value;
+        let indicatorUpperWs = Math.ceil(indicatorValue);
+        let indicatorLowerWs = Math.floor(indicatorValue);
+
+        let indicatorLowerY1 = 0;
+        let indicatorLowerY2 = 0;
+        let indicatorUpperY1 = 0;
+        let indicatorUpperY2 = 0;
+
+        let indicatorLowerX1 = 0;
+        let indicatorLowerX2 = 0;
+        let indicatorUpperX1 = 0;
+        let indicatorUpperX2 = 0;
+
         let indicatorThemeNode = this._indicator.get_theme_node();
-
         let indicatorTopFullBorder = indicatorThemeNode.get_padding(St.Side.TOP) + indicatorThemeNode.get_border_width(St.Side.TOP);
         let indicatorBottomFullBorder = indicatorThemeNode.get_padding(St.Side.BOTTOM) + indicatorThemeNode.get_border_width(St.Side.BOTTOM);
         let indicatorLeftFullBorder = indicatorThemeNode.get_padding(St.Side.LEFT) + indicatorThemeNode.get_border_width(St.Side.LEFT);
@@ -1806,6 +1801,9 @@ var MyThumbnailsBox = GObject.registerClass({
         }
 
         let childBox = new Clutter.ActorBox();
+
+
+
 
         if (this._isHorizontal) {
             for (let i = 0; i < this._thumbnails.length; i++) {
@@ -1847,10 +1845,15 @@ var MyThumbnailsBox = GObject.registerClass({
                 // passingthru67 - roundedHScale now defined above
                 roundedHScale = (x2 - x1) / portholeWidth;
 
-                if (thumbnail.metaWorkspace == indicatorWorkspace) {
-                    indicatorX1 = x1;
-                    indicatorX2 = x2;
+                if (i === indicatorUpperWs) {
+                    indicatorUpperX1 = x1;
+                    indicatorUpperX2 = x2;
                 }
+                if (i === indicatorLowerWs) {
+                    indicatorLowerX1 = x1;
+                    indicatorLowerX2 = x2;
+                }
+
 
                 // Allocating a scaled actor is funny - x1/y1 correspond to the origin
                 // of the actor, but x2/y2 are increased by the *unscaled* size.
@@ -1880,6 +1883,12 @@ var MyThumbnailsBox = GObject.registerClass({
                 childBox.y1 = box.y2 - thumbnailHeight - captionBackgroundHeight;
                 childBox.y2 = box.y2;
             }
+
+            let indicatorX1 = indicatorLowerX1 +
+                (indicatorUpperX1 - indicatorLowerX1) * (indicatorValue % 1);
+            let indicatorX2 = indicatorLowerX2 +
+                (indicatorUpperX2 - indicatorLowerX2) * (indicatorValue % 1);
+
             childBox.y1 -= indicatorTopFullBorder;
             childBox.y2 += indicatorBottomFullBorder;
             childBox.x1 = indicatorX1 - indicatorLeftFullBorder;
@@ -1925,10 +1934,13 @@ var MyThumbnailsBox = GObject.registerClass({
                 // passingthru67 - roundedVScale now defined above with roundedHScale
                 roundedVScale = (y2 - y1) / portholeHeight;
 
-
-                if (thumbnail.metaWorkspace == indicatorWorkspace) {
-                    indicatorY1 = y1;
-                    indicatorY2 = y2;
+                if (i === indicatorUpperWs) {
+                    indicatorUpperY1 = y1;
+                    indicatorUpperY2 = y2;
+                }
+                if (i === indicatorLowerWs) {
+                    indicatorLowerY1 = y1;
+                    indicatorLowerY2 = y2;
                 }
 
                 // Allocating a scaled actor is funny - x1/y1 correspond to the origin
@@ -1959,6 +1971,12 @@ var MyThumbnailsBox = GObject.registerClass({
                 childBox.x1 = box.x2 - thumbnailWidth;
                 childBox.x2 = box.x2;
             }
+
+            let indicatorY1 = indicatorLowerY1 +
+                (indicatorUpperY1 - indicatorLowerY1) * (indicatorValue % 1);
+            let indicatorY2 = indicatorLowerY2 +
+                (indicatorUpperY2 - indicatorLowerY2) * (indicatorValue % 1);
+
             childBox.x1 -= indicatorLeftFullBorder;
             childBox.x2 += indicatorRightFullBorder;
             childBox.y1 = indicatorY1 - indicatorTopFullBorder;
@@ -1968,48 +1986,5 @@ var MyThumbnailsBox = GObject.registerClass({
         }
 
         this._indicator.allocate(childBox, flags);
-    }
-
-    _activeWorkspaceChanged(_wm, _from, _to, _direction) {
-        let thumbnail;
-        let workspaceManager = global.workspace_manager;
-        let activeWorkspace = workspaceManager.get_active_workspace();
-        for (let i = 0; i < this._thumbnails.length; i++) {
-            if (this._thumbnails[i].metaWorkspace == activeWorkspace) {
-                thumbnail = this._thumbnails[i];
-                break;
-            }
-        }
-
-        // passingthru67 - needed in case thumbnail is null outside of overview
-        if (thumbnail == null)
-            return
-
-        this._animatingIndicator = true;
-        let indicatorThemeNode = this._indicator.get_theme_node();
-
-        if (this._isHorizontal) {
-            let indicatorLeftFullBorder = indicatorThemeNode.get_padding(St.Side.LEFT) + indicatorThemeNode.get_border_width(St.Side.LEFT);
-            this.indicatorX = this._indicator.allocation.x1 + indicatorLeftFullBorder;
-            this.ease_property('indicator-x', thumbnail.allocation.x1, {
-                progress_mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-                duration: WorkspacesView.WORKSPACE_SWITCH_TIME,
-                onComplete: () => {
-                    this._animatingIndicator = false;
-                    this._queueUpdateStates();
-                }
-            });
-        } else {
-            let indicatorTopFullBorder = indicatorThemeNode.get_padding(St.Side.TOP) + indicatorThemeNode.get_border_width(St.Side.TOP);
-            this.indicator_y = this._indicator.allocation.y1 + indicatorTopFullBorder;
-            this.ease_property('indicator-y', thumbnail.allocation.y1, {
-                progress_mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-                duration: WorkspacesView.WORKSPACE_SWITCH_TIME,
-                onComplete: () => {
-                    this._animatingIndicator = false;
-                    this._queueUpdateStates();
-                }
-            });
-        }
     }
 });
