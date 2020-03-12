@@ -691,8 +691,8 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         // Hide normal Dash
         if (this._settings.get_boolean('hide-dash')) {
             // Hide normal dash
-            Main.overview._controls.dash.actor.hide();
-            Main.overview._controls.dash.actor.set_width(1);
+            Main.overview.dash.hide();
+            Main.overview.dash.set_width(1);
         }
 
         // Change source of swarm animation to shortcuts panel apps button
@@ -706,7 +706,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         };
 
         // Hide normal workspaces thumbnailsBox
-        Main.overview._controls._thumbnailsSlider.actor.opacity = 0;
+        Main.overview._overview._controls._thumbnailsSlider.opacity = 0;
 
         // Override WorkspaceSwitcherPopup _show function to prevent popup from showing when disabled
         GSFunctions['WorkspaceSwitcherPopup_show'] = WorkspaceSwitcherPopup.WorkspaceSwitcherPopup.prototype._show;
@@ -759,13 +759,13 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
             if (!this._workspacesViews.length)
                 return;
 
-            let [x, y] = this.actor.get_transformed_position();
-            let allocation = this.actor.allocation;
+            let [x, y] = this.get_transformed_position();
+            let allocation = this.allocation;
             let width = allocation.x2 - allocation.x1;
             let height = allocation.y2 - allocation.y1;
             if (_DEBUG_) global.log("WORKSPACESDISPLAY - ALLOCATION X = "+x+" Y = "+y+" W = "+width+" H = "+height);
 
-            let spacing = Main.overview._controls.actor.get_theme_node().get_length('spacing');
+            let spacing = Main.overview._overview._controls.get_theme_node().get_length('spacing');
             let monitors = Main.layoutManager.monitors;
 
             // Get Dash monitor index
@@ -842,7 +842,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
                 } else {
                     if (!self._settings.get_boolean('hide-dash') &&
                         i == this._primaryIndex) {
-                        dashWidth = Main.overview._controls._dashSlider.getVisibleWidth() + spacing;
+                        dashWidth = Main.overview._overview._controls._dashSlider.getVisibleWidth() + spacing;
                     }
                 }
 
@@ -1038,10 +1038,10 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         if (this._settings.get_boolean('hide-dash')) {
             if (!DashToDock) {
                 // Show normal dash (if no dash-to-dock)
-                Main.overview._controls.dash.actor.show();
-                Main.overview._controls.dash.actor.set_width(-1);
+                Main.overview.dash.show();
+                Main.overview.dash.set_width(-1);
                 // This forces the recalculation of the icon size
-                Main.overview._controls.dash._maxHeight = -1;
+                Main.overview.dash._maxHeight = -1;
             }
         }
 
@@ -1049,7 +1049,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         Overview.Overview.prototype.getShowAppsButton = GSFunctions['Overview_getShowAppsButton'];
 
         // Show normal workspaces thumbnailsBox
-        Main.overview._controls._thumbnailsSlider.actor.opacity = 255;
+        Main.overview._overview._controls._thumbnailsSlider.opacity = 255;
 
         // Restore normal WorkspaceSwitcherPopup_show function
         WorkspaceSwitcherPopup.WorkspaceSwitcherPopup.prototype._show = GSFunctions['WorkspaceSwitcherPopup_show'];
@@ -1163,15 +1163,15 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
 
         this._settings.connect('changed::hide-dash', () => {
             if (this._settings.get_boolean('hide-dash')) {
-                Main.overview._controls.dash.actor.hide();
-                Main.overview._controls.dash.actor.set_width(1);
+                Main.overview.dash.hide();
+                Main.overview.dash.set_width(1);
             } else {
                 if (!DashToDock) {
                     // Show normal dash (if no dash-to-dock)
-                    Main.overview._controls.dash.actor.show();
-                    Main.overview._controls.dash.actor.set_width(-1);
+                    Main.overview.dash.show();
+                    Main.overview.dash.set_width(-1);
                     // This forces the recalculation of the icon size
-                    Main.overview._controls.dash._maxHeight = -1;
+                    Main.overview.dash._maxHeight = -1;
                 }
             }
         });
@@ -2390,8 +2390,8 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
 
             } else {
                 let controlsTop = 45;
-                y = this._monitor.y + Main.panel.height + controlsTop + Main.overview._searchEntryBin.height;
-                height = this._monitor.height - (y + Main.overview._searchEntryBin.height);
+                y = this._monitor.y + Main.panel.height + controlsTop + Main.overview.searchEntry.height;
+                height = this._monitor.height - (y + Main.overview.searchEntry.height);
             }
         }
 
