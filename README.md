@@ -282,6 +282,9 @@ If the problem persists, please report it by opening an issue on github or with 
 
 Change Log:
 -----------
+**Version 53 (March 12, 2020)**
+- Support for Gnome 3.36
+
 **Version 52 (Oct 1, 2019)**
 - Support for Gnome 3.34
 
