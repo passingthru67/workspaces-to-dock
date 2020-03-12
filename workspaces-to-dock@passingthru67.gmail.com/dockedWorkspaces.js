@@ -121,7 +121,7 @@ var MyThumbnailsSlider = GObject.registerClass({
             GObject.ParamFlags.READWRITE,
             0, Infinity, DOCK_EDGE_VISIBLE_OVERVIEW_WIDTH + 1)
     }
-}, class WorkspacesToDock_MyThumbnailsSlider extends St.Widget {
+}, class WorkspacesToDock_MyThumbnailsSlider extends St.Bin {
     _init(params = {}) {
         // slide parameter: 1 = visible, 0 = hidden.
         this._side = params.side;
@@ -130,19 +130,18 @@ var MyThumbnailsSlider = GObject.registerClass({
         this._partialSlideoutSize = DOCK_EDGE_VISIBLE_OVERVIEW_WIDTH + 1;
 
         super._init(params);
-        this._child = null;
     }
 
     vfunc_allocate(box, flags) {
         this.set_allocation(box, flags);
 
-        if (this._child == null)
+        if (this.child == null)
             return;
 
         let availWidth = box.x2 - box.x1;
         let availHeight = box.y2 - box.y1;
         let [minChildWidth, minChildHeight, natChildWidth, natChildHeight] =
-            this._child.get_preferred_size();
+            this.child.get_preferred_size();
 
         let childWidth = natChildWidth;
         let childHeight = natChildHeight;
@@ -156,31 +155,28 @@ var MyThumbnailsSlider = GObject.registerClass({
             childBox.x2 = slideoutSize + this._slidex * (childWidth - slideoutSize);
             childBox.y1 = 0;
             childBox.y2 = childBox.y1 + childHeight;
-        } else if ((this._side ==  St.Side.RIGHT)
-                 || (this._side ==  St.Side.BOTTOM)) {
+        } else if ((this._side == St.Side.RIGHT) || (this._side == St.Side.BOTTOM)) {
             childBox.x1 = 0;
             childBox.x2 = childWidth;
             childBox.y1 = 0;
             childBox.y2 = childBox.y1 + childHeight;
-        } else if (this._side ==  St.Side.TOP) {
+        } else if (this._side == St.Side.TOP) {
             childBox.x1 = 0;
             childBox.x2 = childWidth;
             childBox.y1 = (this._slidex -1) * (childHeight - slideoutSize);
             childBox.y2 = slideoutSize + this._slidex * (childHeight - slideoutSize);
         }
 
-        this._child.allocate(childBox, flags);
-        this._child.set_clip(-childBox.x1, -childBox.y1,
-                             -childBox.x1+availWidth,-childBox.y1 + availHeight);
+        this.child.allocate(childBox, flags);
+        this.child.set_clip(-childBox.x1, -childBox.y1,
+                            -childBox.x1+availWidth, -childBox.y1 + availHeight);
     }
 
     // Just the child width but taking into account the slided out part
     vfunc_get_preferred_width(forHeight) {
         let slideoutSize = this._slideoutSize;
-        let [minWidth, natWidth ] = this._child.get_preferred_width(forHeight);
+        let [minWidth, natWidth] = this.child.get_preferred_width(forHeight);
         if (this._side == St.Side.LEFT || this._side == St.Side.RIGHT) {
-            // minWidth = (minWidth - slideoutSize) * this._slidex + slideoutSize;
-            // natWidth = (natWidth - slideoutSize) * this._slidex + slideoutSize;
             minWidth = (minWidth) * this._slidex + slideoutSize;
             natWidth = (natWidth) * this._slidex + slideoutSize;
         }
@@ -191,28 +187,13 @@ var MyThumbnailsSlider = GObject.registerClass({
     // Just the child height but taking into account the slided out part
     vfunc_get_preferred_height(forWidth) {
         let slideoutSize = this._slideoutSize;
-        let [minHeight, natHeight] = this._child.get_preferred_height(forWidth);
+        let [minHeight, natHeight] = this.child.get_preferred_height(forWidth);
         if (this._side == St.Side.TOP || this._side == St.Side.BOTTOM) {
-            // minHeight = (minHeight - slideoutSize) * this._slidex + slideoutSize;
-            // natHeight = (natHeight - slideoutSize) * this._slidex + slideoutSize;
             minHeight = (minHeight) * this._slidex + slideoutSize;
             natHeight = (natHeight) * this._slidex + slideoutSize;
         }
 
         return [minHeight, natHeight];
-    }
-
-    // I was expecting it to be a virtual function... stil I don't understand
-    // how things work.
-    add_child(actor) {
-
-        // I'm supposed to have only one child
-        if(this._child !== null) {
-            this.remove_child(actor);
-        }
-
-        this._child = actor;
-        super.add_child(actor);
     }
 
     set slidex(value) {
@@ -221,8 +202,8 @@ var MyThumbnailsSlider = GObject.registerClass({
 
         this._slidex = value;
         this.notify('slidex');
-        if (this._child)
-            this._child.queue_relayout();
+
+        this.queue_relayout();
     }
 
     get slidex() {
@@ -453,7 +434,30 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         // Create the sliding actor whose allocation is to be tracked for input regions
         //let slideoutSize = this._settings.get_boolean('dock-edge-visible') ? this._triggerWidth + DOCK_EDGE_VISIBLE_WIDTH : this._triggerWidth;
         //this._slider = new MyThumbnailsSlider({side: this._position, slideout-size: slideoutSize});
-        this._slider = new MyThumbnailsSlider({side: this._position});
+
+        // Slider alignment
+        let xAlign, yAlign;
+        if (this._isHorizontal) {
+            xAlign = Clutter.ActorAlign.CENTER;
+            if (this._position == St.Side.TOP) {
+                yAlign = Clutter.ActorAlign.START;
+            } else {
+                yAlign = Clutter.ActorAlign.END;
+            }
+        } else {
+            if (this._position == St.Side.LEFT) {
+                xAlign = Clutter.ActorAlign.START;
+            } else {
+                xAlign = Clutter.ActorAlign.END;
+            }
+            yAlign = Clutter.ActorAlign.CENTER;
+        }
+        this._slider = new MyThumbnailsSlider({
+            side: this._position,
+            x_align: xAlign,
+            y_align: yAlign,
+        });
+
 
         // Create the dock main actor
         this.actor = new St.Bin({ name: 'workspacestodockMainActor',
@@ -466,7 +470,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
 
         // Add the dock to slider and then to the main container actor
         this._dock.add_actor(this._dockContainer);
-        this._slider.add_child(this._dock);
+        this._slider.set_child(this._dock);
         this.actor.set_child(this._slider);
 
         // Connect global signals
