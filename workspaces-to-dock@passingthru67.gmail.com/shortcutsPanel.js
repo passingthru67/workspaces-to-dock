@@ -431,8 +431,8 @@ var ShortcutButton = class WorkspacesToDock_ShortcutButton {
             } else if (this._type == ApplicationType.APPSBUTTON) {
                 if (Main.overview.visible) {
                     if (Main.overview.viewSelector._showAppsButton.checked) {
-                        Main.overview.viewSelector._showAppsButton.checked = false;
                         Main.overview.hide();
+                        Main.overview.viewSelector._showAppsButton.checked = false;
                     } else {
                         Main.overview.viewSelector._showAppsButton.checked = true;
                     }
