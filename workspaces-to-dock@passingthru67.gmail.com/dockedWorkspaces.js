@@ -30,7 +30,7 @@ const WorkspaceSwitcherPopup = imports.ui.workspaceSwitcherPopup;
 const Overview = imports.ui.overview;
 const OverviewControls = imports.ui.overviewControls;
 const Layout = imports.ui.layout;
-const MessageTray = imports.ui.messageTray;
+const AppDisplay = imports.ui.appDisplay;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Config = imports.misc.config;
@@ -696,14 +696,15 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         }
 
         // Change source of swarm animation to shortcuts panel apps button
-        GSFunctions['Overview_getShowAppsButton'] = Overview.Overview.prototype.getShowAppsButton;
-        Overview.Overview.prototype.getShowAppsButton = function() {
-            if (self._settings.get_boolean('show-shortcuts-panel') && self._settings.get_boolean('shortcuts-panel-appsbutton-animation')) {
-                return self._shortcutsPanel._appsButton.actor;
-            } else {
-                return this._dash.showAppsButton;
-            }
-        };
+        if (self._settings.get_boolean('show-shortcuts-panel') && self._settings.get_boolean('shortcuts-panel-appsbutton-animation')) {
+            GSFunctions['BaseAppView_doSpringAnimation'] = AppDisplay.BaseAppView.prototype._doSpringAnimation;
+            AppDisplay.BaseAppView.prototype._doSpringAnimation = function(animationDirection){
+                this._grid.opacity = 255;
+                this._grid.animateSpring(
+                    animationDirection,
+                    self._shortcutsPanel._appsButton.actor);
+            };
+        }
 
         // Hide normal workspaces thumbnailsBox
         Main.overview._overview._controls._thumbnailsSlider.opacity = 0;
@@ -1046,7 +1047,9 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         }
 
         // Restore source of swarm animation to normal apps button
-        Overview.Overview.prototype.getShowAppsButton = GSFunctions['Overview_getShowAppsButton'];
+        if (GSFunctions['BaseAppView_doSpringAnimation']) {
+            AppDisplay.BaseAppView.prototype._doSpringAnimation = GSFunctions['BaseAppView_doSpringAnimation'];
+        }
 
         // Show normal workspaces thumbnailsBox
         Main.overview._overview._controls._thumbnailsSlider.opacity = 255;
