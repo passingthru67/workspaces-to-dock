@@ -311,7 +311,8 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         this._monitor = Main.layoutManager.primaryMonitor;
 
         // Create a new thumbnailsbox object
-        this._thumbnailsBox = new MyWorkspaceThumbnail.MyThumbnailsBox(this);
+        this._workspaceAdjustment = Main.overview._overview._controls._workspaceAdjustment;
+        this._thumbnailsBox = new MyWorkspaceThumbnail.MyThumbnailsBox(this._workspaceAdjustment, this);
 
         // Create a shortcuts panel object
         this._shortcutsPanel = new ShortcutsPanel.ShortcutsPanel(this);
