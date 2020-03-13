@@ -878,16 +878,16 @@ var MyThumbnailsBox = GObject.registerClass({
                 'in-fullscreen-changed',
                 this.refreshThumbnails.bind(this)
             ],
-            [
-                workspaceManager,
-                'workspace-added',
-                this._onWorkspaceAdded.bind(this)
-            ],
-            [
-                workspaceManager,
-                'workspace-removed',
-                this._onWorkspaceRemoved.bind(this)
-            ],
+            // [
+            //     workspaceManager,
+            //     'workspace-added',
+            //     this._onWorkspaceAdded.bind(this)
+            // ],
+            // [
+            //     workspaceManager,
+            //     'workspace-removed',
+            //     this._onWorkspaceRemoved.bind(this)
+            // ],
             [
                 global.display,
                 'workareas-changed',
@@ -897,6 +897,26 @@ var MyThumbnailsBox = GObject.registerClass({
                 Main.layoutManager,
                 'monitors-changed',
                 this._rebuildThumbnails.bind(this)
+            ],
+            [
+                global.window_manager,
+                'switch-workspace',
+                this._activeWorkspaceChanged.bind(this)
+            ],
+            [
+                workspaceManager,
+                'notify::n-workspaces',
+                this._workspacesChanged.bind(this)
+            ],
+            [
+                workspaceManager,
+                'workspaces-reordered',
+                this._workspacesReordered.bind(this)
+            ],
+            [
+                Main.overview,
+                'windows-restacked',
+                this._syncStacking.bind(this)
             ]
         );
 
@@ -1223,24 +1243,6 @@ var MyThumbnailsBox = GObject.registerClass({
     _createThumbnails() {
         let workspaceManager = global.workspace_manager;
 
-        // passingthru67: not using n-workspaces notification (workspacesChanged) but workspaceAdded and workspaceRemoved
-        // Please see myThumbnailsBox._init function signal handlers above
-        //this._nWorkspacesNotifyId =
-        //    workspaceManager.connect('notify::n-workspaces',
-        //                             this._workspacesChanged.bind(this));
-        this._nWorkspacesNotifyId = 0;
-
-        this._workspacesReorderedId =
-            workspaceManager.connect('workspaces-reordered', () => {
-                this._thumbnails.sort((a, b) => {
-                    return a.metaWorkspace.index() - b.metaWorkspace.index();
-                });
-                this.queue_relayout();
-            });
-        this._syncStackingId =
-            Main.overview.connect('windows-restacked',
-                                  this._syncStacking.bind(this));
-
         this._targetScale = 0;
         this._scale = 0;
         this._pendingScaleUpdate = false;
@@ -1258,22 +1260,6 @@ var MyThumbnailsBox = GObject.registerClass({
     _destroyThumbnails() {
         if (this._thumbnails.length == 0)
             return;
-
-        if (this._nWorkspacesNotifyId > 0) {
-            let workspaceManager = global.workspace_manager;
-            workspaceManager.disconnect(this._nWorkspacesNotifyId);
-            this._nWorkspacesNotifyId = 0;
-        }
-        if (this._workspacesReorderedId > 0) {
-            let workspaceManager = global.workspace_manager;
-            workspaceManager.disconnect(this._workspacesReorderedId);
-            this._workspacesReorderedId = 0;
-        }
-
-        if (this._syncStackingId > 0) {
-            Main.overview.disconnect(this._syncStackingId);
-            this._syncStackingId = 0;
-        }
 
         for (let w = 0; w < this._thumbnails.length; w++)
             this._thumbnails[w].destroy();
@@ -1304,6 +1290,13 @@ var MyThumbnailsBox = GObject.registerClass({
         }
 
         this._updateSwitcherVisibility();
+    }
+
+    _workspacesReordered() {
+        this._thumbnails.sort((a, b) => {
+            return a.metaWorkspace.index() - b.metaWorkspace.index();
+        });
+        this.queue_relayout();
     }
 
     _onWorkspaceAdded() {
