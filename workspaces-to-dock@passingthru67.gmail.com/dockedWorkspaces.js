@@ -936,7 +936,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
                         }
                     }
                 } else {
-                    if (this.actor.get_text_direction() == Clutter.TextDirection.LTR) {
+                    if (this.get_text_direction() == Clutter.TextDirection.LTR) {
                         if (monitorHasThumbnailsDock && self._position == St.Side.LEFT) {
                             controlsWidth = Math.max(dashWidth, thumbnailsWidth);
                             geometry.x += controlsWidth;
