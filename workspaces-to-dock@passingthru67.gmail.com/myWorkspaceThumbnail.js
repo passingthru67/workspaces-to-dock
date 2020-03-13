@@ -812,6 +812,8 @@ var MyThumbnailsBox = GObject.registerClass({
         this._pendingScaleUpdate = false;
         this._stateUpdateQueued = false;
         this._animatingIndicator = false;
+        this._indicatorY = 0; // only used when _animatingIndicator is true
+        this._indicatorX = 0; // passingthru67 - added for dock position isHorizontal
 
         this._stateCounts = {};
         for (let key in ThumbnailState)
@@ -927,20 +929,6 @@ var MyThumbnailsBox = GObject.registerClass({
         this._nWorkspacesNotifyId = 0;
         this._syncStackingId = 0;
         this._workareasChangedId = 0;
-
-        this._scrollAdjustment = scrollAdjustment;
-
-        this._scrollAdjustment.connect('notify::value', adj => {
-            let workspaceManager = global.workspace_manager;
-            let activeIndex = workspaceManager.get_active_workspace_index();
-
-            this._animatingIndicator = adj.value !== activeIndex;
-
-            if (!this._animatingIndicator)
-                this._queueUpdateStates();
-
-            this.queue_relayout();
-        });
     }
 
     _onDestroy() {
@@ -1387,6 +1375,36 @@ var MyThumbnailsBox = GObject.registerClass({
         return this._scale;
     }
 
+    // eslint-disable-next-line camelcase
+    set indicator_y(indicatorY) {
+        if (this._indicatorY == indicatorY)
+            return;
+
+        this._indicatorY = indicatorY;
+        this.notify('indicator-y');
+        this.queue_relayout();
+    }
+
+    // eslint-disable-next-line camelcase
+    get indicator_y() {
+        return this._indicatorY;
+    }
+
+    // passingthru67 - added set indicatorX for when position isHorizontal
+    set indicator_x(indicatorX) {
+        if (this._indicatorX == indicatorX)
+            return;
+
+        this._indicatorX = indicatorX;
+        this.notify('indicator-x');
+        this.queue_relayout();
+    }
+
+    // passingthru67 - added get indicatorX for when position isHorizontal
+    get indicator_x() {
+        return this._indicatorX;
+    }
+
     _setThumbnailState(thumbnail, state) {
         this._stateCounts[thumbnail.state]--;
         thumbnail.state = state;
@@ -1690,22 +1708,17 @@ var MyThumbnailsBox = GObject.registerClass({
         else if (this._position == St.Side.BOTTOM)
             slideOffset = thumbnailHeight + themeNode.get_padding(St.Side.RIGHT);
 
+        // passingthru67 - indicatorX used instead of indicatorY when position isHorizontal
+        let indicatorY1 = this._indicatorY;
+        let indicatorY2;
+        let indicatorX1 = this._indicatorX;
+        let indicatorX2;
 
-        let indicatorValue = this._scrollAdjustment.value;
-        let indicatorUpperWs = Math.ceil(indicatorValue);
-        let indicatorLowerWs = Math.floor(indicatorValue);
-
-        let indicatorLowerY1 = 0;
-        let indicatorLowerY2 = 0;
-        let indicatorUpperY1 = 0;
-        let indicatorUpperY2 = 0;
-
-        let indicatorLowerX1 = 0;
-        let indicatorLowerX2 = 0;
-        let indicatorUpperX1 = 0;
-        let indicatorUpperX2 = 0;
-
+        // when not animating, the workspace position overrides this._indicatorY
+        let activeWorkspace = workspaceManager.get_active_workspace();
+        let indicatorWorkspace = !this._animatingIndicator ? activeWorkspace : null;
         let indicatorThemeNode = this._indicator.get_theme_node();
+
         let indicatorTopFullBorder = indicatorThemeNode.get_padding(St.Side.TOP) + indicatorThemeNode.get_border_width(St.Side.TOP);
         let indicatorBottomFullBorder = indicatorThemeNode.get_padding(St.Side.BOTTOM) + indicatorThemeNode.get_border_width(St.Side.BOTTOM);
         let indicatorLeftFullBorder = indicatorThemeNode.get_padding(St.Side.LEFT) + indicatorThemeNode.get_border_width(St.Side.LEFT);
@@ -1722,9 +1735,6 @@ var MyThumbnailsBox = GObject.registerClass({
         }
 
         let childBox = new Clutter.ActorBox();
-
-
-
 
         if (this._isHorizontal) {
             for (let i = 0; i < this._thumbnails.length; i++) {
@@ -1766,15 +1776,10 @@ var MyThumbnailsBox = GObject.registerClass({
                 // passingthru67 - roundedHScale now defined above
                 roundedHScale = (x2 - x1) / portholeWidth;
 
-                if (i === indicatorUpperWs) {
-                    indicatorUpperX1 = x1;
-                    indicatorUpperX2 = x2;
+                if (thumbnail.metaWorkspace == indicatorWorkspace) {
+                    indicatorX1 = x1;
+                    indicatorX2 = x2;
                 }
-                if (i === indicatorLowerWs) {
-                    indicatorLowerX1 = x1;
-                    indicatorLowerX2 = x2;
-                }
-
 
                 // Allocating a scaled actor is funny - x1/y1 correspond to the origin
                 // of the actor, but x2/y2 are increased by the *unscaled* size.
@@ -1804,12 +1809,6 @@ var MyThumbnailsBox = GObject.registerClass({
                 childBox.y1 = box.y2 - thumbnailHeight - captionBackgroundHeight;
                 childBox.y2 = box.y2;
             }
-
-            let indicatorX1 = indicatorLowerX1 +
-                (indicatorUpperX1 - indicatorLowerX1) * (indicatorValue % 1);
-            let indicatorX2 = indicatorLowerX2 +
-                (indicatorUpperX2 - indicatorLowerX2) * (indicatorValue % 1);
-
             childBox.y1 -= indicatorTopFullBorder;
             childBox.y2 += indicatorBottomFullBorder;
             childBox.x1 = indicatorX1 - indicatorLeftFullBorder;
@@ -1855,13 +1854,10 @@ var MyThumbnailsBox = GObject.registerClass({
                 // passingthru67 - roundedVScale now defined above with roundedHScale
                 roundedVScale = (y2 - y1) / portholeHeight;
 
-                if (i === indicatorUpperWs) {
-                    indicatorUpperY1 = y1;
-                    indicatorUpperY2 = y2;
-                }
-                if (i === indicatorLowerWs) {
-                    indicatorLowerY1 = y1;
-                    indicatorLowerY2 = y2;
+
+                if (thumbnail.metaWorkspace == indicatorWorkspace) {
+                    indicatorY1 = y1;
+                    indicatorY2 = y2;
                 }
 
                 // Allocating a scaled actor is funny - x1/y1 correspond to the origin
@@ -1892,12 +1888,6 @@ var MyThumbnailsBox = GObject.registerClass({
                 childBox.x1 = box.x2 - thumbnailWidth;
                 childBox.x2 = box.x2;
             }
-
-            let indicatorY1 = indicatorLowerY1 +
-                (indicatorUpperY1 - indicatorLowerY1) * (indicatorValue % 1);
-            let indicatorY2 = indicatorLowerY2 +
-                (indicatorUpperY2 - indicatorLowerY2) * (indicatorValue % 1);
-
             childBox.x1 -= indicatorLeftFullBorder;
             childBox.x2 += indicatorRightFullBorder;
             childBox.y1 = indicatorY1 - indicatorTopFullBorder;
@@ -1907,5 +1897,48 @@ var MyThumbnailsBox = GObject.registerClass({
         }
 
         this._indicator.allocate(childBox, flags);
+    }
+
+    _activeWorkspaceChanged(_wm, _from, _to, _direction) {
+        let thumbnail;
+        let workspaceManager = global.workspace_manager;
+        let activeWorkspace = workspaceManager.get_active_workspace();
+        for (let i = 0; i < this._thumbnails.length; i++) {
+            if (this._thumbnails[i].metaWorkspace == activeWorkspace) {
+                thumbnail = this._thumbnails[i];
+                break;
+            }
+        }
+
+        // passingthru67 - needed in case thumbnail is null outside of overview
+        if (thumbnail == null)
+            return
+
+        this._animatingIndicator = true;
+        let indicatorThemeNode = this._indicator.get_theme_node();
+
+        if (this._isHorizontal) {
+            let indicatorLeftFullBorder = indicatorThemeNode.get_padding(St.Side.LEFT) + indicatorThemeNode.get_border_width(St.Side.LEFT);
+            this.indicatorX = this._indicator.allocation.x1 + indicatorLeftFullBorder;
+            this.ease_property('indicator-x', thumbnail.allocation.x1, {
+                progress_mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                duration: WorkspacesView.WORKSPACE_SWITCH_TIME,
+                onComplete: () => {
+                    this._animatingIndicator = false;
+                    this._queueUpdateStates();
+                }
+            });
+        } else {
+            let indicatorTopFullBorder = indicatorThemeNode.get_padding(St.Side.TOP) + indicatorThemeNode.get_border_width(St.Side.TOP);
+            this.indicator_y = this._indicator.allocation.y1 + indicatorTopFullBorder;
+            this.ease_property('indicator-y', thumbnail.allocation.y1, {
+                progress_mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                duration: WorkspacesView.WORKSPACE_SWITCH_TIME,
+                onComplete: () => {
+                    this._animatingIndicator = false;
+                    this._queueUpdateStates();
+                }
+            });
+        }
     }
 });
