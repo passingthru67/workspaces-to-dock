@@ -878,16 +878,6 @@ var MyThumbnailsBox = GObject.registerClass({
                 'in-fullscreen-changed',
                 this.refreshThumbnails.bind(this)
             ],
-            // [
-            //     workspaceManager,
-            //     'workspace-added',
-            //     this._onWorkspaceAdded.bind(this)
-            // ],
-            // [
-            //     workspaceManager,
-            //     'workspace-removed',
-            //     this._onWorkspaceRemoved.bind(this)
-            // ],
             [
                 global.display,
                 'workareas-changed',
@@ -1297,68 +1287,6 @@ var MyThumbnailsBox = GObject.registerClass({
             return a.metaWorkspace.index() - b.metaWorkspace.index();
         });
         this.queue_relayout();
-    }
-
-    _onWorkspaceAdded() {
-        // -------------------------------------------------------------------
-        // TODO: GS3.14+ now checks for valid thumbnails with code below
-        // This should fix the issues experienced in the past where the number
-        // of thumbnails didn't match the number of global workspaces.
-        // let validThumbnails = this._thumbnails.filter(function(t) {
-        //     return t.state <= ThumbnailState.NORMAL;
-        // });
-        // let NumMyWorkspaces = validThumbnails.length;
-        // -------------------------------------------------------------------
-        let workspaceManager = global.workspace_manager;
-        let NumMyWorkspaces = this._thumbnails.length;
-        let NumGlobalWorkspaces = workspaceManager.n_workspaces;
-        let active = workspaceManager.get_active_workspace_index();
-
-        // NumMyWorkspaces == NumGlobalWorkspaces shouldn't happen, but does when Firefox started.
-        // Assume that a workspace thumbnail is still in process of being removed from _thumbnailsBox
-        if (_DEBUG_) global.log("dockedWorkspaces: _workspacesAdded - thumbnail being added  .. ws="+NumGlobalWorkspaces+" th="+NumMyWorkspaces);
-        if (NumMyWorkspaces == NumGlobalWorkspaces)
-            NumMyWorkspaces --;
-
-        if (NumGlobalWorkspaces > NumMyWorkspaces)
-            this.addThumbnails(NumMyWorkspaces, NumGlobalWorkspaces - NumMyWorkspaces);
-    }
-
-    _onWorkspaceRemoved() {
-        // -------------------------------------------------------------------
-        // TODO: GS3.14+ now checks for valid thumbnails with code below
-        // This should fix the issues experienced in the past where the number
-        // of thumbnails didn't match the number of global workspaces.
-        // let validThumbnails = this._thumbnails.filter(function(t) {
-        //     return t.state <= ThumbnailState.NORMAL;
-        // });
-        // let NumMyWorkspaces = validThumbnails.length;
-        // -------------------------------------------------------------------
-        let workspaceManager = global.workspace_manager;
-        let NumMyWorkspaces = this._thumbnails.length;
-        let NumGlobalWorkspaces = workspaceManager.n_workspaces;
-        let active = workspaceManager.get_active_workspace_index();
-
-        // TODO: Not sure if this is an issue?
-        if (_DEBUG_) global.log("dockedWorkspaces: _workspacesRemoved - thumbnails being removed .. ws="+NumGlobalWorkspaces+" th="+NumMyWorkspaces);
-        if (NumMyWorkspaces == NumGlobalWorkspaces)
-            return;
-
-        let removedIndex;
-        //let removedNum = NumMyWorkspaces - NumGlobalWorkspaces;
-        let removedNum = 1;
-        for (let w = 0; w < NumMyWorkspaces; w++) {
-            let metaWorkspace = workspaceManager.get_workspace_by_index(w);
-            if (this._thumbnails[w].metaWorkspace != metaWorkspace) {
-                removedIndex = w;
-                break;
-            }
-        }
-
-        if (removedIndex != null) {
-            if (_DEBUG_) global.log("dockedWorkspaces: _workspacesRemoved - thumbnail index being removed is = "+removedIndex);
-            this.removeThumbnails(removedIndex, removedNum);
-        }
     }
 
     refreshThumbnails() {
