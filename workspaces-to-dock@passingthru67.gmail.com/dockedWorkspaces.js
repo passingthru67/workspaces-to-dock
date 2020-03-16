@@ -20,7 +20,6 @@ const Shell = imports.gi.Shell;
 const Signals = imports.signals;
 const St = imports.gi.St;
 const Meta = imports.gi.Meta;
-const IconTheme = imports.gi.Gtk.IconTheme;
 const Params = imports.misc.params;
 
 const Main = imports.ui.main;
@@ -487,11 +486,6 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
                 St.ThemeContext.get_for_stage(global.stage),
                 'changed',
                 this._onThemeChanged.bind(this)
-            ],
-            [
-                IconTheme.get_default(),
-                'changed',
-                this._onIconsChanged.bind(this)
             ],
             [
                 Main.extensionManager,
@@ -2269,15 +2263,6 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         }
 
         return true;
-    }
-
-    // handler for icon changes
-    _onIconsChanged() {
-        if (_DEBUG_) global.log("dockedWorkspaces: _onIconsChanged");
-        if (this._disableRedisplay)
-            return
-
-        this._refreshThumbnails();
     }
 
     // resdiplay dock called if size-position changed due to dock resizing
