@@ -457,7 +457,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
             y_align: align
         });
         this.actor._delegate = this;
-        this._realizeId = this.actor.connect("realize", this._initialize.bind(this));
+        this._showId = this.actor.connect('show', this._initialize.bind(this));
 
         // Add the dock to slider and then to the main container actor
         this._dock.add_actor(this._dockContainer);
@@ -587,9 +587,9 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
 
     _initialize() {
         if (_DEBUG_) global.log("dockedWorkspaces: initializing * * * * *");
-        if(this._realizeId > 0){
-            this.actor.disconnect(this._realizeId);
-            this._realizeId = 0;
+        if(this._showId > 0){
+            this.actor.disconnect(this._showId);
+            this._showId = 0;
         }
 
         // Show the thumbnailsBox.  We need it to calculate the width of the dock.
