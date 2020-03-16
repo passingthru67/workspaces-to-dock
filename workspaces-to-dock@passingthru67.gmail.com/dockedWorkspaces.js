@@ -354,10 +354,10 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         let packStart;
         let packVertical = this._isHorizontal? true : false;
         if (this._position == St.Side.TOP || this._position == St.Side.LEFT) {
-            align = St.Align.START;
+            align = Clutter.ActorAlign.START;
             packStart = true;
         } else {
-            align = St.Align.END;
+            align = Clutter.ActorAlign.END;
             packStart = false;
         }
 
@@ -375,7 +375,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
             name: 'workspacestodockDockContainer',
             reactive: false,
             track_hover: false,
-            vertical: !packVertical
+            vertical: packVertical
         });
 
         // Create the panels and container
@@ -384,7 +384,9 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
             reactive: false,
             track_hover: false,
             vertical: packVertical,
-            pack_start: !packStart
+            pack_start: !packStart,
+            x_align: (this._centerContainer) ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.START,
+            y_align: (this._centerContainer) ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.START
         });
 
         this._panelsContainer = new St.BoxLayout({
@@ -392,14 +394,13 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
             reactive: false,
             track_hover: false,
             vertical: packVertical,
-            pack_start: packStart
+            pack_start: packStart,
+            x_align: (this._centerContainer) ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.START,
+            y_align: (this._centerContainer) ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.START
         });
 
-        // To center the panels on the extended dock, we expand the panels box to fit the
-        // dock container and align it in the middle
-        let expandContainer = this._centerContainer ? true : false;
         this._panels.add_actor(this._panelsContainer);
-        this._dockContainer.add(this._panels,{x_fill: false, y_fill: false, x_align: St.Align.MIDDLE, y_align: St.Align.MIDDLE, expand: expandContainer});
+        this._dockContainer.add_actor(this._panels);
 
         // Initialize keyboard toggle timeout
         this._toggleWithKeyboardTimeoutId = 0;
@@ -414,21 +415,11 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         // Add workspaces, and shortcuts panel to dock container based on dock position
         // and shortcuts panel orientation
         if (shortcutsPanelOrientation == 1) {
-            if (this._centerContainer && this._centerPanelsIndependently) {
-                this._panelsContainer.add(this._shortcutsPanel.actor,{x_fill: false, y_fill: false, x_align: St.Align.MIDDLE, y_align: St.Align.MIDDLE});
-                this._panelsContainer.add(this._thumbnailsBox,{x_fill: false, y_fill: false, x_align: St.Align.MIDDLE, y_align: St.Align.MIDDLE});
-            } else {
-                this._panelsContainer.add_actor(this._shortcutsPanel.actor);
-                this._panelsContainer.add_actor(this._thumbnailsBox);
-            }
+            this._panelsContainer.add_actor(this._shortcutsPanel.actor);
+            this._panelsContainer.add_actor(this._thumbnailsBox);
         } else {
-            if (this._centerContainer && this._centerPanelsIndependently) {
-                this._panelsContainer.add(this._thumbnailsBox,{x_fill: false, y_fill: false, x_align: St.Align.MIDDLE, y_align: St.Align.MIDDLE});
-                this._panelsContainer.add(this._shortcutsPanel.actor,{x_fill: false, y_fill: false, x_align: St.Align.MIDDLE, y_align: St.Align.MIDDLE});
-            } else {
-                this._panelsContainer.add_actor(this._thumbnailsBox);
-                this._panelsContainer.add_actor(this._shortcutsPanel.actor);
-            }
+            this._panelsContainer.add_actor(this._thumbnailsBox);
+            this._panelsContainer.add_actor(this._shortcutsPanel.actor);
         }
 
         // Create the sliding actor whose allocation is to be tracked for input regions
@@ -460,7 +451,8 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
 
 
         // Create the dock main actor
-        this.actor = new St.Bin({ name: 'workspacestodockMainActor',
+        this.actor = new St.Bin({
+            name: 'workspacestodockMainActor',
             reactive: false,
             x_align: align,
             y_align: align

@@ -770,14 +770,34 @@ var MyThumbnailsBox = GObject.registerClass({
         this._isHorizontal = (this._position == St.Side.TOP ||
                               this._position == St.Side.BOTTOM);
 
+        // Set _centerContainer property
+        if (this._mySettings.get_boolean('customize-height') && this._mySettings.get_boolean('center-thumbnails-on-dock')) {
+            this._centerContainer = true;
+        } else {
+            this._centerContainer = false;
+        }
+
+        // Set _centerPanelsIndependently property
+        if (this._centerContainer && this._mySettings.get_int('center-thumbnails-option') == 0) {
+            this._centerPanelsIndependently = true;
+        } else {
+            this._centerPanelsIndependently = false;
+        }
+
         if (this._isHorizontal) {
             super._init({ reactive: true,
                           style_class: 'workspace-thumbnails workspacestodock-thumbnails-panel',
-                          request_mode: Clutter.RequestMode.HEIGHT_FOR_WIDTH });
+                          request_mode: Clutter.RequestMode.HEIGHT_FOR_WIDTH,
+                          x_align: (this._centerContainer && this._centerPanelsIndependently) ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.START,
+                          y_align: (this._centerContainer && this._centerPanelsIndependently) ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.START
+                      });
         } else {
             super._init({ reactive: true,
                           style_class: 'workspace-thumbnails workspacestodock-thumbnails-panel',
-                          request_mode: Clutter.RequestMode.WIDTH_FOR_HEIGHT });
+                          request_mode: Clutter.RequestMode.WIDTH_FOR_HEIGHT,
+                          x_align: (this._centerContainer && this._centerPanelsIndependently) ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.START,
+                          y_align: (this._centerContainer && this._centerPanelsIndependently) ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.START
+                      });
         }
 
         this._delegate = this;

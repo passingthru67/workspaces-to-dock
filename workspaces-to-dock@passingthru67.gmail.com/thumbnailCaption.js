@@ -61,6 +61,12 @@ var TaskbarIcon = class WorkspacesToDock_TaskbarIcon {
         this._app = app;
         this._metaWin = metaWin;
 
+        if (this._mySettings.get_enum('workspace-caption-position') == CaptionPosition.TOP) {
+            this._captionYAlign = Clutter.ActorAlign.START;
+        } else {
+            this._captionYAlign = Clutter.ActorAlign.END;
+        }
+
         let iconParams = {setSizeManually: true, showLabel: false};
         iconParams['createIcon'] = (iconSize) => { return app.create_icon_texture(iconSize);};
 
@@ -69,7 +75,11 @@ var TaskbarIcon = class WorkspacesToDock_TaskbarIcon {
         this._iconSize = this._mySettings.get_double('workspace-caption-taskbar-icon-size');
         this._icon.setIconSize(this._mySettings.get_double('workspace-caption-taskbar-icon-size'));
 
-        this.actor = new St.Button({style_class:'workspacestodock-caption-windowapps-button'});
+        this.actor = new St.Button({
+            style_class:'workspacestodock-caption-windowapps-button',
+            x_align: Clutter.ActorAlign.START,
+            y_align: this._captionYAlign
+        });
         this.actor.set_child(this._icon);
         this.actor._delegate = this;
 
@@ -231,26 +241,44 @@ var MenuTaskListItem = class WorkspacesToDock_MenuTaskListItem {
         this._icon.add_style_class_name('workspacestodock-caption-windowapps-menu-icon');
         this._icon.setIconSize(this._mySettings.get_double('workspace-caption-menu-icon-size'));
         // this._label = new St.Label({ text: app.get_name(), style_class: 'workspacestodock-caption-windowapps-menu-label' });
-        this._label = new St.Label({ text: this._metaWin.title, style_class: 'workspacestodock-caption-windowapps-menu-label' });
+        this._label = new St.Label({
+            text: this._metaWin.title,
+            style_class: 'workspacestodock-caption-windowapps-menu-label',
+            x_align: Clutter.ActorAlign.START,
+            y_align: Clutter.ActorAlign.CENTER,
+            x_expand: true
+        });
 
-        this._buttonBox = new St.BoxLayout({style_class:'workspacestodock-caption-windowapps-menu-button'});
-        this._buttonBox.add(this._icon, {x_fill: false, y_fill: false, x_align: St.Align.START, y_align: St.Align.MIDDLE});
-        this._buttonBox.add(this._label, {x_fill: true, y_fill: false, x_align: St.Align.START, y_align: St.Align.MIDDLE, expand: true});
+        this._buttonBox = new St.BoxLayout({
+            style_class:'workspacestodock-caption-windowapps-menu-button',
+            x_align: Clutter.ActorAlign.START,
+            y_align: Clutter.ActorAlign.CENTER,
+            x_expand: true
+        });
+        this._buttonBox.add_actor(this._icon);
+        this._buttonBox.add_actor(this._label);
 
-        this._closeButton = new St.Button({style_class:'workspacestodock-caption-windowapps-menu-close'});
+        this._closeButton = new St.Button({
+            style_class:'workspacestodock-caption-windowapps-menu-close',
+            x_align: Clutter.ActorAlign.START,
+            y_align: Clutter.ActorAlign.CENTER
+        });
         // this._closeButton.add_style_class_name('window-close');
         this._closeIcon = new St.Icon({ icon_name: 'window-close-symbolic', style_class: 'popup-menu-icon' });
         this._closeButton.set_size(this._mySettings.get_double('workspace-caption-menu-icon-size'), this._mySettings.get_double('workspace-caption-menu-icon-size'));
         this._closeButton.set_child(this._closeIcon);
 
-        this.actor = new St.BoxLayout({reactive: true, style_class: 'popup-menu-item workspacestodock-caption-windowapps-menu-item'});
+        this.actor = new St.BoxLayout({
+            reactive: true,
+            style_class: 'popup-menu-item workspacestodock-caption-windowapps-menu-item'
+        });
         this.actor._delegate = this;
 
         this._ornament = 0;
         this._ornamentLabel = new St.Label({ style_class: 'popup-menu-ornament' });
-        this.actor.add(this._ornamentLabel);
-        this.actor.add(this._buttonBox, {x_fill: false, y_fill: false, x_align: St.Align.START, y_align: St.Align.MIDDLE, expand: true});
-        this.actor.add(this._closeButton, {x_fill: true, y_fill: true, x_align: St.Align.END, y_align: St.Align.MIDDLE});
+        this.actor.add_actor(this._ornamentLabel);
+        this.actor.add_actor(this._buttonBox);
+        this.actor.add_actor(this._closeButton);
 
         // Connect signals
         this._closeButton.connect('button-release-event', this._onCloseButtonRelease.bind(this));
@@ -296,9 +324,9 @@ var ThumbnailCaption = class WorkspacesToDock_ThumbnailCaption {
                               this._position == St.Side.BOTTOM);
 
         if (this._mySettings.get_enum('workspace-caption-position') == CaptionPosition.TOP) {
-            this._captionYAlign = St.Align.START;
+            this._captionYAlign = Clutter.ActorAlign.START;
         } else {
-            this._captionYAlign = St.Align.END;
+            this._captionYAlign = Clutter.ActorAlign.END;
         }
 
         this.actor = new St.Bin({
@@ -307,7 +335,7 @@ var ThumbnailCaption = class WorkspacesToDock_ThumbnailCaption {
             style_class: 'workspacestodock-workspace-caption-container',
             x_fill: true,
             y_align: this._captionYAlign,
-            x_align: St.Align.START
+            x_align: Clutter.ActorAlign.START
         });
 
         this._wsCaptionBackground = new St.Bin({
@@ -448,62 +476,90 @@ var ThumbnailCaption = class WorkspacesToDock_ThumbnailCaption {
                     case "number":
                         this._wsNumber = new St.Label({
                             name: 'workspacestodockCaptionNumber',
-                            text: ''
+                            text: '',
+                            x_align: Clutter.ActorAlign.CENTER,
+                            y_align: Clutter.ActorAlign.CENTER
                         });
                         this._wsNumberBox = new St.BoxLayout({
                             name: 'workspacestodockCaptionNumberBox',
-                            style_class: 'workspacestodock-caption-number'
+                            style_class: 'workspacestodock-caption-number',
+                            x_align: Clutter.ActorAlign.START,
+                            y_align: this._captionYAlign,
+                            x_expand: expandState,
+                            y_expand: expandState
                         });
-                        this._wsNumberBox.add(this._wsNumber, {x_fill: false, x_align: St.Align.MIDDLE, y_fill: false, y_align: St.Align.MIDDLE});
-                        this._wsCaption.add(this._wsNumberBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: this._captionYAlign, expand: expandState});
+                        this._wsNumberBox.add_actor(this._wsNumber);
+                        this._wsCaption.add_actor(this._wsNumberBox);
                         break;
                     case "name":
                         this._wsName = new St.Label({
                             name: 'workspacestodockCaptionName',
-                            text: ''
+                            text: '',
+                            x_align: Clutter.ActorAlign.CENTER,
+                            y_align: Clutter.ActorAlign.CENTER
                         });
                         this._wsNameBox = new St.BoxLayout({
                             name: 'workspacestodockCaptionNameBox',
-                            style_class: 'workspacestodock-caption-name'
+                            style_class: 'workspacestodock-caption-name',
+                            x_align: Clutter.ActorAlign.START,
+                            y_align: this._captionYAlign,
+                            x_expand: expandState
                         });
-                        this._wsNameBox.add(this._wsName, {x_fill: false, x_align: St.Align.MIDDLE, y_fill: false, y_align: St.Align.MIDDLE});
-                        this._wsCaption.add(this._wsNameBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: this._captionYAlign, expand: expandState});
+                        this._wsNameBox.add_actor(this._wsName);
+                        this._wsCaption.add_actor(this._wsNameBox);
                         break;
                     case "windowcount":
                         this._wsWindowCount = new St.Label({
                             name: 'workspacestodockCaptionWindowCount',
-                            text: ''
+                            text: '',
+                            x_align: Clutter.ActorAlign.START,
+                            y_align: Clutter.ActorAlign.CENTER
                         });
                         this._wsWindowCountBox = new St.BoxLayout({
                             name: 'workspacestodockCaptionWindowCountBox',
-                            style_class: 'workspacestodock-caption-windowcount'
+                            style_class: 'workspacestodock-caption-windowcount',
+                            x_align: Clutter.ActorAlign.START,
+                            y_align: this._captionYAlign,
+                            x_expand: expandState
                         });
                         if (this._mySettings.get_boolean('workspace-caption-windowcount-image')) {
                             this._wsWindowCountBox.remove_style_class_name("workspacestodock-caption-windowcount");
                             this._wsWindowCountBox.add_style_class_name("workspacestodock-caption-windowcount-image");
                         }
-                        this._wsWindowCountBox.add(this._wsWindowCount, {x_fill: false, x_align: St.Align.MIDDLE, y_fill: false, y_align: St.Align.MIDDLE});
-                        this._wsCaption.add(this._wsWindowCountBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: this._captionYAlign, expand: expandState});
+                        this._wsWindowCountBox.add_actor(this._wsWindowCount);
+                        this._wsCaption.add_actor(this._wsWindowCountBox);
                         break;
                     case "windowapps":
                         this._taskBarBox = new St.BoxLayout({
                             name: 'workspacestodockCaptionWindowApps',
                             reactive: false,
-                            style_class: 'workspacestodock-caption-windowapps'
+                            style_class: 'workspacestodock-caption-windowapps',
+                            x_align: Clutter.ActorAlign.START,
+                            y_align: this._captionYAlign,
+                            x_expand: expandState,
+                            y_expand: expandState
                         });
-                        this._wsCaption.add(this._taskBarBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: this._captionYAlign, expand: expandState});
+                        this._wsCaption.add_actor(this._taskBarBox);
                         break;
                     case "spacer":
                         this._wsSpacer = new St.Label({
                             name: 'workspacestodockCaptionSpacer',
-                            text: ''
+                            text: '',
+                            x_align: Clutter.ActorAlign.CENTER,
+                            y_align: Clutter.ActorAlign.CENTER,
+                            x_expand: expandState,
+                            y_expand: expandState
                         });
                         this._wsSpacerBox = new St.BoxLayout({
                             name: 'workspacestodockCaptionSpacerBox',
-                            style_class: 'workspacestodock-caption-spacer'
+                            style_class: 'workspacestodock-caption-spacer',
+                            x_align: Clutter.ActorAlign.START,
+                            y_align: this._captionYAlign,
+                            x_expand: expandState,
+                            y_expand: expandState
                         });
-                        this._wsSpacerBox.add(this._wsSpacer, {x_fill: false, x_align: St.Align.MIDDLE, y_fill: false, y_align: St.Align.MIDDLE});
-                        this._wsCaption.add(this._wsSpacerBox, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: this._captionYAlign, expand: expandState});
+                        this._wsSpacerBox.add_actor(this._wsSpacer);
+                        this._wsCaption.add_actor(this._wsSpacerBox);
                         break;
                 }
 
@@ -603,8 +659,9 @@ var ThumbnailCaption = class WorkspacesToDock_ThumbnailCaption {
                 }
 
                 if (this._taskBarBox) {
-                    this._taskBarBox.add(button.actor, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: this._captionYAlign});
+                    this._taskBarBox.add_actor(button.actor);
                 }
+
                 let winInfo = {};
                 winInfo.app = app;
                 winInfo.metaWin = metaWin;
@@ -871,8 +928,9 @@ var ThumbnailCaption = class WorkspacesToDock_ThumbnailCaption {
                             button.actor.visible = false;
                         }
 
-                        if (this._taskBarBox)
-                            this._taskBarBox.add(button.actor, {x_fill: false, x_align: St.Align.START, y_fill: false, y_align: this._captionYAlign});
+                        if (this._taskBarBox) {
+                            this._taskBarBox.add_actor(button.actor);
+                        }
 
                         let winInfo = {};
                         winInfo.app = app;

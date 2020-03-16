@@ -661,7 +661,27 @@ var ShortcutsPanel = class WorkspacesToDock_ShortcutsPanel {
         if (this._isHorizontal)
             packVertical = false;
 
-        this.actor = new St.BoxLayout({ style_class: 'workspace-thumbnails workspacestodock-shortcuts-panel', vertical: packVertical, clip_to_allocation: true });
+        // Set _centerContainer property
+        if (this._settings.get_boolean('customize-height') && this._settings.get_boolean('center-thumbnails-on-dock')) {
+            this._centerContainer = true;
+        } else {
+            this._centerContainer = false;
+        }
+
+        // Set _centerPanelsIndependently property
+        if (this._centerContainer && this._settings.get_int('center-thumbnails-option') == 0) {
+            this._centerPanelsIndependently = true;
+        } else {
+            this._centerPanelsIndependently = false;
+        }
+
+        this.actor = new St.BoxLayout({
+            style_class: 'workspace-thumbnails workspacestodock-shortcuts-panel',
+            vertical: packVertical,
+            clip_to_allocation: true,
+            x_align: (this._centerContainer && this._centerPanelsIndependently) ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.START,
+            y_align: (this._centerContainer && this._centerPanelsIndependently) ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.START
+        });
         this.actor._delegate = this;
 
         this._appSystem = Shell.AppSystem.get_default();
@@ -993,19 +1013,28 @@ var ShortcutsPanel = class WorkspacesToDock_ShortcutsPanel {
             packVertical = false;
 
         // Add Favorite Apps Box
-        this._favoriteAppsBox = new St.BoxLayout({ vertical: packVertical, style_class: 'workspacestodock-shortcuts-panel workspacestodock-shortcuts-panel-favorites' });
+        this._favoriteAppsBox = new St.BoxLayout({
+            vertical: packVertical,
+            style_class: 'workspacestodock-shortcuts-panel workspacestodock-shortcuts-panel-favorites'
+        });
         this.actor.add_actor(this._favoriteAppsBox);
         this._favoriteAppsWorkId = Main.initializeDeferredWork(this._favoriteAppsBox, this._updateFavoriteApps.bind(this));
 
         // Add Running Apps Box
         if (this._settings.get_boolean('shortcuts-panel-show-running')) {
-            this._runningAppsBox = new St.BoxLayout({ vertical: packVertical, style_class: 'workspacestodock-shortcuts-panel workspacestodock-shortcuts-panel-running' });
+            this._runningAppsBox = new St.BoxLayout({
+                vertical: packVertical,
+                style_class: 'workspacestodock-shortcuts-panel workspacestodock-shortcuts-panel-running'
+            });
             this.actor.add_actor(this._runningAppsBox);
             this._updateRunningApps();
         }
 
         if (this._settings.get_boolean('shortcuts-panel-show-places')) {
-            this._placesBox = new St.BoxLayout({ vertical: packVertical, style_class: 'workspacestodock-shortcuts-panel workspacestodock-shortcuts-panel-places' });
+            this._placesBox = new St.BoxLayout({
+                vertical: packVertical,
+                style_class: 'workspacestodock-shortcuts-panel workspacestodock-shortcuts-panel-places'
+            });
             this.actor.add_actor(this._placesBox);
 
             // Get places
@@ -1026,8 +1055,12 @@ var ShortcutsPanel = class WorkspacesToDock_ShortcutsPanel {
         // Add Apps Button to top or bottom of shortcuts panel
         this._appsButton = new ShortcutButton(null, ApplicationType.APPSBUTTON, this);
         if (this._settings.get_boolean('shortcuts-panel-appsbutton-at-bottom')) {
-            let filler = new St.Widget({ style_class: 'popup-separator-menu-item workspacestodock-shortcut-panel-filler' });
-            this.actor.add(filler, { expand: true });
+            let filler = new St.Widget({
+                style_class: 'popup-separator-menu-item workspacestodock-shortcut-panel-filler',
+                x_expand: true,
+                y_expand: true
+            });
+            this.actor.add_actor(filler);
             this.actor.add_actor(this._appsButton.actor);
         } else {
             this.actor.insert_child_at_index(this._appsButton.actor, 0);
