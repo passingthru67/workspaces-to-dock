@@ -350,7 +350,7 @@ var ThumbnailCaption = class WorkspacesToDock_ThumbnailCaption {
         this._taskBar = [];
         this._taskBarBox = null;
         this._menuTaskListBox = null;
-        this._thumbnailRealizeId = 0;
+        this._thumbnailShowId = 0;
 
         this._afterWindowAddedId = this._thumbnail.metaWorkspace.connect_after('window-added',
                                                           this._onAfterWindowAdded.bind(this));
@@ -364,7 +364,7 @@ var ThumbnailCaption = class WorkspacesToDock_ThumbnailCaption {
         this._menuManager = new PopupMenu.PopupMenuManager(this.actor);
 
         this._initCaption();
-        this._thumbnailRealizeId = this._thumbnail.connect("realize", this._initTaskbar.bind(this));
+        this._thumbnailShowId = this._thumbnail.connect("show", this._initTaskbar.bind(this));
     }
 
     destroy() {
@@ -625,9 +625,9 @@ var ThumbnailCaption = class WorkspacesToDock_ThumbnailCaption {
     // function initializes the taskbar icons
     _initTaskbar() {
         if (_DEBUG_ && !this._thumbnail._removed) global.log("myWorkspaceThumbnail: _initTaskbar for metaWorkspace "+this._thumbnail.metaWorkspace.index());
-        if(this._thumbnailRealizeId > 0){
-            this._thumbnail.disconnect(this._thumbnailRealizeId);
-            this._thumbnailRealizeId = 0;
+        if(this._thumbnailShowId > 0){
+            this._thumbnail.disconnect(this._thumbnailShowId);
+            this._thumbnailShowId = 0;
         } else {
             return;
         }
