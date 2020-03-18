@@ -692,7 +692,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
                 this._grid.opacity = 255;
                 this._grid.animateSpring(
                     animationDirection,
-                    self._shortcutsPanel._appsButton.actor);
+                    self._shortcutsPanel._appsButton);
             };
         }
 
