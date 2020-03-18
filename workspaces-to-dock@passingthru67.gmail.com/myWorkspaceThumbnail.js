@@ -1801,7 +1801,10 @@ var MyThumbnailsBox = GObject.registerClass({
                 }
 
                 if (i == this._dropPlaceholderPos) {
-                    let [, placeholderWidth] = this._dropPlaceholder.get_preferred_width(-1);
+                    //Passingthru67: Gnome's placeholder style doesn't take into account horizontal workspaces.
+                    //So we'll use the preferred height value instead of the width
+                    // let [, placeholderWidth] = this._dropPlaceholder.get_preferred_width(-1);
+                    let [, placeholderWidth] = this._dropPlaceholder.get_preferred_height(-1);
                     childBox.y1 = y1;
                     childBox.y2 = y2;
                     childBox.x1 = Math.round(x);
@@ -1886,8 +1889,7 @@ var MyThumbnailsBox = GObject.registerClass({
                     Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
                         this._dropPlaceholder.show();
                     });
-                    // passingthru67 - include captionBackgroundHeight
-                    y += placeholderHeight + spacing + captionBackgroundHeight;
+                    y += placeholderHeight + spacing;
                 }
 
                 // We might end up with thumbnailHeight being something like 99.33
