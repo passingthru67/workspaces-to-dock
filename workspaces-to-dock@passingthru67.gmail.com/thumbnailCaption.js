@@ -460,7 +460,7 @@ var ThumbnailCaption = class WorkspacesToDock_ThumbnailCaption {
 
             this._wsCaption = new St.BoxLayout({
                 name: 'workspacestodockCaption',
-                reactive: true,
+                reactive: false,
                 style_class: 'workspacestodock-workspace-caption',
                 pack_start: true
             });
@@ -615,9 +615,6 @@ var ThumbnailCaption = class WorkspacesToDock_ThumbnailCaption {
 
             // Add menu to menu manager
             this._menuManager.addMenu(this._menu);
-
-            // Connect signals
-            this._wsCaption.connect('button-release-event', this._onWorkspaceCaptionClick.bind(this));
         }
 
     }
@@ -779,56 +776,55 @@ var ThumbnailCaption = class WorkspacesToDock_ThumbnailCaption {
         }
     }
 
-    _onWorkspaceCaptionClick(actor, event) {
-        if (_DEBUG_) global.log("myWorkspaceThumbnail: _onWorkspaceCaptionClick");
+    // NOTE: The caption popup menu is now called from the thumbnailsbox button release event.
+    // This allows us to keep the caption boxlayout non-reactive so that thumbnail window clones
+    // are draggable.
+    showCaptionMenu() {
+        if (_DEBUG_) global.log("myWorkspaceThumbnail: showCaptionMenu");
         if (this._menu.isOpen) {
             this._menu.close();
             return Clutter.EVENT_STOP;
         }
 
-        let mouseButton = event.get_button();
-        if (mouseButton == 3) {
-            this._menu.removeAll();
+        this._menu.removeAll();
 
-            this._menuTaskListBox = new St.BoxLayout({vertical: true});
-            let menuTaskListItemCount = 0;
-            if (this._taskBarBox) {
-                for (let i=0; i < this._taskBar.length; i++) {
-                    let buttonActor = this._taskBarBox.get_child_at_index(i);
-                    let metaWin = this._taskBar[i].metaWin;
-                    let app = this._taskBar[i].app;
-                    let item = new MenuTaskListItem(app, metaWin, this);
-                    if (buttonActor.visible) {
-                        menuTaskListItemCount ++;
-                    } else {
-                        item.actor.visible = false;
-                    }
-                    this._menuTaskListBox.add_actor(item.actor);
+        this._menuTaskListBox = new St.BoxLayout({vertical: true});
+        let menuTaskListItemCount = 0;
+        if (this._taskBarBox) {
+            for (let i=0; i < this._taskBar.length; i++) {
+                let buttonActor = this._taskBarBox.get_child_at_index(i);
+                let metaWin = this._taskBar[i].metaWin;
+                let app = this._taskBar[i].app;
+                let item = new MenuTaskListItem(app, metaWin, this);
+                if (buttonActor.visible) {
+                    menuTaskListItemCount ++;
+                } else {
+                    item.actor.visible = false;
                 }
+                this._menuTaskListBox.add_actor(item.actor);
             }
-
-            let windowAppsListsection = new PopupMenu.PopupMenuSection();
-            windowAppsListsection.actor.add_actor(this._menuTaskListBox);
-
-            let appsArray = this._menuTaskListBox.get_children();
-            if (menuTaskListItemCount > 0) {
-                this._menu.addMenuItem(windowAppsListsection);
-                if (menuTaskListItemCount > 1) {
-                    let item1 = new PopupMenu.PopupMenuItem(_('Close All Applications'));
-                    item1.connect('activate', this._closeAllMetaWindows.bind(this));
-                    this._menu.addMenuItem(item1);
-                }
-                this._menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-            }
-
-            let item2 = new PopupMenu.PopupMenuItem(_("Extension Preferences"));
-            item2.connect('activate', this._showExtensionPreferences.bind(this));
-            this._menu.addMenuItem(item2);
-
-            this._menu.open();
-            return Clutter.EVENT_STOP;
         }
-        return Clutter.EVENT_PROPAGATE;
+
+        let windowAppsListsection = new PopupMenu.PopupMenuSection();
+        windowAppsListsection.actor.add_actor(this._menuTaskListBox);
+
+        let appsArray = this._menuTaskListBox.get_children();
+        if (menuTaskListItemCount > 0) {
+            this._menu.addMenuItem(windowAppsListsection);
+            if (menuTaskListItemCount > 1) {
+                let item1 = new PopupMenu.PopupMenuItem(_('Close All Applications'));
+                item1.connect('activate', this._closeAllMetaWindows.bind(this));
+                this._menu.addMenuItem(item1);
+            }
+            this._menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+        }
+
+        let item2 = new PopupMenu.PopupMenuItem(_("Extension Preferences"));
+        item2.connect('activate', this._showExtensionPreferences.bind(this));
+        this._menu.addMenuItem(item2);
+
+        this._menu.open();
+        return Clutter.EVENT_STOP;
     }
 
     activateMetaWindow(metaWin) {

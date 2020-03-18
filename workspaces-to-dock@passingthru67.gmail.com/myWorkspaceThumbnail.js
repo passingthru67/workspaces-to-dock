@@ -770,6 +770,8 @@ var MyThumbnailsBox = GObject.registerClass({
         this._isHorizontal = (this._position == St.Side.TOP ||
                               this._position == St.Side.BOTTOM);
 
+        this._popupCaptionMenuTimeoutId = 0;
+
         // Set _centerContainer property
         if (this._mySettings.get_boolean('customize-height') && this._mySettings.get_boolean('center-thumbnails-on-dock')) {
             this._centerContainer = true;
@@ -994,6 +996,23 @@ var MyThumbnailsBox = GObject.registerClass({
             thumbnail.activate(time);
     }
 
+    _activateCaptionMenuAtPoint(stageX, stageY, time) {
+        let [r_, x, y] = this.transform_stage_point(stageX, stageY);
+
+        let thumbnail = this._thumbnails.find(t => {
+            let [w, h] = t.get_transformed_size();
+
+            if (this._isHorizontal) {
+                return x >= t.x && x <= t.x + w;
+            } else {
+                return y >= t.y && y <= t.y + h;
+            }
+        });
+        if (thumbnail) {
+            thumbnail.caption.showCaptionMenu();
+        }
+    }
+
     vfunc_button_release_event(buttonEvent) {
         // ThumbnailsBox click events are passed on to dock handler if conditions are met
         // Helpful in cases where the 'dock-edge-visible' option is enabled. It provides more
@@ -1017,16 +1036,16 @@ var MyThumbnailsBox = GObject.registerClass({
             }
         }
 
-        if (this._mySettings.get_boolean('toggle-overview')) {
-            if (buttonEvent.button == 3) { //right click
-                // pass right-click event on allowing it to bubble up
-                return Clutter.EVENT_PROPAGATE;
+        let { x, y } = buttonEvent;
+        this._activateThumbnailAtPoint(x, y, buttonEvent.time);
+
+        if (buttonEvent.button == 3) { //right click
+            if (this._popupCaptionMenuTimeoutId == 0) {
+                let { x, y } = buttonEvent;
+                this._activateCaptionMenuAtPoint(x, y, buttonEvent.time);
             }
         }
 
-
-        let { x, y } = buttonEvent;
-        this._activateThumbnailAtPoint(x, y, buttonEvent.time);
         return Clutter.EVENT_STOP;
     }
 
@@ -1371,6 +1390,13 @@ var MyThumbnailsBox = GObject.registerClass({
 
     setPopupMenuFlag(showing) {
         this._dock.setPopupMenuFlag(showing);
+        if (!showing) {
+            this._popupCaptionMenuTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1000, () => {
+                this._popupCaptionMenuTimeoutId = 0;
+                return GLib.SOURCE_REMOVE;
+            });
+            GLib.Source.set_name_by_id(this._popupCaptionMenuTimeoutId, '[gnome-shell] this.setPopupMenuFlag');
+        }
     }
 
     _updateThumbnailCaption(thumbnail, i, captionHeight, captionBackgroundHeight) {
