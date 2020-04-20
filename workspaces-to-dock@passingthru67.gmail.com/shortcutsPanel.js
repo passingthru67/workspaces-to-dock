@@ -25,7 +25,7 @@ const IconGrid = imports.ui.iconGrid;
 
 const Util = imports.misc.util;
 const ExtensionUtils = imports.misc.extensionUtils;
-const Me = imports.misc.extensionUtils.getCurrentExtension();
+const Me = ExtensionUtils.getCurrentExtension();
 
 const PlaceDisplay = Me.imports.placeDisplay;
 const Convenience = Me.imports.convenience;
@@ -754,9 +754,11 @@ var ShortcutButtonMenu = class WorkspacesToDock_ShortcutButtonMenu extends Popup
         if (this._source._type == ApplicationType.APPSBUTTON) {
             let item = this._appendMenuItem(_("Extension Preferences"));
             item.connect('activate', () => {
-                // passingthru67: Should we use commandline or argv?
-                // Util.trySpawnCommandLine("gnome-shell-extension-prefs " + Me.metadata.uuid);
-                Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
+                if (typeof ExtensionUtils.openPrefs === 'function') {
+                    ExtensionUtils.openPrefs();
+                } else {
+                    Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
+                }
             });
             return;
         }

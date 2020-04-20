@@ -19,7 +19,8 @@ const PopupMenu = imports.ui.popupMenu;
 const DND = imports.ui.dnd;
 
 const Util = imports.misc.util;
-const Me = imports.misc.extensionUtils.getCurrentExtension();
+const ExtensionUtils = imports.misc.extensionUtils;
+const Me = ExtensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 const MyWorkspaceThumbnail = Me.imports.myWorkspaceThumbnail;
 
@@ -847,9 +848,11 @@ var ThumbnailCaption = class WorkspacesToDock_ThumbnailCaption {
     }
 
     _showExtensionPreferences(menuItem, event) {
-        // passingthru67: Should we use commandline or argv?
-        // Util.trySpawnCommandLine("gnome-shell-extension-prefs " + Me.metadata.uuid);
-        Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
+        if (typeof ExtensionUtils.openPrefs === 'function') {
+            ExtensionUtils.openPrefs();
+        } else {
+            Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
+        }
     }
 
     closeMetaWindow(metaWin) {
