@@ -42,7 +42,9 @@ const MyWorkspaceSwitcher = Me.imports.myWorkspaceSwitcher;
 const MyPressureBarrier = Me.imports.myPressureBarrier;
 
 const DashToDock_UUID = "dash-to-dock@micxgx.gmail.com";
+const UbuntuDock_UUID = "ubuntu-dock@ubuntu.com";
 let DashToDockExtension = null;
+let UbuntuDockExtension = null;
 let DashToDock = null;
 
 const DOCK_EDGE_VISIBLE_WIDTH = 5;
@@ -521,7 +523,14 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
 
         // Connect DashToDock hover signal if the extension is already loaded and enabled
         this._hoveringDash = false;
+        
         DashToDockExtension = Main.extensionManager.lookup(DashToDock_UUID);
+        UbuntuDockExtension = Main.extensionManager.lookup(UbuntuDock_UUID);
+        
+        if (UbuntuDockExtension) {
+            DashToDockExtension = UbuntuDockExtension;
+        }
+        
         if (DashToDockExtension) {
             if (DashToDockExtension.state == ExtensionUtils.ExtensionState.ENABLED) {
                 if (_DEBUG_) global.log("dockeWorkspaces: init - DashToDock extension is installed and enabled");
@@ -1710,7 +1719,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
     // handler for extensionSystem state changes
     _onExtensionSystemStateChanged(source, extension) {
         // Only looking for DashToDock state changes
-        if (extension.uuid == DashToDock_UUID) {
+        if (extension.uuid == DashToDock_UUID || extension.uuid == UbuntuDock_UUID) {
             if (_DEBUG_) global.log("dockedWorkspaces: _onExtensionSystemStateChanged for "+extension.uuid+" state= "+extension.state);
             DashToDockExtension = extension;
             if (DashToDockExtension.state == ExtensionUtils.ExtensionState.ENABLED) {
