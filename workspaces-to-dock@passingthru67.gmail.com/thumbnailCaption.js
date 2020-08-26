@@ -176,7 +176,7 @@ var TaskbarIcon = class WorkspacesToDock_TaskbarIcon {
         let [buttonStageX, buttonStageY] = this.actor.get_transformed_position();
         let labelWidth = this.tooltip.get_width();
         let buttonWidth = this.actor.get_width();
-        let x = buttonStageX + (buttonWidth / 2) - (labelWidth / 2);
+        let x = Math.floor(buttonStageX + (buttonWidth - labelWidth) / 2);
         let labelHeight = this.tooltip.get_height();
         let y = buttonStageY - labelHeight;
 
