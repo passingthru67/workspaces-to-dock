@@ -753,8 +753,8 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         // Override geometry calculations of activities overview to use workspaces-to-dock instead of the default thumbnailsbox.
         // NOTE: This is needed for when the dock is positioned on a secondary monitor and also for when the shortcuts panel is visible
         // causing the dock to be wider than normal.
-        GSFunctions['WorkspacesDisplay_syncWorkspacesActualGeometry'] = WorkspacesView.WorkspacesDisplay.prototype._syncWorkspacesActualGeometry;
-        WorkspacesView.WorkspacesDisplay.prototype._syncWorkspacesActualGeometry = function() {
+        GSFunctions['WorkspacesDisplay_updateWorkspacesActualGeometry'] = WorkspacesView.WorkspacesDisplay.prototype._updateWorkspacesActualGeometry;
+        WorkspacesView.WorkspacesDisplay.prototype._updateWorkspacesActualGeometry = function() {
             if (_DEBUG_) global.log("WORKSPACESDISPLAY - _UPDATE ACTUALGEOMETRY");
             if (!this._workspacesViews.length)
                 return;
@@ -1009,7 +1009,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
             }
         };
 
-        // This override is needed to prevent calls from syncWorkspacesActualGeometry bound to the workspacesDisplay object
+        // This override is needed to prevent calls from updateWorkspacesActualGeometry bound to the workspacesDisplay object
         // without destroying and recreating Main.overview.viewSelector._workspacesDisplay.
         // We replace this function with a new setMyActualGeometry function (see below)
         // TODO: This is very hackish. We need to find a better way to accomplish this
@@ -1059,8 +1059,8 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         // Restore normal LayoutManager _updateRegions function
         Layout.LayoutManager.prototype._updateRegions = GSFunctions['LayoutManager_updateRegions'];
 
-        // Restore normal WorkspacesDisplay _syncWorkspacesActualGeometray function
-        WorkspacesView.WorkspacesDisplay.prototype._syncWorkspacesActualGeometry = GSFunctions['WorkspacesDisplay_syncWorkspacesActualGeometry'];
+        // Restore normal WorkspacesDisplay _updateworksapgesActualGeometray function
+        WorkspacesView.WorkspacesDisplay.prototype._updateWorkspacesActualGeometry = GSFunctions['WorkspacesDisplay_updateWorkspacesActualGeometry'];
 
         // Restore normal WorkspacesView _setActualGeometry function
         WorkspacesView.WorkspacesViewBase.prototype.setActualGeometry = GSFunctions['WorkspacesViewBase_setActualGeometry'];
