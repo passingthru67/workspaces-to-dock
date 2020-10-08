@@ -259,7 +259,7 @@ var ShortcutButton = GObject.registerClass({
             // Adjust 'places' symbolic icons by reducing their size
             // and setting a special class for button padding
             this._iconSize -= 4;
-            this.actor.add_style_class_name('workspacestodock-shortcut-button-symbolic');
+            this.add_style_class_name('workspacestodock-shortcut-button-symbolic');
             return new St.Icon({gicon: this.app.icon, icon_size: iconSize});
         } else if (this._type == ApplicationType.RECENT) {
             let gicon = Gio.content_type_get_icon(this.app.mime);

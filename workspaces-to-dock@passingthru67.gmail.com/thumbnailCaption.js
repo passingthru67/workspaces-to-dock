@@ -8,6 +8,7 @@ const Meta = imports.gi.Meta;
 const Shell = imports.gi.Shell;
 const Signals = imports.signals;
 const St = imports.gi.St;
+const Graphene = imports.gi.Graphene;
 
 const Main = imports.ui.main;
 const WorkspacesView = imports.ui.workspacesView;
@@ -334,7 +335,6 @@ var ThumbnailCaption = class WorkspacesToDock_ThumbnailCaption {
             name: 'workspacestodockCaptionContainer',
             reactive: false,
             style_class: 'workspacestodock-workspace-caption-container',
-            x_fill: true,
             y_align: this._captionYAlign,
             x_align: Clutter.ActorAlign.START
         });

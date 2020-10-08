@@ -15,6 +15,7 @@ const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 const GObject = imports.gi.GObject;
 const Clutter = imports.gi.Clutter;
+const Graphene = imports.gi.Graphene;
 const Lang = imports.lang;
 const Shell = imports.gi.Shell;
 const Signals = imports.signals;
@@ -133,8 +134,8 @@ var MyThumbnailsSlider = GObject.registerClass({
         super._init(params);
     }
 
-    vfunc_allocate(box, flags) {
-        this.set_allocation(box, flags);
+    vfunc_allocate(box) {
+        this.set_allocation(box);
 
         if (this.child == null)
             return;
@@ -168,7 +169,7 @@ var MyThumbnailsSlider = GObject.registerClass({
             childBox.y2 = slideoutSize + this._slidex * (childHeight - slideoutSize);
         }
 
-        this.child.allocate(childBox, flags);
+        this.child.allocate(childBox);
         this.child.set_clip(-childBox.x1, -childBox.y1,
                             -childBox.x1+availWidth, -childBox.y1 + availHeight);
     }
@@ -523,14 +524,14 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
 
         // Connect DashToDock hover signal if the extension is already loaded and enabled
         this._hoveringDash = false;
-        
+
         DashToDockExtension = Main.extensionManager.lookup(DashToDock_UUID);
         UbuntuDockExtension = Main.extensionManager.lookup(UbuntuDock_UUID);
-        
+
         if (UbuntuDockExtension) {
             DashToDockExtension = UbuntuDockExtension;
         }
-        
+
         if (DashToDockExtension) {
             if (DashToDockExtension.state == ExtensionUtils.ExtensionState.ENABLED) {
                 if (_DEBUG_) global.log("dockeWorkspaces: init - DashToDock extension is installed and enabled");
@@ -1005,27 +1006,9 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
                 geometry.height -= controlsHeight;
                 if (_DEBUG_) global.log("WORKSPACESDISPLAY - FINAL GEOMETRY.X = "+geometry.x+" Y = "+geometry.y+" W = "+geometry.width+" H = "+geometry.height);
 
-                this._workspacesViews[i].setMyActualGeometry(geometry);
+                const { gx, gy, gwidth, gheight } = geometry;
+                this._workspacesViews[i].set({ gx, gy, gwidth, gheight });
             }
-        };
-
-        // This override is needed to prevent calls from updateWorkspacesActualGeometry bound to the workspacesDisplay object
-        // without destroying and recreating Main.overview.viewSelector._workspacesDisplay.
-        // We replace this function with a new setMyActualGeometry function (see below)
-        // TODO: This is very hackish. We need to find a better way to accomplish this
-        GSFunctions['WorkspacesViewBase_setActualGeometry'] = WorkspacesView.WorkspacesViewBase.prototype.setActualGeometry;
-        WorkspacesView.WorkspacesViewBase.prototype.setActualGeometry = function(geom) {
-            if (_DEBUG_) global.log("WORKSPACESVIEW - setActualGeometry");
-            //GSFunctions['WorkspacesView_setActualGeometry'].call(this, geom);
-            return;
-        };
-
-        // This additional function replaces the WorkspacesView setActualGeometry function above.
-        // TODO: This is very hackish. We need to find a better way to accomplish this
-        WorkspacesView.WorkspacesViewBase.prototype.setMyActualGeometry = function(geom) {
-            if (_DEBUG_) global.log("WORKSPACESVIEW - setMyActualGeometry");
-            this._actualGeometry = geom;
-            this._syncActualGeometry();
         };
 
         this._overrideComplete = true;
@@ -2353,25 +2336,21 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
                 width = this._monitor.width - (margin * 2);
             }
 
-            // Get y position, height, and anchorpoint
+            // Get y position and height
             height = this._thumbnailsBox._thumbnailsBoxHeight + shortcutsPanelThickness + screenEdgePadding;
             if (this._position == St.Side.TOP) {
                 y =  this._monitor.y;
-                anchorPoint = Clutter.Gravity.NORTH_WEST;
             } else {
-                y =  this._monitor.y + this._monitor.height;
-                anchorPoint = Clutter.Gravity.SOUTH_WEST;
+                y =  this._monitor.y + this._monitor.height - (height + 1);
             }
 
         } else {
-            // Get x position, width, and anchorpoint
+            // Get x position and widtht
             width = this._thumbnailsBox._thumbnailsBoxWidth + shortcutsPanelThickness + screenEdgePadding;
             if (this._position == St.Side.LEFT) {
                 x = this._monitor.x;
-                anchorPoint = Clutter.Gravity.NORTH_WEST;
             } else {
-                x = this._monitor.x + this._monitor.width;
-                anchorPoint = Clutter.Gravity.NORTH_EAST;
+                x = this._monitor.x + this._monitor.width - (width + 1);
             }
 
             // Get y position and height
@@ -2395,7 +2374,9 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
 
         // Update position of main actor (used to detect window overlaps)
         this.actor.set_position(x, y);
+        this.actor.set_pivot_point(x, y);
         this._struts.set_position(x, y);
+        this._struts.set_pivot_point(x, y);
         if (_DEBUG_) global.log("dockedWorkspaces: _updateSize new x = "+x+" y = "+y);
 
         // Update size of the main actor as well as the _dock & _panels inside
@@ -2473,11 +2454,6 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
                 this.actor.set_size(width + this._triggerWidth, height);
             }
         }
-
-        // Set anchor points
-        this.actor.move_anchor_point_from_gravity(anchorPoint);
-        this._struts.move_anchor_point_from_gravity(anchorPoint);
-
         // Update slider slideout width
         let slideoutSize = this._settings.get_boolean('dock-edge-visible') ? this._triggerWidth + DOCK_EDGE_VISIBLE_WIDTH : this._triggerWidth;
         this._slider.slideoutSize = slideoutSize;
