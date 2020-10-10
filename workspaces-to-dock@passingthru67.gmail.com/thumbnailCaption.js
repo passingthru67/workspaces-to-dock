@@ -2,6 +2,7 @@ const _DEBUG_ = false;
 
 const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
+const GObject = imports.gi.GObject;
 const Clutter = imports.gi.Clutter;
 const Lang = imports.lang;
 const Meta = imports.gi.Meta;
@@ -56,8 +57,10 @@ function getPosition(settings) {
     return position;
 }
 
-var TaskbarIcon = class WorkspacesToDock_TaskbarIcon {
-    constructor(app, metaWin, caption) {
+
+var TaskbarIcon = GObject.registerClass({},
+class WorkspacesToDock_TaskbarIcon extends GObject.Object {
+    _init(app, metaWin, caption) {
         this._caption = caption;
         this._mySettings = caption._mySettings;
         this._app = app;
@@ -82,7 +85,7 @@ var TaskbarIcon = class WorkspacesToDock_TaskbarIcon {
             x_align: Clutter.ActorAlign.START,
             y_align: this._captionYAlign
         });
-        this.actor.set_child(this._icon);
+        // this.actor.set_child(this._icon);
         this.actor._delegate = this;
 
         // this._tooltipText = this._app.get_name();
@@ -228,7 +231,7 @@ var TaskbarIcon = class WorkspacesToDock_TaskbarIcon {
             }
         });
     }
-};
+});
 
 var MenuTaskListItem = class WorkspacesToDock_MenuTaskListItem {
     constructor(app, metaWin, caption) {
