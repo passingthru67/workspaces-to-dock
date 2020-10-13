@@ -854,28 +854,30 @@ var Intellihide = class WorkspacesToDock_Intellihide {
                             let rect = win.get_frame_rect();
                             let [dx, dy] = this._dock.actor.get_position();
                             let [dw, dh] = this._dock.actor.get_size();
-                            let [dcx, dcy] = this._dock.actor.get_transformed_position();
-                            let [dcw, dch] = this._dock.actor.get_size();
 
                             // SANITY CHECK
                             // global.log("dx="+dx+" dy="+dy+" || dcx="+Math.round(dcx)+" dcy="+dcy);
                             // global.log("dw="+dw+" dh="+dh+" || dcw="+dcw+" dch="+dch);
 
                             if (this._dock._isHorizontal) {
-                                dx = dcx;
-                                dw = dcw;
                                 let intellihideAction = this._settings.get_enum('intellihide-action');
                                 if (intellihideAction == IntellihideAction.SHOW_PARTIAL || intellihideAction == IntellihideAction.SHOW_PARTIAL_FIXED) {
-                                    if (this._dock._slider.partialSlideoutSize)
-                                        dh = this._dock._slider.partialSlideoutSize;
+                                    if (this._dock._slider.partialSlideoutSize){
+                                        if(this._dock._position == St.Side.BOTTOM) {
+                                            dy += (dh - this._dock._slider.partialSlideoutSize);
+                                        }
+                                        dh -= (dh - this._dock._slider.partialSlideoutSize);
+                                    }
                                 }
                             } else {
-                                dy = dcy;
-                                dh = dch;
                                 let intellihideAction = this._settings.get_enum('intellihide-action');
                                 if (intellihideAction == IntellihideAction.SHOW_PARTIAL || intellihideAction == IntellihideAction.SHOW_PARTIAL_FIXED) {
-                                    if (this._dock._slider.partialSlideoutSize)
-                                        dw = this._dock._slider.partialSlideoutSize;
+                                    if (this._dock._slider.partialSlideoutSize){
+                                        if(this._dock._position == St.Side.RIGHT) {
+                                            dx += (dw - this._dock._slider.partialSlideoutSize);
+                                        }
+                                        dw -= (dw - this._dock._slider.partialSlideoutSize);
+                                    }
                                 }
                             }
 
@@ -884,9 +886,9 @@ var Intellihide = class WorkspacesToDock_Intellihide {
                             if (this._dock._position == St.Side.LEFT || this._dock._position == St.Side.TOP) {
                                 test = (rect.x < dx + dw) && (rect.x + rect.width > dx) && (rect.y < dy + dh) && (rect.y + rect.height > dy);
                             } else if (this._dock._position == St.Side.RIGHT) {
-                                test = (rect.x < dx) && (rect.x + rect.width > dx - dw) && (rect.y < dy + dh) && (rect.y + rect.height > dy);
+                                test = (rect.x < dx + dw) && (rect.x + rect.width > dx) && (rect.y < dy + dh) && (rect.y + rect.height > dy);
                             } else if (this._dock._position == St.Side.BOTTOM) {
-                                test = (rect.x < dx + dw) && (rect.x + rect.width > dx) && (rect.y + rect.height > dy - dh) && (rect.y < dy);
+                                test = (rect.x < dx + dw) && (rect.x + rect.width > dx) && (rect.y + rect.height > dy) && (rect.y < dy + dy);
                             }
                             if (test) {
                                 overlaps = true;

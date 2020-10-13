@@ -2374,9 +2374,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
 
         // Update position of main actor (used to detect window overlaps)
         this.actor.set_position(x, y);
-        this.actor.set_pivot_point(x, y);
         this._struts.set_position(x, y);
-        this._struts.set_pivot_point(x, y);
         if (_DEBUG_) global.log("dockedWorkspaces: _updateSize new x = "+x+" y = "+y);
 
         // Update size of the main actor as well as the _dock & _panels inside
