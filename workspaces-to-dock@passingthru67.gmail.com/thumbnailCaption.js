@@ -85,7 +85,7 @@ class WorkspacesToDock_TaskbarIcon extends GObject.Object {
             x_align: Clutter.ActorAlign.START,
             y_align: this._captionYAlign
         });
-        // this.actor.set_child(this._icon);
+        this.actor.set_child(this._icon);
         this.actor._delegate = this;
 
         // this._tooltipText = this._app.get_name();
