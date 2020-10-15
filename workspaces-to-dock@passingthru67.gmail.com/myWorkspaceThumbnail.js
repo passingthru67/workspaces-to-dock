@@ -569,8 +569,12 @@ var MyWorkspaceThumbnail = GObject.registerClass({
     }
 
     // Tests if @actor belongs to this workspace and monitor
-    _isMyWindow(actor) {
-        let win = actor.meta_window;
+    _isMyWindow(actor, isMetaWin) {
+        let win;
+        if (isMetaWin)
+            win = actor;
+        else
+            win = actor.meta_window;
 
         return win.located_on_workspace(this.metaWorkspace) &&
             (win.get_monitor() == this.monitorIndex);
@@ -1106,7 +1110,7 @@ var MyThumbnailsBox = GObject.registerClass({
 
     // Draggable target interface
     handleDragOver(source, actor, x, y, time) {
-        if (!source.metaWindow &&
+        if (!source._caption && !source.metaWindow &&
             (!source.app || !source.app.can_open_new_window()) &&
             (source.app || !source.shellWorkspaceLaunch) &&
             source != Main.xdndHandler)
