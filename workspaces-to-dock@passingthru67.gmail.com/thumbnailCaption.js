@@ -646,23 +646,22 @@ var ThumbnailCaption = class WorkspacesToDock_ThumbnailCaption {
             let app = tracker.get_window_app(metaWin);
             if (app) {
                 if (_DEBUG_) global.log("myWorkspaceThumbnail: _initTaskbar - window button app = "+app.get_name());
-                let button = new TaskbarIcon(app, metaWin, this);
-                if (metaWin.has_focus()) {
-                    button.actor.add_style_class_name('workspacestodock-caption-windowapps-button-active');
-                }
+                if(this._taskBarBox){
+                    let button = new TaskbarIcon(app, metaWin, this);
+                    if (metaWin.has_focus()) {
+                        button.actor.add_style_class_name('workspacestodock-caption-windowapps-button-active');
+                    }
 
-                if ((this._isMyWindow(windows[i]) && this._isOverviewWindow(windows[i])) ||
-                    (this._isMyWindow(windows[i]) && this._isMinimizedWindow(windows[i])) ||
-                    this._showWindowAppOnThisWorkspace(windows[i])) {
-                    button.actor.visible = true;
-                } else {
-                    button.actor.visible = false;
-                }
+                    if ((this._isMyWindow(windows[i]) && this._isOverviewWindow(windows[i])) ||
+                        (this._isMyWindow(windows[i]) && this._isMinimizedWindow(windows[i])) ||
+                        this._showWindowAppOnThisWorkspace(windows[i])) {
+                        button.actor.visible = true;
+                    } else {
+                        button.actor.visible = false;
+                    }
 
-                if (this._taskBarBox) {
                     this._taskBarBox.add_actor(button.actor);
                 }
-
                 let winInfo = {};
                 winInfo.app = app;
                 winInfo.metaWin = metaWin;
@@ -917,20 +916,19 @@ var ThumbnailCaption = class WorkspacesToDock_ThumbnailCaption {
                     let app = tracker.get_window_app(metaWin);
                     if (app) {
                         if (_DEBUG_) global.log("myWorkspaceThumbnail: updateTaskbar - window button app = "+app.get_name());
-                        let button = new TaskbarIcon(app, metaWin, this);
-                        if (metaWin.has_focus()) {
-                            button.actor.add_style_class_name('workspacestodock-caption-windowapps-button-active');
-                        }
-
-                        if ((this._isMyWindow(metaWin, true) && this._isOverviewWindow(metaWin, true)) ||
-                            (this._isMyWindow(metaWin, true) && this._isMinimizedWindow(metaWin, true)) ||
-                            this._showWindowAppOnThisWorkspace(metaWin, true)) {
-                            button.actor.visible = true;
-                        } else {
-                            button.actor.visible = false;
-                        }
-
                         if (this._taskBarBox) {
+                            let button = new TaskbarIcon(app, metaWin, this);
+                            if (metaWin.has_focus()) {
+                                button.actor.add_style_class_name('workspacestodock-caption-windowapps-button-active');
+                            }
+
+                            if ((this._isMyWindow(metaWin, true) && this._isOverviewWindow(metaWin, true)) ||
+                                (this._isMyWindow(metaWin, true) && this._isMinimizedWindow(metaWin, true)) ||
+                                this._showWindowAppOnThisWorkspace(metaWin, true)) {
+                                button.actor.visible = true;
+                            } else {
+                                button.actor.visible = false;
+                            }
                             this._taskBarBox.add_actor(button.actor);
                         }
 
