@@ -696,8 +696,14 @@ var MyWorkspaceThumbnail = GObject.registerClass({
         if (this.state > ThumbnailState.NORMAL)
             return false;
 
-        if (source.realWindow) {
-            let win = source.realWindow;
+        if (source.metaWindow) {
+            var win;
+            if(source.realWindow) {
+                win = source.realWindow;
+            } else {
+                win = source.metaWindow.get_compositor_private();
+            }
+
             if (this._isMyWindow(win))
                 return false;
 
@@ -1104,7 +1110,7 @@ var MyThumbnailsBox = GObject.registerClass({
 
     // Draggable target interface
     handleDragOver(source, actor, x, y, time) {
-        if (!source._caption && !source.realWindow &&
+        if (!source._caption && !source.metaWindow &&
             (!source.app || !source.app.can_open_new_window()) &&
             (source.app || !source.shellWorkspaceLaunch) &&
             source != Main.xdndHandler)
@@ -1654,8 +1660,8 @@ var MyThumbnailsBox = GObject.registerClass({
         this.queue_relayout();
     }
 
-    vfunc_allocate(box, flags) {
-        this.set_allocation(box, flags);
+    vfunc_allocate(box) {
+        this.set_allocation(box);
 
         this._thumbnailsBoxWidth = this.width;
         this._thumbnailsBoxHeight = this.height;
@@ -1809,7 +1815,7 @@ var MyThumbnailsBox = GObject.registerClass({
                     childBox.y2 = y2;
                     childBox.x1 = Math.round(x);
                     childBox.x2 = Math.round(x + placeholderWidth);
-                    this._dropPlaceholder.allocate(childBox, flags);
+                    this._dropPlaceholder.allocate(childBox);
                     Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
                         this._dropPlaceholder.show();
                     });
@@ -1839,7 +1845,7 @@ var MyThumbnailsBox = GObject.registerClass({
                 childBox.y2 = y1 + portholeHeight + (captionBackgroundHeight/roundedVScale);
 
                 thumbnail.set_scale(roundedHScale, roundedVScale);
-                thumbnail.allocate(childBox, flags);
+                thumbnail.allocate(childBox);
 
                 // passingthru67 - set myWorkspaceThumbnail labels
                 if (this._mySettings.get_boolean('workspace-captions'))
@@ -1885,7 +1891,7 @@ var MyThumbnailsBox = GObject.registerClass({
                     childBox.x2 = x2;
                     childBox.y1 = Math.round(y);
                     childBox.y2 = Math.round(y + placeholderHeight);
-                    this._dropPlaceholder.allocate(childBox, flags);
+                    this._dropPlaceholder.allocate(childBox);
                     Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
                         this._dropPlaceholder.show();
                     });
@@ -1917,7 +1923,7 @@ var MyThumbnailsBox = GObject.registerClass({
                 childBox.y2 = y1 + portholeHeight + (captionBackgroundHeight/roundedVScale);
 
                 thumbnail.set_scale(roundedHScale, roundedVScale);
-                thumbnail.allocate(childBox, flags);
+                thumbnail.allocate(childBox);
 
                 // passingthru67 - set myWorkspaceThumbnail labels
                 if (this._mySettings.get_boolean('workspace-captions'))
@@ -1944,7 +1950,7 @@ var MyThumbnailsBox = GObject.registerClass({
             childBox.y2 = (indicatorY2 ? indicatorY2 + captionBackgroundHeight : (indicatorY1 + thumbnailHeight + captionBackgroundHeight)) + indicatorBottomFullBorder;
         }
 
-        this._indicator.allocate(childBox, flags);
+        this._indicator.allocate(childBox);
     }
 
     _activeWorkspaceChanged(_wm, _from, _to, _direction) {
