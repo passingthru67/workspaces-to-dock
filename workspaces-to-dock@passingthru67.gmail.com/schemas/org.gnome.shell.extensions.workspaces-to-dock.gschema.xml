@@ -56,7 +56,7 @@
       <description>Enable autohide in fullscreen mode.</description>
     </key>
     <key type="b" name="intellihide">
-      <default>true</default>
+      <default>false</default>
       <summary>Dock dodges windows</summary>
       <description>Enable or disable intellihide mode</description>
     </key>
@@ -121,7 +121,7 @@
       <description>Makes the background of the workspaces opaque improving readability when in autohide mode.</description>
     </key>
     <key type="d" name="background-opacity">
-      <default>0.9</default>
+      <default>0.5</default>
       <summary>Opacity of the workspaces background</summary>
       <description>Sets the opacity of the workspaces background  when in autohide mode.</description>
     </key>
@@ -156,12 +156,12 @@
       <description>Use horizontal workspace switching when dock is positioned horizontally.</description>
     </key>
     <key type="b" name="customize-height">
-      <default>false</default>
+      <default>true</default>
       <summary>Customize height of dock</summary>
       <description>Customize the height of the dock.</description>
     </key>
     <key type="i" name="customize-height-option">
-      <default>0</default>
+      <default>1</default>
       <summary>Customize height options</summary>
       <description>Select type of customization for height of dock (autosize, extend)</description>
     </key>
@@ -251,7 +251,7 @@
       <description>Set the workspace caption popup menu icon size.</description>
     </key>
     <key type="b" name="toggle-overview">
-      <default>true</default>
+      <default>false</default>
       <summary>Toggle overview mode</summary>
       <description>Toggle overview mode with right click</description>
     </key>
@@ -276,7 +276,7 @@
       <description>Enable or disable Dash-To-Dock hover mode</description>
     </key>
     <key name="overview-action" enum="org.gnome.shell.extensions.workspaces-to-dock.overviewaction">
-      <default>'SHOW_FULL'</default>
+      <default>'HIDE'</default>
       <summary>Show, hide, or partially hide the dock in overview mode</summary>
       <description>Show, hide, or partially hide the dock in overview mode.</description>
     </key>
@@ -296,7 +296,7 @@
       <description>Set length of time the dock is shown when switching workspaces</description>
     </key>
     <key type="b" name="show-shortcuts-panel">
-      <default>false</default>
+      <default>true</default>
       <summary>Show a favorite shortcuts panel beside the workspaces thumbnail</summary>
       <description>Show a favorite shortcuts panel beside the workspaces thubmanail</description>
     </key>
@@ -316,7 +316,7 @@
       <description>Show runnings apps on shortcuts panel</description>
     </key>
     <key type="b" name="shortcuts-panel-show-places">
-      <default>true</default>
+      <default>false</default>
       <summary>Show places on the shortcuts panel</summary>
       <description>Show places on the shortcuts panel</description>
     </key>
