@@ -200,7 +200,7 @@ var ShortcutButton = GObject.registerClass({
         this._menuTimeoutId = 0;
         this._stateChangedId = 0;
         if (this._type == ApplicationType.APPSBUTTON) {
-            this._stateChangedId = Main.overview.viewSelector._showAppsButton.connect('notify::checked', () => {
+            this._stateChangedId = Main.overview._overview._controls.dash.showAppsButton.connect('notify::checked', () => {
                 this._onStateChanged.bind(this);
             });
         } else if (this._type == ApplicationType.APPLICATION) {
@@ -224,7 +224,7 @@ var ShortcutButton = GObject.registerClass({
 
         if (this._stateChangedId > 0) {
             if (this._type == ApplicationType.APPSBUTTON) {
-                Main.overview.viewSelector._showAppsButton.disconnect(this._stateChangedId);
+                Main.overview._overview._controls.dash.showAppsButton.disconnect(this._stateChangedId);
             } else {
                 this.app.disconnect(this._stateChangedId);
             }
@@ -278,7 +278,7 @@ var ShortcutButton = GObject.registerClass({
 
     _onStateChanged() {
         if (this._type == ApplicationType.APPSBUTTON) {
-            if (Main.overview.viewSelector._showAppsButton.checked) {
+            if (Main.overview._overview._controls.dash.showAppsButton.checked) {
                 this.add_style_pseudo_class('checked');
             } else {
                 this.remove_style_pseudo_class('checked');
@@ -429,6 +429,7 @@ var ShortcutButton = GObject.registerClass({
     }
 
     activate(button) {
+
         let event = Clutter.get_current_event();
         let modifiers = event ? event.get_state() : 0;
         let isPrimaryButton = button && button == Clutter.BUTTON_PRIMARY;
@@ -474,12 +475,29 @@ var ShortcutButton = GObject.registerClass({
                 Gio.app_info_launch_default_for_uri(this.app.uri, global.create_app_launch_context());
             } else if (this._type == ApplicationType.APPSBUTTON) {
                 if (Main.overview.visible) {
-                    if (Main.overview.viewSelector._showAppsButton.checked) {
+
+                    /*    if (Main.overview.viewSelector._showAppsButton.checked) {
                         Main.overview.hide();
                         Main.overview.viewSelector._showAppsButton.checked = false;
                     } else {
                         Main.overview.viewSelector._showAppsButton.checked = true;
                     }
+                    */
+
+
+                   /*  if (Main.overview._overview._controls.dash.showAppsButton.checked) {
+                        Main.overview.hide();
+                        Main.overview._overview._controls.dash.showAppsButton.checked = false;
+                    } else {
+                        Main.overview._overview._controls.dash.showAppsButton.checked = true;
+                    }
+                    */
+
+                    if (Main.overview._overview._controls.dash.showAppsButton.checked)
+                        Main.overview.hide();
+
+                    Main.overview._overview._controls.dash.showAppsButton.checked = false;
+
                 } else {
                     // passingthru67: ISSUES #49 & #50
                     // Workaround issue by detecting animation status
@@ -487,13 +505,23 @@ var ShortcutButton = GObject.registerClass({
                     // to animate when Gnome animations are enabled. On the other hand,
                     // showing the overview before checking the showAppsButton fails
                     // to scroll when Gnome animations are disabled.
-                    if (this._gDesktopInterfaceSettings.get_boolean('enable-animations')) {
+                    /* if (this._gDesktopInterfaceSettings.get_boolean('enable-animations')) {
+                        Main.overview._overview._controls.dash.showAppsButton.checked = true;
                         Main.overview.show();
-                        Main.overview.viewSelector._showAppsButton.checked = true;
                     } else {
-                        Main.overview.viewSelector._showAppsButton.checked = true;
-                        Main.overview.show();
+                        Main.overview._overview._controls.dash.showAppsButton.checked = true;
+                         Main.overview.show();
                     }
+                    */
+
+                    if (this._gDesktopInterfaceSettings.get_boolean('enable-animations') && !Main.overview._overview._controls.dash.showAppsButton.checked)
+                        Main.overview.show();
+
+                    Main.overview._overview._controls.dash.showAppsButton.checked = true;
+
+
+
+
                 }
             }
         } else if (isMiddleButton) {
@@ -501,6 +529,7 @@ var ShortcutButton = GObject.registerClass({
                 this.app.open_new_window(-1);
             }
         }
+
         return Clutter.EVENT_PROPAGATE;
     }
 
@@ -582,15 +611,15 @@ var ShortcutButton = GObject.registerClass({
             Gio.app_info_launch_default_for_uri(this.app.uri, global.create_app_launch_context());
         } else if (this._type == ApplicationType.APPSBUTTON) {
             if (Main.overview.visible) {
-                if (Main.overview.viewSelector._showAppsButton.checked) {
+                if (Main.overview._overview._controls.dash.showAppsButton.checked) {
                     Main.overview.hide();
-                    Main.overview.viewSelector._showAppsButton.checked = false;
+                    Main.overview._overview._controls.dash.showAppsButton.checked = false;
                 } else {
-                    Main.overview.viewSelector._showAppsButton.checked = true;
+                    Main.overview._overview._controls.dash.showAppsButton.checked = true;
                 }
             } else {
                 Main.overview.show();
-                Main.overview.viewSelector._showAppsButton.checked = true;
+                Main.overview._overview._controls.dash.showAppsButton.checked = true;
             }
         }
     }
