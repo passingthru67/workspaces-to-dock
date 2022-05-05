@@ -102,31 +102,7 @@ function init() {
 function enable() {
     if (_DEBUG_) global.log("WorkspacesToDock: ENABLE");
     loadStylesheet();
-
-  /*   dockss = new St.BoxLayout({
-        name: 'workspacestodockDock33333',
-        reactive: true,
-        track_hover: true,
-        vertical: false,
-        pack_start: true,
-        width:300,
-        height:1000,
-        style:'background:red',
-        x_align: Clutter.ActorAlign.START,
-        y_align:Clutter.ActorAlign.START
-
-    });
-
-*/
-
-    /* Main.layoutManager.addChrome( dockss, {
-        affectsInputRegion: true,
-        affectsStruts: true,
-        trackFullscreen: true,
-    } );
-*/
-
-
+    
      dock = new DockedWorkspaces.DockedWorkspaces();
      intellihide = new Intellihide.Intellihide(dock);
      settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
