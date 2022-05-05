@@ -1,3 +1,6 @@
+ It changed at 2022-05-05, and the setting panel can not be use. if you want to change the setting, change the xml file and then use 
+ glib-compile-schemas ./schemas/ 
+
 workspaces-to-dock
 ==================
 
