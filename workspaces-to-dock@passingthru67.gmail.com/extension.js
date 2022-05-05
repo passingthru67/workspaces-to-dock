@@ -19,10 +19,18 @@ const Convenience = Me.imports.convenience;
 const Intellihide = Me.imports.intellihide;
 const DockedWorkspaces = Me.imports.dockedWorkspaces;
 
+const {
+    Clutter
+} = imports.gi;
+
+
 var intellihide = null;
 var dock = null;
 var settings = null;
 var workspacesToDockStylesheet = null;
+
+let dockss;
+
 
 function loadStylesheet() {
     if (_DEBUG_) global.log("WorkspacesToDock: _loadStylesheet");
@@ -94,10 +102,35 @@ function init() {
 function enable() {
     if (_DEBUG_) global.log("WorkspacesToDock: ENABLE");
     loadStylesheet();
-    dock = new DockedWorkspaces.DockedWorkspaces();
-    intellihide = new Intellihide.Intellihide(dock);
-    settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
-    bindSettingsChanges();
+
+  /*   dockss = new St.BoxLayout({
+        name: 'workspacestodockDock33333',
+        reactive: true,
+        track_hover: true,
+        vertical: false,
+        pack_start: true,
+        width:300,
+        height:1000,
+        style:'background:red',
+        x_align: Clutter.ActorAlign.START,
+        y_align:Clutter.ActorAlign.START
+
+    });
+
+*/
+
+    /* Main.layoutManager.addChrome( dockss, {
+        affectsInputRegion: true,
+        affectsStruts: true,
+        trackFullscreen: true,
+    } );
+*/
+
+
+     dock = new DockedWorkspaces.DockedWorkspaces();
+     intellihide = new Intellihide.Intellihide(dock);
+     settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
+     bindSettingsChanges();
 }
 
 function disable() {
@@ -106,7 +139,6 @@ function disable() {
     intellihide.destroy();
     dock.destroy();
     settings.run_dispose();
-
     dock = null;
     intellihide = null;
     settings = null;
@@ -128,6 +160,7 @@ function bindSettingsChanges() {
         intellihide = new Intellihide.Intellihide(dock);
     });
     settings.connect('changed::dock-fixed', function(){
+
         intellihide.destroy();
         dock.destroy();
         dock = new DockedWorkspaces.DockedWorkspaces();
