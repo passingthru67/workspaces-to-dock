@@ -110,9 +110,16 @@ var globalSignalHandler = class WorkspacesToDock_globalSignalHandler {
         }
         for (let i = 0; i < elements.length; i++) {
             let object = elements[i][0];
+
+            if(!object)
+            {
+                global.log("dockedWorkspaces: object is null",label);
+                continue;
+            }
             let event = elements[i][1];
             let id = object.connect(event, elements[i][2]);
             this._signals[label].push([object, id]);
+
         }
     }
 
