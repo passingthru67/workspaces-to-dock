@@ -87,18 +87,18 @@ function getPosition(settings) {
 function getDockStateDesc(state) {
     let desc = "";
     switch (state) {
-    case DockState.HIDDEN:
-        desc = "HIDDEN";
-        break;
-    case DockState.SHOWING:
-        desc = "SHOWING";
-        break;
-    case DockState.SHOWN:
-        desc = "SHOWN";
-        break;
-    case DockState.HIDING:
-        desc = "HIDING";
-        break;
+        case DockState.HIDDEN:
+            desc = "HIDDEN";
+            break;
+        case DockState.SHOWING:
+            desc = "SHOWING";
+            break;
+        case DockState.SHOWN:
+            desc = "SHOWN";
+            break;
+        case DockState.HIDING:
+            desc = "HIDING";
+            break;
     }
     return desc;
 }
@@ -109,18 +109,18 @@ var MyThumbnailsSlider = GObject.registerClass({
             'side', 'side', 'side',
             GObject.ParamFlags.READWRITE | GObject.ParamFlags.CONSTRUCT_ONLY,
             St.Side, St.Side.RIGHT),
-        'slidex': GObject.ParamSpec.double(
-            'slidex', 'slidex', 'slidex',
-            GObject.ParamFlags.READWRITE | GObject.ParamFlags.CONSTRUCT,
-            0, 1, 1),
-        'slideout-size': GObject.ParamSpec.double(
-            'slideout-size', 'slideout-size', 'slideout-size',
-            GObject.ParamFlags.READWRITE,
-            0, Infinity, 1),
-        'partial-slideout-size': GObject.ParamSpec.double(
-            'partial-slideout-size', 'partial-slideout-size', 'partial-slideout-size',
-            GObject.ParamFlags.READWRITE,
-            0, Infinity, DOCK_EDGE_VISIBLE_OVERVIEW_WIDTH + 1)
+            'slidex': GObject.ParamSpec.double(
+                'slidex', 'slidex', 'slidex',
+                GObject.ParamFlags.READWRITE | GObject.ParamFlags.CONSTRUCT,
+                0, 1, 1),
+                'slideout-size': GObject.ParamSpec.double(
+                    'slideout-size', 'slideout-size', 'slideout-size',
+                    GObject.ParamFlags.READWRITE,
+                    0, Infinity, 1),
+                    'partial-slideout-size': GObject.ParamSpec.double(
+                        'partial-slideout-size', 'partial-slideout-size', 'partial-slideout-size',
+                        GObject.ParamFlags.READWRITE,
+                        0, Infinity, DOCK_EDGE_VISIBLE_OVERVIEW_WIDTH + 1)
     }
 }, class WorkspacesToDock_MyThumbnailsSlider extends St.Bin {
     _init(params = {}) {
@@ -134,7 +134,8 @@ var MyThumbnailsSlider = GObject.registerClass({
     }
 
     vfunc_allocate(box, flags) {
-        this.set_allocation(box, flags);
+        //         this.set_allocation(box, flags);
+        this.set_allocation(box);
 
         if (this.child == null)
             return;
@@ -142,7 +143,7 @@ var MyThumbnailsSlider = GObject.registerClass({
         let availWidth = box.x2 - box.x1;
         let availHeight = box.y2 - box.y1;
         let [minChildWidth, minChildHeight, natChildWidth, natChildHeight] =
-            this.child.get_preferred_size();
+        this.child.get_preferred_size();
 
         let childWidth = natChildWidth;
         let childHeight = natChildHeight;
@@ -168,7 +169,8 @@ var MyThumbnailsSlider = GObject.registerClass({
             childBox.y2 = slideoutSize + this._slidex * (childHeight - slideoutSize);
         }
 
-        this.child.allocate(childBox, flags);
+        // this.child.allocate(childBox, flags);
+        this.child.allocate(childBox);
         this.child.set_clip(-childBox.x1, -childBox.y1,
                             -childBox.x1+availWidth, -childBox.y1 + availHeight);
     }
@@ -260,7 +262,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         this._position = getPosition(this._settings);
         if (_DEBUG_) global.log("dockedWorkspaces: init POSITION is " + this._position);
         this._isHorizontal = (this._position == St.Side.TOP ||
-                              this._position == St.Side.BOTTOM);
+        this._position == St.Side.BOTTOM);
 
         // Authohide current status. Not to be confused with autohide enable/disagle global (g)settings
         // Initially set to null - will be set during first enable/disable autohide
@@ -311,10 +313,10 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         let styleClass = positionStyleClass[this._position];
         if (this._settings.get_boolean('dock-fixed')
             || (this._settings.get_boolean('intellihide') && this._settings.get_enum('intellihide-action') == IntellihideAction.SHOW_PARTIAL_FIXED)) {
-                styleClass += " fixed";
-        }
+            styleClass += " fixed";
+            }
 
-        let shortcutsPanelOrientation = this._settings.get_enum('shortcuts-panel-orientation');
+            let shortcutsPanelOrientation = this._settings.get_enum('shortcuts-panel-orientation');
         if (this._settings.get_boolean('show-shortcuts-panel')) {
             if (shortcutsPanelOrientation == 1) {
                 styleClass += " inside";
@@ -354,6 +356,8 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         let align;
         let packStart;
         let packVertical = this._isHorizontal? true : false;
+
+
         if (this._position == St.Side.TOP || this._position == St.Side.LEFT) {
             align = Clutter.ActorAlign.START;
             packStart = true;
@@ -387,7 +391,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
             vertical: packVertical,
             pack_start: !packStart,
             x_align: (this._centerContainer) ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.START,
-            y_align: (this._centerContainer) ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.START
+                                        y_align: (this._centerContainer) ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.START
         });
 
         this._panelsContainer = new St.BoxLayout({
@@ -397,11 +401,12 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
             vertical: packVertical,
             pack_start: packStart,
             x_align: (this._centerContainer) ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.START,
-            y_align: (this._centerContainer) ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.START
+                                                 y_align: (this._centerContainer) ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.START
         });
 
         this._panels.add_actor(this._panelsContainer);
         this._dockContainer.add_actor(this._panels);
+
 
         // Initialize keyboard toggle timeout
         this._toggleWithKeyboardTimeoutId = 0;
@@ -415,6 +420,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
 
         // Add workspaces, and shortcuts panel to dock container based on dock position
         // and shortcuts panel orientation
+
         if (shortcutsPanelOrientation == 1) {
             this._panelsContainer.add_actor(this._shortcutsPanel.actor);
             this._panelsContainer.add_actor(this._thumbnailsBox);
@@ -444,6 +450,9 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
             }
             yAlign = Clutter.ActorAlign.CENTER;
         }
+
+
+
         this._slider = new MyThumbnailsSlider({
             side: this._position,
             x_align: xAlign,
@@ -456,7 +465,8 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
             name: 'workspacestodockMainActor',
             reactive: false,
             x_align: align,
-            y_align: align
+            y_align: align,
+            //                        style:'background-color:red'
         });
         this.actor._delegate = this;
         this._showId = this.actor.connect('show', this._initialize.bind(this));
@@ -468,53 +478,57 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
 
         // Connect global signals
         let workspaceManager = global.workspace_manager;
+
         this._signalHandler.push(
             [
-                this._thumbnailsBox,
-                'notify::width',
-                this._thumbnailsBoxResized.bind(this)
+            this._thumbnailsBox,
+            'notify::width',
+            this._thumbnailsBoxResized.bind(this)
             ],
             [
-                this._thumbnailsBox,
-                'notify::height',
-                this._thumbnailsBoxResized.bind(this)
+            this._thumbnailsBox,
+            'notify::height',
+            this._thumbnailsBoxResized.bind(this)
+            ] ,
+            [
+            Main.layoutManager,
+            'monitors-changed',
+            this._onMonitorsChanged.bind(this)
             ],
             [
-                Main.layoutManager,
-                'monitors-changed',
-                this._onMonitorsChanged.bind(this)
+            St.ThemeContext.get_for_stage(global.stage),
+                                 'changed',
+                                 this._onThemeChanged.bind(this)
+            ]
+            ,
+            [
+            Main.extensionManager,
+            'extension-state-changed',
+            this._onExtensionSystemStateChanged.bind(this)
             ],
             [
-                St.ThemeContext.get_for_stage(global.stage),
-                'changed',
-                this._onThemeChanged.bind(this)
+            // Main.overview.viewSelector,
+            Main.overview._overview,
+            'notify::y',
+            this._updateYPosition.bind(this)
             ],
             [
-                Main.extensionManager,
-                'extension-state-changed',
-                this._onExtensionSystemStateChanged.bind(this)
+            global.display,
+            'in-fullscreen-changed',
+            this._updateBarrier.bind(this)
             ],
             [
-                Main.overview.viewSelector,
-                'notify::y',
-                this._updateYPosition.bind(this)
+            workspaceManager,
+            'workspace-added',
+            this._onWorkspaceAdded.bind(this)
             ],
             [
-                global.display,
-                'in-fullscreen-changed',
-                this._updateBarrier.bind(this)
-            ],
-            [
-                workspaceManager,
-                'workspace-added',
-                this._onWorkspaceAdded.bind(this)
-            ],
-            [
-                workspaceManager,
-                'workspace-removed',
-                this._onWorkspaceRemoved.bind(this)
+            workspaceManager,
+            'workspace-removed',
+            this._onWorkspaceRemoved.bind(this)
             ]
         );
+
         if (_DEBUG_) global.log("dockedWorkspaces: init - signals being captured");
 
         // Bind keyboard shortcuts
@@ -523,75 +537,80 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
 
         // Connect DashToDock hover signal if the extension is already loaded and enabled
         this._hoveringDash = false;
-        
+
         DashToDockExtension = Main.extensionManager.lookup(DashToDock_UUID);
         UbuntuDockExtension = Main.extensionManager.lookup(UbuntuDock_UUID);
-        
-        if (UbuntuDockExtension) {
-            DashToDockExtension = UbuntuDockExtension;
-        }
-        
-        if (DashToDockExtension) {
-            if (DashToDockExtension.state == ExtensionUtils.ExtensionState.ENABLED) {
-                if (_DEBUG_) global.log("dockeWorkspaces: init - DashToDock extension is installed and enabled");
-                DashToDock = DashToDockExtension.imports.extension;
-                if (DashToDock) {
-                    DashToDockExtension.hasDockPositionKey = false;
-                    if (DashToDock.dockManager) {
-                        DashToDockExtension.hasDockPositionKey = true;
-                    } else {
-                        var keys = DashToDock.dock._settings.list_keys();
-                        if (keys.indexOf('dock-position') > -1) {
+        if (UbuntuDockExtension || DashToDockExtension)
+
+            if (UbuntuDockExtension) {
+                DashToDockExtension = UbuntuDockExtension;
+            }
+
+            if (DashToDockExtension) {
+                if (DashToDockExtension.state == ExtensionUtils.ExtensionState.ENABLED) {
+                    if (_DEBUG_) global.log("dockeWorkspaces: init - DashToDock extension is installed and enabled");
+                    DashToDock = DashToDockExtension.imports.extension;
+                    if (DashToDock) {
+                        DashToDockExtension.hasDockPositionKey = false;
+                        if (DashToDock.dockManager) {
                             DashToDockExtension.hasDockPositionKey = true;
+                        } else {
+                            var keys = DashToDock.dock._settings.list_keys();
+                            if (keys.indexOf('dock-position') > -1) {
+                                DashToDockExtension.hasDockPositionKey = true;
+                            }
                         }
+                        this._connectDashToDockSignals();
                     }
-                    this._connectDashToDockSignals();
                 }
             }
-        }
 
-        // Intialize trigger spacing
-        // We use this space to trigger the dock (show/hide) if the pressure barrier is not present (or disabled)
-        // We also use this space for scrolling when the dock is hidden
-        this._triggerWidth = 1;
-        this._updateTriggerWidth();
+            // Intialize trigger spacing
+            // We use this space to trigger the dock (show/hide) if the pressure barrier is not present (or disabled)
+            // We also use this space for scrolling when the dock is hidden
+            this._triggerWidth = 1;
+            this._updateTriggerWidth();
 
-        // Hide the dock while initializing and setting position
-        // But since we need to access its width, we use opacity
-        this.actor.set_opacity(0);
+            // Hide the dock while initializing and setting position
+            // But since we need to access its width, we use opacity
+            this.actor.set_opacity(0);
 
-        // Since the actor is not a topLevel child and its parent is now not added to the Chrome,
-        // the allocation change of the parent container (slide in and slideout) doesn't trigger
-        // anymore an update of the input regions. Force the update manually.
-        this.actor.connect('notify::allocation',
-                                              Main.layoutManager._queueUpdateRegions.bind(Main.layoutManager));
+            // Since the actor is not a topLevel child and its parent is now not added to the Chrome,
+            // the allocation change of the parent container (slide in and slideout) doesn't trigger
+            // anymore an update of the input regions. Force the update manually.
+            this.actor.connect('notify::allocation',
+                               Main.layoutManager._queueUpdateRegions.bind(Main.layoutManager));
 
-        // Create struts actor for tracking workspace region of fixed dock or partially fixed dock
-        this._struts = new St.Bin({ reactive: false });
-        if (this._settings.get_boolean('dock-fixed')
-            || (this._settings.get_boolean('intellihide') && this._settings.get_enum('intellihide-action') == IntellihideAction.SHOW_PARTIAL_FIXED)) {
+
+
+
+            // Create struts actor for tracking workspace region of fixed dock or partially fixed dock
+            this._struts = new St.Bin({ reactive: false });
+            if (this._settings.get_boolean('dock-fixed')
+                || (this._settings.get_boolean('intellihide') && this._settings.get_enum('intellihide-action') == IntellihideAction.SHOW_PARTIAL_FIXED)) {
+
                 Main.uiGroup.add_child(this._struts);
-                Main.layoutManager.uiGroup.set_child_below_sibling(this._struts, Main.layoutManager.modalDialogGroup);
-                Main.layoutManager._trackActor(this._struts, {affectsStruts: true, trackFullscreen: true});
-                // Force region update to update workspace area
-                Main.layoutManager._queueUpdateRegions();
-        }
+            Main.layoutManager.uiGroup.set_child_below_sibling(this._struts, Main.layoutManager.modalDialogGroup);
+            Main.layoutManager._trackActor(this._struts, {affectsStruts: true, trackFullscreen: true});
+            // Force region update to update workspace area
+            Main.layoutManager._queueUpdateRegions();
+                }
 
-        // Add aligning container without tracking it for input region (old affectsinputRegion: false that was removed).
-        // The public method trackChrome requires the actor to be child of a tracked actor. Since I don't want the parent
-        // to be tracked I use the private internal _trackActor instead.
-        Main.uiGroup.add_child(this.actor);
-        Main.layoutManager.uiGroup.set_child_below_sibling(this.actor, Main.layoutManager.modalDialogGroup);
-        if (this._settings.get_boolean('dock-fixed')
-            || (this._settings.get_boolean('intellihide') && this._settings.get_enum('intellihide-action') == IntellihideAction.SHOW_PARTIAL_FIXED)) {
-                Main.layoutManager._trackActor(this._slider, {trackFullscreen: true});
-        } else {
-            if (this._settings.get_boolean('autohide-in-fullscreen')) {
-                Main.layoutManager._trackActor(this._slider);
-            } else {
-                Main.layoutManager._trackActor(this._slider, {trackFullscreen: true});
-            }
-        }
+                // Add aligning container without tracking it for input region (old affectsinputRegion: false that was removed).
+                // The public method trackChrome requires the actor to be child of a tracked actor. Since I don't want the parent
+                // to be tracked I use the private internal _trackActor instead.
+                Main.uiGroup.add_child(this.actor);
+                Main.layoutManager.uiGroup.set_child_below_sibling(this.actor, Main.layoutManager.modalDialogGroup);
+                if (this._settings.get_boolean('dock-fixed')
+                    || (this._settings.get_boolean('intellihide') && this._settings.get_enum('intellihide-action') == IntellihideAction.SHOW_PARTIAL_FIXED)) {
+                    Main.layoutManager._trackActor(this._slider, {trackFullscreen: true});
+                    } else {
+                        if (this._settings.get_boolean('autohide-in-fullscreen')) {
+                            Main.layoutManager._trackActor(this._slider);
+                        } else {
+                            Main.layoutManager._trackActor(this._slider, {trackFullscreen: true});
+                        }
+                    }
     }
 
     _initialize() {
@@ -611,6 +630,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
             this._shortcutsPanel.actor.hide();
         }
 
+
         // Set initial position and opacity
         this._resetPosition();
         this.actor.set_opacity(255);
@@ -620,7 +640,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
 
         // Now that the dock is on the stage and custom themes are loaded
         // retrieve background color and set background opacity
-        this._updateAppearancePreferences();
+        //        this._updateAppearancePreferences();
 
         // Setup pressure barrier (GS38+ only)
         this._updatePressureBarrier();
@@ -684,6 +704,9 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
 
     // function called during init to override gnome shell 3.4/3.6/3.8
     _overrideGnomeShellFunctions() {
+
+
+
         if (_DEBUG_) global.log("dockedWorkspaces: _overrideGnomeShellFunctions");
         let self = this;
 
@@ -705,9 +728,9 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
             };
         }
 
+        Main.overview._overview._controls._thumbnailsBox.opacity=0;
         // Hide normal workspaces thumbnailsBox
-        Main.overview._overview._controls._thumbnailsSlider.opacity = 0;
-
+        // Main.overview._overview._controls._thumbnailsSlider.opacity = 0;
         // Override WorkspaceSwitcherPopup _show function to prevent popup from showing when disabled
         GSFunctions['WorkspaceSwitcherPopup_show'] = WorkspaceSwitcherPopup.WorkspaceSwitcherPopup.prototype._show;
         WorkspaceSwitcherPopup.WorkspaceSwitcherPopup.prototype._show = function() {
@@ -754,6 +777,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         // NOTE: This is needed for when the dock is positioned on a secondary monitor and also for when the shortcuts panel is visible
         // causing the dock to be wider than normal.
         GSFunctions['WorkspacesDisplay_updateWorkspacesActualGeometry'] = WorkspacesView.WorkspacesDisplay.prototype._updateWorkspacesActualGeometry;
+
         WorkspacesView.WorkspacesDisplay.prototype._updateWorkspacesActualGeometry = function() {
             if (_DEBUG_) global.log("WORKSPACESDISPLAY - _UPDATE ACTUALGEOMETRY");
             if (!this._workspacesViews.length)
@@ -814,12 +838,12 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
                                 monitorHasDashDock = true;
                                 if (DashToDock.dockManager._allDocks[idx]._position == St.Side.LEFT ||
                                     DashToDock.dockManager._allDocks[idx]._position == St.Side.RIGHT) {
-                                        dashWidth = DashToDock.dockManager._allDocks[idx]._box.width + spacing;
-                                }
-                                if (DashToDock.dockManager._allDocks[idx]._position == St.Side.TOP ||
-                                    DashToDock.dockManager._allDocks[idx]._position == St.Side.BOTTOM) {
+                                    dashWidth = DashToDock.dockManager._allDocks[idx]._box.width + spacing;
+                                    }
+                                    if (DashToDock.dockManager._allDocks[idx]._position == St.Side.TOP ||
+                                        DashToDock.dockManager._allDocks[idx]._position == St.Side.BOTTOM) {
                                         dashHeight = DashToDock.dockManager._allDocks[idx]._box.height + spacing;
-                                }
+                                        }
                             }
                         }
                     } else {
@@ -828,12 +852,12 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
                             if (DashToDockExtension.hasDockPositionKey)  {
                                 if (DashToDock.dock._position == St.Side.LEFT ||
                                     DashToDock.dock._position == St.Side.RIGHT) {
-                                        dashWidth = DashToDock.dock._box.width + spacing;
-                                }
-                                if (DashToDock.dock._position == St.Side.TOP ||
-                                    DashToDock.dock._position == St.Side.BOTTOM) {
+                                    dashWidth = DashToDock.dock._box.width + spacing;
+                                    }
+                                    if (DashToDock.dock._position == St.Side.TOP ||
+                                        DashToDock.dock._position == St.Side.BOTTOM) {
                                         dashHeight = DashToDock.dock._box.height + spacing;
-                                }
+                                        }
                             } else {
                                 dashWidth = DashToDock.dock._box.width + spacing;
                             }
@@ -843,7 +867,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
                     if (!self._settings.get_boolean('hide-dash') &&
                         i == this._primaryIndex) {
                         dashWidth = Main.overview._overview._controls._dashSlider.getVisibleWidth() + spacing;
-                    }
+                        }
                 }
 
                 // Adjust width for workspaces thumbnails
@@ -860,20 +884,20 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
                     }
                     if (self._position == St.Side.LEFT ||
                         self._position == St.Side.RIGHT) {
-                            if (fixedPosition) {
-                                thumbnailsWidth = self.actor.get_width() + spacing;
+                        if (fixedPosition) {
+                            thumbnailsWidth = self.actor.get_width() + spacing;
+                        } else {
+                            if (overviewAction == OverviewAction.HIDE) {
+                                thumbnailsWidth = visibleEdge;
+                            } else if (overviewAction == OverviewAction.SHOW_PARTIAL) {
+                                thumbnailsWidth = self._slider.partialSlideoutSize;
                             } else {
-                                if (overviewAction == OverviewAction.HIDE) {
-                                    thumbnailsWidth = visibleEdge;
-                                } else if (overviewAction == OverviewAction.SHOW_PARTIAL) {
-                                    thumbnailsWidth = self._slider.partialSlideoutSize;
-                                } else {
-                                    thumbnailsWidth = self.actor.get_width() + spacing;
-                                }
+                                thumbnailsWidth = self.actor.get_width() + spacing;
                             }
-                    }
-                    if (self._position == St.Side.TOP ||
-                        self._position == St.Side.BOTTOM) {
+                        }
+                        }
+                        if (self._position == St.Side.TOP ||
+                            self._position == St.Side.BOTTOM) {
                             if (fixedPosition) {
                                 thumbnailsHeight = self.actor.get_height() + spacing;
                             } else {
@@ -885,7 +909,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
                                     thumbnailsHeight = self.actor.get_height() + spacing;
                                 }
                             }
-                    }
+                            }
                 }
 
                 // Adjust x and width for workspacesView geometry
@@ -896,39 +920,39 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
                             // What if dash and thumbnailsbox are both on the same side?
                             if ((monitorHasDashDock && DashToDock.dockManager._allDocks[idx]._position == St.Side.LEFT) &&
                                 (monitorHasThumbnailsDock && self._position == St.Side.LEFT)) {
+                                controlsWidth = Math.max(dashWidth, thumbnailsWidth);
+                            geometry.x += controlsWidth;
+                                } else {
+                                    if (monitorHasDashDock && DashToDock.dockManager._allDocks[idx]._position == St.Side.LEFT) {
+                                        geometry.x += dashWidth;
+                                    }
+                                    if (monitorHasThumbnailsDock && self._position == St.Side.LEFT) {
+                                        geometry.x += thumbnailsWidth;
+                                    }
+                                }
+                                if ((monitorHasDashDock && DashToDock.dockManager._allDocks[idx]._position == St.Side.RIGHT) &&
+                                    (monitorHasThumbnailsDock && self._position == St.Side.RIGHT)) {
                                     controlsWidth = Math.max(dashWidth, thumbnailsWidth);
-                                    geometry.x += controlsWidth;
+                                    }
+                        }
+                    } else {
+                        // What if dash and thumbnailsbox are both on the same side?
+                        if ((monitorHasDashDock && DashToDock.dock._position == St.Side.LEFT) &&
+                            (monitorHasThumbnailsDock && self._position == St.Side.LEFT)) {
+                            controlsWidth = Math.max(dashWidth, thumbnailsWidth);
+                        geometry.x += controlsWidth;
                             } else {
-                                if (monitorHasDashDock && DashToDock.dockManager._allDocks[idx]._position == St.Side.LEFT) {
+                                if (monitorHasDashDock && DashToDock.dock._position == St.Side.LEFT) {
                                     geometry.x += dashWidth;
                                 }
                                 if (monitorHasThumbnailsDock && self._position == St.Side.LEFT) {
                                     geometry.x += thumbnailsWidth;
                                 }
                             }
-                            if ((monitorHasDashDock && DashToDock.dockManager._allDocks[idx]._position == St.Side.RIGHT) &&
+                            if ((monitorHasDashDock && DashToDock.dock._position == St.Side.RIGHT) &&
                                 (monitorHasThumbnailsDock && self._position == St.Side.RIGHT)) {
-                                    controlsWidth = Math.max(dashWidth, thumbnailsWidth);
-                            }
-                        }
-                    } else {
-                        // What if dash and thumbnailsbox are both on the same side?
-                        if ((monitorHasDashDock && DashToDock.dock._position == St.Side.LEFT) &&
-                            (monitorHasThumbnailsDock && self._position == St.Side.LEFT)) {
                                 controlsWidth = Math.max(dashWidth, thumbnailsWidth);
-                                geometry.x += controlsWidth;
-                        } else {
-                            if (monitorHasDashDock && DashToDock.dock._position == St.Side.LEFT) {
-                                geometry.x += dashWidth;
-                            }
-                            if (monitorHasThumbnailsDock && self._position == St.Side.LEFT) {
-                                geometry.x += thumbnailsWidth;
-                            }
-                        }
-                        if ((monitorHasDashDock && DashToDock.dock._position == St.Side.RIGHT) &&
-                            (monitorHasThumbnailsDock && self._position == St.Side.RIGHT)) {
-                                controlsWidth = Math.max(dashWidth, thumbnailsWidth);
-                        }
+                                }
                     }
                 } else {
                     if (this.get_text_direction() == Clutter.TextDirection.LTR) {
@@ -964,38 +988,38 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
                         if (DashToDock.dockManager._allDocks[0]) {
                             if ((monitorHasDashDock && DashToDock.dockManager._allDocks[idx]._position == St.Side.TOP) &&
                                 (monitorHasThumbnailsDock && self._position == St.Side.TOP)) {
+                                controlsHeight = Math.max(dashHeight, thumbnailsHeight);
+                            geometry.y += controlsHeight;
+                                } else {
+                                    if (monitorHasDashDock && DashToDock.dockManager._allDocks[idx]._position == St.Side.TOP) {
+                                        geometry.y += dashHeight;
+                                    }
+                                    if (monitorHasThumbnailsDock && self._position == St.Side.TOP) {
+                                        geometry.y += thumbnailsHeight;
+                                    }
+                                }
+                                if ((monitorHasDashDock && DashToDock.dockManager._allDocks[idx]._position == St.Side.BOTTOM) &&
+                                    (monitorHasThumbnailsDock && self._position == St.Side.BOTTOM)) {
                                     controlsHeight = Math.max(dashHeight, thumbnailsHeight);
-                                    geometry.y += controlsHeight;
+                                    }
+                        }
+                    } else {
+                        if ((monitorHasDashDock && DashToDock.dock._position == St.Side.TOP) &&
+                            (monitorHasThumbnailsDock && self._position == St.Side.TOP)) {
+                            controlsHeight = Math.max(dashHeight, thumbnailsHeight);
+                        geometry.y += controlsHeight;
                             } else {
-                                if (monitorHasDashDock && DashToDock.dockManager._allDocks[idx]._position == St.Side.TOP) {
+                                if (monitorHasDashDock && DashToDock.dock._position == St.Side.TOP) {
                                     geometry.y += dashHeight;
                                 }
                                 if (monitorHasThumbnailsDock && self._position == St.Side.TOP) {
                                     geometry.y += thumbnailsHeight;
                                 }
                             }
-                            if ((monitorHasDashDock && DashToDock.dockManager._allDocks[idx]._position == St.Side.BOTTOM) &&
+                            if ((monitorHasDashDock && DashToDock.dock._position == St.Side.BOTTOM) &&
                                 (monitorHasThumbnailsDock && self._position == St.Side.BOTTOM)) {
-                                    controlsHeight = Math.max(dashHeight, thumbnailsHeight);
-                            }
-                        }
-                    } else {
-                        if ((monitorHasDashDock && DashToDock.dock._position == St.Side.TOP) &&
-                            (monitorHasThumbnailsDock && self._position == St.Side.TOP)) {
                                 controlsHeight = Math.max(dashHeight, thumbnailsHeight);
-                                geometry.y += controlsHeight;
-                        } else {
-                            if (monitorHasDashDock && DashToDock.dock._position == St.Side.TOP) {
-                                geometry.y += dashHeight;
-                            }
-                            if (monitorHasThumbnailsDock && self._position == St.Side.TOP) {
-                                geometry.y += thumbnailsHeight;
-                            }
-                        }
-                        if ((monitorHasDashDock && DashToDock.dock._position == St.Side.BOTTOM) &&
-                            (monitorHasThumbnailsDock && self._position == St.Side.BOTTOM)) {
-                                controlsHeight = Math.max(dashHeight, thumbnailsHeight);
-                        }
+                                }
                     }
                 } else {
                     if (monitorHasThumbnailsDock && self._position == St.Side.TOP) {
@@ -1014,6 +1038,8 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         // We replace this function with a new setMyActualGeometry function (see below)
         // TODO: This is very hackish. We need to find a better way to accomplish this
         GSFunctions['WorkspacesViewBase_setActualGeometry'] = WorkspacesView.WorkspacesViewBase.prototype.setActualGeometry;
+
+
         WorkspacesView.WorkspacesViewBase.prototype.setActualGeometry = function(geom) {
             if (_DEBUG_) global.log("WORKSPACESVIEW - setActualGeometry");
             //GSFunctions['WorkspacesView_setActualGeometry'].call(this, geom);
@@ -1029,6 +1055,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         };
 
         this._overrideComplete = true;
+
     }
 
     // function called during destroy to restore gnome shell 3.4/3.6/3.8
@@ -1051,7 +1078,8 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         }
 
         // Show normal workspaces thumbnailsBox
-        Main.overview._overview._controls._thumbnailsSlider.opacity = 255;
+        // Main.overview._overview._controls._thumbnailsSlider.opacity = 255;
+        Main.overview._overview._controls._thumbnailsBox.opacity=255;
 
         // Restore normal WorkspaceSwitcherPopup_show function
         WorkspaceSwitcherPopup.WorkspaceSwitcherPopup.prototype._show = GSFunctions['WorkspaceSwitcherPopup_show'];
@@ -1073,7 +1101,6 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         this._updateSize();
         this._redisplay();
     }
-
     // handler for when thumbnailsBox is resized
     _thumbnailsBoxResized() {
         if (_DEBUG_) global.log("dockedWorkspaces: _thumbnailsBoxResized");
@@ -1086,7 +1113,6 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         if (_DEBUG_) global.log("dockedWorkspaces: _updateYPosition");
         this._updateSize();
     }
-
     // handler for when workspaces are added
     _onWorkspaceAdded() {
         if (_DEBUG_) global.log("dockedWorkspaces: _onWorkspaceAdded");
@@ -1100,29 +1126,30 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         this._updateSize();
         this._redisplay();
     }
-
     _updateTriggerWidth(force) {
         if (_DEBUG_) global.log("dockedWorkspaces: _updateTriggerWidth");
         // Calculate and set triggerWidth
         let previousTriggerWidth = this._triggerWidth;
         if (this._settings.get_boolean('dock-fixed')) {
+            // if (true) {
             this._triggerWidth = 0;
         } else if (this._settings.get_boolean('intellihide') && this._settings.get_enum('intellihide-action') == IntellihideAction.SHOW_PARTIAL_FIXED) {
             this._triggerWidth = 1;
         } else {
+
             if (!this._settings.get_boolean('dock-edge-visible') &&
-                 this._settings.get_boolean('require-pressure-to-show') &&
-                 this._settings.get_boolean('disable-scroll')) {
-                    if (this._pressureSensed) {
-                        this._triggerWidth = 1;
-                    } else if (this._dockState == DockState.SHOWN) {
-                        this._triggerWidth = 1;
-                    } else {
-                        this._triggerWidth = 0;
-                    }
-            } else {
-                this._triggerWidth = 1;
-            }
+                this._settings.get_boolean('require-pressure-to-show') &&
+                this._settings.get_boolean('disable-scroll')) {
+                if (this._pressureSensed) {
+                    this._triggerWidth = 1;
+                } else if (this._dockState == DockState.SHOWN) {
+                    this._triggerWidth = 1;
+                } else {
+                    this._triggerWidth = 0;
+                }
+                } else {
+                    this._triggerWidth = 1;
+                }
         }
 
         if (previousTriggerWidth == this._triggerWidth && !force)
@@ -1137,7 +1164,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         if (_DEBUG_) global.log("dockedWorkspaces: _updateHeight");
         this._updateSize();
     }
-
+    // global.log("dockedWorkspaces81: 5555");
     // handler to bind settings when preferences changed
     _bindSettingsChanges() {
         if (_DEBUG_) global.log("dockedWorkspaces: _bindSettingsChanges");
@@ -1342,7 +1369,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         if (this._canUsePressure) {
             if (_DEBUG_) global.log("... creating pressureBarrier object");
             this._pressureBarrier = new MyPressureBarrier.MyPressureBarrier(pressureThreshold, speedLimit, PRESSURE_TIMEOUT,
-                                Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW);
+                                                                            Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW);
             this._pressureBarrier.connect('trigger', function(barrier){
                 self._onPressureSensed();
             });
@@ -1416,7 +1443,6 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
             return;
         }
 
-
         if (this._canUsePressure && this._settings.get_boolean('require-pressure-to-show') && this._barrier) {
             if (this._pressureSensed == false && this._dockState != DockState.SHOWN) {
                 if (_DEBUG_) global.log("dockedWorkspaces: _hoverChanged - presureSensed = "+this._pressureSensed+" RETURN");
@@ -1435,7 +1461,6 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
             this._checkHoverStatusId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, this._checkHoverStatus.bind(this));
             return;
         }
-
         if (this._settings.get_boolean('require-click-to-show')) {
             // check if metaWin is maximized
             let workspaceManager = global.workspace_manager;
@@ -1483,6 +1508,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         } else {
             this._hide();
         }
+
     }
 
     _checkHoverStatus() {
@@ -1501,19 +1527,25 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
     // handler for mouse click events - works in conjuction with hover event to show dock for maxmized windows
     _onDockClicked(actor, event) {
         if (_DEBUG_) global.log("dockedWorkspaces: _onDockClicked");
-
         // Show overview if button is right click
-        if (this._settings.get_boolean('toggle-overview')) {
+        if (true || this._settings.get_boolean('toggle-overview')) {
             let button = event.get_button();
             if (button == 3) { //right click
-                if (Main.overview.visible) {
-                    Main.overview.hide(); // force normal mode
-                } else {
-                    Main.overview.show(); // force overview mode
-                }
+                /*
+                 *                if (Main.overview.visible) {
+                 *                    Main.overview.hide(); // force normal mode
+            } else {
+                Main.overview.show(); // force overview mode
+            }
+            */
+                this._settings.set_boolean('dock-fixed',!this._settings.get_boolean('dock-fixed'));
                 // pass right-click event on allowing it to bubble up
                 return Clutter.EVENT_PROPAGATE;
             }
+
+
+
+
         }
 
         if (this._settings.get_boolean('require-click-to-show')) {
@@ -1549,13 +1581,13 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
                 // Remove barrier immediately
                 this._removeBarrier();
 
-                // Restore barrier after short timeout
-                if (this._restoreBarrierTimeoutId > 0) {
-                    GLib.source_remove(this._restoreBarrierTimeoutId);
-                    this._restoreBarrierTimeoutId = 0;
-                }
-                this._restoreBarrierTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, this._updateBarrier.bind(this));
+            // Restore barrier after short timeout
+            if (this._restoreBarrierTimeoutId > 0) {
+                GLib.source_remove(this._restoreBarrierTimeoutId);
+                this._restoreBarrierTimeoutId = 0;
             }
+            this._restoreBarrierTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, this._updateBarrier.bind(this));
+                }
         }
     }
 
@@ -1678,37 +1710,37 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
                     this._signalHandler.pushWithLabel(
                         'DashToDockBoxHoverSignal',
                         [
-                            DashToDock.dockManager._allDocks[0]._box,
-                            'destroy',
-                            this._onDashToDockBoxDestroy.bind(this)
+                        DashToDock.dockManager._allDocks[0]._box,
+                        'destroy',
+                        this._onDashToDockBoxDestroy.bind(this)
                         ],
                         [
-                            DashToDock.dockManager._allDocks[0]._box,
-                            'notify::hover',
-                            this._onDashToDockHoverChanged.bind(this)
+                        DashToDock.dockManager._allDocks[0]._box,
+                        'notify::hover',
+                        this._onDashToDockHoverChanged.bind(this)
                         ],
                         [
-                            DashToDock.dockManager._allDocks[0]._box,
-                            'leave-event',
-                            this._onDashToDockLeave.bind(this)
+                        DashToDock.dockManager._allDocks[0]._box,
+                        'leave-event',
+                        this._onDashToDockLeave.bind(this)
                         ]
                     );
                     this._signalHandler.pushWithLabel(
                         'DashToDockManagerSignal',
                         [
-                            DashToDock.dockManager._allDocks[0],
-                            'showing',
-                            this._onDashToDockShowing.bind(this)
+                        DashToDock.dockManager._allDocks[0],
+                        'showing',
+                        this._onDashToDockShowing.bind(this)
                         ],
                         [
-                            DashToDock.dockManager._allDocks[0],
-                            'hiding',
-                            this._onDashToDockHiding.bind(this)
+                        DashToDock.dockManager._allDocks[0],
+                        'hiding',
+                        this._onDashToDockHiding.bind(this)
                         ],
                         [
-                            DashToDock.dockManager,
-                            'toggled',
-                            this._onDashToDockToggled.bind(this)
+                        DashToDock.dockManager,
+                        'toggled',
+                        this._onDashToDockToggled.bind(this)
                         ]
                     );
                 }
@@ -1753,36 +1785,41 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
             this._autohideStatus &&
             this._slider.slidex == 0 && // Need to check the slidex for partially showing dock
             (this._dockState == DockState.HIDDEN || this._dockState == DockState.HIDING))
-                return Clutter.EVENT_STOP;
+            return Clutter.EVENT_STOP;
 
         let workspaceManager = global.workspace_manager;
         let activeWs = workspaceManager.get_active_workspace();
         let direction;
         switch (event.get_scroll_direction()) {
-        case Clutter.ScrollDirection.UP:
-            if (this._isHorizontal && this._settings.get_boolean('horizontal-workspace-switching')) {
+            case Clutter.ScrollDirection.UP:
                 direction = Meta.MotionDirection.LEFT;
-            } else {
-                direction = Meta.MotionDirection.UP;
-            }
-            break;
-        case Clutter.ScrollDirection.DOWN:
-            if (this._isHorizontal && this._settings.get_boolean('horizontal-workspace-switching')) {
+
+                /*   if (this._isHorizontal && this._settings.get_boolean('horizontal-workspace-switching')) {
+                 *                direction = Meta.MotionDirection.LEFT;
+        } else {
+            direction = Meta.MotionDirection.UP;
+        }*/
+                break;
+            case Clutter.ScrollDirection.DOWN:
                 direction = Meta.MotionDirection.RIGHT;
-            } else {
-                direction = Meta.MotionDirection.DOWN;
-            }
-            break;
-        case Clutter.ScrollDirection.LEFT:
-            if (this._isHorizontal && this._settings.get_boolean('horizontal-workspace-switching')) {
-                direction = Meta.MotionDirection.LEFT;
-            }
-            break;
-        case Clutter.ScrollDirection.RIGHT:
-            if (this._isHorizontal && this._settings.get_boolean('horizontal-workspace-switching')) {
-                direction = Meta.MotionDirection.RIGHT;
-            }
-            break;
+
+                /*    if (this._isHorizontal && this._settings.get_boolean('horizontal-workspace-switching')) {
+                 *                direction = Meta.MotionDirection.RIGHT;
+        } else {
+            direction = Meta.MotionDirection.DOWN;
+        }
+        */
+                break;
+            case Clutter.ScrollDirection.LEFT:
+                if (this._isHorizontal && this._settings.get_boolean('horizontal-workspace-switching')) {
+                    direction = Meta.MotionDirection.LEFT;
+                }
+                break;
+            case Clutter.ScrollDirection.RIGHT:
+                if (this._isHorizontal && this._settings.get_boolean('horizontal-workspace-switching')) {
+                    direction = Meta.MotionDirection.RIGHT;
+                }
+                break;
         }
 
         if (direction) {
@@ -1797,9 +1834,9 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
                     return false;
                 else {
                     this._scrollWorkspaceSwitchDeadTimeId =
-                        GLib.timeout_add(GLib.PRIORITY_DEFAULT, 250, () => {
-                                this._scrollWorkspaceSwitchDeadTimeId = 0;
-                        });
+                    GLib.timeout_add(GLib.PRIORITY_DEFAULT, 250, () => {
+                        this._scrollWorkspaceSwitchDeadTimeId = 0;
+                    });
                 }
             }
 
@@ -1818,8 +1855,9 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
 
             // Do not show wokspaceSwitcher in overview
             if (!Main.overview.visible)
+            {
                 Main.wm._workspaceSwitcherPopup.display(direction, ws.index());
-
+            }
             Main.wm.actionMoveWorkspace(ws);
         }
 
@@ -1864,6 +1902,9 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         if (Main.overview._shown && overviewAction == OverviewAction.SHOW_FULL && !this._autohideStatus) {
             return;
         }
+
+
+
 
         // Only hide if dock is shown, is showing, or is partially shown
         if (this._dockState == DockState.SHOWN || this._dockState == DockState.SHOWING || this._slider.slidex > 0) {
@@ -1923,9 +1964,9 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
                         sliderVariable = this._slider.partialSlideoutSize / fullsize;
                     }
                 }
-            } else {
-                this._dockState = DockState.SHOWING;
-            }
+                } else {
+                    this._dockState = DockState.SHOWING;
+                }
         } else {
             this._dockState = DockState.SHOWING;
         }
@@ -1941,19 +1982,19 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
                     if ((Main.overview._shown && overviewAction == OverviewAction.SHOW_PARTIAL)
                         || (!Main.overview._shown && (intellihideAction == IntellihideAction.SHOW_PARTIAL || intellihideAction == IntellihideAction.SHOW_PARTIAL_FIXED))) {
                         this._updateBarrier();
-                    } else {
-                        this._dockState = DockState.SHOWN;
+                        } else {
+                            this._dockState = DockState.SHOWN;
 
-                        // Remove barrier so that mouse pointer is released and can access monitors on other side of dock
-                        // NOTE: Delay needed to keep mouse from moving past dock and re-hiding dock immediately. This
-                        // gives users an opportunity to hover over the dock
-                        if (this._removeBarrierTimeoutId > 0) {
-                            GLib.source_remove(this._removeBarrierTimeoutId);
-                            this._removeBarrierTimeoutId = 0;
+                            // Remove barrier so that mouse pointer is released and can access monitors on other side of dock
+                            // NOTE: Delay needed to keep mouse from moving past dock and re-hiding dock immediately. This
+                            // gives users an opportunity to hover over the dock
+                            if (this._removeBarrierTimeoutId > 0) {
+                                GLib.source_remove(this._removeBarrierTimeoutId);
+                                this._removeBarrierTimeoutId = 0;
+                            }
+                            this._removeBarrierTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, this._removeBarrier.bind(this));
+                            this._updateTriggerWidth();
                         }
-                        this._removeBarrierTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, this._removeBarrier.bind(this));
-                        this._updateTriggerWidth();
-                    }
                 } else {
                     this._dockState = DockState.SHOWN;
 
@@ -2011,7 +2052,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
                         sliderVariable = this._slider.partialSlideoutSize / fullsize;
                     }
                 }
-            }
+                }
         }
 
         this._slider.ease_property('slidex', sliderVariable, {
@@ -2037,19 +2078,19 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         if (_DEBUG_) global.log("dockedWorkspaces: _fadeOutBackground");
         // CSS time is in ms
         this._thumbnailsBox.set_style('transition-duration:' + time*1000 + ';' +
-            'transition-delay:' + delay*1000 + ';' +
-            'background-color: rgba(0,0,0,0);' +
-            'border-color:' + this._defaultBorder);
+        'transition-delay:' + delay*1000 + ';' +
+        'background-color: rgba(0,0,0,0);' +
+        'border-color:' + this._defaultBorder);
 
         this._shortcutsPanel.actor.set_style('transition-duration:' + time*1000 + ';' +
-            'transition-delay:' + delay*1000 + ';' +
-            'background-color: rgba(0,0,0,0);' +
-            'border-color:' + this._defaultBorder);
+        'transition-delay:' + delay*1000 + ';' +
+        'background-color: rgba(0,0,0,0);' +
+        'border-color:' + this._defaultBorder);
 
         this._dockContainer.set_style('transition-duration:' + time*1000 + ';' +
-            'transition-delay:' + delay*1000 + ';' +
-            'background-color:' + this._defaultBackground + ';' +
-            'border-color:' + this._defaultBorder);
+        'transition-delay:' + delay*1000 + ';' +
+        'background-color:' + this._defaultBackground + ';' +
+        'border-color:' + this._defaultBorder);
     }
 
     // autohide function to fade in opaque background
@@ -2057,19 +2098,19 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         if (_DEBUG_) global.log("dockedWorkspaces: _fadeInBackground");
         // CSS time is in ms
         this._thumbnailsBox.set_style('transition-duration:' + time*1000 + ';' +
-            'transition-delay:' + delay*1000 + ';' +
-            'background-color: rgba(0,0,0,0);' +
-            'border-color:' + this._customBorder);
+        'transition-delay:' + delay*1000 + ';' +
+        'background-color: rgba(0,0,0,0);' +
+        'border-color:' + this._customBorder);
 
         this._shortcutsPanel.actor.set_style('transition-duration:' + time*1000 + ';' +
-            'transition-delay:' + delay*1000 + ';' +
-            'background-color: rgba(0,0,0,0);' +
-            'border-color:' + this._customBorder);
+        'transition-delay:' + delay*1000 + ';' +
+        'background-color: rgba(0,0,0,0);' +
+        'border-color:' + this._customBorder);
 
         this._dockContainer.set_style('transition-duration:' + time*1000 + ';' +
-            'transition-delay:' + delay*1000 + ';' +
-            'background-color:' + this._customBackground + ';' +
-            'border-color:' + this._customBorder);
+        'transition-delay:' + delay*1000 + ';' +
+        'background-color:' + this._customBackground + ';' +
+        'border-color:' + this._customBorder);
     }
 
     // This function handles hiding the dock when dock is in stationary-fixed
@@ -2279,39 +2320,41 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         if (this._disableRedisplay)
             return
 
-        if (_DEBUG_) global.log("dockedWorkspaces: _redisplay autohide-dodge="+this._autohideStatus);
-        // Initial display of dock .. sets autohideStatus
-        if (this._autohideStatus == null) {
-            if (this._settings.get_boolean('dock-fixed')) {
-                this._autohideStatus = false;
-                this.fadeInDock(this._settings.get_double('animation-time'), 0);
-            } else {
-                // Initial animation is out .. intellihide will animate in if its needed
-                this._removeAnimations();
-                this._animateOut(0, 0);
-                this._autohideStatus = true;
-            }
-        } else {
-            // Redisplay dock by animating back in .. necessary if thumbnailsBox size changed
-            // even if dock is fixed
-            if (this._autohideStatus) {
-                if (!this._isHovering() && !(this._hoveringDash && !Main.overview._shown)) {
-                    this._removeAnimations();
-                    this._animateOut(0, 0, true);
-                }
-                this._autohideStatus = true;
-            } else {
-                if (!this._isHovering() && !(this._hoveringDash && !Main.overview._shown)) {
-                    // had to comment out because GS3.4 fixed-dock isn't fully faded in yet when redisplay occurs again
-                    //this._removeAnimations();
-                    this._animateIn(this._settings.get_double('animation-time'), 0);
-                }
-                this._autohideStatus = false;
-            }
-        }
+            if (_DEBUG_) global.log("dockedWorkspaces: _redisplay autohide-dodge="+this._autohideStatus);
+            // Initial display of dock .. sets autohideStatus
 
-        this._updateAppearancePreferences();
-        this._updateBarrier();
+
+            if (this._autohideStatus == null) {
+                if (this._settings.get_boolean('dock-fixed')) {
+                    this._autohideStatus = false;
+                    this.fadeInDock(this._settings.get_double('animation-time'), 0);
+                } else {
+                    // Initial animation is out .. intellihide will animate in if its needed
+                    this._removeAnimations();
+                    this._animateOut(0, 0);
+                    this._autohideStatus = true;
+                }
+            } else {
+                // Redisplay dock by animating back in .. necessary if thumbnailsBox size changed
+                // even if dock is fixed
+                if (this._autohideStatus) {
+                    if (!this._isHovering() && !(this._hoveringDash && !Main.overview._shown)) {
+                        this._removeAnimations();
+                        this._animateOut(0, 0, true);
+                    }
+                    this._autohideStatus = true;
+                } else {
+                    if (!this._isHovering() && !(this._hoveringDash && !Main.overview._shown)) {
+                        // had to comment out because GS3.4 fixed-dock isn't fully faded in yet when redisplay occurs again
+                        //this._removeAnimations();
+                        this._animateIn(this._settings.get_double('animation-time'), 0);
+                    }
+                    this._autohideStatus = false;
+                }
+            }
+
+            this._updateAppearancePreferences();
+            this._updateBarrier();
     }
 
     // update the dock size and position
@@ -2339,6 +2382,9 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         // Get screen edge padding from preferences and multiply it by scale_factor for HiDPI monitors
         let screenEdgePadding = this._settings.get_double('screen-edge-padding') * scale_factor;
 
+
+
+
         let x, y, width, height, anchorPoint;
         if (this._isHorizontal) {
             // Get x position and width
@@ -2364,16 +2410,20 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
             }
 
         } else {
+
             // Get x position, width, and anchorpoint
             width = this._thumbnailsBox._thumbnailsBoxWidth + shortcutsPanelThickness + screenEdgePadding;
+
+
             if (this._position == St.Side.LEFT) {
                 x = this._monitor.x;
                 anchorPoint = Clutter.Gravity.NORTH_WEST;
             } else {
-                x = this._monitor.x + this._monitor.width;
+                // x = this._monitor.x + this._monitor.width;
+                x = this._monitor.x + this._monitor.width-width-1;
+
                 anchorPoint = Clutter.Gravity.NORTH_EAST;
             }
-
             // Get y position and height
             if (this._settings.get_boolean('customize-height')) {
                 let topMargin = Math.floor(this._settings.get_double('top-margin') * this._monitor.height);
@@ -2390,9 +2440,8 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
 
         //// skip updating if size is same ??
         //if ((this.actor.y == y) && (this.actor.width == this._thumbnailsBox._thumbnailsBoxWidth + shortcutsPanelThickness) && (this.actor.height == height)) {
-            //return;
+        //return;
         //}
-
         // Update position of main actor (used to detect window overlaps)
         this.actor.set_position(x, y);
         this._struts.set_position(x, y);
@@ -2475,8 +2524,10 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         }
 
         // Set anchor points
-        this.actor.move_anchor_point_from_gravity(anchorPoint);
-        this._struts.move_anchor_point_from_gravity(anchorPoint);
+
+        // 要查找并修改
+        // this.actor.move_anchor_point_from_gravity(anchorPoint);
+        // this._struts.move_anchor_point_from_gravity(anchorPoint);
 
         // Update slider slideout width
         let slideoutSize = this._settings.get_boolean('dock-edge-visible') ? this._triggerWidth + DOCK_EDGE_VISIBLE_WIDTH : this._triggerWidth;
@@ -2487,34 +2538,34 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         let slidePartialVisibleWidth = this._triggerWidth + DOCK_EDGE_VISIBLE_OVERVIEW_WIDTH;
         if (this._settings.get_boolean('show-shortcuts-panel')
             && this._settings.get_enum('shortcuts-panel-orientation') == 1) {
-                if (this._isHorizontal) {
-                    slidePartialVisibleWidth = this._shortcutsPanel.actor.height;
-                } else {
-                    slidePartialVisibleWidth = this._shortcutsPanel.actor.width;
-                }
-        } else {
-            // NOTE: Gnome css top panel height is 1.86em
-            if (this._settings.get_boolean('customize-thumbnail-visible-width')) {
-                slidePartialVisibleWidth = this._settings.get_double('thumbnail-visible-width');
-            } else {
-                let themeVisibleWidth = this._thumbnailsBox.get_theme_node().get_length('visible-width');
-                if (themeVisibleWidth > 0)
-                    slidePartialVisibleWidth = themeVisibleWidth;
-            }
-        }
-        this._slider.partialSlideoutSize = slidePartialVisibleWidth;
-
-        // Set struts size
-        if (!this._settings.get_boolean('dock-fixed')
-        && (this._settings.get_boolean('intellihide') && this._settings.get_enum('intellihide-action') == IntellihideAction.SHOW_PARTIAL_FIXED)) {
             if (this._isHorizontal) {
-                this._struts.set_size(width, slidePartialVisibleWidth);
+                slidePartialVisibleWidth = this._shortcutsPanel.actor.height;
             } else {
-                this._struts.set_size(slidePartialVisibleWidth, height);
+                slidePartialVisibleWidth = this._shortcutsPanel.actor.width;
             }
-        } else {
-            this._struts.set_size(this.actor.width, this.actor.height);
-        }
+            } else {
+                // NOTE: Gnome css top panel height is 1.86em
+                if (this._settings.get_boolean('customize-thumbnail-visible-width')) {
+                    slidePartialVisibleWidth = this._settings.get_double('thumbnail-visible-width');
+                } else {
+                    let themeVisibleWidth = this._thumbnailsBox.get_theme_node().get_length('visible-width');
+                    if (themeVisibleWidth > 0)
+                        slidePartialVisibleWidth = themeVisibleWidth;
+                }
+            }
+            this._slider.partialSlideoutSize = slidePartialVisibleWidth;
+
+            // Set struts size
+            if (!this._settings.get_boolean('dock-fixed')
+                && (this._settings.get_boolean('intellihide') && this._settings.get_enum('intellihide-action') == IntellihideAction.SHOW_PARTIAL_FIXED)) {
+                if (this._isHorizontal) {
+                    this._struts.set_size(width, slidePartialVisibleWidth);
+                } else {
+                    this._struts.set_size(slidePartialVisibleWidth, height);
+                }
+                } else {
+                    this._struts.set_size(this.actor.width, this.actor.height);
+                }
 
     }
 
@@ -2522,9 +2573,7 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
     _resetPosition() {
         if (_DEBUG_) global.log("dockedWorkspaces: _resetPosition");
         this._monitor = this._getMonitor();
-
         this._updateSize();
-
         this._updateAppearancePreferences();
         this._updateBarrier();
     }
@@ -2605,55 +2654,55 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         // Note: dock in fixed possition doesn't use pressure barrier
         if (_DEBUG_) global.log("dockedWorkspaces: _updateBarrier");
         if (this.actor.visible && this._canUsePressure && this._settings.get_boolean('autohide')
-                    && this._settings.get_boolean('require-pressure-to-show')
-                    && !this._settings.get_boolean('dock-fixed')) {
+            && this._settings.get_boolean('require-pressure-to-show')
+            && !this._settings.get_boolean('dock-fixed')) {
 
             let x1, x2, y1, y2, direction;
-            if(this._position==St.Side.LEFT){
-                x1 = this._monitor.x;
-                x2 = this._monitor.x;
-                y1 = this.actor.y;
-                y2 = this.actor.y + this.actor.height;
-                direction = Meta.BarrierDirection.POSITIVE_X;
-            } else if(this._position==St.Side.RIGHT) {
-                x1 = this._monitor.x + this._monitor.width;
-                x2 = this._monitor.x + this._monitor.width;
-                y1 = this.actor.y;
-                y2 = this.actor.y + this.actor.height;
-                direction = Meta.BarrierDirection.NEGATIVE_X;
-            } else if(this._position==St.Side.TOP) {
-                let hotCornerPadding = 1;
-                x1 = this.actor.x + hotCornerPadding;
-                x2 = this.actor.x + hotCornerPadding + this.actor.width;
-                y1 = this._monitor.y;
-                y2 = this._monitor.y;
-                direction = Meta.BarrierDirection.POSITIVE_Y;
-            } else if (this._position==St.Side.BOTTOM) {
-                x1 = this.actor.x;
-                x2 = this.actor.x + this.actor.width;
-                y1 = this._monitor.y + this._monitor.height;
-                y2 = this._monitor.y + this._monitor.height;
-                direction = Meta.BarrierDirection.NEGATIVE_Y;
-            }
-
-            if (_DEBUG_) global.log("... creating barrier");
-            this._barrier = new Meta.Barrier({display: global.display,
-                                x1: x1, x2: x2,
-                                y1: y1, y2: y2,
-                                directions: direction});
-
-            if (this._pressureBarrier) {
-                if (_DEBUG_) global.log("... adding barrier to pressureBarrier object");
-                this._pressureBarrier.addBarrier(this._barrier);
-            }
+        if(this._position==St.Side.LEFT){
+            x1 = this._monitor.x;
+            x2 = this._monitor.x;
+            y1 = this.actor.y;
+            y2 = this.actor.y + this.actor.height;
+            direction = Meta.BarrierDirection.POSITIVE_X;
+        } else if(this._position==St.Side.RIGHT) {
+            x1 = this._monitor.x + this._monitor.width;
+            x2 = this._monitor.x + this._monitor.width;
+            y1 = this.actor.y;
+            y2 = this.actor.y + this.actor.height;
+            direction = Meta.BarrierDirection.NEGATIVE_X;
+        } else if(this._position==St.Side.TOP) {
+            let hotCornerPadding = 1;
+            x1 = this.actor.x + hotCornerPadding;
+            x2 = this.actor.x + hotCornerPadding + this.actor.width;
+            y1 = this._monitor.y;
+            y2 = this._monitor.y;
+            direction = Meta.BarrierDirection.POSITIVE_Y;
+        } else if (this._position==St.Side.BOTTOM) {
+            x1 = this.actor.x;
+            x2 = this.actor.x + this.actor.width;
+            y1 = this._monitor.y + this._monitor.height;
+            y2 = this._monitor.y + this._monitor.height;
+            direction = Meta.BarrierDirection.NEGATIVE_Y;
         }
 
-        // Reset pressureSensed flag
-        if (!this._isHovering() && this._dockState != DockState.SHOWN) {
-            if (_DEBUG_) global.log("... pressureSensed flag reset");
-            this._pressureSensed = false;
-            this._updateTriggerWidth();
+        if (_DEBUG_) global.log("... creating barrier");
+        this._barrier = new Meta.Barrier({display: global.display,
+            x1: x1, x2: x2,
+            y1: y1, y2: y2,
+            directions: direction});
+
+        if (this._pressureBarrier) {
+            if (_DEBUG_) global.log("... adding barrier to pressureBarrier object");
+            this._pressureBarrier.addBarrier(this._barrier);
         }
+            }
+
+            // Reset pressureSensed flag
+            if (!this._isHovering() && this._dockState != DockState.SHOWN) {
+                if (_DEBUG_) global.log("... pressureSensed flag reset");
+                this._pressureSensed = false;
+                this._updateTriggerWidth();
+            }
     }
 
     // Disable autohide effect, thus show workspaces
@@ -2689,8 +2738,10 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         let delay = 0; // immediately fadein background if hide is blocked by mouseover, otherwise start fadein when dock is already hidden.
 
         if (this._settings.get_boolean('autohide')) {
+
             if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - autohide settings true");
             if (!this._isHovering() && !(this._hoveringDash && !Main.overview._shown)) {
+
                 if (_DEBUG_) global.log("dockedWorkspaces: enableAutoHide - mouse not hovering OR dock not using autohide, so animate out");
                 this._removeAnimations();
                 if (dontforce) {
