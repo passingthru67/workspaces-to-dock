@@ -334,7 +334,7 @@ var ThumbnailCaption = class WorkspacesToDock_ThumbnailCaption {
             name: 'workspacestodockCaptionContainer',
             reactive: false,
             style_class: 'workspacestodock-workspace-caption-container',
-            x_fill: true,
+//            x_fill: true,
             y_align: this._captionYAlign,
             x_align: Clutter.ActorAlign.START
         });
