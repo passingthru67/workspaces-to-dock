@@ -17,7 +17,7 @@ const Lang = imports.lang;
 const Main = imports.ui.main;
 const WorkspacesView = imports.ui.workspacesView;
 const WindowManager = imports.ui.windowManager;
-const Tweener = imports.ui.tweener;
+// const Tweener = imports.ui.tweener;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
