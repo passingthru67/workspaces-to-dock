@@ -114,7 +114,7 @@ var Intellihide = class WorkspacesToDock_Intellihide {
         this._quickShowTimeoutId = 0;
 
         // Connect global signals
-        this._signalHandler.push(
+        this._signalHandler.push (
             // call updateVisibility when dock actor changes
             [
                 this._dock,
@@ -123,7 +123,7 @@ var Intellihide = class WorkspacesToDock_Intellihide {
             ],
             // Add timeout when window grab-operation begins and remove it when it ends.
             // These signals only exist starting from Gnome-Shell 3.4
-            [
+        /*     [
                 global.display,
                 'grab-op-begin',
                 this._grabOpBegin.bind(this)
@@ -133,6 +133,8 @@ var Intellihide = class WorkspacesToDock_Intellihide {
                 'grab-op-end',
                 this._grabOpEnd.bind(this)
             ],
+            */
+
             // direct maximize/unmazimize are not included in grab-operations
             [
                 global.window_manager,
@@ -144,16 +146,20 @@ var Intellihide = class WorkspacesToDock_Intellihide {
                 'minimize',
                 this._onWindowMinimized.bind(this)
             ],
-            [
+       /*     [
                 global.window_manager,
                 'size-change',
                 this._onWindowSizeChange.bind(this)
             ],
-            [
+
+
+             [
                 global.window_manager,
                 'size-changed',
                 this._onWindowSizeChanged.bind(this)
             ],
+             */
+
             // Probably this is also included in restacked?
             [
                 global.window_manager,
@@ -166,11 +172,12 @@ var Intellihide = class WorkspacesToDock_Intellihide {
                 this._onFullscreenChanged.bind(this)
             ],
             // trigggered for instance when a window is closed.
-            [
+/*             [
                 global.display,
                 'restacked',
                 this._onScreenRestacked.bind(this)
             ],
+            */
             // when windows are alwasy on top, the focus window can change
             // without the windows being restacked. Thus monitor window focus change.
             [
@@ -232,7 +239,7 @@ var Intellihide = class WorkspacesToDock_Intellihide {
                 'monitors-changed',
                 this._onMonitorsChanged.bind(this)
             ],
-            [
+             [
                 Main.panel.menuManager._grabHelper,
                 'focus-grabbed',
                 this._onPanelFocusGrabbed.bind(this)
@@ -242,16 +249,21 @@ var Intellihide = class WorkspacesToDock_Intellihide {
                 'focus-ungrabbed',
                 this._onPanelFocusUngrabbed.bind(this)
             ],
-            [
-                Main.overview.viewSelector,
+
+         /*    [
+//                 Main.overview.viewSelector,
+                Main.overview._overview,
                 'page-changed',
                 this._overviewPageChanged.bind(this)
             ]
+            */
+
+
         );
 
         // if background manager valid, Connect grabHelper signals
         let primaryIndex = Main.layoutManager.primaryIndex;
-        if (Main.layoutManager._bgManagers[primaryIndex]) {
+    /*     if (Main.layoutManager._bgManagers[primaryIndex]) {
             this._signalHandler.pushWithLabel(
                 'bgManagerSignals',
                 [
@@ -266,6 +278,10 @@ var Intellihide = class WorkspacesToDock_Intellihide {
                 ]
             );
         }
+        */
+
+
+
         if (_DEBUG_) global.log("intellihide: init - signals being captured");
 
         // Start main loop and bind initialize function
@@ -275,7 +291,10 @@ var Intellihide = class WorkspacesToDock_Intellihide {
     _initialize() {
         if (_DEBUG_) global.log("intellihide: initializing");
         // enable intellihide now
+
+        // if (this._settings.get_boolean('intellihide') )
         this._disableIntellihide = false;
+
         if (_DEBUG_) global.log("intellihide: initialize - turn on intellihide");
 
         // updte dock visibility
@@ -478,6 +497,7 @@ var Intellihide = class WorkspacesToDock_Intellihide {
 
     // handler for when thumbnail windows dragging ended
     _onWindowDragEnd() {
+        log("uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu5")
         if (_DEBUG_) global.log("intellihide: _onWindowDragEnd");
         if (this._toggledOverviewOnDrag) {
             this._toggledOverviewOnDrag = false;
@@ -517,6 +537,9 @@ var Intellihide = class WorkspacesToDock_Intellihide {
 
     // handler for when app icon dragging cancelled
     _onItemDragCancelled() {
+
+        log("uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu6")
+
         if (_DEBUG_) global.log("intellihide: _onItemDragCancelled");
         if (this._toggledOverviewOnDrag) {
             this._toggledOverviewOnDrag = false;
@@ -550,6 +573,7 @@ var Intellihide = class WorkspacesToDock_Intellihide {
 
     // handler for when app icon dragging ended
     _onItemDragEnd() {
+        log("uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu7")
         if (_DEBUG_) global.log("intellihide: _onWindowDragEnd");
         if (this._toggledOverviewOnDrag) {
             this._toggledOverviewOnDrag = false;
@@ -597,7 +621,11 @@ var Intellihide = class WorkspacesToDock_Intellihide {
     _overviewEntered() {
         if (_DEBUG_) global.log("intellihide: _overviewEnter");
         this._inOverview = true;
-        if (Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage) {
+        //要修改
+        // if (Main.overview.viewSelector._activePage == Main.overview.viewSelector._workspacesPage) {
+
+
+        if (true) {
             if (this._settings.get_boolean('dock-fixed')) {
                 this._show();
             } else {
@@ -656,6 +684,11 @@ var Intellihide = class WorkspacesToDock_Intellihide {
 
     // handler for when panel focus is grabbed (GS 38+)
     _onPanelFocusGrabbed(source, event) {
+
+          log("uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu9")
+
+
+
         if (this._settings.get_boolean('ignore-top-panel')) return;
         let idx = source._grabStack.length - 1;
         let focusedActor = source._grabStack[idx].actor;
@@ -774,6 +807,11 @@ var Intellihide = class WorkspacesToDock_Intellihide {
 
     // intellihide function to hide dock
     _hide(dontforce) {
+
+
+
+        log("uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu999",dontforce)
+
         this.status = false;
         if (this._settings.get_boolean('dock-fixed')) {
             if (_DEBUG_) global.log("intellihide: _hide - fadeOutDock");
@@ -801,6 +839,8 @@ var Intellihide = class WorkspacesToDock_Intellihide {
 
     // intellihide function to determine if dock overlaps a window
     _updateDockVisibility() {
+
+
         if (this._disableIntellihide)
             return;
 
@@ -842,7 +882,6 @@ var Intellihide = class WorkspacesToDock_Intellihide {
                             break;
                         }
                     }
-
                     // If there isn't a focused app, use that of the window on top
                     //this._focusApp = this._tracker.focus_app || this._tracker.get_window_app(this._topWindow);
 
@@ -884,10 +923,31 @@ var Intellihide = class WorkspacesToDock_Intellihide {
                             if (this._dock._position == St.Side.LEFT || this._dock._position == St.Side.TOP) {
                                 test = (rect.x < dx + dw) && (rect.x + rect.width > dx) && (rect.y < dy + dh) && (rect.y + rect.height > dy);
                             } else if (this._dock._position == St.Side.RIGHT) {
-                                test = (rect.x < dx) && (rect.x + rect.width > dx - dw) && (rect.y < dy + dh) && (rect.y + rect.height > dy);
+
+                                // test = (rect.x < dx) && (rect.x + rect.width > dx - dw) && (rect.y < dy + dh) && (rect.y + rect.height > dy);
+
+                                 test = (rect.x < dx) && (rect.x + rect.width > dx - dw);
+
+                                // test =  (rect.x + rect.width) > dx
+
+
+
+                              //   test = (rect.x < dx) && (rect.x + rect.width > dx - dw) && (rect.y < dy + dh) && (rect.y + rect.height > dy);
+
+
+                                // global.log("dx="+dx+" dy="+dy+" || dcx="+Math.round(dcx)+" dcy="+dcy);
+
+
                             } else if (this._dock._position == St.Side.BOTTOM) {
                                 test = (rect.x < dx + dw) && (rect.x + rect.width > dx) && (rect.y + rect.height > dy - dh) && (rect.y < dy);
                             }
+
+     // global.log(this._dock._position,"dx="+dx+" dy="+dy+" dh="+dh +" dw="+dw + " rect.x="+rect.x + " rect.y="+rect.y +" rect.width="+rect.width +" rect.height="+rect.height  )
+
+
+     //global.log("(rect.x < dx)="+(rect.x < dx)+" (rect.x + rect.width > dx - dw)="+(rect.x + rect.width > dx - dw)+" (rect.y < dy + dh)="+(rect.y < dy + dh) + "(rect.y + rect.height > dy)=" + (rect.y + rect.height > dy)  )
+
+
                             if (test) {
                                 overlaps = true;
                                 break;
