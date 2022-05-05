@@ -2293,6 +2293,14 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         this.settings.set_strv('workspace-caption-items', currentItems);
         return true;
     }
+
+
+    setDockFixed:function(v){
+
+     this.settings.set_boolean('dock-fixed',v);
+    }
+
+
 });
 
 function init() {
