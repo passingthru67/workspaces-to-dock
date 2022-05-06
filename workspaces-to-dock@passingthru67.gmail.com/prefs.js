@@ -2294,13 +2294,6 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         return true;
     }
 
-
-    setDockFixed:function(v){
-
-     this.settings.set_boolean('dock-fixed',v);
-    }
-
-
 });
 
 function init() {
