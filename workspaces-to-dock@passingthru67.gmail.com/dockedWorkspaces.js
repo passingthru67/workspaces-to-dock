@@ -271,6 +271,11 @@ var DockedWorkspaces = class WorkspacesToDock_DockedWorkspaces {
         // Initialize dock state
         this._dockState = DockState.HIDDEN;
 
+
+
+
+
+
         // Initialize popup menu flag
         this._popupMenuShowing = false;
 
