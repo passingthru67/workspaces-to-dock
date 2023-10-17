@@ -1541,8 +1541,25 @@ var MyThumbnailsBox = GObject.registerClass({
         if (this._stateUpdateQueued)
             return;
 
-        Meta.later_add(Meta.LaterType.BEFORE_REDRAW,
-                       this._updateStates.bind(this));
+        // Meta.later_add(Meta.LaterType.BEFORE_REDRAW,
+
+
+
+        if (Meta.later_add) {
+            Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
+                this._updateStates.bind(this);
+            });
+        } else {
+            const laters = global.compositor.get_laters();
+            laters.add(Meta.LaterType.BEFORE_REDRAW, () => {
+                this._updateStates.bind(this);
+            });
+        }
+
+
+
+
+
 
         this._stateUpdateQueued = true;
     }
@@ -1775,9 +1792,26 @@ var MyThumbnailsBox = GObject.registerClass({
         let x = box.x1;
 
         if (this._dropPlaceholderPos == -1) {
-            Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
+
+
+
+           /* Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
                 this._dropPlaceholder.hide();
-            });
+            });*/
+
+
+            if (Meta.later_add) {
+                Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
+                    this._dropPlaceholder.hide();
+                });
+            } else {
+                const laters = global.compositor.get_laters();
+                laters.add(Meta.LaterType.BEFORE_REDRAW, () => {
+                    this._dropPlaceholder.hide();
+                });
+            }
+
+
         }
 
         let childBox = new Clutter.ActorBox();
@@ -1812,9 +1846,25 @@ var MyThumbnailsBox = GObject.registerClass({
                     // this._dropPlaceholder.allocate(childBox, flags);
                     this._dropPlaceholder.allocate(childBox);
 
-                    Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
+                    /*Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
                         this._dropPlaceholder.show();
-                    });
+                    });*/
+
+                    if (Meta.later_add) {
+                        Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
+                            this._dropPlaceholder.show();
+                        });
+                    } else {
+                        const laters = global.compositor.get_laters();
+                        laters.add(Meta.LaterType.BEFORE_REDRAW, () => {
+                            this._dropPlaceholder.show();
+                        });
+                    }
+
+
+
+
+
                     x += placeholderWidth + spacing;
                 }
 
@@ -1890,9 +1940,27 @@ var MyThumbnailsBox = GObject.registerClass({
                     childBox.y2 = Math.round(y + placeholderHeight);
                     // this._dropPlaceholder.allocate(childBox, flags);
                     this._dropPlaceholder.allocate(childBox);
-                    Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
+                    /*Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
                         this._dropPlaceholder.show();
-                    });
+                    });*/
+
+                    if (Meta.later_add) {
+                        Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
+                            tthis._dropPlaceholder.show();
+                        });
+                    } else {
+                        const laters = global.compositor.get_laters();
+                        laters.add(Meta.LaterType.BEFORE_REDRAW, () => {
+                            this._dropPlaceholder.show();
+                        });
+                    }
+
+
+
+
+
+
+
                     y += placeholderHeight + spacing;
                 }
 
