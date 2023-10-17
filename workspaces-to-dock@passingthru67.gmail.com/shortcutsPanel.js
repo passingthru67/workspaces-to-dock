@@ -1196,7 +1196,18 @@ var ShortcutsPanel = class WorkspacesToDock_ShortcutsPanel {
         if (!this._dragPlaceholder)
             return true;
 
-        Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
+       /* Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
+                let appFavorites = AppFavorites.getAppFavorites();
+                if (srcIsFavorite)
+                    appFavorites.moveFavoriteToPos(id, favPos);
+                else
+                    appFavorites.addFavoriteAtPos(id, favPos);
+                return false;
+            });*/
+
+
+        if (Meta.later_add) {
+            Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
                 let appFavorites = AppFavorites.getAppFavorites();
                 if (srcIsFavorite)
                     appFavorites.moveFavoriteToPos(id, favPos);
@@ -1204,6 +1215,20 @@ var ShortcutsPanel = class WorkspacesToDock_ShortcutsPanel {
                     appFavorites.addFavoriteAtPos(id, favPos);
                 return false;
             });
+        } else {
+            const laters = global.compositor.get_laters();
+            laters.add(Meta.LaterType.BEFORE_REDRAW, () => {
+                let appFavorites = AppFavorites.getAppFavorites();
+                if (srcIsFavorite)
+                    appFavorites.moveFavoriteToPos(id, favPos);
+                else
+                    appFavorites.addFavoriteAtPos(id, favPos);
+                return false;
+            });
+        }
+
+
+
 
         this._clearDragPlaceholder();
         return true;
