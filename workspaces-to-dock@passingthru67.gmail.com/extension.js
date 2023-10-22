@@ -19,10 +19,18 @@ const Convenience = Me.imports.convenience;
 const Intellihide = Me.imports.intellihide;
 const DockedWorkspaces = Me.imports.dockedWorkspaces;
 
+const {
+    Clutter
+} = imports.gi;
+
+
 var intellihide = null;
 var dock = null;
 var settings = null;
 var workspacesToDockStylesheet = null;
+
+let dockss;
+
 
 function loadStylesheet() {
     if (_DEBUG_) global.log("WorkspacesToDock: _loadStylesheet");
@@ -94,10 +102,11 @@ function init() {
 function enable() {
     if (_DEBUG_) global.log("WorkspacesToDock: ENABLE");
     loadStylesheet();
-    dock = new DockedWorkspaces.DockedWorkspaces();
-    intellihide = new Intellihide.Intellihide(dock);
-    settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
-    bindSettingsChanges();
+    
+     dock = new DockedWorkspaces.DockedWorkspaces();
+     intellihide = new Intellihide.Intellihide(dock);
+     settings = Convenience.getSettings('org.gnome.shell.extensions.workspaces-to-dock');
+     bindSettingsChanges();
 }
 
 function disable() {
@@ -106,7 +115,6 @@ function disable() {
     intellihide.destroy();
     dock.destroy();
     settings.run_dispose();
-
     dock = null;
     intellihide = null;
     settings = null;
@@ -128,6 +136,7 @@ function bindSettingsChanges() {
         intellihide = new Intellihide.Intellihide(dock);
     });
     settings.connect('changed::dock-fixed', function(){
+
         intellihide.destroy();
         dock.destroy();
         dock = new DockedWorkspaces.DockedWorkspaces();

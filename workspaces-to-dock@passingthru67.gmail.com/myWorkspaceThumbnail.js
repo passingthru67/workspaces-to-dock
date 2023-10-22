@@ -1541,8 +1541,25 @@ var MyThumbnailsBox = GObject.registerClass({
         if (this._stateUpdateQueued)
             return;
 
-        Meta.later_add(Meta.LaterType.BEFORE_REDRAW,
-                       this._updateStates.bind(this));
+        // Meta.later_add(Meta.LaterType.BEFORE_REDRAW,
+
+
+
+        if (Meta.later_add) {
+            Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
+                this._updateStates.bind(this);
+            });
+        } else {
+            const laters = global.compositor.get_laters();
+            laters.add(Meta.LaterType.BEFORE_REDRAW, () => {
+                this._updateStates.bind(this);
+            });
+        }
+
+
+
+
+
 
         this._stateUpdateQueued = true;
     }
@@ -1655,7 +1672,7 @@ var MyThumbnailsBox = GObject.registerClass({
     }
 
     vfunc_allocate(box, flags) {
-        this.set_allocation(box, flags);
+        this.set_allocation(box);
 
         this._thumbnailsBoxWidth = this.width;
         this._thumbnailsBoxHeight = this.height;
@@ -1775,9 +1792,26 @@ var MyThumbnailsBox = GObject.registerClass({
         let x = box.x1;
 
         if (this._dropPlaceholderPos == -1) {
-            Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
+
+
+
+           /* Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
                 this._dropPlaceholder.hide();
-            });
+            });*/
+
+
+            if (Meta.later_add) {
+                Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
+                    this._dropPlaceholder.hide();
+                });
+            } else {
+                const laters = global.compositor.get_laters();
+                laters.add(Meta.LaterType.BEFORE_REDRAW, () => {
+                    this._dropPlaceholder.hide();
+                });
+            }
+
+
         }
 
         let childBox = new Clutter.ActorBox();
@@ -1809,10 +1843,28 @@ var MyThumbnailsBox = GObject.registerClass({
                     childBox.y2 = y2;
                     childBox.x1 = Math.round(x);
                     childBox.x2 = Math.round(x + placeholderWidth);
-                    this._dropPlaceholder.allocate(childBox, flags);
-                    Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
+                    // this._dropPlaceholder.allocate(childBox, flags);
+                    this._dropPlaceholder.allocate(childBox);
+
+                    /*Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
                         this._dropPlaceholder.show();
-                    });
+                    });*/
+
+                    if (Meta.later_add) {
+                        Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
+                            this._dropPlaceholder.show();
+                        });
+                    } else {
+                        const laters = global.compositor.get_laters();
+                        laters.add(Meta.LaterType.BEFORE_REDRAW, () => {
+                            this._dropPlaceholder.show();
+                        });
+                    }
+
+
+
+
+
                     x += placeholderWidth + spacing;
                 }
 
@@ -1839,7 +1891,8 @@ var MyThumbnailsBox = GObject.registerClass({
                 childBox.y2 = y1 + portholeHeight + (captionBackgroundHeight/roundedVScale);
 
                 thumbnail.set_scale(roundedHScale, roundedVScale);
-                thumbnail.allocate(childBox, flags);
+                // thumbnail.allocate(childBox, flags);
+                thumbnail.allocate(childBox);
 
                 // passingthru67 - set myWorkspaceThumbnail labels
                 if (this._mySettings.get_boolean('workspace-captions'))
@@ -1885,10 +1938,29 @@ var MyThumbnailsBox = GObject.registerClass({
                     childBox.x2 = x2;
                     childBox.y1 = Math.round(y);
                     childBox.y2 = Math.round(y + placeholderHeight);
-                    this._dropPlaceholder.allocate(childBox, flags);
-                    Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
+                    // this._dropPlaceholder.allocate(childBox, flags);
+                    this._dropPlaceholder.allocate(childBox);
+                    /*Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
                         this._dropPlaceholder.show();
-                    });
+                    });*/
+
+                    if (Meta.later_add) {
+                        Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
+                            tthis._dropPlaceholder.show();
+                        });
+                    } else {
+                        const laters = global.compositor.get_laters();
+                        laters.add(Meta.LaterType.BEFORE_REDRAW, () => {
+                            this._dropPlaceholder.show();
+                        });
+                    }
+
+
+
+
+
+
+
                     y += placeholderHeight + spacing;
                 }
 
@@ -1917,7 +1989,7 @@ var MyThumbnailsBox = GObject.registerClass({
                 childBox.y2 = y1 + portholeHeight + (captionBackgroundHeight/roundedVScale);
 
                 thumbnail.set_scale(roundedHScale, roundedVScale);
-                thumbnail.allocate(childBox, flags);
+                thumbnail.allocate(childBox);
 
                 // passingthru67 - set myWorkspaceThumbnail labels
                 if (this._mySettings.get_boolean('workspace-captions'))
@@ -1944,7 +2016,7 @@ var MyThumbnailsBox = GObject.registerClass({
             childBox.y2 = (indicatorY2 ? indicatorY2 + captionBackgroundHeight : (indicatorY1 + thumbnailHeight + captionBackgroundHeight)) + indicatorBottomFullBorder;
         }
 
-        this._indicator.allocate(childBox, flags);
+        this._indicator.allocate(childBox);
     }
 
     _activeWorkspaceChanged(_wm, _from, _to, _direction) {

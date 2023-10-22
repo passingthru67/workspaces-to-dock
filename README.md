@@ -1,3 +1,16 @@
+Fedora38 Gnome 44 is OK
+ 
+ 
+ i like this extend, but it can not use now .I changed at 2022-05-05, it works now,but the setting panel can not be use. if you want to change the setting, change the xml file and then use 
+ glib-compile-schemas ./schemas/ 
+ 
+ My OS is Fedora26，
+ gnome 42.1
+ 
+ 
+ 
+
+ ![screenshot]( https://github.com/dingmingglc/workspaces-to-dock/blob/master/2022-05-05%2018-59-03.png)
 workspaces-to-dock
 ==================
 

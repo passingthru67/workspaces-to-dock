@@ -2293,6 +2293,7 @@ const WorkspacesToDockPreferencesWidget = new GObject.Class({
         this.settings.set_strv('workspace-caption-items', currentItems);
         return true;
     }
+
 });
 
 function init() {
